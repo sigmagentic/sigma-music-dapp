@@ -1,0 +1,265 @@
+@import "assets/satoshi.css";
+@import "assets/clashDisplay.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply font-[Satoshi-Medium] !important;
+}
+
+h1,
+h2 {
+  @apply font-[Clash-Medium] text-4xl text-foreground !important;
+}
+
+h3,
+h4 {
+  @apply font-[Clash-Regular] text-2xl text-foreground !important;
+}
+
+h5,
+h6 {
+  @apply font-[Clash-Regular] text-lg text-foreground !important;
+}
+
+.filter::placeholder {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 94%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-3;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply rounded-md bg-[#f7f4ed];
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-neutral-400/90 rounded-lg;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-400/70;
+  }
+}
+
+@layer utilities {
+  .scrollbar::-webkit-scrollbar {
+    @apply w-5;
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    @apply rounded-md bg-[#f7f4ed];
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-neutral-400/90 rounded-lg;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-400/70;
+  }
+}
+
+.vertical-timeline-element-content {
+  @apply bg-background shadow-none text-foreground md:p-[1em] p-0 !important;
+}
+
+.vertical-timeline-element-icon {
+  @apply bg-gradient-to-r from-yellow-300 to-orange-500 text-background;
+}
+
+.vertical-timeline-element-content-arrow {
+  @apply border-r-[7px] border-r-foreground !important;
+}
+
+.vertical-timeline::before {
+  @apply bg-black dark:bg-white !important;
+}
+
+.dapp-core-component__transactionToast-styles__content,
+.dapp-core-component__customToast-styles__close {
+  @apply text-foreground bg-background fill-black !important;
+}
+
+.dapp-core-component__transactionsToastList-styles__toasts,
+.dapp-custom-toast,
+.dapp-core-component__transactionsToastList-styles__toastWrapper {
+  @apply fixed bottom-14 right-10 bg-background/60 text-foreground !important;
+}
+
+.dapp-core-component__transactionsToastList-styles__toasts,
+.dapp-custom-toast,
+.dapp-core-component__transactionsToastList-styles__toastWrapper {
+  @apply bg-background/60 !important;
+}
+
+/*.dapp-core-component__transactionToast-styles__content*/
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+}
+
+.go2072408551 {
+  max-width: 40%;
+}
+
+.dapp-core-component__scamPhishingStyles__scam-phishing-alert .dapp-core-component__scamPhishingStyles__scam-phishing-alert-text,
+.dapp-core-component__walletConnectLoginContainerStyles__xPortal-content,
+.dapp-core-component__ledgerConnectStyles__login-connect-container .dapp-core-component__ledgerConnectStyles__login-connect-container-content {
+  @apply text-foreground !important;
+}
+
+.dapp-core-component__addressTableStyles__ledger-address-table-wrapper {
+  @apply text-foreground !important;
+}
+
+.dapp-core-component__ledgerLoadingStyles__ledger-loading-wrapper {
+  @apply text-foreground !important;
+}
+
+.dapp-core-component__scamPhishingStyles__scam-phishing-alert.dapp-core-component__scamPhishingStyles__scam-phishing-alert-authorization {
+  @apply text-foreground !important;
+}
+
+.dapp-core-component__confirmAddressStyles__ledger-confirm-address-heading {
+  @apply text-foreground !important;
+}
+
+@keyframes ping {
+  0% {
+    transform: scale(0.1);
+    opacity: 1;
+  }
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping-slow {
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.before\:translate-x-\[var\(--mouse-x\)\]::before {
+  content: var(--tw-content);
+  --tw-translate-x: var(--mouse-x);
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.before\:translate-y-\[var\(--mouse-y\)\]::before {
+  content: var(--tw-content);
+  --tw-translate-y: var(--mouse-y);
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+    scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.after\:\[background\:_radial-gradient\(250px_circle_at_var\(--mouse-x\)_var\(--mouse-y\)\2c theme\(colors\.slate\.400\)\2c transparent\)\]::after {
+  content: var(--tw-content);
+  background: radial-gradient(250px circle at var(--mouse-x) var(--mouse-y), #94a3b8, transparent);
+}
+
+.after\:\[background\:_radial-gradient\(250px_circle_at_var\(--mouse-x\)_var\(--mouse-y\)\2c theme\(colors\.slate\.400\)\2c transparent\)\]::after {
+  content: var(--tw-content);
+  background: radial-gradient(250px circle at var(--mouse-x) var(--mouse-y), #94a3b8, transparent);
+}
+
+/* This is to make sure the tsparticle animations for bitz always appear on top */
+#confetti,
+#fireworks {
+  z-index: 1000;
+  position: relative;
+}
+
+.wallet-adapter-modal-title {
+  color: #ffffff !important;
+}
+
+/* simple tooltip */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  min-width: 250px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 1rem;
+  top: 1rem;
+  left: 0;
+
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1000;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
