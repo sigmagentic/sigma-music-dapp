@@ -1,7 +1,6 @@
 import React from "react";
 import { faHandPointer, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useGetAccount } from "@multiversx/sdk-dapp/hooks";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Gift, Heart, Loader2, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -14,9 +13,7 @@ import { getBestBuyCtaLink } from "./types/utils";
 
 type ArtistDiscographyProps = {
   albums: any[];
-  mvxNetworkSelected: any;
   viewSolData: any;
-  viewMvxData: any;
   bountyBitzSumGlobalMapping?: any;
   onSendBitzForMusicBounty?: any;
   artistProfile?: any;
@@ -46,19 +43,16 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     playPausePreview,
     previewPlayingForAlbumId,
     currentTime,
-    mvxNetworkSelected,
     isFreeDropSampleWorkflow,
     checkOwnershipOfAlbum,
     viewSolData,
-    viewMvxData,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
   } = props;
   const { publicKey: publicKeySol } = useWallet();
-  const { address: addressMvx } = useGetAccount();
   const [, setSearchParams] = useSearchParams();
 
-  const userLoggedInWithWallet = publicKeySol || addressMvx;
+  const userLoggedInWithWallet = publicKeySol;
 
   return (
     <>
@@ -155,7 +149,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             )}
 
             {/* when not logged in, show this to convert the wallet into user account */}
-            {!mvxNetworkSelected && !publicKeySol && (
+            {!publicKeySol && (
               <div className="relative">
                 <Link to={routeNames.unlock} state={{ from: `${location.pathname}${location.search}` }}>
                   <Button className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300" variant="outline">
@@ -176,7 +170,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 )}
               </div>
             )}
-
+            {/* 
             {mvxNetworkSelected && !addressMvx && (
               <Link to={routeNames.unlock} state={{ from: `${location.pathname}${location.search}` }}>
                 <Button className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300" variant="outline">
@@ -186,7 +180,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   </>
                 </Button>
               </Link>
-            )}
+            )} */}
 
             <>
               {checkOwnershipOfAlbum(album) > -1 && (
@@ -198,11 +192,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       const albumInOwnershipListIndex = checkOwnershipOfAlbum(album);
 
                       if (albumInOwnershipListIndex > -1) {
-                        if (!mvxNetworkSelected) {
-                          viewSolData(albumInOwnershipListIndex);
-                        } else {
-                          viewMvxData(albumInOwnershipListIndex);
-                        }
+                        viewSolData(albumInOwnershipListIndex);
                       }
 
                       if (openActionFireLogic) {

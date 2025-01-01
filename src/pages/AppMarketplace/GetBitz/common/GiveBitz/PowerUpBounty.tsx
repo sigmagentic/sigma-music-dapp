@@ -4,11 +4,8 @@ import { ExternalLinkIcon } from "lucide-react";
 import moment from "moment-timezone";
 import { Link } from "react-router-dom";
 import stampFinalized from "assets/img/getbitz/givebitz/stampFinalized.png";
-import { MXAddressLink } from "components";
-import { MAINNET_MVX_EXPLORER_ADDRESS, MARKETPLACE_DETAILS_PAGE } from "config";
-import { useGetAccount } from "hooks";
+import { MARKETPLACE_DETAILS_PAGE } from "config";
 import { cn } from "libs/utils";
-import { useLocalStorageStore } from "store/LocalStorageStore.ts";
 import GiveBitzLowerCard from "./GiveBitzLowerCard";
 import { PowerUpBountyProps } from "../interfaces";
 
@@ -16,11 +13,8 @@ const PowerUpBounty = (props: PowerUpBountyProps) => {
   const { bounty, sendPowerUp, fetchGivenBitsForGetter, fetchGetterLeaderBoard, isSendingPowerUp, setIsSendingPowerUp } = props;
   const { bountySubmitter, bountyId, title, summary, readMoreLink, submittedOnTs, fillPerks, giverCounts, receivedBitzSum, finalizedDataNftIdentifier } =
     bounty;
-  const { address: mvxAddress } = useGetAccount();
   const { publicKey } = useWallet();
   const solAddress = publicKey?.toBase58() ?? "";
-  const defaultChain = useLocalStorageStore((state) => state.defaultChain);
-  const address = defaultChain === "multiversx" ? mvxAddress : solAddress;
 
   return (
     <div className="power-up-tile border min-w-[260px] max-w-[360px] relative rounded-3xl">
@@ -61,15 +55,7 @@ const PowerUpBounty = (props: PowerUpBountyProps) => {
                   )}{" "}
                 </div>
               </div>
-              <div className="my-2">
-                Submitted Id:{" "}
-                <MXAddressLink
-                  textStyle="!text-[#35d9fa]  hover:!text-[#35d9fa] hover:underline"
-                  explorerAddress={MAINNET_MVX_EXPLORER_ADDRESS}
-                  address={bountySubmitter}
-                  precision={8}
-                />
-              </div>
+              <div className="my-2">Submitted Id: {bountySubmitter}</div>
               <div className="mb-3 py-1">Bounty Id: {bountyId}</div>
               <div className="mb-3 py-1 border-b-4 border-[#35d9fa]/30">Submitted On: {moment(submittedOnTs * 1000).format("YYYY-MM-DD")}</div>
               <div className="mb-3 py-2 border-b-4 border-[#35d9fa]/30 text-sm">
@@ -80,7 +66,7 @@ const PowerUpBounty = (props: PowerUpBountyProps) => {
                   })}
                 </ul>
               </div>
-              {address && finalizedDataNftIdentifier ? (
+              {solAddress && finalizedDataNftIdentifier ? (
                 <div className="h-[21rem]">
                   <img src={stampFinalized} alt="Finalized" className="w-40 mx-auto" />
                   <div className="text-center text-2xl bg-[#2495AC] dark:bg-[#022629] p-1 px-3 rounded-2xl shadow-inner shadow-[#35d9fa]/30">Finalized</div>
@@ -94,7 +80,7 @@ const PowerUpBounty = (props: PowerUpBountyProps) => {
                 </div>
               ) : (
                 <>
-                  {address && (
+                  {solAddress && (
                     <GiveBitzLowerCard
                       bountySubmitter={bountySubmitter}
                       bountyId={bountyId}
@@ -116,7 +102,7 @@ const PowerUpBounty = (props: PowerUpBountyProps) => {
                   Fill this bounty as a Data NFT!
                   <ExternalLinkIcon width={15} />
                 </Link>
-              ) : !address ? (
+              ) : !solAddress ? (
                 <div className="flex flex-row gap-2 justify-between items-center">
                   <div className="text-center items-center bg-[#2495AC] dark:bg-[#022629] p-1 px-3 rounded-2xl shadow-inner shadow-[#35d9fa]/30">Finalized</div>
 

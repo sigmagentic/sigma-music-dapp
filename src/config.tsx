@@ -1,7 +1,6 @@
 import { IS_DEVNET } from "appsConfig";
-import { EnvironmentsEnum } from "libs/types";
 
-export const APP_NETWORK = import.meta.env.VITE_ENV_NETWORK || EnvironmentsEnum.devnet;
+export const APP_NETWORK = import.meta.env.VITE_ENV_NETWORK || "devnet";
 
 export const walletConnectV2ProjectId = import.meta.env.VITE_ENV_WALLETCONNECTV2_PROJECTID;
 
@@ -18,7 +17,7 @@ export const MARKETPLACE_DETAILS_PAGE = IS_DEVNET ? "https://test.datadex.itheum
 export const DRIP_PAGE = "https://drip.haus/itheum";
 
 export const CREATOR_PROFILE_PAGE =
-  import.meta.env.VITE_ENV_NETWORK && import.meta.env.VITE_ENV_NETWORK === EnvironmentsEnum.devnet
+  import.meta.env.VITE_ENV_NETWORK && import.meta.env.VITE_ENV_NETWORK === "devnet"
     ? "https://test.datadex.itheum.io/profile/"
     : "https://datadex.itheum.io/profile/";
 

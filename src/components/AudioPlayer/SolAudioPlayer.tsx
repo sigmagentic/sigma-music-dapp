@@ -19,7 +19,6 @@ type SolAudioPlayerProps = {
   songs?: any;
   firstSongBlobUrl?: string;
   previewUrl?: string;
-  chainID?: string;
   onSendBitzForMusicBounty: (e: any) => any;
   bitzGiftingMeta?: {
     giveBitzToCampaignId: string;
@@ -30,7 +29,7 @@ type SolAudioPlayerProps = {
 };
 
 export const SolAudioPlayer = (props: SolAudioPlayerProps) => {
-  const { dataNftToOpen, songs, firstSongBlobUrl, previewUrl, chainID, onSendBitzForMusicBounty, bitzGiftingMeta, bountyBitzSumGlobalMapping } = props;
+  const { dataNftToOpen, songs, firstSongBlobUrl, previewUrl, onSendBitzForMusicBounty, bitzGiftingMeta, bountyBitzSumGlobalMapping } = props;
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("00:00");

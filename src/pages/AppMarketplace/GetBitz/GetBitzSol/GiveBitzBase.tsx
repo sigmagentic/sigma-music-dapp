@@ -11,7 +11,6 @@ import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
 import { getDataBounties } from "./configSol";
-import BonusBitzHistory from "../common/BonusBitzHistory";
 import PowerUpBounty from "../common/GiveBitz/PowerUpBounty";
 import { GiveBitzDataBounty, LeaderBoardItemType } from "../common/interfaces";
 import LeaderBoardTable from "../common/LeaderBoardTable";
@@ -325,8 +324,6 @@ const GiveBitzBase = () => {
           </>
         )}
       </div>
-
-      <BonusBitzHistory />
 
       <div id="bounties" className="flex flex-col items-center justify-center">
         <div className="flex flex-col mt-10 mb-8 items-center justify-center ">

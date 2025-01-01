@@ -1,9 +1,6 @@
 import React, { useState } from "react";
-import { useGetAccount } from "@multiversx/sdk-dapp/hooks";
-import { Loader } from "@multiversx/sdk-dapp/UI/Loader/Loader";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
-import { useLocalStorageStore } from "store/LocalStorageStore.ts";
 import { GiverLeaderboardProps, LeaderBoardItemType } from "../interfaces";
 import LeaderBoardTable from "../LeaderBoardTable";
 
@@ -11,11 +8,8 @@ const GiverLeaderboard: React.FC<GiverLeaderboardProps> = (props) => {
   const { bountySubmitter, bountyId, fetchGetterLeaderBoard, showUserPosition } = props;
   const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
   const [giverLeaderBoardIsLoading, setGiverLeaderBoardIsLoading] = useState<boolean>(false);
-  const { address: mvxAddress } = useGetAccount();
   const { publicKey } = useWallet();
   const solAddress = publicKey?.toBase58() ?? "";
-  const defaultChain = useLocalStorageStore((state) => state.defaultChain);
-  const address = defaultChain === "multiversx" ? mvxAddress : solAddress;
   const [getterLeaderBoard, setGetterLeaderBoard] = useState<LeaderBoardItemType[]>([]);
 
   async function loadBaseData() {
@@ -50,12 +44,12 @@ const GiverLeaderboard: React.FC<GiverLeaderboardProps> = (props) => {
           </h4>
           {giverLeaderBoardIsLoading ? (
             <div className="flex items-center justify-center  ">
-              <Loader className="w-32" />
+              <div>Loading...</div>
             </div>
           ) : (
             <div className="flex">
               {getterLeaderBoard && getterLeaderBoard.length > 0 ? (
-                <LeaderBoardTable leaderBoardData={getterLeaderBoard} address={address} showMyPosition={showUserPosition} />
+                <LeaderBoardTable leaderBoardData={getterLeaderBoard} address={solAddress} showMyPosition={showUserPosition} />
               ) : (
                 <div className="text-center">{"No Data Yet"!}</div>
               )}

@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { faHandPointer, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useGetAccount } from "@multiversx/sdk-dapp/hooks";
-import { useGetNetworkConfig } from "@multiversx/sdk-dapp/hooks";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Music2, WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
-import { Loader } from "components";
 import { Button } from "libComponents/Button";
 import { sleep } from "libs/utils";
 import { gtagGo } from "libs/utils/misc";
@@ -20,9 +17,7 @@ import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "./index";
 import { GiftBitzToArtistMeta } from "./types/common";
 
 type FeaturedArtistsAndAlbumsProps = {
-  mvxNetworkSelected: boolean;
   viewSolData: (e: number) => void;
-  viewMvxData: (e: number) => void;
   stopPreviewPlayingNow?: boolean;
   featuredArtistDeepLinkSlug?: string;
   onPlayHappened?: any;
@@ -37,9 +32,7 @@ type FeaturedArtistsAndAlbumsProps = {
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
   const {
-    mvxNetworkSelected,
     viewSolData,
-    viewMvxData,
     openActionFireLogic,
     stopPreviewPlayingNow,
     featuredArtistDeepLinkSlug,
@@ -52,7 +45,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     onFeaturedArtistDeepLinkSlug,
   } = props;
   const { publicKey: publicKeySol } = useWallet();
-  const { address: addressMvx } = useGetAccount();
   const [audio] = useState(new Audio());
   const [isPreviewPlaying, setIsPreviewPlaying] = useState<boolean>(false);
   const [previewPlayingForAlbumId, setPreviewPlayingForAlbumId] = useState<string | undefined>();
@@ -70,9 +62,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const { solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
-  const {
-    network: { chainId: chainID },
-  } = useGetNetworkConfig();
 
   function eventToAttachEnded() {
     audio.src = "";
@@ -99,8 +88,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const debounced_fetchBitzPowerUpsAndLikesForSelectedArtist = useDebouncedCallback((giftBitzToArtistMeta: GiftBitzToArtistMeta) => {
     fetchBitzPowerUpsAndLikesForSelectedArtist({
       giftBitzToArtistMeta,
-      addressMvx,
-      chainID,
       userHasNoBitzDataNftYet,
       solBitzNfts,
       setMusicBountyBitzSumGlobalMapping,
@@ -252,7 +239,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     return `${formattedMinutes}:${formattedSeconds}`;
   };
 
-  const userLoggedInWithWallet = publicKeySol || addressMvx;
+  const userLoggedInWithWallet = publicKeySol;
 
   return (
     <div className="flex flex-col justify-center items-center w-full p-3 xl:pb-0">
@@ -271,10 +258,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
           {artistAlbumDataLoading || artistAlbumDataset.length === 0 ? (
             <div className="flex flex-col justify-center w-[100%]">
               {artistAlbumDataLoading ? (
-                <div className="m-auto">
-                  <Loader noText />
-                  Artist and Albums powering up...
-                </div>
+                <div className="m-auto">Artist and Albums powering up...</div>
               ) : (
                 <div className="m-auto">⚠️ Artist and Albums unavailable</div>
               )}
@@ -361,7 +345,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               {userLoggedInWithWallet ? (
                                 <Button
                                   className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 mx-2 cursor-pointer rounded-none rounded-l-sm"
-                                  disabled={!publicKeySol && !addressMvx}
+                                  disabled={!publicKeySol}
                                   onClick={() => {
                                     onSendBitzForMusicBounty({
                                       creatorIcon: artistProfile.img,
@@ -489,11 +473,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           playPausePreview={playPausePreview}
                           previewPlayingForAlbumId={previewPlayingForAlbumId}
                           currentTime={currentTime}
-                          mvxNetworkSelected={mvxNetworkSelected}
                           isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
                           checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                           viewSolData={viewSolData}
-                          viewMvxData={viewMvxData}
                           openActionFireLogic={openActionFireLogic}
                         />
                       </div>

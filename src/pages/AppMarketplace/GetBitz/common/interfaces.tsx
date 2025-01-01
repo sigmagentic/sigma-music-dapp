@@ -30,12 +30,6 @@ export interface LeaderBoardGiverItemType {
   bits: number;
 }
 
-export interface BonusBitzHistoryItemType {
-  on: number;
-  reward: number;
-  amount: number;
-}
-
 export interface GiverLeaderboardProps {
   bountySubmitter: string;
   bountyId: string;

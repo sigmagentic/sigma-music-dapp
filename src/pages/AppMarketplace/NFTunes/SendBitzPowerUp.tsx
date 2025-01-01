@@ -1,25 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { DataNft } from "@itheum/sdk-mx-data-nft";
-import { useGetAccount } from "@multiversx/sdk-dapp/hooks";
-import { useGetLoginInfo } from "@multiversx/sdk-dapp/hooks";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { confetti } from "@tsparticles/confetti";
 import { Container } from "@tsparticles/engine";
 import { ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
-import { GET_BITZ_TOKEN_MVX } from "appsConfig";
 import { Modal } from "components/Modal/Modal";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature, viewDataWrapperSol } from "libs/sol/SolViewData";
 import { sleep } from "libs/utils";
 import { toastClosableError } from "libs/utils/uiShared";
-import { routeNames } from "routes";
+// import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
 
 type SendBitzPowerUpProps = {
-  mvxNetworkSelected: boolean;
   giveBitzForMusicBountyConfig: {
     creatorIcon?: string | undefined;
     creatorName?: string | undefined;
@@ -34,7 +28,6 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { giveBitzForMusicBountyConfig, onCloseModal } = props;
   const { creatorIcon, creatorName, giveBitzToWho, giveBitzToCampaignId, isLikeMode } = giveBitzForMusicBountyConfig;
   const { publicKey: publicKeySol, signMessage } = useWallet();
-  const { address: addressMvx } = useGetAccount();
   const [giftBitzWorkflow, setGiftBitzWorkflow] = useState<boolean>(false);
   const [bitzValToGift, setBitzValToGift] = useState<number>(0);
   const [minBitzValNeeded, setMinBitzValNeeded] = useState<number>(1);
@@ -42,8 +35,6 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const [powerUpSuccessfullyDone, setPowerUpSuccessfullyDone] = useState<boolean>(false);
   const [poweringUpError, setPoweringUpError] = useState<boolean>(false);
   const { solBitzNfts } = useNftsStore();
-  const { tokenLogin } = useGetLoginInfo();
-  const [gameDataNFT, setGameDataNFT] = useState<DataNft>();
   const [showDetails, setShowDetails] = useState<boolean>(false);
 
   const {
@@ -52,13 +43,6 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
     updateBitzBalance: updateBitzBalanceSol,
     updateGivenBitzSum: updateGivenBitzSumSol,
   } = useSolBitzStore();
-  const {
-    bitzBalance: mvxBitzBalance,
-    givenBitzSum: givenBitzSumMvx,
-    updateBitzBalance: updateBitzBalanceMvx,
-    updateGivenBitzSum: updateGivenBitzSumMvx,
-  } = useAccountStore();
-  // const bitzBalance = defaultChain === "multiversx" ? mvxBitzBalance : solBitzBalance;
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
 
   // S: Cached Signature Store Items
@@ -69,18 +53,6 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const updateSolPreaccessTimestamp = useAccountStore((state: any) => state.updateSolPreaccessTimestamp);
   const updateSolSignedPreaccess = useAccountStore((state: any) => state.updateSolSignedPreaccess);
   // E: Cached Signature Store Items
-
-  useEffect(() => {
-    if (addressMvx) {
-      fetchGameDataNftsMvx();
-    }
-  }, [addressMvx]);
-
-  useEffect(() => {
-    if (gameDataNFT) {
-      setBitBalanceOnChain(mvxBitzBalance);
-    }
-  }, [gameDataNFT, mvxBitzBalance]);
 
   useEffect(() => {
     if (publicKeySol) {
@@ -105,11 +77,6 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
       setGiftBitzWorkflow(true);
     }
   }, [giveBitzToWho, giveBitzToCampaignId, bitBalanceOnChain, powerUpSuccessfullyDone]);
-
-  async function fetchGameDataNftsMvx() {
-    const _gameDataNFT = await DataNft.createFromApi(GET_BITZ_TOKEN_MVX);
-    setGameDataNFT(_gameDataNFT);
-  }
 
   async function sendPowerUpSol() {
     setPoweringUpInProgress(true);
@@ -277,11 +244,11 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                   {bitBalanceOnChain > -1 && bitBalanceOnChain < minBitzValNeeded && (
                     <div className="mt-2">⚠️ You don't have enough BiTz for this action. To play the BiTz game and get free XP, click on the button below.</div>
                   )}
-                  <Link to={routeNames.getbitz} className="text-base hover:!no-underline hover:text-black">
+                  {/* <Link to={routeNames.getbitz} className="text-base hover:!no-underline hover:text-black">
                     <Button className="text-sm mt-2 cursor-pointer !text-orange-500 dark:!text-yellow-300" variant="secondary">
                       Get BiTz XP
                     </Button>
-                  </Link>
+                  </Link> */}
                 </>
               )}
               {(bitBalanceOnChain >= minBitzValNeeded || powerUpSuccessfullyDone) && (

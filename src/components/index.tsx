@@ -2,6 +2,3 @@ export * from "./Layout";
 export * from "./PageTitle";
 export * from "./AuthRedirectWrapper";
 export * from "./CopyAddress";
-export * from "./MXAddressLink";
-export * from "./sdkDappComponents";
-export * from "./ZoomableSvg";

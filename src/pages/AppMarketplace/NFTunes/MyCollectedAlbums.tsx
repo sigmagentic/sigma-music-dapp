@@ -1,26 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { useGetAccount, useGetNetworkConfig } from "@multiversx/sdk-dapp/hooks";
 import { Music2, LibraryBig } from "lucide-react";
-import { Loader } from "components";
 import { Button } from "libComponents/Button";
-import { gtagGo, sleep } from "libs/utils/misc";
+import { sleep } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { useNftsStore } from "store/nfts";
 import { getArtistsAlbumsData } from "./";
 import { ArtistDiscography } from "./ArtistDiscography";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "./index";
-import { GiftBitzToArtistMeta } from "./types/common";
 
 type MyCollectedAlbumsProps = {
-  mvxNetworkSelected: boolean;
   viewSolData: (e: number) => void;
-  viewMvxData: (e: number) => void;
-  shownMvxAppDataNfts: any;
   isFetchingDataMarshal: boolean;
   setStopRadio: any;
   viewDataRes: any;
-  tokenLogin: any;
   currentDataNftIndex: any;
   dataMarshalResponse: any;
   firstSongBlobUrl: any;
@@ -28,8 +21,6 @@ type MyCollectedAlbumsProps = {
   setBitzGiftingMeta: any;
   shownSolAppDataNfts: any;
   onSendBitzForMusicBounty: any;
-  nfTunesTokens: any;
-  fetchMvxAppNfts: any;
   bountyBitzSumGlobalMapping: any;
   setMusicBountyBitzSumGlobalMapping: any;
   checkOwnershipOfAlbum: any;
@@ -40,23 +31,9 @@ type MyCollectedAlbumsProps = {
 
 export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   const {
-    mvxNetworkSelected,
     viewSolData,
-    viewMvxData,
-    shownMvxAppDataNfts,
-    isFetchingDataMarshal,
-    setStopRadio,
-    viewDataRes,
-    tokenLogin,
-    currentDataNftIndex,
-    dataMarshalResponse,
-    firstSongBlobUrl,
-    setStopPreviewPlaying,
-    setBitzGiftingMeta,
     shownSolAppDataNfts,
     onSendBitzForMusicBounty,
-    nfTunesTokens,
-    fetchMvxAppNfts,
     bountyBitzSumGlobalMapping,
     checkOwnershipOfAlbum,
     setMusicBountyBitzSumGlobalMapping,
@@ -64,11 +41,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
   } = props;
-  const { address: addressMvx } = useGetAccount();
-  const { mvxNfts, isLoadingMvx, isLoadingSol, solBitzNfts } = useNftsStore();
-  const {
-    network: { chainId: chainID },
-  } = useGetNetworkConfig();
+  const { isLoadingSol, solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [myCollectedArtistsAlbums, setMyCollectedArtistsAlbums] = useState<any[]>([]);
   const [allOwnedAlbums, setAllOwnedAlbums] = useState<any[]>([]);
@@ -115,15 +88,11 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
           })
           .filter((artist) => artist.albums.length > 0); // Only keep artists that have matching albums
 
-        console.log("&&& filteredArtists ", filteredArtists);
-        console.log("&&& allOwnedAlbums ", _allOwnedAlbums);
         setMyCollectedArtistsAlbums(filteredArtists);
         setAllOwnedAlbums(_allOwnedAlbums);
-      } else if (shownMvxAppDataNfts.length > 0) {
-        console.log("&&& shownMvxAppDataNfts ", shownMvxAppDataNfts);
       }
     }
-  }, [artistAlbumDataset, shownSolAppDataNfts, shownMvxAppDataNfts]);
+  }, [artistAlbumDataset, shownSolAppDataNfts]);
 
   async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {
     // we throttle this so that we don't overwhelm the server and also, the local state updates dont fire if they are all too close together
@@ -132,8 +101,6 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
 
       fetchBitzPowerUpsAndLikesForSelectedArtist({
         giftBitzToArtistMeta: { ...allOwnedAlbums[i] },
-        addressMvx,
-        chainID,
         userHasNoBitzDataNftYet,
         solBitzNfts,
         setMusicBountyBitzSumGlobalMapping,
@@ -156,85 +123,78 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
 
         <div id="data-nfts" className="flex flex-col md:flex-row w-[100%] items-start">
           <div className="flex flex-col gap-4 p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px] w-[100%]">
-            {!mvxNetworkSelected && (
-              <>
-                <div className="flex flex-col justify-center w-[100%]">
-                  {isLoadingSol ? (
-                    <div className="m-auto bg">
-                      <Loader noText />
-                      Collected albums section powering up...
-                    </div>
-                  ) : (
-                    <>
-                      {myCollectedArtistsAlbums.length > 0 ? (
-                        <>
-                          <div className="my-2 font-bold text-lg">You have collected {allOwnedAlbums.length} albums</div>
-                          {myCollectedArtistsAlbums.map((artist: any, index: number) => {
-                            return (
-                              <div key={index} className="w-[100%]">
-                                <ArtistDiscography
-                                  inCollectedAlbumsView={true}
-                                  artist={artist}
-                                  albums={artist.albums}
-                                  bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                                  onSendBitzForMusicBounty={onSendBitzForMusicBounty}
-                                  artistProfile={artist}
-                                  mvxNetworkSelected={mvxNetworkSelected}
-                                  checkOwnershipOfAlbum={checkOwnershipOfAlbum}
-                                  viewSolData={viewSolData}
-                                  viewMvxData={viewMvxData}
-                                  openActionFireLogic={openActionFireLogic}
-                                  setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
-                                />
-                              </div>
-                            );
-                          })}
-                        </>
-                      ) : (
-                        <div className="m-auto text-center">
-                          ⚠️ You have not collected any albums :(
-                          <br />
-                          Let's fix that! <br />
-                          Get your{" "}
-                          <span
-                            className="text-primary underline hover:no-underline"
-                            onClick={() => {
-                              window.scrollTo({
-                                top: 0,
-                                behavior: "smooth",
-                              });
-                            }}>
-                            free airdrop on top of this page (if you are eligible)
-                          </span>{" "}
-                          or get some by{" "}
-                          <span
-                            className="text-primary underline hover:no-underline"
-                            onClick={() => {
-                              scrollToSection("artist-profile");
-                            }}>
-                            exploring artists and albums
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-
-                {myCollectedArtistsAlbums.length > 0 && (
-                  <Button
-                    className="text-lg mb-2 cursor-pointer"
-                    variant="outline"
-                    onClick={() => {
-                      scrollToSection("artist-profile");
-                    }}>
-                    <>
-                      <LibraryBig />
-                      <span className="ml-2">View All Artists & Collect More Albums</span>
-                    </>
-                  </Button>
+            <>
+              <div className="flex flex-col justify-center w-[100%]">
+                {isLoadingSol ? (
+                  <div className="m-auto bg">Collected albums section powering up...</div>
+                ) : (
+                  <>
+                    {myCollectedArtistsAlbums.length > 0 ? (
+                      <>
+                        <div className="my-2 font-bold text-lg">You have collected {allOwnedAlbums.length} albums</div>
+                        {myCollectedArtistsAlbums.map((artist: any, index: number) => {
+                          return (
+                            <div key={index} className="w-[100%]">
+                              <ArtistDiscography
+                                inCollectedAlbumsView={true}
+                                artist={artist}
+                                albums={artist.albums}
+                                bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                                onSendBitzForMusicBounty={onSendBitzForMusicBounty}
+                                artistProfile={artist}
+                                checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                                viewSolData={viewSolData}
+                                openActionFireLogic={openActionFireLogic}
+                                setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
+                              />
+                            </div>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <div className="m-auto text-center">
+                        ⚠️ You have not collected any albums :(
+                        <br />
+                        Let's fix that! <br />
+                        Get your{" "}
+                        <span
+                          className="text-primary underline hover:no-underline"
+                          onClick={() => {
+                            window.scrollTo({
+                              top: 0,
+                              behavior: "smooth",
+                            });
+                          }}>
+                          free airdrop on top of this page (if you are eligible)
+                        </span>{" "}
+                        or get some by{" "}
+                        <span
+                          className="text-primary underline hover:no-underline"
+                          onClick={() => {
+                            scrollToSection("artist-profile");
+                          }}>
+                          exploring artists and albums
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
-              </>
-            )}
+              </div>
+
+              {myCollectedArtistsAlbums.length > 0 && (
+                <Button
+                  className="text-lg mb-2 cursor-pointer"
+                  variant="outline"
+                  onClick={() => {
+                    scrollToSection("artist-profile");
+                  }}>
+                  <>
+                    <LibraryBig />
+                    <span className="ml-2">View All Artists & Collect More Albums</span>
+                  </>
+                </Button>
+              )}
+            </>
           </div>
         </div>
       </div>

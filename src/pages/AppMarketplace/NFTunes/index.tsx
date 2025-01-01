@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { DataNft, ViewDataReturnType } from "@itheum/sdk-mx-data-nft";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { useGetLoginInfo, useGetNetworkConfig, useGetAccount } from "@multiversx/sdk-dapp/hooks";
 import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
 import { Link, useSearchParams } from "react-router-dom";
 import { useThrottledCallback } from "use-debounce";
-import { NF_TUNES_TOKENS } from "appsConfig";
 import { IS_DEVNET } from "appsConfig";
 import megaphoneLight from "assets/img/nf-tunes/megaphone-light.png";
 import megaphone from "assets/img/nf-tunes/megaphone.png";
-import { Loader } from "components";
 import { RadioPlayer } from "components/AudioPlayer/RadioPlayer";
 import { SolAudioPlayer } from "components/AudioPlayer/SolAudioPlayer";
 import { Modal } from "components/Modal/Modal";
@@ -18,10 +14,8 @@ import YouTubeEmbed from "components/YouTubeEmbed";
 import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { useTheme } from "contexts/ThemeProvider";
-import { useGetPendingTransactions } from "hooks";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType } from "libs/types";
-import { decodeNativeAuthToken, getApiDataMarshal } from "libs/utils";
 import { scrollToSection } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { fetchBitSumAndGiverCountsSol } from "pages/AppMarketplace/GetBitz/GetBitzSol/GiveBitzBase";
@@ -35,19 +29,12 @@ import { GiftBitzToArtistMeta } from "./types/common";
 export const NFTunes = () => {
   const { theme } = useTheme();
   const currentTheme = theme !== "system" ? theme : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  const { tokenLogin } = useGetLoginInfo();
-  const {
-    network: { chainId: chainID },
-  } = useGetNetworkConfig();
-  const { hasPendingTransactions } = useGetPendingTransactions();
-  const [shownMvxAppDataNfts, setShownMvxAppDataNfts] = useState<DataNft[]>([]);
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
   const [dataMarshalResponse, setDataMarshalResponse] = useState({ "data_stream": {}, "data": [] });
   const [firstSongBlobUrl, setFirstSongBlobUrl] = useState<string>();
-  const { mvxNfts, solNfts, updateIsLoadingMvx, solBitzNfts } = useNftsStore();
-  const nfTunesTokens = [...NF_TUNES_TOKENS].filter((v) => mvxNfts.find((nft) => nft.collection === v.tokenIdentifier && nft.nonce === v.nonce));
+  const { solNfts, solBitzNfts } = useNftsStore();
   const [stopRadio, setStopRadio] = useState<boolean>(false);
   const [noRadioAutoPlay, setNoRadioAutoPlay] = useState<boolean>(true);
   const [stopPreviewPlaying, setStopPreviewPlaying] = useState<boolean>(false);
@@ -55,10 +42,8 @@ export const NFTunes = () => {
   const [radioTracks, setRadioTracks] = useState<any[]>([]);
   const [featuredArtistDeepLinkSlug, setFeaturedArtistDeepLinkSlug] = useState<string | undefined>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [mvxNetworkSelected, setMvxNetworkSelected] = useState<boolean>(false);
   const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
   const { publicKey: publicKeySol, signMessage } = useWallet();
-  const { address: addressMvx } = useGetAccount();
   const [bitzGiftingMeta, setBitzGiftingMeta] = useState<{
     giveBitzToCampaignId: string;
     bountyBitzSum: number;
@@ -76,7 +61,6 @@ export const NFTunes = () => {
   // E: Cached Signature Store Items
 
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
-  const [ownedMvxDataNftNameAndIndexMap, setOwnedMvxDataNftNameAndIndexMap] = useState<any>(null);
 
   // control the visibility base level music player model
   const [launchBaseLevelMusicPlayer, setLaunchBaseLevelMusicPlayer] = useState<boolean>(false);
@@ -93,18 +77,6 @@ export const NFTunes = () => {
   // this is a copy of the bitz balances bounties are getting (inside FeaturedArtistsAndAlbums.tsx) during the users ui session
   // ... but it only get progressively loaded as the user moves between tabs to see the atrist and their albums (so its not a complete state)
   const [bountyBitzSumGlobalMapping, setMusicBountyBitzSumGlobalMapping] = useState<any>({});
-
-  useEffect(() => {
-    if (publicKeySol) {
-      setMvxNetworkSelected(false);
-    }
-  }, [publicKeySol]);
-
-  useEffect(() => {
-    if (addressMvx) {
-      setMvxNetworkSelected(true);
-    }
-  }, [addressMvx]);
 
   useEffect(() => {
     const isFeaturedArtistDeepLink = searchParams.get("artist-profile");
@@ -134,12 +106,6 @@ export const NFTunes = () => {
 
     getRadioTracksData();
   }, []);
-
-  useEffect(() => {
-    if (!hasPendingTransactions) {
-      fetchMvxAppNfts();
-    }
-  }, [hasPendingTransactions, mvxNfts]);
 
   useEffect(() => {
     if (publicKeySol && solNfts.length > 0) {
@@ -172,129 +138,12 @@ export const NFTunes = () => {
   }, [shownSolAppDataNfts]);
 
   useEffect(() => {
-    if (shownMvxAppDataNfts && shownMvxAppDataNfts.length > 0) {
-      const nameToIndexMap = shownMvxAppDataNfts.reduce((t: any, mvxDataNft: DataNft, idx: number) => {
-        if (mvxDataNft?.tokenIdentifier) {
-          t[mvxDataNft?.tokenIdentifier] = idx;
-        }
-        return t;
-      }, {});
-
-      setOwnedMvxDataNftNameAndIndexMap(nameToIndexMap);
-    }
-  }, [shownMvxAppDataNfts]);
-
-  useEffect(() => {
     if (solBitzNfts.length === 0) {
       setUserHasNoBitzDataNftYet(true);
     } else {
       setUserHasNoBitzDataNftYet(false);
     }
   }, [solBitzNfts]);
-
-  // get the nfts that are able to open nfTunes app
-  async function fetchMvxAppNfts(activeIsLoading = true) {
-    if (activeIsLoading) {
-      updateIsLoadingMvx(true);
-    }
-
-    const _nfts: DataNft[] = await DataNft.createManyFromApi(
-      nfTunesTokens.slice(shownMvxAppDataNfts.length, shownMvxAppDataNfts.length + SHOW_NFTS_STEP).map((v) => ({
-        nonce: v.nonce,
-        tokenIdentifier: v.tokenIdentifier,
-      })),
-      5 * 60 * 1000
-    );
-
-    setShownMvxAppDataNfts((oldNfts) => oldNfts.concat(_nfts));
-
-    if (activeIsLoading) {
-      updateIsLoadingMvx(false);
-    }
-  }
-
-  // after pressing the button to view data open modal
-  async function viewMvxData(index: number) {
-    try {
-      if (!(index >= 0 && index < shownMvxAppDataNfts.length)) {
-        toastClosableError("Data is not loaded");
-        return;
-      }
-
-      setFirstSongBlobUrl(undefined);
-
-      const dataNft = shownMvxAppDataNfts[index];
-      const _owned = mvxNfts.find((nft) => nft.tokenIdentifier === dataNft.tokenIdentifier) ? true : false;
-
-      if (_owned) {
-        setIsFetchingDataMarshal(true);
-
-        let res: any;
-        if (!(tokenLogin && tokenLogin.nativeAuthToken)) {
-          throw Error("No nativeAuth token");
-        }
-
-        const arg = {
-          mvxNativeAuthOrigins: [decodeNativeAuthToken(tokenLogin.nativeAuthToken).origin],
-          mvxNativeAuthMaxExpirySeconds: 3600,
-          fwdHeaderMapLookup: {
-            "authorization": `Bearer ${tokenLogin.nativeAuthToken}`,
-          },
-          stream: true,
-          cacheDurationSeconds: MARSHAL_CACHE_DURATION_SECONDS,
-        };
-
-        setCurrentDataNftIndex(index);
-
-        if (!dataNft.dataMarshal || dataNft.dataMarshal === "") {
-          dataNft.updateDataNft({ dataMarshal: getApiDataMarshal(chainID) });
-        }
-
-        // start the request for the first song
-        const firstSongResPromise: any = dataNft.viewDataViaMVXNativeAuth({
-          mvxNativeAuthOrigins: [decodeNativeAuthToken(tokenLogin.nativeAuthToken).origin],
-          mvxNativeAuthMaxExpirySeconds: 3600,
-          fwdHeaderMapLookup: { "authorization": `Bearer ${tokenLogin?.nativeAuthToken}` },
-          stream: true,
-          nestedIdxToStream: 1, // get the song for the first index
-          cacheDurationSeconds: MARSHAL_CACHE_DURATION_SECONDS,
-        });
-
-        // start the request for the manifest file from marshal
-        res = await dataNft.viewDataViaMVXNativeAuth(arg);
-
-        let blobDataType = BlobDataType.TEXT;
-
-        if (!res.error) {
-          if (res.contentType.search("application/json") >= 0) {
-            res.data = await (res.data as Blob).text();
-            res.data = JSON.stringify(JSON.parse(res.data), null, 4);
-          }
-        } else {
-          console.error(res.error);
-          toastClosableError(res.error);
-        }
-
-        const viewDataPayload: ExtendedViewDataReturnType = {
-          ...res,
-          blobDataType,
-        };
-
-        setDataMarshalResponse(JSON.parse(res.data));
-        setViewDataRes(viewDataPayload);
-        setIsFetchingDataMarshal(false);
-
-        // await the first song response and set the firstSongBlobUrl state
-        const firstSongRes: ViewDataReturnType = await firstSongResPromise;
-        const blobUrl = URL.createObjectURL(firstSongRes.data);
-        setFirstSongBlobUrl(blobUrl);
-      }
-    } catch (err) {
-      console.error(err);
-      toastClosableError((err as Error).message);
-      setIsFetchingDataMarshal(false);
-    }
-  }
 
   async function viewSolData(index: number) {
     try {
@@ -390,44 +239,27 @@ export const NFTunes = () => {
   function checkOwnershipOfAlbum(album: any) {
     let albumInOwnershipListIndex = -1; // note -1 means we don't own it
 
-    if (!mvxNetworkSelected) {
-      if (IS_DEVNET) {
-        // in devnet we airdrop MUSGDEV1 the matches the "MUSG7 - Galactic Gravity" mainnet one
-        if (
-          album?.solNftName &&
-          ownedSolDataNftNameAndIndexMap &&
-          album.solNftName === "MUSG7 - Galactic Gravity" &&
-          ownedSolDataNftNameAndIndexMap["MUSGDEV1"] !== "undefined"
-        ) {
-          albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap["MUSGDEV1 : Common"];
-        }
-      } else if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
-        /* mark the albumInOwnershipListIndex as of the highest rarity album
+    if (IS_DEVNET) {
+      // in devnet we airdrop MUSGDEV1 the matches the "MUSG7 - Galactic Gravity" mainnet one
+      if (
+        album?.solNftName &&
+        ownedSolDataNftNameAndIndexMap &&
+        album.solNftName === "MUSG7 - Galactic Gravity" &&
+        ownedSolDataNftNameAndIndexMap["MUSGDEV1"] !== "undefined"
+      ) {
+        albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap["MUSGDEV1 : Common"];
+      }
+    } else if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
+      /* mark the albumInOwnershipListIndex as of the highest rarity album
         Legendary
         Rare
         Common */
-        if (typeof ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Legendary`] !== "undefined") {
-          albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Legendary`];
-        } else if (typeof ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Rare`] !== "undefined") {
-          albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Rare`];
-        } else {
-          albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Common`];
-        }
-      }
-    } else {
-      if (album?.mvxDataNftId && ownedMvxDataNftNameAndIndexMap) {
-        // Data NFT-FT checks
-        if (typeof ownedMvxDataNftNameAndIndexMap[album.mvxDataNftId] !== "undefined") {
-          albumInOwnershipListIndex = ownedMvxDataNftNameAndIndexMap[album.mvxDataNftId];
-        } else {
-          // Data NFT PH Checks (mvxDataNftId is actually the entire collection and not collection-nonce like in FT)
-          Object.keys(ownedMvxDataNftNameAndIndexMap).forEach((i) => {
-            if (i.includes(album.mvxDataNftId)) {
-              albumInOwnershipListIndex = ownedMvxDataNftNameAndIndexMap[i];
-              return;
-            }
-          });
-        }
+      if (typeof ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Legendary`] !== "undefined") {
+        albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Legendary`];
+      } else if (typeof ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Rare`] !== "undefined") {
+        albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Rare`];
+      } else {
+        albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Common`];
       }
     }
 
@@ -461,7 +293,7 @@ export const NFTunes = () => {
   // ... so we throttle each call by 2000 to improve some performance
   const debouncedCheckOwnershipOfAlbum = useThrottledCallback(checkOwnershipOfAlbum, 2000, { "trailing": false });
 
-  const userLoggedInWithWallet = publicKeySol || addressMvx;
+  const userLoggedInWithWallet = publicKeySol;
 
   return (
     <>
@@ -479,40 +311,36 @@ export const NFTunes = () => {
                   {radioTracksLoading ? "Radio service powering up..." : "⚠️ Radio service unavailable"}
                 </div>
               ) : (
-                // <RadioPlayer
-                //   noAutoPlay={noRadioAutoPlay}
-                //   stopRadioNow={stopRadio}
-                //   onPlayHappened={(isPlaying: boolean) => {
-                //     if (isPlaying) {
-                //       setStopRadio(false);
-                //     }
+                <RadioPlayer
+                  noAutoPlay={noRadioAutoPlay}
+                  stopRadioNow={stopRadio}
+                  onPlayHappened={(isPlaying: boolean) => {
+                    if (isPlaying) {
+                      setStopRadio(false);
+                    }
 
-                //     if (!stopPreviewPlaying) {
-                //       setStopPreviewPlaying(true);
-                //     }
-                //   }}
-                //   radioTracks={radioTracks}
-                //   checkOwnershipOfAlbum={debouncedCheckOwnershipOfAlbum}
-                //   mvxNetworkSelected={mvxNetworkSelected}
-                //   viewSolData={viewSolData}
-                //   viewMvxData={viewMvxData}
-                //   openActionFireLogic={(_bitzGiftingMeta?: any) => {
-                //     setLaunchBaseLevelMusicPlayer(true);
-                //     setStopRadio(true);
-                //     setStopPreviewPlaying(true);
+                    if (!stopPreviewPlaying) {
+                      setStopPreviewPlaying(true);
+                    }
+                  }}
+                  radioTracks={radioTracks}
+                  checkOwnershipOfAlbum={debouncedCheckOwnershipOfAlbum}
+                  viewSolData={viewSolData}
+                  openActionFireLogic={(_bitzGiftingMeta?: any) => {
+                    setLaunchBaseLevelMusicPlayer(true);
+                    setStopRadio(true);
+                    setStopPreviewPlaying(true);
 
-                //     if (_bitzGiftingMeta) {
-                //       setBitzGiftingMeta(_bitzGiftingMeta);
-                //     }
-                //   }}
-                //   solBitzNfts={solBitzNfts}
-                //   chainID={chainID}
-                //   onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
-                //   bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                //   setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
-                //   userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
-                // />
-                <></>
+                    if (_bitzGiftingMeta) {
+                      setBitzGiftingMeta(_bitzGiftingMeta);
+                    }
+                  }}
+                  solBitzNfts={solBitzNfts}
+                  onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
+                  bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                  setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
+                  userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
+                />
               )}
             </div>
           </div>
@@ -520,9 +348,7 @@ export const NFTunes = () => {
           {/* Artists and their Albums */}
           <div className="w-full">
             <FeaturedArtistsAndAlbums
-              mvxNetworkSelected={mvxNetworkSelected}
               viewSolData={viewSolData}
-              viewMvxData={viewMvxData}
               stopPreviewPlayingNow={stopPreviewPlaying}
               featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
               onFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
@@ -555,14 +381,10 @@ export const NFTunes = () => {
           {/* Data NFT list shown here */}
           {userLoggedInWithWallet && (
             <MyCollectedAlbums
-              mvxNetworkSelected={mvxNetworkSelected}
               viewSolData={viewSolData}
-              viewMvxData={viewMvxData}
-              shownMvxAppDataNfts={shownMvxAppDataNfts}
               isFetchingDataMarshal={isFetchingDataMarshal}
               setStopRadio={setStopRadio}
               viewDataRes={viewDataRes}
-              tokenLogin={tokenLogin}
               currentDataNftIndex={currentDataNftIndex}
               dataMarshalResponse={dataMarshalResponse}
               firstSongBlobUrl={firstSongBlobUrl}
@@ -570,8 +392,6 @@ export const NFTunes = () => {
               setBitzGiftingMeta={setBitzGiftingMeta}
               shownSolAppDataNfts={shownSolAppDataNfts}
               onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
-              nfTunesTokens={nfTunesTokens}
-              fetchMvxAppNfts={fetchMvxAppNfts}
               bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
               checkOwnershipOfAlbum={debouncedCheckOwnershipOfAlbum}
               userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
@@ -658,18 +478,16 @@ export const NFTunes = () => {
                   minHeight: "40rem",
                 }}>
                 <div>
-                  <Loader noText />
                   <p className="text-center text-foreground">Loading...</p>
                 </div>
               </div>
             ) : (
               <>
-                {!mvxNetworkSelected && viewDataRes && !viewDataRes.error && currentDataNftIndex > -1 && (
+                {viewDataRes && !viewDataRes.error && currentDataNftIndex > -1 && (
                   <SolAudioPlayer
                     dataNftToOpen={shownSolAppDataNfts[currentDataNftIndex]}
                     songs={dataMarshalResponse ? dataMarshalResponse.data : []}
                     firstSongBlobUrl={firstSongBlobUrl}
-                    chainID={chainID}
                     onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                     bitzGiftingMeta={bitzGiftingMeta}
                     bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
@@ -683,7 +501,6 @@ export const NFTunes = () => {
         {/* The bitz power up for creators and album liks (Solana Only) */}
         {giveBitzForMusicBountyConfig.giveBitzToWho !== "" && giveBitzForMusicBountyConfig.giveBitzToCampaignId !== "" && (
           <SendBitzPowerUp
-            mvxNetworkSelected={mvxNetworkSelected}
             giveBitzForMusicBountyConfig={giveBitzForMusicBountyConfig}
             onCloseModal={(forceRefreshBitzCountsForBounty: any) => {
               setGiveBitzForMusicBountyConfig({
@@ -787,16 +604,12 @@ let _bountyBitzSumGlobalMappingWindow: Record<any, any> = {};
 
 export async function fetchBitzPowerUpsAndLikesForSelectedArtist({
   giftBitzToArtistMeta,
-  addressMvx,
-  chainID,
   userHasNoBitzDataNftYet,
   solBitzNfts,
   setMusicBountyBitzSumGlobalMapping,
   isSingleAlbumBounty,
 }: {
   giftBitzToArtistMeta: GiftBitzToArtistMeta;
-  addressMvx: any;
-  chainID: any;
   userHasNoBitzDataNftYet: any;
   solBitzNfts: any;
   setMusicBountyBitzSumGlobalMapping: any;

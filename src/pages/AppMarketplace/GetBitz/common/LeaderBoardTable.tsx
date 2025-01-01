@@ -1,6 +1,4 @@
 import React from "react";
-import { useGetNetworkConfig } from "@multiversx/sdk-dapp/hooks";
-import { MXAddressLink } from "components";
 import { SolAddressLink } from "components/SolAddressLink";
 import { LeaderBoardItemType } from "./interfaces";
 
@@ -13,9 +11,6 @@ interface LeaderBoardTableProps {
 const LeaderBoardTable: React.FC<LeaderBoardTableProps> = (props) => {
   const { leaderBoardData, address, showMyPosition = false } = props;
   const myPosition = showMyPosition ? leaderBoardData.findIndex((item) => item.playerAddr === address) : -1;
-  const {
-    network: { explorerAddress },
-  } = useGetNetworkConfig();
   return (
     <div className="flex flex-col justify-center items-center w-full">
       {showMyPosition && <span className="text-xs text-center mb-2">Your position * {myPosition >= 0 ? myPosition + 1 : "20+"} *</span>}
@@ -39,21 +34,12 @@ const LeaderBoardTable: React.FC<LeaderBoardTableProps> = (props) => {
                   "It's YOU! 🫵 🎊"
                 ) : (
                   <>
-                    {item.playerAddr.startsWith("erd") ? (
-                      <MXAddressLink
-                        textStyle="!text-[#35d9fa]  hover:!text-[#35d9fa] hover:underline"
-                        explorerAddress={explorerAddress}
-                        address={item.playerAddr}
-                        precision={4}
-                      />
-                    ) : (
-                      <SolAddressLink
-                        textStyle="!text-[#35d9fa]  hover:!text-[#35d9fa] hover:underline"
-                        explorerAddress={explorerAddress}
-                        address={item.playerAddr}
-                        precision={4}
-                      />
-                    )}
+                    <SolAddressLink
+                      textStyle="!text-[#35d9fa]  hover:!text-[#35d9fa] hover:underline"
+                      explorerAddress={"explorerAddress"}
+                      address={item.playerAddr}
+                      precision={4}
+                    />
                   </>
                 )}
               </td>

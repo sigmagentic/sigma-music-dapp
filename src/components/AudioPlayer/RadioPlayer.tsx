@@ -11,7 +11,6 @@ import { useDebouncedCallback } from "use-debounce";
 import DEFAULT_SONG_IMAGE from "assets/img/audio-player-image.png";
 import DEFAULT_SONG_LIGHT_IMAGE from "assets/img/audio-player-light-image.png";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
-import { useGetAccount } from "hooks/sdkDappHooks";
 import { Button } from "libComponents/Button";
 import { getApiWeb2Apps } from "libs/utils";
 import { gtagGo } from "libs/utils/misc";
@@ -27,12 +26,9 @@ type RadioPlayerProps = {
   noAutoPlay?: boolean;
   onPlayHappened?: any;
   checkOwnershipOfAlbum: (e: any) => any;
-  mvxNetworkSelected: boolean;
   viewSolData: (e: number) => void;
-  viewMvxData: (e: number) => void;
   openActionFireLogic?: any;
   solBitzNfts?: any;
-  chainID?: any;
   onSendBitzForMusicBounty: (e: any) => any;
   bountyBitzSumGlobalMapping: any;
   setMusicBountyBitzSumGlobalMapping: any;
@@ -49,12 +45,9 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
     stopRadioNow,
     onPlayHappened,
     checkOwnershipOfAlbum,
-    mvxNetworkSelected,
     viewSolData,
-    viewMvxData,
     openActionFireLogic,
     solBitzNfts,
-    chainID,
     onSendBitzForMusicBounty,
     bountyBitzSumGlobalMapping,
     setMusicBountyBitzSumGlobalMapping,
@@ -77,7 +70,6 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   const [imgLoading, setImgLoading] = useState(false);
   // const [userHasNoBitzDataNftYet, setUserHasNoBitzDataNftYet] = useState(false);
   const { publicKey: publicKeySol } = useWallet();
-  const { address: addressMvx } = useGetAccount();
 
   function eventToAttachEnded() {
     setCurrentTrackIndex((prevCurrentTrackIndex) => (prevCurrentTrackIndex < radioTracks.length - 1 ? prevCurrentTrackIndex + 1 : 0));
@@ -106,8 +98,6 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   const debounced_fetchBitzPowerUpsAndLikesForSelectedArtist = useDebouncedCallback((giftBitzToArtistMeta: GiftBitzToArtistMeta) => {
     fetchBitzPowerUpsAndLikesForSelectedArtist({
       giftBitzToArtistMeta,
-      addressMvx,
-      chainID,
       userHasNoBitzDataNftYet,
       solBitzNfts,
       setMusicBountyBitzSumGlobalMapping,
@@ -402,7 +392,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
     }
   }
 
-  const userLoggedInWithWallet = publicKeySol || addressMvx;
+  const userLoggedInWithWallet = publicKeySol;
   const songPlaying = radioTracks[currentTrackIndex];
 
   return (
@@ -452,11 +442,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                         const albumInOwnershipListIndex = checkedOwnershipOfAlbumAndItsIndex;
 
                         if (albumInOwnershipListIndex > -1) {
-                          if (!mvxNetworkSelected) {
-                            viewSolData(albumInOwnershipListIndex);
-                          } else {
-                            viewMvxData(albumInOwnershipListIndex);
-                          }
+                          viewSolData(albumInOwnershipListIndex);
                         }
 
                         if (openActionFireLogic) {
