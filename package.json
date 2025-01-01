@@ -1,7 +1,7 @@
 {
   "name": "sigma-music-dapp",
   "description": "Web3 music service",
-  "version": "1.28.5",
+  "version": "0.0.1",
   "author": "Itheum",
   "license": "GPL-3.0-or-later",
   "dependencies": {

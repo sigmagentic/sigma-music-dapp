@@ -11,13 +11,12 @@ import { GET_BITZ_TOKEN_MVX } from "appsConfig";
 import { Modal } from "components/Modal/Modal";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature, viewDataWrapperSol } from "libs/sol/SolViewData";
-import { sleep, decodeNativeAuthToken } from "libs/utils";
+import { sleep } from "libs/utils";
 import { toastClosableError } from "libs/utils/uiShared";
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
-import { viewDataJSONCore } from "../GetBitz/GetBitzMvx/index";
 
 type SendBitzPowerUpProps = {
   mvxNetworkSelected: boolean;
@@ -174,51 +173,6 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
     setPoweringUpInProgress(false);
   }
 
-  async function sendPowerUpMvx() {
-    setPoweringUpInProgress(true);
-
-    if (tokenLogin && gameDataNFT) {
-      try {
-        const viewDataArgs = {
-          mvxNativeAuthOrigins: [decodeNativeAuthToken(tokenLogin.nativeAuthToken || "").origin],
-          mvxNativeAuthMaxExpirySeconds: 3600,
-          fwdHeaderMapLookup: {
-            "authorization": `Bearer ${tokenLogin.nativeAuthToken}`,
-            "dmf-custom-give-bits": "1",
-            "dmf-custom-give-bits-val": bitzValToGift,
-            "dmf-custom-give-bits-to-who": giveBitzToWho,
-            "dmf-custom-give-bits-to-campaign-id": giveBitzToCampaignId,
-          },
-          fwdHeaderKeys: "authorization, dmf-custom-give-bits, dmf-custom-give-bits-val, dmf-custom-give-bits-to-who, dmf-custom-give-bits-to-campaign-id",
-        };
-
-        const giveBitzGameResult = await viewDataJSONCore(viewDataArgs, gameDataNFT);
-
-        if (giveBitzGameResult) {
-          if (giveBitzGameResult?.data?.statusCode && giveBitzGameResult?.data?.statusCode != 200) {
-            toastClosableError("Error: Not possible to send power-up. Error code returned. Do you have enough BiTz to give?");
-            setPoweringUpError(true);
-          } else {
-            // we can "locally" estimate and update the balance counts (no need to get it from the marshal as it will be synced when user reloads page or logs in/out or plays the get bitz game)
-            updateBitzBalanceMvx(bitBalanceOnChain - bitzValToGift); // current balance - what they donated
-            updateGivenBitzSumMvx(givenBitzSumMvx + bitzValToGift); // given bits + what they donated
-
-            setPowerUpSuccessfullyDone(true);
-            showConfetti();
-          }
-        } else {
-          toastClosableError("Error: Not possible to send power-up");
-          setPoweringUpError(true);
-        }
-      } catch (err: any) {
-        toastClosableError(`Error: Not possible to send power-up. ${err.toString()}`);
-        setPoweringUpError(true);
-      }
-    }
-
-    setPoweringUpInProgress(false);
-  }
-
   async function showConfetti() {
     const animation = await confetti({
       spread: 360,
@@ -277,8 +231,8 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                     </span>{" "}
                     {showDetails && (
                       <div>
-                        Most liked albums get promoted and featured more on NF-Tunes and other social channels (this supports the Musician) and in return, you
-                        can earn monthly badges that can earn you rewards. Learn more about the rewards program{" "}
+                        Most liked albums get promoted and featured more on Sigma Music and other social channels (this supports the Musician) and in return,
+                        you can earn monthly badges that can earn you rewards. Learn more about the rewards program{" "}
                         <a href="https://docs.itheum.io/product-docs/product/ai-data-workforce/badges" target="_blank" className="text-blue-500">
                           here
                         </a>
@@ -292,9 +246,9 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                     </span>{" "}
                     {showDetails && (
                       <div>
-                        Musicians with the most Bitz powering them will be featured more on NF-Tunes and other social channels and they will get monthly badges
-                        that can earn them rewards (this supports the Musician) and in return, you can also earn monthly badges that can earn you rewards. Learn
-                        more about the rewards program{" "}
+                        Musicians with the most Bitz powering them will be featured more on Sigma Music and other social channels and they will get monthly
+                        badges that can earn them rewards (this supports the Musician) and in return, you can also earn monthly badges that can earn you
+                        rewards. Learn more about the rewards program{" "}
                         <a href="https://docs.itheum.io/product-docs/product/ai-data-workforce/badges" target="_blank" className="text-blue-500">
                           here
                         </a>
@@ -404,11 +358,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                             disabled={bitBalanceOnChain < minBitzValNeeded || bitzValToGift < 1 || poweringUpInProgress}
                             className="!text-white text-lg bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% cursor-pointer w-[200px] md:w-[300px] md:h-[50px]"
                             onClick={() => {
-                              if (publicKeySol) {
-                                sendPowerUpSol();
-                              } else {
-                                sendPowerUpMvx();
-                              }
+                              sendPowerUpSol();
                             }}>
                             <span className="ml-2">
                               {poweringUpInProgress

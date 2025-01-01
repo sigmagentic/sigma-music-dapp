@@ -1,7 +1,7 @@
 import { IS_DEVNET } from "appsConfig";
 import { EnvironmentsEnum } from "libs/types";
 
-export const ELROND_NETWORK = import.meta.env.VITE_ENV_NETWORK || EnvironmentsEnum.devnet;
+export const APP_NETWORK = import.meta.env.VITE_ENV_NETWORK || EnvironmentsEnum.devnet;
 
 export const walletConnectV2ProjectId = import.meta.env.VITE_ENV_WALLETCONNECTV2_PROJECTID;
 
@@ -9,7 +9,7 @@ export const apiTimeout = 10_000; // 10s
 
 export const TOOLS_API_URL = "https://tools.multiversx.com";
 
-export const dAppName = "Itheum Explorer";
+export const dAppName = "Sigma Music";
 
 export const SHOW_NFTS_STEP = 20;
 

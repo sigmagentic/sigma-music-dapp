@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useGetAccount, useGetNetworkConfig } from "@multiversx/sdk-dapp/hooks";
 import { Music2, LibraryBig } from "lucide-react";
-import { Loader, MvxDataNftCard } from "components";
-import { MvxAudioPlayer } from "components/AudioPlayer/MvxAudioPlayer";
-import { HeaderComponent } from "components/Layout/HeaderComponent";
+import { Loader } from "components";
 import { Button } from "libComponents/Button";
 import { gtagGo, sleep } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
@@ -158,88 +156,6 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
 
         <div id="data-nfts" className="flex flex-col md:flex-row w-[100%] items-start">
           <div className="flex flex-col gap-4 p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px] w-[100%]">
-            {mvxNetworkSelected && (
-              <HeaderComponent
-                pageTitle={""}
-                hasImage={false}
-                pageSubtitle={`You have collected ${shownMvxAppDataNfts.length} Music Data NFTs`}
-                alwaysCenterTitleAndSubTitle={true}>
-                <div className="flex flex-col md:flex-row flex-wrap justify-center">
-                  {shownMvxAppDataNfts.length > 0 ? (
-                    shownMvxAppDataNfts.map((dataNft: any, index: number) => {
-                      return (
-                        <MvxDataNftCard
-                          key={index}
-                          index={index}
-                          dataNft={dataNft}
-                          isLoading={isLoadingMvx}
-                          isDataWidget={true}
-                          owned={mvxNfts.find((nft) => nft.tokenIdentifier === dataNft.tokenIdentifier) ? true : false}
-                          viewData={viewMvxData}
-                          modalContent={
-                            isFetchingDataMarshal ? (
-                              <div
-                                className="flex flex-col items-center justify-center"
-                                style={{
-                                  minHeight: "40rem",
-                                }}>
-                                <div>
-                                  <Loader noText />
-                                  <p className="text-center text-foreground">Loading...</p>
-                                </div>
-                              </div>
-                            ) : (
-                              <>
-                                {mvxNetworkSelected && viewDataRes && !viewDataRes.error && tokenLogin && currentDataNftIndex > -1 && (
-                                  <MvxAudioPlayer
-                                    dataNftToOpen={shownMvxAppDataNfts[currentDataNftIndex]}
-                                    songs={dataMarshalResponse ? dataMarshalResponse.data : []}
-                                    tokenLogin={tokenLogin}
-                                    firstSongBlobUrl={firstSongBlobUrl}
-                                    chainID={chainID}
-                                  />
-                                )}
-                              </>
-                            )
-                          }
-                          modalTitle="Music Player"
-                          modalTitleStyle="p-4"
-                          openActionBtnText="Play Album"
-                          openActionFireLogic={(_bitzGiftingMeta?: any) => {
-                            setStopRadio(true);
-                            setStopPreviewPlaying(true);
-
-                            if (_bitzGiftingMeta) {
-                              setBitzGiftingMeta(_bitzGiftingMeta);
-                            }
-                          }}
-                          cardStyles="mx-3"
-                          hideIsInWalletSection={true}
-                        />
-                      );
-                    })
-                  ) : (
-                    <>&nbsp;</>
-                  )}
-                </div>
-              </HeaderComponent>
-            )}
-
-            {mvxNetworkSelected && shownMvxAppDataNfts.length < nfTunesTokens.length && (
-              <div className="m-auto mb-5">
-                <Button
-                  className="border-0 text-background rounded-lg font-medium tracking-tight base:!text-sm md:!text-base hover:opacity-80 hover:text-black"
-                  onClick={() => {
-                    fetchMvxAppNfts(false);
-
-                    gtagGo("NtuHm", "LoadMore", "MVX");
-                  }}
-                  disabled={false}>
-                  Load more
-                </Button>
-              </div>
-            )}
-
             {!mvxNetworkSelected && (
               <>
                 <div className="flex flex-col justify-center w-[100%]">

@@ -477,7 +477,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                       </div>
 
                       <div className="artist-discography w-[300px] lg:w-full">
-                        <p className="mt-5 mb-5 text-xl font-bold">NF-Tunes Discography</p>
+                        <p className="mt-5 mb-5 text-xl font-bold">Sigma Music Discography</p>
 
                         <ArtistDiscography
                           albums={artistProfile.albums}

@@ -1,12 +1,9 @@
 import React from "react";
-import { useGetAccount } from "@multiversx/sdk-dapp/hooks";
 import HelmetPageMeta from "components/HelmetPageMeta";
-import { GetBitzMvx } from "./GetBitzMvx";
 import GetBitzSol from "./GetBitzSol";
 
 const GetBitz: React.FC<any> = (props) => {
   const { modalMode } = props;
-  const { address: addressMvx } = useGetAccount();
 
   return (
     <div>
@@ -17,7 +14,7 @@ const GetBitz: React.FC<any> = (props) => {
         shareImgUrl="https://explorer.itheum.io/socialshare/itheum_bitzxp_social_hero.png"
       />
 
-      {addressMvx ? <GetBitzMvx modalMode={modalMode} /> : <GetBitzSol modalMode={modalMode} />}
+      {<GetBitzSol modalMode={modalMode} />}
     </div>
   );
 };

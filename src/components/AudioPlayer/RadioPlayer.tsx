@@ -370,7 +370,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
       const logResData = logRes.data;
 
       if (logResData?.error) {
-        console.error("NF-Tunes Radio logTrackUsageMetrics failed");
+        console.error("Radio logTrackUsageMetrics failed");
       }
     } catch (e) {
       console.error(e);

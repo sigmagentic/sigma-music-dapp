@@ -1,25 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Menu} from "lucide-react";
+import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SolBitzDropdown, FlaskBottleAnimation } from "components/BitzDropdown/SolBitzDropdown";
 import { CopyAddress } from "components/CopyAddress";
 import { Button } from "libComponents/Button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "libComponents/DropdownMenu";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "libComponents/NavigationMenu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "libComponents/DropdownMenu";
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuTrigger } from "libComponents/NavigationMenu";
 import { sleep } from "libs/utils";
 import { getNFTuneFirstTrackBlobData } from "pages/AppMarketplace/NFTunes";
 import { routeNames } from "routes";
@@ -60,19 +47,18 @@ export const Navbar = () => {
 
   return (
     <>
-      <div className="flex flex-row justify-between items-center xl:mx-[7.5rem] md:mx-[4rem] h-20">
+      <div className="flex flex-row justify-between items-center xl:mx-[1rem] md:mx-[1rem] h-20">
         <div className="flex flex-row items-center text-xl">
           <Link className="flex flex-row items-center" to={routeNames.home}>
-            <div className="flex flex-col leading-none">
-              <span className="text-black dark:!text-white md:text-lg text-base -mb-1">Sigma &nbsp;</span>
+            <div className="flex flex-row leading-none">
+              <span className="text-black dark:!text-white md:text-lg text-base">Sigma &nbsp;</span>
               <span className="bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold text-base ">Music</span>
             </div>
           </Link>
         </div>
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
-          <NavigationMenuList>  
-
+          <NavigationMenuList>
             {isLoggedInSol ? (
               <>
                 <NavigationMenuItem>
@@ -101,16 +87,17 @@ export const Navbar = () => {
                 </NavigationMenuItem>
               </>
             ) : (
-              <div className={"shadow-sm shadow-[#35d9fa] rounded-lg justify-center cursor-pointer"}>
-                <div className="flex flex-row items-center px-3">
-                  <Link to={routeNames.getbitz}>
-                    <Button className="text-sm tracking-wide hover:bg-transparent px-0.5 ml-0.5" variant="ghost">
-                      <FlaskBottleAnimation cooldown={0} />
-                      <div className="ml-1">BiTz XP</div>
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+              // <div className={"shadow-sm shadow-[#35d9fa] rounded-lg justify-center cursor-pointer"}>
+              //   <div className="flex flex-row items-center px-3">
+              //     <Link to={routeNames.getbitz}>
+              //       <Button className="text-sm tracking-wide hover:bg-transparent px-0.5 ml-0.5" variant="ghost">
+              //         <FlaskBottleAnimation cooldown={0} />
+              //         <div className="ml-1">XP</div>
+              //       </Button>
+              //     </Link>
+              //   </div>
+              // </div>
+              <></>
             )}
 
             <NavigationMenuItem>
@@ -135,13 +122,13 @@ export const Navbar = () => {
           <DropdownMenu>
             <div className="flex flex-row">
               {isLoggedInSol ? (
-                 <SolBitzDropdown
-                 handlePlayActionBtn={async () => {
-                   setDefaultChain("solana");
-                   await sleep(0.2);
-                   setShowPlayBitzModal(true);
-                 }}
-               />
+                <SolBitzDropdown
+                  handlePlayActionBtn={async () => {
+                    setDefaultChain("solana");
+                    await sleep(0.2);
+                    setShowPlayBitzModal(true);
+                  }}
+                />
               ) : (
                 <Link to={routeNames.unlock} state={{ from: `${location.pathname}${location.search}` }}>
                   <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] w-full rounded-lg justify-center">
@@ -161,8 +148,7 @@ export const Navbar = () => {
               </DropdownMenuTrigger>
             </div>
             <DropdownMenuContent className="w-56">
-
-              {( isLoggedInSol) && (
+              {isLoggedInSol && (
                 <>
                   <DropdownMenuSeparator />
                   {isLoggedInSol && (
@@ -192,7 +178,7 @@ export const Navbar = () => {
       </div>
 
       {publicKeySol && (
-        <div className="flex flex-row justify-between items-center xl:mx-[7.5rem] md:mx-[4rem]">
+        <div className="flex flex-row justify-between items-center xl:mx-[1rem] md:mx-[1rem]">
           <DataNftAirdropsBannerCTA />
         </div>
       )}

@@ -25,7 +25,7 @@ const SolWalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => 
   const wallets = useMemo(
     () => [
       new TipLinkWalletAdapter({
-        title: "Itheum Explorer",
+        title: "Sigma Music",
         clientId: "df83f3c6-9727-4d23-9f0b-e23785848800",
         theme: "system",
       }),
