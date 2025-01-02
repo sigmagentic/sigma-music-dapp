@@ -298,7 +298,7 @@ export const NFTunes = () => {
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
-        <div className="flex flex-col justify-center items-center font-[Clash-Regular] w-full max-w-[100rem] pb-6">
+        <div className="flex flex-col justify-center items-center font-[Clash-Regular] w-full pb-6">
           {/* App Header Row */}
           <div className="flex flex-col justify-center items-center xl:items-start w-[100%]">
             {/* Radio */}

@@ -262,10 +262,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               )}
             </div>
           ) : (
-            <div className="">
+            <div className="w-full">
               {!inArtistProfileView && (
-                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px]">
-                  <div className="artist-boxes flex flex-wrap justify-around p-2 after:content-[''] md:after:w-[300px] after:m-2">
+                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px] w-full">
+                  <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
                     {artistAlbumDataset.map((artist: any) => (
                       <div
                         key={artist.artistId}

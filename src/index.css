@@ -263,3 +263,8 @@ h6 {
 .tooltip:hover .tooltiptext {
   visibility: visible;
 }
+
+.wallet-adapter-button-trigger {
+  background-color: transparent !important;
+  border: solid 1px #fcaf32 !important;
+}

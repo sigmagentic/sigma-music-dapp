@@ -134,7 +134,14 @@ const LoginPage = () => {
                 <WalletMultiButton className="w-full !m-0"> Login Options</WalletMultiButton>
               </div>
 
-              <div className="mt-4 text-sm">Don't have an account? click on the button above to create one using a solana wallet or google account</div>
+              <div className="mt-10 text-sm">
+                Don't have an account? <br />
+                Click on the button above to create one using a solana wallet or google account. You get a{" "}
+                <span className="ext-md mb-2 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-base">
+                  Free Sigma Music Data NFT
+                </span>{" "}
+                as a joining gift.
+              </div>
             </div>
           )}
         </div>
