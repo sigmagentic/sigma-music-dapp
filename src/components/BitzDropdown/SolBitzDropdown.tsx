@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { FlaskRound, Gift } from "lucide-react";
 import Countdown from "react-countdown";
 import { Link, useLocation } from "react-router-dom";
-import solLogo from "assets/img/solana-sol-logo.png";
+import { Button } from "libComponents/Button";
+import { Popover, PopoverContent, PopoverTrigger } from "libComponents/Popover";
 import { isMostLikelyMobile } from "libs/utils/misc";
-// import { BIT_GAME_WINDOW_HOURS } from "pages/AppMarketplace/GetBitz/common/interfaces";
-import useSolBitzStore from "store/solBitz";
-import { Button } from "../../libComponents/Button";
-import { Popover, PopoverContent, PopoverTrigger } from "../../libComponents/Popover";
 import { useNftsStore } from "store/nfts";
+import useSolBitzStore from "store/solBitz";
 
 export const SolBitzDropdown = (props: any) => {
   const { skipNavBarPopOverOption, showOnlyClaimBitzButton, handlePlayActionBtn } = props;
@@ -27,7 +25,6 @@ export const SolBitzDropdown = (props: any) => {
           <>
             <PopoverTrigger>
               <div className="flex flex-row items-center px-3">
-                <img src={solLogo} className="mt-[2px] w-[12px] h-[12px]" />
                 <Button className="text-sm tracking-wide hover:bg-transparent px-0.5 ml-0.5" variant="ghost">
                   {isLoggedInSol ? (
                     solBitzBalance === -2 ? (
@@ -63,10 +60,10 @@ export const SolBitzDropdown = (props: any) => {
                       <FlaskRound className="w-7 h-7 fill-[#35d9fa]" />
                     </div>
                   </div>
-                  <p className="text-xl md:text-2xl text-center font-[Clash-Medium]">What is {`BiTz`} XP?</p>
+                  <p className="text-xl md:text-2xl text-center font-[Clash-Medium]">What is BiTz XP?</p>
                   <p className="text-xs md:text-sm  font-[Satoshi-Regular] leading-relaxed py-4 text-center">
-                    {`BiTz`} are Itheum Protocol XP. {`BiTz`} can be collected every few hours. You use {`BiTz`} points to curate and like data being created by
-                    Itheum data creators and to get rewarded in return!
+                    BiTz are Sigma Music App XP. BiTz are free to collect every few hours. You use BiTz points to curate and like content in this app and to get
+                    rewarded in return for your contributions!
                   </p>
                   <ClaimBitzButton cooldown={cooldown} handlePlayActionBtn={handlePlayActionBtn} />
                 </div>

@@ -2,7 +2,7 @@ import { Home } from "./pages";
 
 export const routeNames = {
   home: "/",
-  unlock: "/unlock",
+  login: "/login",
 };
 
 interface RouteType {

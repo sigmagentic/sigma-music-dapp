@@ -7,7 +7,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex flex-col flex-auto min-h-[100dvh]">
       <Navbar />
-      <main className="flex flex-col flex-auto xl:mx-[1rem] md:mx-[1rem] base:mx-[1.5rem min-h-[80dvh] px-4 md:px-0">{children}</main>
+      <main className="flex flex-col flex-auto mx-[1rem] md:mx-[1rem] base:mx-[1.5rem min-h-[80dvh] px-4 md:px-0">{children}</main>
       <Footer />
       <Toaster
         toastOptions={{

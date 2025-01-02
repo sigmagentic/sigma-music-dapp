@@ -298,14 +298,11 @@ export const NFTunes = () => {
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
-        <div className="w-full h-[2px] bg-[linear-gradient(to_right,#737373,#A76262,#5D3899,#5D3899,#A76262,#737373)] animate-gradient bg-[length:200%_auto]"></div>
-
-        <div className="flex flex-col justify-center items-center font-[Clash-Regular] w-full max-w-[100rem] pb-6 bgx-green-900">
+        <div className="flex flex-col justify-center items-center font-[Clash-Regular] w-full max-w-[100rem] pb-6">
           {/* App Header Row */}
-          <div className="flex flex-col justify-center items-center xl:items-start h-[100vsh] w-[100%] pt-2 xl:pt-4 md:pl-4">
+          <div className="flex flex-col justify-center items-center xl:items-start w-[100%]">
             {/* Radio */}
-            <div className="flex flex-col w-full xl:w-[100%] mt-10 mb-[80px]">
-              <div className="px-2">Sigma Music Radio</div>
+            <div className="flex flex-col w-full xl:w-[100%] mb-[20px]">
               {radioTracksLoading || radioTracks.length === 0 ? (
                 <div className="select-none h-[30%] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/40 relative md:w-[100%] flex flex-col rounded-xl mt-2 p-3">
                   {radioTracksLoading ? "Radio service powering up..." : "⚠️ Radio service unavailable"}
@@ -346,7 +343,7 @@ export const NFTunes = () => {
           </div>
 
           {/* Artists and their Albums */}
-          <div className="w-full">
+          <div className="w-full mt-5">
             <FeaturedArtistsAndAlbums
               viewSolData={viewSolData}
               stopPreviewPlayingNow={stopPreviewPlaying}
@@ -412,42 +409,46 @@ export const NFTunes = () => {
           )}
 
           {/* Calling Musicians Section */}
-          <div
-            id="join-nf-tunes"
-            className="flex flex-col gap-4 justify-center items-center bg-[#333] dark:bg-primary w-full px-[20px] py-[50px] text-center rounded-t-lg">
-            <span className="text-secondary font-[Clash-Medium] text-2xl xl:text-6xl"> Calling all Indie Musicians!</span>
-            <span className="xl:w-[50%] text-primary-foreground xl:text-2xl ">
-              Be a true Web3 music innovator! We provide you with full support to launch your music on Sigma Music
-            </span>
+          <div className="w-full mt-5">
+            <div
+              id="join-nf-tunes"
+              className="flex flex-col gap-4 justify-center items-center bg-[#333] dark:bg-primary w-full px-[20px] py-[50px] text-center rounded-t-lg ">
+              <span className="text-secondary font-[Clash-Medium] text-2xl xl:text-6xl"> Calling all Indie Musicians!</span>
+              <span className="xl:w-[50%] text-primary-foreground xl:text-2xl ">
+                Be a true Web3 music innovator! We provide you with full support to launch your music on Sigma Music
+              </span>
 
-            <img className="w-[200px] md:w-400px" src={currentTheme === "dark" ? megaphone : megaphoneLight} alt="megaphone" />
+              <img className="w-[200px] md:w-400px" src={currentTheme === "dark" ? megaphone : megaphoneLight} alt="megaphone" />
 
-            <div className="flex flex-col md:flex-row">
-              <Link
-                to={`https://api.itheumcloud.com/app_nftunes/other/nf-tunes-bizdev-deck-V2.pdf`}
-                target="_blank"
-                className="mt-10 md:mx-3 hover:scale-110 transition duration-700 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% rounded-lg md:max-w-[50%] text-white">
-                Why Sigma Music? <div className="text-sm">(Perks and Benefits)</div>
-              </Link>
-              <Link
-                to={`https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform`}
-                target="_blank"
-                className="flex items-center mt-5 md:mt-10 md:mx-3 hover:scale-110 transition duration-700 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% rounded-lg md:max-w-[50%] text-white">
-                Launch Your Music!
-              </Link>
+              <div className="flex flex-col md:flex-row">
+                <Link
+                  to={`https://api.itheumcloud.com/app_nftunes/other/nf-tunes-bizdev-deck-V2.pdf`}
+                  target="_blank"
+                  className="mt-10 md:mx-3 hover:scale-110 transition duration-700 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% rounded-lg md:max-w-[50%] text-white">
+                  Why Sigma Music? <div className="text-sm">(Perks and Benefits)</div>
+                </Link>
+                <Link
+                  to={`https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform`}
+                  target="_blank"
+                  className="flex items-center mt-5 md:mt-10 md:mx-3 hover:scale-110 transition duration-700 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% rounded-lg md:max-w-[50%] text-white">
+                  Launch Your Music!
+                </Link>
+              </div>
             </div>
-          </div>
 
-          {/* What Musicians are saying */}
-          <div className="flex flex-col gap-4 justify-center items-center bg-[#333] dark:bg-primary w-full px-[20px] md:py-[50px] text-center rounded-b-lg">
-            <div className="py-8 flex flex-col w-[100%] justify-center items-center xl:items-start xl:p-12 xl:pt-0">
-              <div className="flex flex-col xl:flex-row w-full items-center justify-center h-[300px]">
-                <div className="flex flex-col gap-8 xl:w-[50%] justify-start items-center xl:items-start w-[330px] md:w-[auto]">
-                  <div className="text-2xl xl:text-4xl text-primary-foreground">Hear what Indie Musicians are saying about Music Data NFTs and Sigma Music</div>
-                </div>
-                <div className="flex justify-center items-center h-[30rem] w-full xl:w-[50%]">
-                  <div className="w-[380px] h-[170px] md:w-[480px] md:h-[270px]">
-                    <YouTubeEmbed embedId="sDTBpwSu33I" title="Meet Manu" />
+            {/* What Musicians are saying */}
+            <div className="flex flex-col gap-4 justify-center items-center bg-[#333] dark:bg-primary w-full px-[20px] md:py-[50px] text-center rounded-b-lg">
+              <div className="py-8 flex flex-col w-[100%] justify-center items-center xl:items-start xl:p-12 xl:pt-0">
+                <div className="flex flex-col xl:flex-row w-full items-center justify-center h-[300px]">
+                  <div className="flex flex-col gap-8 xl:w-[50%] justify-start items-center xl:items-start w-[330px] md:w-[auto]">
+                    <div className="text-2xl xl:text-4xl text-primary-foreground">
+                      Hear what Indie Musicians are saying about Music Data NFTs and Sigma Music
+                    </div>
+                  </div>
+                  <div className="flex justify-center items-center h-[30rem] w-full xl:w-[50%]">
+                    <div className="w-[380px] h-[170px] md:w-[480px] md:h-[270px]">
+                      <YouTubeEmbed embedId="sDTBpwSu33I" title="Meet Manu" />
+                    </div>
                   </div>
                 </div>
               </div>

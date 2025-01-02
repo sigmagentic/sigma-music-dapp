@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import axios from "axios";
-import { ArrowBigLeft } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthRedirectWrapper } from "components";
 import { SOL_ENV_ENUM } from "config";
-import { Button } from "libComponents/Button";
-import {  getApiWeb2Apps } from "libs/utils";
+import { getApiWeb2Apps } from "libs/utils";
 
 /* 
 we use global vars here so we can maintain this state across routing back and forth to this unlock page
@@ -20,7 +18,7 @@ let solGotConnected = false;
 
 const loggingInMsgs = ["Logging you in", "Taking you to Web3", "Plugging you in", "Letting you in the backdoor"];
 
-const UnlockPage = () => {
+const LoginPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { publicKey: publicKeySol } = useWallet();
@@ -55,13 +53,7 @@ const UnlockPage = () => {
     }
   }, [addressSol]);
 
-
-  const handleGoBack = () => {
-    navigate(location.state?.from || "/");
-    // navigate(-1); // This will take the user back to the previous page
-  };
-
-  const logUserLoggedInInUserAccounts = async (addr: string, chainId: string, isMvx?: boolean) => {
+  const logUserLoggedInInUserAccounts = async (addr: string, chainId: string) => {
     try {
       const callRes = await axios.post(`${getApiWeb2Apps()}/datadexapi/userAccounts/userLoggedIn`, {
         addr,
@@ -87,11 +79,7 @@ const UnlockPage = () => {
         } else if (userLoggedInCallData?.existingUserAccountLastLoginUpdated) {
           let userMessage = "";
 
-          if (isMvx) {
-            userMessage = "Welcome Back Itheum MultiversX OG!";
-          } else {
-            userMessage = "Welcome Back Itheum Solana Legend!";
-          }
+          userMessage = "Welcome Back Music Legend!";
 
           toast.success(userMessage, {
             position: "bottom-center",
@@ -130,29 +118,24 @@ const UnlockPage = () => {
   const loggingInMsg = loggingInMsgs[Math.floor(Math.random() * loggingInMsgs.length)] + "...";
 
   return (
-    <div className="flex flex-auto items-center -z-1]">
+    <div className="flex flex-auto">
       <div className="m-auto" data-testid="unlockPage">
-        <div className="rounded-2xl my-4 text-center dark:bg-[#0a0a0a] bg-slate-100 drop-shadow-2xl">
+        <div className="rounded-2xl my-4 text-center dark:bg-[#0a0a0a] bg-slate-100 drop-shadow-2xl w-[300px] md:w-[500px]">
           {userAccountLoggingIn ? (
-            <div className="p-20 flex flex-col items-center mb-[300px] mt-[100px]">
+            <div className="p-20 flex flex-col items-center mb-[300px] mt-[200px]">
               <Loader2 className="animate-spin" />
               <p className="mt-2">{loggingInMsg}</p>
             </div>
           ) : (
-            <>
-              <Button
-                className="mt-4" // Add your styling here
-                onClick={handleGoBack}>
-                <ArrowBigLeft /> Go Back
-              </Button>
-              <div className={`pt-10 px-5 px-sm-2 mx-lg-4`}>
-                <h4 className="mb-4 font-weight-bold">Solana</h4>
+            <div className="p-10">
+              <h4 className="mb-4 font-weight-bold">Log in to Sigma Music</h4>
 
-                <div className="flex flex-col min-w-[20rem] gap-4 px-3 items-center">
-                  <WalletMultiButton className="w-full !m-0" />
-                </div>
+              <div className="flex flex-col gap-4 px-3 items-center">
+                <WalletMultiButton className="w-full !m-0"> Login Options</WalletMultiButton>
               </div>
-            </>
+
+              <div className="mt-4 text-sm">Don't have an account? click on the button above to create one using a solana wallet or google account</div>
+            </div>
           )}
         </div>
       </div>
@@ -160,8 +143,8 @@ const UnlockPage = () => {
   );
 };
 
-export const Unlock = () => (
+export const Login = () => (
   <AuthRedirectWrapper>
-    <UnlockPage />
+    <LoginPage />
   </AuthRedirectWrapper>
 );

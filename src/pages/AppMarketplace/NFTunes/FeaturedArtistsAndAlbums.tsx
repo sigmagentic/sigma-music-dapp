@@ -242,16 +242,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const userLoggedInWithWallet = publicKeySol;
 
   return (
-    <div className="flex flex-col justify-center items-center w-full p-3 xl:pb-0">
+    <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
         <div
-          className="flex flex-row rounded-lg mb-6 md:mb-6 px-8 xl:px-16 text-center gap-4 bg-[#333] dark:bg-primary md:text-2xl xl:text-3xl justify-center items-center cursor-pointer"
+          className="text-2xl xl:text-3xl cursor-pointer mb-3 w-full"
           onClick={() => {
             setInArtistProfileView(false);
           }}>
-          <Music2 className="text-secondary" />
-          <span className="text-secondary">Artists</span>
-          <Music2 className="text-secondary" />
+          <span className="">Popular artists</span>
         </div>
 
         <div id="artist-profile" className="flex flex-col md:flex-row w-[100%] items-start">
@@ -266,12 +264,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
           ) : (
             <div className="">
               {!inArtistProfileView && (
-                <div className="flex flex-col gap-4 p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px]">
-                  <div className="artist-boxes flex flex-wrap justify-around p-2 after:content-[''] after:w-[300px] after:m-2">
+                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px]">
+                  <div className="artist-boxes flex flex-wrap justify-around p-2 after:content-[''] md:after:w-[300px] after:m-2">
                     {artistAlbumDataset.map((artist: any) => (
                       <div
                         key={artist.artistId}
-                        className={`flex w-[300px] h-[300px] m-2 cursor-pointer`}
+                        className={`flex w-[250px] h-[250px] md:w-[300px] md:h-[300px] m-2 cursor-pointer`}
                         onClick={() => {
                           if (artist.artistId !== selArtistId) {
                             // notify the home page, which then triggers an effect to setSelArtistId
@@ -301,14 +299,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               )}
 
               {inArtistProfileView && (
-                <div className="flex flex-col gap-4 p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px]">
+                <div className="flex flex-col gap-4 p-8 items-start bg-background rounded-xl border border-primary/50 md:min-h-[350px]">
                   {!artistProfile ? (
                     <div>Loading</div>
                   ) : (
                     <>
                       {/* back to all artists  */}
                       <Button
-                        className="text-sm mb-2 cursor-pointer"
+                        className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
                         variant="outline"
                         onClick={() => {
                           setInArtistProfileView(false);
@@ -327,7 +325,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         </>
                       </Button>
 
-                      <div className="artist-bio w-[300px] md:w-full flex flex-row">
+                      <div className="artist-bio w-[300px] md:w-full flex md:flex-row">
                         <div
                           className="relative border-[0.5px] border-neutral-500/90 h-[100px] md:h-[320px] w-[400px] flex-1 bg-no-repeat bg-cover rounded-xl"
                           style={{
@@ -360,7 +358,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   </>
                                 </Button>
                               ) : (
-                                <Link to={routeNames.unlock} state={{ from: `${location.pathname}${location.search}` }}>
+                                <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
                                   <Button
                                     className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 rounded-none rounded-l-sm"
                                     variant="outline">
@@ -461,7 +459,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                       </div>
 
                       <div className="artist-discography w-[300px] lg:w-full">
-                        <p className="mt-5 mb-5 text-xl font-bold">Sigma Music Discography</p>
+                        <p className="mt-5 mb-5 text-xl font-bold">Discography</p>
 
                         <ArtistDiscography
                           albums={artistProfile.albums}

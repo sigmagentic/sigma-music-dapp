@@ -113,12 +113,10 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   }
 
   return (
-    <div className="flex flex-col justify-center items-center w-full p-3 md:p-6 xl:pb-0">
+    <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-16 xl:mb-32 justify-center w-[100%] items-center xl:items-start">
-        <div className="flex flex-row rounded-lg mb-6 md:mb-6 px-8 xl:px-16 text-center gap-4 bg-[#333] dark:bg-primary md:text-2xl xl:text-3xl justify-center items-center cursor-pointer">
-          <Music2 className="text-secondary" />
-          <span className="text-secondary">My Collected Albums</span>
-          <Music2 className="text-secondary" />
+        <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
+          <span className="m-auto md:m-0">My collected albums</span>
         </div>
 
         <div id="data-nfts" className="flex flex-col md:flex-row w-[100%] items-start">

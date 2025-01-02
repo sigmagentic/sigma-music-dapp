@@ -6,8 +6,7 @@ export const Footer = () => {
   const appVersion = import.meta.env.VITE_APP_VERSION ? `v${import.meta.env.VITE_APP_VERSION}` : "version number unknown";
 
   return (
-    <footer className="xl:mx-[1rem] md:mx-[1rem] h-auto mb-10 mt-10">
-      <div className="w-full h-[2px] bg-[linear-gradient(to_right,#737373,#A76262,#5D3899,#5D3899,#A76262,#737373)] animate-gradient bg-[length:200%_auto]"></div>
+    <footer className="mx-[1rem] md:mx-[1rem] h-auto mb-10 mt-10 border-t-2">
       <div className="flex flex-col md:flex-row">
         <div className="md:w-[50%] p-5">
           <div>

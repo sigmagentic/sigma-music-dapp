@@ -151,7 +151,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             {/* when not logged in, show this to convert the wallet into user account */}
             {!publicKeySol && (
               <div className="relative">
-                <Link to={routeNames.unlock} state={{ from: `${location.pathname}${location.search}` }}>
+                <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
                   <Button className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300" variant="outline">
                     <>
                       <WalletMinimal />

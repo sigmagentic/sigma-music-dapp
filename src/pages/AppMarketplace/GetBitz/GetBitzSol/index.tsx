@@ -428,7 +428,7 @@ const GetBitzSol = (props: any) => {
     // user is not logged in, ask them to connect wallet
     if (!addressSol) {
       return (
-        <Link className="relative" to={routeNames.unlock} state={{ from: `${location.pathname}${location.search}` }}>
+        <Link className="relative" to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
           <img
             className={cn("-z-1 relative z-5 rounded-[3rem] w-full cursor-pointer", modalMode ? "rounded" : "")}
             src={ImgLogin}
