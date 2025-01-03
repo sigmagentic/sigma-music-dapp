@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { Music2, LibraryBig } from "lucide-react";
+import { LibraryBig } from "lucide-react";
 import { Button } from "libComponents/Button";
-import { sleep } from "libs/utils/misc";
+import { isMostLikelyMobile, sleep } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { useNftsStore } from "store/nfts";
 import { getArtistsAlbumsData } from "./";
@@ -27,6 +27,7 @@ type MyCollectedAlbumsProps = {
   userHasNoBitzDataNftYet: boolean;
   openActionFireLogic: any;
   setFeaturedArtistDeepLinkSlug: any;
+  dataNftPlayingOnMainPlayer?: DasApiAsset;
 };
 
 export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
@@ -40,6 +41,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
     userHasNoBitzDataNftYet,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
+    dataNftPlayingOnMainPlayer,
   } = props;
   const { isLoadingSol, solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
@@ -64,7 +66,6 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   useEffect(() => {
     if (artistAlbumDataset && artistAlbumDataset.length > 0) {
       if (shownSolAppDataNfts.length > 0) {
-        console.log("&&& shownSolAppDataNfts ", shownSolAppDataNfts);
         let _allOwnedAlbums: any[] = [];
         const filteredArtists = artistAlbumDataset
           .map((artist) => {
@@ -107,7 +108,6 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
         isSingleAlbumBounty: true,
       });
 
-      console.log("&&& fetchBitzPowerUpsAndLikesForSelectedArtist call A8 ");
       await sleep(2);
     }
   }
@@ -120,16 +120,27 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
         </div>
 
         <div id="data-nfts" className="flex flex-col md:flex-row w-[100%] items-start">
-          <div className="flex flex-col gap-4 p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px] w-[100%]">
+          <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px] w-[100%]">
             <>
               <div className="flex flex-col justify-center w-[100%]">
                 {isLoadingSol ? (
-                  <div className="m-auto bg">Collected albums section powering up...</div>
+                  <div className="m-auto w-full">
+                    <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
+                      {[...Array(3)].map((_, index) => (
+                        <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-xl animate-pulse bg-gray-200 dark:bg-gray-700" />
+                      ))}
+                    </div>
+                  </div>
                 ) : (
                   <>
                     {myCollectedArtistsAlbums.length > 0 ? (
                       <>
-                        <div className="my-2 font-bold text-lg">You have collected {allOwnedAlbums.length} albums</div>
+                        <div className="my-2 font-bold text-lg">
+                          You have collected{" "}
+                          <span className="ext-md mb-2 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-base">
+                            {allOwnedAlbums.length} {allOwnedAlbums.length > 1 ? `albums` : `album`}
+                          </span>
+                        </div>
                         {myCollectedArtistsAlbums.map((artist: any, index: number) => {
                           return (
                             <div key={index} className="w-[100%]">
@@ -144,19 +155,19 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                                 viewSolData={viewSolData}
                                 openActionFireLogic={openActionFireLogic}
                                 setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
+                                dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
                               />
                             </div>
                           );
                         })}
                       </>
                     ) : (
-                      <div className="m-auto text-center">
-                        ⚠️ You have not collected any albums :(
+                      <div className="">
+                        ⚠️ You have not collected any albums. Let's fix that!
                         <br />
-                        Let's fix that! <br />
                         Get your{" "}
                         <span
-                          className="text-primary underline hover:no-underline"
+                          className="text-primary cursor-pointer text-[#fde047] hover:text-[#f97316]"
                           onClick={() => {
                             window.scrollTo({
                               top: 0,
@@ -167,7 +178,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                         </span>{" "}
                         or get some by{" "}
                         <span
-                          className="text-primary underline hover:no-underline"
+                          className="text-primary cursor-pointer text-[#fde047] hover:text-[#f97316]"
                           onClick={() => {
                             scrollToSection("artist-profile");
                           }}>
@@ -179,7 +190,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                 )}
               </div>
 
-              {myCollectedArtistsAlbums.length > 0 && (
+              {myCollectedArtistsAlbums.length === 0 && (
                 <Button
                   className="text-lg mb-2 cursor-pointer"
                   variant="outline"
@@ -188,7 +199,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                   }}>
                   <>
                     <LibraryBig />
-                    <span className="ml-2">View All Artists & Collect More Albums</span>
+                    <span className="ml-2">{isMostLikelyMobile() ? "View All Artists" : "View All Artists & Collect More Albums"}</span>
                   </>
                 </Button>
               )}

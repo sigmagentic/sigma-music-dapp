@@ -8,8 +8,7 @@ import { IS_DEVNET } from "appsConfig";
 import megaphoneLight from "assets/img/nf-tunes/megaphone-light.png";
 import megaphone from "assets/img/nf-tunes/megaphone.png";
 import { RadioPlayer } from "components/AudioPlayer/RadioPlayer";
-import { SolAudioPlayer } from "components/AudioPlayer/SolAudioPlayer";
-import { Modal } from "components/Modal/Modal";
+import { SolAudioPlayerFooterBar } from "components/AudioPlayer/SolAudioPlayerFooterBar";
 import YouTubeEmbed from "components/YouTubeEmbed";
 import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
@@ -33,7 +32,7 @@ export const NFTunes = () => {
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
   const [dataMarshalResponse, setDataMarshalResponse] = useState({ "data_stream": {}, "data": [] });
-  const [firstSongBlobUrl, setFirstSongBlobUrl] = useState<string>();
+  const [firstSongBlobUrl, setFirstSongBlobUrl] = useState<string | undefined>();
   const { solNfts, solBitzNfts } = useNftsStore();
   const [stopRadio, setStopRadio] = useState<boolean>(false);
   const [noRadioAutoPlay, setNoRadioAutoPlay] = useState<boolean>(true);
@@ -51,14 +50,9 @@ export const NFTunes = () => {
   } | null>(null);
   const [userHasNoBitzDataNftYet, setUserHasNoBitzDataNftYet] = useState(false); // on solana
 
-  // S: Cached Signature Store Items
-  const solPreaccessNonce = useAccountStore((state: any) => state.solPreaccessNonce);
-  const solPreaccessSignature = useAccountStore((state: any) => state.solPreaccessSignature);
-  const solPreaccessTimestamp = useAccountStore((state: any) => state.solPreaccessTimestamp);
-  const updateSolPreaccessNonce = useAccountStore((state: any) => state.updateSolPreaccessNonce);
-  const updateSolPreaccessTimestamp = useAccountStore((state: any) => state.updateSolPreaccessTimestamp);
-  const updateSolSignedPreaccess = useAccountStore((state: any) => state.updateSolSignedPreaccess);
-  // E: Cached Signature Store Items
+  // Cached Signature Store Items
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
 
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
 
@@ -148,12 +142,12 @@ export const NFTunes = () => {
   async function viewSolData(index: number) {
     try {
       if (!(index >= 0 && index < shownSolAppDataNfts.length)) {
-        toastClosableError("Data is not loaded");
+        toastClosableError("You music data nft catalog has not loaded");
         return;
       }
 
-      setFirstSongBlobUrl(undefined);
       setIsFetchingDataMarshal(true);
+      resetAudioPlayerState();
 
       const dataNft = shownSolAppDataNfts[index];
 
@@ -216,11 +210,14 @@ export const NFTunes = () => {
             contentType,
             blobDataType,
           };
+
+          // this is the data that feeds the player with the album data
           setDataMarshalResponse(data);
           setViewDataRes(viewDataPayload);
+
           setIsFetchingDataMarshal(false);
 
-          // await the first song response and set the firstSongBlobUrl state
+          // await the first song response and set the firstSongBlobUrl state (so that first song plays faster)
           const firstSongRes = await firstSongResPromise;
           const blobUrl = URL.createObjectURL(await firstSongRes.blob());
           setFirstSongBlobUrl(blobUrl);
@@ -238,6 +235,9 @@ export const NFTunes = () => {
 
   function checkOwnershipOfAlbum(album: any) {
     let albumInOwnershipListIndex = -1; // note -1 means we don't own it
+
+    console.log("&&& album.solNftName ", `${album.solNftName} `);
+    console.log("&&& ownedSolDataNftNameAndIndexMap ", ownedSolDataNftNameAndIndexMap);
 
     if (IS_DEVNET) {
       // in devnet we airdrop MUSGDEV1 the matches the "MUSG7 - Galactic Gravity" mainnet one
@@ -258,7 +258,7 @@ export const NFTunes = () => {
         albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Legendary`];
       } else if (typeof ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Rare`] !== "undefined") {
         albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Rare`];
-      } else {
+      } else if (typeof ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Common`] !== "undefined") {
         albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap[`${album.solNftName} : Common`];
       }
     }
@@ -287,6 +287,12 @@ export const NFTunes = () => {
       giveBitzToCampaignId,
       isLikeMode,
     });
+  }
+
+  function resetAudioPlayerState() {
+    setFirstSongBlobUrl(undefined);
+    setDataMarshalResponse({ "data_stream": {}, "data": [] });
+    setCurrentDataNftIndex(-1);
   }
 
   // in Radio, checkOwnershipOfAlbum get called when user clicks on play, as the radio comp is rerendering each time the progress bar moves (memo not working)
@@ -338,6 +344,7 @@ export const NFTunes = () => {
                   setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
                   userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
                 />
+                // <></>
               )}
             </div>
           </div>
@@ -405,6 +412,7 @@ export const NFTunes = () => {
                   setBitzGiftingMeta(_bitzGiftingMeta);
                 }
               }}
+              dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
             />
           )}
 
@@ -454,52 +462,29 @@ export const NFTunes = () => {
               </div>
             </div>
           </div>
+
+          {/* The album player footer bar */}
+          {launchBaseLevelMusicPlayer && (
+            <div className="w-full fixed left-0 bottom-0 z-50">
+              <SolAudioPlayerFooterBar
+                dataNftToOpen={shownSolAppDataNfts[currentDataNftIndex]}
+                trackList={dataMarshalResponse ? dataMarshalResponse.data : []}
+                firstSongBlobUrl={firstSongBlobUrl}
+                onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
+                bitzGiftingMeta={bitzGiftingMeta}
+                bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                onClosePlayer={() => {
+                  resetAudioPlayerState();
+                  setLaunchBaseLevelMusicPlayer(false);
+                  // clear this -- its used to carry a like content via bits session to the player so we can collect likes inside it
+                  setBitzGiftingMeta(null);
+                }}
+              />
+            </div>
+          )}
         </div>
 
-        {/* The base level modal music player that children components can trigger (Solana Only) */}
-        <>
-          <Modal
-            triggerOpen={launchBaseLevelMusicPlayer}
-            triggerOnClose={() => {
-              setLaunchBaseLevelMusicPlayer(false);
-
-              // clear this -- its used to carry a like content via bits session to the player so we can collect likes inside it
-              setBitzGiftingMeta(null);
-            }}
-            closeOnOverlayClick={false}
-            title={"Music Player"}
-            hasFilter={false}
-            filterData={[]}
-            modalClassName={""}
-            titleClassName={"p-4"}>
-            {isFetchingDataMarshal ? (
-              <div
-                className="flex flex-col items-center justify-center"
-                style={{
-                  minHeight: "40rem",
-                }}>
-                <div>
-                  <p className="text-center text-foreground">Loading...</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {viewDataRes && !viewDataRes.error && currentDataNftIndex > -1 && (
-                  <SolAudioPlayer
-                    dataNftToOpen={shownSolAppDataNfts[currentDataNftIndex]}
-                    songs={dataMarshalResponse ? dataMarshalResponse.data : []}
-                    firstSongBlobUrl={firstSongBlobUrl}
-                    onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
-                    bitzGiftingMeta={bitzGiftingMeta}
-                    bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                  />
-                )}
-              </>
-            )}
-          </Modal>
-        </>
-
-        {/* The bitz power up for creators and album liks (Solana Only) */}
+        {/* The bitz power up for creators and album likes */}
         {giveBitzForMusicBountyConfig.giveBitzToWho !== "" && giveBitzForMusicBountyConfig.giveBitzToCampaignId !== "" && (
           <SendBitzPowerUp
             giveBitzForMusicBountyConfig={giveBitzForMusicBountyConfig}

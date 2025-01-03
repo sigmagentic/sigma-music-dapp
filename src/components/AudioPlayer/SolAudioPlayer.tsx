@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { ArrowBigLeft, Heart, Library, Loader2, Pause, Play, RefreshCcwDot, SkipBack, SkipForward, Volume1, Volume2, VolumeX, XCircle } from "lucide-react";
+import { ArrowBigLeft, Heart, Library, Loader, Pause, Play, RefreshCcwDot, SkipBack, SkipForward, Volume1, Volume2, VolumeX, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -456,7 +456,7 @@ export const SolAudioPlayer = (props: SolAudioPlayerProps) => {
                   <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-900/0 border border-grey-300 shadow-xl flex items-center justify-center">
                     <button onClick={togglePlay} className="focus:outline-none" disabled={!isLoaded}>
                       {!isLoaded ? (
-                        <Loader2 className="w-full text-center animate-spin hover:scale-105" />
+                        <Loader className="w-full text-center animate-spin hover:scale-105" />
                       ) : isPlaying ? (
                         <Pause className="w-full text-center hover:scale-105" />
                       ) : (

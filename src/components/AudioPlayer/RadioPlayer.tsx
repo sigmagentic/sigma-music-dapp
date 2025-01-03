@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
 import {
-  Loader2,
+  Loader,
   Pause,
   Music2,
   Play,
@@ -154,6 +154,11 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   useEffect(() => {
     if (stopRadioNow) {
       stopPlaybackNow();
+
+      // if the radio player is collapsed, then we need to expand it as the album player is loading
+      if (isCollapsed) {
+        setIsCollapsed(false);
+      }
     }
   }, [stopRadioNow]);
 
@@ -431,11 +436,6 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
     if (isOutOfView && !isCollapsed) {
       setIsCollapsed(true);
     }
-
-    // // Restore if player would be in view and is currently collapsed (this causes a lot of flickering)
-    // else if (!isOutOfView && isCollapsed) {
-    //   setIsCollapsed(false);
-    // }
   }, [radioPlayPromptHide, isCollapsed]);
 
   // Add scroll listener
@@ -456,14 +456,18 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
           <Button
             className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 cursor-pointer"
             variant="outline"
-            onClick={() => setIsCollapsed(false)}>
+            onClick={() => {
+              setIsCollapsed(false);
+              setDoNotAutoCollapse(true);
+            }}>
             Restore radio player
           </Button>
         )}
       </div>
-      <div ref={playerRef} className={`overflow-visible bg-background ${isCollapsed ? collapsedStyle : "relative p-2 md:p-2"}`}>
+      <div ref={playerRef} className={`overflow-visible bg-background ${isCollapsed ? collapsedStyle : "relative"}`}>
         <div className="overflow-visible w-full flex flex-col items-center justify-center relative">
-          <div className="select-none h-[30%] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/40 relative md:w-[100%] flex flex-col rounded-xl">
+          <div
+            className={`select-none h-[30%] ${isCollapsed ? "bg-black" : "bg-[#0F0F0F]/25"} border-[1px] border-foreground/40 relative md:w-[100%] flex flex-col rounded-xl`}>
             <div
               className="absolute top-0 right-0 flex justify-end p-2 cursor-pointer hover:opacity-75"
               onClick={() => {
@@ -571,7 +575,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                     }
                   }}>
                   {typeof bountyBitzSumGlobalMapping[songPlaying.bountyId]?.bitsSum === "undefined" ? (
-                    <FontAwesomeIcon spin={true} color="#fde047" icon={faSpinner} size="lg" className="m-2" />
+                    <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
                   ) : (
                     <div
                       className="p-5 md:p-0 flex items-center gap-2"
@@ -609,7 +613,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
               <span className="w-[4rem] p-2 text-xs font-sans font-medium text-muted-foreground ">{duration}</span>
             </div>
 
-            <div className="select-none p-2 bg-[#0f0f0f]/10 dark:bg-[#0F0F0F]/50 rounded-b-xl border-t border-gray-400 dark:border-gray-900  flex items-center justify-between z-10 ">
+            <div className="select-none p-2 rounded-b-xl flex items-center justify-between z-10">
               <div className="ml-2 xl:pl-8 flex w-[20%]">
                 <div
                   onClick={() => {
@@ -654,7 +658,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                     className="focus:outline-none"
                     disabled={!isLoaded}>
                     {!isLoaded ? (
-                      <Loader2 className="w-full text-center animate-spin hover:scale-105" />
+                      <Loader className="w-full text-center animate-spin hover:scale-105" />
                     ) : isPlaying ? (
                       <Pause className="w-full text-center hover:scale-105" />
                     ) : (

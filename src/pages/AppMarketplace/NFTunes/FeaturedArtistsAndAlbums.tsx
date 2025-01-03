@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { faHandPointer, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Music2, WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft } from "lucide-react";
+import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { Button } from "libComponents/Button";
@@ -15,6 +15,7 @@ import { getArtistsAlbumsData } from "./";
 import { ArtistDiscography } from "./ArtistDiscography";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "./index";
 import { GiftBitzToArtistMeta } from "./types/common";
+import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 
 type FeaturedArtistsAndAlbumsProps = {
   viewSolData: (e: number) => void;
@@ -28,6 +29,7 @@ type FeaturedArtistsAndAlbumsProps = {
   setMusicBountyBitzSumGlobalMapping: any;
   userHasNoBitzDataNftYet: boolean;
   onFeaturedArtistDeepLinkSlug: (e: string | undefined) => any;
+  dataNftPlayingOnMainPlayer?: DasApiAsset;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
@@ -43,6 +45,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setMusicBountyBitzSumGlobalMapping,
     userHasNoBitzDataNftYet,
     onFeaturedArtistDeepLinkSlug,
+    dataNftPlayingOnMainPlayer,
   } = props;
   const { publicKey: publicKeySol } = useWallet();
   const [audio] = useState(new Audio());
@@ -239,6 +242,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     return `${formattedMinutes}:${formattedSeconds}`;
   };
 
+  function getImagePosition(imageUrl: string): string {
+    try {
+      const url = new URL(imageUrl);
+      const pos = url.searchParams.get("pos");
+      return pos || "left";
+    } catch {
+      // Return default if URL is invalid
+      return "left";
+    }
+  }
+
   const userLoggedInWithWallet = publicKeySol;
 
   return (
@@ -254,11 +268,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
         <div id="artist-profile" className="flex flex-col md:flex-row w-[100%] items-start">
           {artistAlbumDataLoading || artistAlbumDataset.length === 0 ? (
-            <div className="flex flex-col justify-center w-[100%]">
+            <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px] w-full bgx-red-800">
               {artistAlbumDataLoading ? (
-                <div className="m-auto">Artist and Albums powering up...</div>
+                <div className="m-auto w-full">
+                  <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
+                    {[...Array(3)].map((_, index) => (
+                      <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-xl animate-pulse bg-gray-200 dark:bg-gray-700" />
+                    ))}
+                  </div>
+                </div>
               ) : (
-                <div className="m-auto">⚠️ Artist and Albums unavailable</div>
+                <div className="m-auto min-h-6">⚠️ Popular artist section is unavailable</div>
               )}
             </div>
           ) : (
@@ -287,6 +307,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-xl cursor-pointer"
                           style={{
                             "backgroundImage": `url(${artist.img})`,
+                            "backgroundPosition": getImagePosition(artist.img),
                           }}>
                           <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-xl">
                             <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artist.name}</h2>
@@ -299,7 +320,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               )}
 
               {inArtistProfileView && (
-                <div className="flex flex-col gap-4 p-8 items-start bg-background rounded-xl border border-primary/50 md:min-h-[350px]">
+                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 md:min-h-[350px]">
                   {!artistProfile ? (
                     <div>Loading</div>
                   ) : (
@@ -325,14 +346,16 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         </>
                       </Button>
 
-                      <div className="artist-bio w-[300px] md:w-full flex md:flex-row">
-                        <div
-                          className="relative border-[0.5px] border-neutral-500/90 h-[100px] md:h-[320px] w-[400px] flex-1 bg-no-repeat bg-cover rounded-xl"
-                          style={{
-                            "backgroundImage": `url(${artistProfile.img})`,
-                          }}>
-                          <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-xl">
-                            <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artistProfile.name}</h2>
+                      <div className="artist-bio w-[300px] md:w-full flex flex-col md:flex-row">
+                        <div className="">
+                          <div
+                            className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] md:w-[400px] flex-1 bg-no-repeat bg-cover rounded-xl"
+                            style={{
+                              "backgroundImage": `url(${artistProfile.img})`,
+                            }}>
+                            <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-xl">
+                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artistProfile.name}</h2>
+                            </div>
                           </div>
                         </div>
 
@@ -382,7 +405,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             <div
                               className={`${userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "ml-0"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-2 md:mt-0 rounded-r md:min-w-[100px] flex items-center justify-center `}>
                               {typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum === "undefined" ? (
-                                <FontAwesomeIcon spin={true} color="#fde047" icon={faSpinner} size="lg" className="m-2" />
+                                <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
                               ) : (
                                 <div
                                   className="p-10 md:p-10"
@@ -459,7 +482,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                       </div>
 
                       <div className="artist-discography w-[300px] lg:w-full">
-                        <p className="mt-5 mb-5 text-xl font-bold">Discography</p>
+                        <p className="mt-5 mb-5 text-xl font-bold text-center md:text-left">Discography</p>
 
                         <ArtistDiscography
                           albums={artistProfile.albums}
@@ -475,6 +498,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                           viewSolData={viewSolData}
                           openActionFireLogic={openActionFireLogic}
+                          dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
                         />
                       </div>
                     </>

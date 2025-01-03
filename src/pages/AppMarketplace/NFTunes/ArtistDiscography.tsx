@@ -1,15 +1,17 @@
 import React from "react";
-import { faHandPointer, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Gift, Heart, Loader2, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3 } from "lucide-react";
+import { Gift, Heart, Loader, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
 import { Button } from "libComponents/Button";
 import { gtagGo } from "libs/utils/misc";
+import { isMostLikelyMobile } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { getBestBuyCtaLink } from "./types/utils";
+import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 
 type ArtistDiscographyProps = {
   albums: any[];
@@ -28,6 +30,7 @@ type ArtistDiscographyProps = {
   inCollectedAlbumsView?: boolean;
   artist?: any;
   setFeaturedArtistDeepLinkSlug?: any;
+  dataNftPlayingOnMainPlayer?: DasApiAsset;
 };
 
 export const ArtistDiscography = (props: ArtistDiscographyProps) => {
@@ -48,16 +51,21 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     viewSolData,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
+    dataNftPlayingOnMainPlayer,
   } = props;
   const { publicKey: publicKeySol } = useWallet();
   const [, setSearchParams] = useSearchParams();
 
   const userLoggedInWithWallet = publicKeySol;
 
+  function thisIsPlayingOnMainPlayer(album: any) {
+    return dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName;
+  }
+
   return (
     <>
       {albums.map((album: any, idx: number) => (
-        <div key={album.albumId} className="album flex flex-col h-[100%] mb-3 p-5 border w-[100%]">
+        <div key={album.albumId} className="album flex flex-col h-[100%] mb-3 p-2 md:p-5 border w-[100%]">
           <div className="albumDetails flex flex-col md:flex-row">
             <div
               className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-xl m-auto"
@@ -100,7 +108,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   }
                 }}>
                 {typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum === "undefined" ? (
-                  <FontAwesomeIcon spin={true} color="#fde047" icon={faSpinner} size="lg" className="m-2" />
+                  <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
                 ) : (
                   <div
                     className="p-5 md:p-0 flex items-center gap-2"
@@ -124,33 +132,35 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             </div>
           </div>
 
-          <div className="albumActions mt-3 flex flex-wrap flex-col gap-2 lg:flex-row space-y-2 lg:space-y-0">
+          <div className="albumActions mt-3 flex flex-wrap flex-col items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
             {album.ctaPreviewStream && !inCollectedAlbumsView && (
-              <Button
-                disabled={isPreviewPlaying && !previewIsReadyToPlay}
-                className="!text-white text-sm mx-2 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% cursor-pointer"
-                onClick={() => {
-                  playPausePreview(album.ctaPreviewStream, album.albumId);
+              <div>
+                <Button
+                  disabled={isPreviewPlaying && !previewIsReadyToPlay}
+                  className="!text-white text-sm mx-2 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% cursor-pointer"
+                  onClick={() => {
+                    playPausePreview(album.ctaPreviewStream, album.albumId);
 
-                  gtagGo("NtuArAl", "PlayPausePrev", "Album", album.albumId);
-                }}>
-                {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
-                  <>
-                    {!previewIsReadyToPlay ? <Loader2 className="animate-spin" /> : <Pause />}
-                    <span className="ml-2"> {currentTime} - Stop Playing </span>
-                  </>
-                ) : (
-                  <>
-                    <Play />
-                    <span className="ml-2">Play Preview</span>
-                  </>
-                )}
-              </Button>
+                    gtagGo("NtuArAl", "PlayPausePrev", "Album", album.albumId);
+                  }}>
+                  {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
+                    <>
+                      {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
+                      <span className="ml-2"> {currentTime} - Stop Playing </span>
+                    </>
+                  ) : (
+                    <>
+                      <Play />
+                      <span className="ml-2">Play Preview</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
 
             {/* when not logged in, show this to convert the wallet into user account */}
             {!publicKeySol && (
-              <div className="relative">
+              <div className="relative w-full md:w-auto">
                 <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
                   <Button className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300" variant="outline">
                     <>
@@ -170,24 +180,16 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 )}
               </div>
             )}
-            {/* 
-            {mvxNetworkSelected && !addressMvx && (
-              <Link to={routeNames.unlock} state={{ from: `${location.pathname}${location.search}` }}>
-                <Button className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300" variant="outline">
-                  <>
-                    <WalletMinimal />
-                    <span className="ml-2">Login to Check Ownership</span>
-                  </>
-                </Button>
-              </Link>
-            )} */}
+
+            <div>album = {JSON.stringify(album)}</div>
+            <div>checkOwnershipOfAlbum(album) = {checkOwnershipOfAlbum(album)}</div>
 
             <>
               {checkOwnershipOfAlbum(album) > -1 && (
-                <div className="relative p-2 md:p-0">
+                <div className="relative">
                   <Button
-                    disabled={isPreviewPlaying && !previewIsReadyToPlay}
-                    className="!text-black w-full text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 cursor-pointer"
+                    disabled={(isPreviewPlaying && !previewIsReadyToPlay) || thisIsPlayingOnMainPlayer(album)}
+                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 cursor-pointer"
                     onClick={() => {
                       const albumInOwnershipListIndex = checkOwnershipOfAlbum(album);
 
@@ -207,9 +209,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     }}>
                     <>
                       <Music2 />
-                      <span className="ml-2">Play Album</span>
+                      <span className="ml-2">{thisIsPlayingOnMainPlayer(album) ? "Playing..." : "Play Album"}</span>
                     </>
                   </Button>
+
                   {isFreeDropSampleWorkflow && (
                     <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
                       <div className="m-auto mb-[2px] bg-white dark:bg-slate-800 p-2 w-10 h-10 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center">
@@ -222,46 +225,54 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               )}
 
               {getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }) && (
-                <Button
-                  className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
-                  onClick={() => {
-                    gtagGo("NtuArAl", "BuyAlbum", "Album", album.albumId);
+                <div>
+                  <Button
+                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 md:mx-2 cursor-pointer"
+                    onClick={() => {
+                      gtagGo("NtuArAl", "BuyAlbum", "Album", album.albumId);
 
-                    window.open(getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }))?.focus();
-                  }}>
-                  <>
-                    <ShoppingCart />
-                    <span className="ml-2">{checkOwnershipOfAlbum(album) > -1 ? "Buy More Album Copies" : "Buy Album"}</span>
-                  </>
-                </Button>
+                      window.open(getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }))?.focus();
+                    }}>
+                    <>
+                      <ShoppingCart />
+                      <span className="ml-2">{checkOwnershipOfAlbum(album) > -1 ? "Buy More Album Copies" : "Buy Album"}</span>
+                    </>
+                  </Button>
+                </div>
               )}
+
               {album.ctaAirdrop && (
-                <Button
-                  className="!text-white text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-700 to-orange-800 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
-                  onClick={() => {
-                    gtagGo("NtuArAl", "GetAlbum", "Album", album.albumId);
+                <div>
+                  <Button
+                    className="!text-white text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-700 to-orange-800 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
+                    onClick={() => {
+                      gtagGo("NtuArAl", "GetAlbum", "Album", album.albumId);
 
-                    window.open(album.ctaAirdrop)?.focus();
-                  }}>
-                  <>
-                    <Gift />
-                    <span className="ml-2">Get Album Airdrop!</span>
-                  </>
-                </Button>
+                      window.open(album.ctaAirdrop)?.focus();
+                    }}>
+                    <>
+                      <Gift />
+                      <span className="ml-2">Get Album Airdrop!</span>
+                    </>
+                  </Button>
+                </div>
               )}
+
               {inCollectedAlbumsView && artist && (
-                <Button
-                  className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
-                  onClick={() => {
-                    setFeaturedArtistDeepLinkSlug(artist.slug);
-                    setSearchParams({ "artist-profile": artist.slug });
-                    scrollToSection("artist-profile");
-                  }}>
-                  <>
-                    <Disc3 />
-                    <span className="ml-2">View more from {artist.name}</span>
-                  </>
-                </Button>
+                <div>
+                  <Button
+                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 md:mx-2 cursor-pointer"
+                    onClick={() => {
+                      setFeaturedArtistDeepLinkSlug(artist.slug);
+                      setSearchParams({ "artist-profile": artist.slug });
+                      scrollToSection("artist-profile");
+                    }}>
+                    <>
+                      <Disc3 />
+                      <span className="ml-2">{`View more ${!isMostLikelyMobile() ? `from ${artist.name}` : "from artist"} `}</span>
+                    </>
+                  </Button>
+                </div>
               )}
             </>
           </div>

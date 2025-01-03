@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthRedirectWrapper } from "components";
@@ -79,7 +79,7 @@ const LoginPage = () => {
         } else if (userLoggedInCallData?.existingUserAccountLastLoginUpdated) {
           let userMessage = "";
 
-          userMessage = "Welcome Back Music Legend!";
+          userMessage = "Welcome Back Sigma Music OG!";
 
           toast.success(userMessage, {
             position: "bottom-center",
@@ -123,7 +123,7 @@ const LoginPage = () => {
         <div className="rounded-2xl my-4 text-center dark:bg-[#0a0a0a] bg-slate-100 drop-shadow-2xl w-[300px] md:w-[500px]">
           {userAccountLoggingIn ? (
             <div className="p-20 flex flex-col items-center mb-[300px] mt-[200px]">
-              <Loader2 className="animate-spin" />
+              <Loader className="animate-spin" />
               <p className="mt-2">{loggingInMsg}</p>
             </div>
           ) : (
@@ -138,7 +138,7 @@ const LoginPage = () => {
                 Don't have an account? <br />
                 Click on the button above to create one using a solana wallet or google account. You get a{" "}
                 <span className="ext-md mb-2 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-base">
-                  Free Sigma Music Data NFT
+                  Free Music NFT
                 </span>{" "}
                 as a joining gift.
               </div>
