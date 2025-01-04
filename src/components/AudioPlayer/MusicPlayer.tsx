@@ -10,12 +10,13 @@ import DEFAULT_SONG_IMAGE from "assets/img/audio-player-image.png";
 import DEFAULT_SONG_LIGHT_IMAGE from "assets/img/audio-player-light-image.png";
 import { MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
+import { BountyBitzSumMapping, Track } from "libs/types";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 
-type SolAudioPlayerFooterBarProps = {
+type MusicPlayerProps = {
+  trackList: Track[];
   dataNftToOpen?: DasApiAsset;
-  trackList: any[];
   firstSongBlobUrl?: string;
   onSendBitzForMusicBounty: (e: any) => any;
   bitzGiftingMeta?: {
@@ -23,11 +24,11 @@ type SolAudioPlayerFooterBarProps = {
     bountyBitzSum: number;
     creatorWallet: string;
   } | null;
-  bountyBitzSumGlobalMapping?: any;
+  bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   onClosePlayer: () => void;
 };
 
-export const SolAudioPlayerFooterBar = (props: SolAudioPlayerFooterBarProps) => {
+export const MusicPlayer = (props: MusicPlayerProps) => {
   const { dataNftToOpen, trackList, firstSongBlobUrl, onSendBitzForMusicBounty, bitzGiftingMeta, bountyBitzSumGlobalMapping, onClosePlayer } = props;
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -344,49 +345,51 @@ export const SolAudioPlayerFooterBar = (props: SolAudioPlayerFooterBarProps) => 
       ) : (
         <>
           {displayTrackList && (
-            <div className="trackList w-[300px] md:w-[93%] mt-1 mb-2 pt-3 mx-auto bgx-green-500">
-              <button
-                className="select-none absolute top-0 right-0 flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden"
-                onClick={() => setDisplayTrackList(false)}>
-                <ChevronDown className="w-6 h-6" />
-              </button>
-              <h4 className="flex justify-center select-none font-semibold text-foreground mb-3 !text-xl">{`Tracklist ${trackList.length} songs`} </h4>
-              <Slider {...settings}>
-                {trackList.map((song: any, index: number) => {
-                  return (
-                    <div key={index} className="flex items-center justify-center">
-                      <div
-                        onClick={() => {
-                          setCurrentTrackIndex(index);
-                        }}
-                        className="mx-5 select-none flex flex-row items-center justify-start rounded-xl text-foreground border-[1px] border-foreground/40 hover:opacity-60 cursor-pointer">
-                        <div className="">
-                          <img
-                            src={song.cover_art_url}
-                            alt="Album Cover"
-                            className="h-20 p-2 rounded-xl m-auto"
-                            onError={({ currentTarget }) => {
-                              currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
-                            }}
-                          />
-                        </div>
-                        <div className="xl:w-[60%] flex flex-col justify-center text-center">
-                          <h6 className="!text-sm !text-muted-foreground truncate md:text-left">{song.title}</h6>
-                          <p className="text-sm text-white truncate md:text-left">{song.artist}</p>
+            <div className="bg-gradient-to-t from-[#171717] to-black w-full pb-2">
+              <div className="trackList w-[300px] md:w-[93%] mt-1 pt-3 mx-auto">
+                <button
+                  className="select-none absolute top-0 right-0 flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden"
+                  onClick={() => setDisplayTrackList(false)}>
+                  <ChevronDown className="w-6 h-6" />
+                </button>
+                <h4 className="flex justify-center select-none font-semibold text-foreground mb-3 !text-xl">{`Tracklist ${trackList.length} songs`} </h4>
+                <Slider {...settings}>
+                  {trackList.map((song: any, index: number) => {
+                    return (
+                      <div key={index} className="flex items-center justify-center">
+                        <div
+                          onClick={() => {
+                            setCurrentTrackIndex(index);
+                          }}
+                          className="mx-5 select-none flex flex-row items-center justify-start rounded-xl text-foreground border-[1px] border-foreground/40 hover:opacity-60 cursor-pointer">
+                          <div className="">
+                            <img
+                              src={song.cover_art_url}
+                              alt="Album Cover"
+                              className="h-20 p-2 rounded-xl m-auto"
+                              onError={({ currentTarget }) => {
+                                currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
+                              }}
+                            />
+                          </div>
+                          <div className="xl:w-[60%] flex flex-col justify-center text-center">
+                            <h6 className="!text-sm !text-muted-foreground truncate md:text-left">{song.title}</h6>
+                            <p className="text-sm text-white truncate md:text-left">{song.artist}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </Slider>
-              <style>
-                {`
+                    );
+                  })}
+                </Slider>
+                <style>
+                  {`
                /* CSS styles for Swiper navigation arrows  */
                .slick-prev:before,
                .slick-next:before {
                color: ${theme === "light" ? "black;" : "white;"},
                    }`}
-              </style>
+                </style>
+              </div>
             </div>
           )}
 
@@ -409,7 +412,7 @@ export const SolAudioPlayerFooterBar = (props: SolAudioPlayerFooterBarProps) => 
                   currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                 }}
               />
-              <div className="ml-2 flex flex-col select-text mt-2">
+              <div className="ml-2 md:ml-0 flex flex-col select-text mt-2">
                 <div>
                   <span className="text-sm text-muted-foreground">{trackList[currentTrackIndex]?.title}</span>{" "}
                 </div>
@@ -453,7 +456,7 @@ export const SolAudioPlayerFooterBar = (props: SolAudioPlayerFooterBarProps) => 
                 <span className="w-[4rem] p-2 text-xs font-sans font-medium text-muted-foreground ">{duration}</span>
               </div>
 
-              <div className="flex flex-col w-full justify-center items-center">
+              <div className="songCategoryAndTitle flex flex-col w-full justify-center items-center">
                 <span className="text-sm text-foreground/60">{trackList[currentTrackIndex]?.category}</span>
                 <span className="text-sm text-muted-foreground">Album: {trackList[currentTrackIndex]?.album}</span>
               </div>

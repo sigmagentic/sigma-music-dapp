@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Menu } from "lucide-react";
@@ -8,9 +8,7 @@ import { Button } from "libComponents/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuSeparator, DropdownMenuTrigger } from "libComponents/DropdownMenu";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libComponents/NavigationMenu";
 import { sleep } from "libs/utils";
-import { getNFTuneFirstTrackBlobData } from "pages/AppMarketplace/NFTunes";
 import { routeNames } from "routes";
-import { useAppsStore } from "store/apps";
 import { useLocalStorageStore } from "store/LocalStorageStore.ts";
 import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
@@ -21,29 +19,7 @@ export const Navbar = () => {
   const isLoggedInSol = !!addressSol;
   const setDefaultChain = useLocalStorageStore((state) => state.setDefaultChain);
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
-  const appsStore = useAppsStore();
-  const updateNfTunesRadioFirstTrackCachedBlob = appsStore.updateNfTunesRadioFirstTrackCachedBlob;
   const location = useLocation();
-
-  useEffect(() => {
-    // lets get the 1st song blob for NFTunes Radio, so we can store in the "browser" cache for fast playback
-    // ... we do it here as the NavBar loads first always
-    async function cacheFirstNFTuneRadioTrack() {
-      const nfTunesRadioFirstTrackCachedBlob = appsStore.nfTunesRadioFirstTrackCachedBlob;
-
-      if (nfTunesRadioFirstTrackCachedBlob === "") {
-        const trackBlobUrl = await getNFTuneFirstTrackBlobData();
-
-        if (trackBlobUrl !== "") {
-          console.log("NFTune Radio 1st Song Data Cached...");
-        }
-
-        updateNfTunesRadioFirstTrackCachedBlob(trackBlobUrl || "");
-      }
-    }
-
-    cacheFirstNFTuneRadioTrack();
-  }, []);
 
   return (
     <>

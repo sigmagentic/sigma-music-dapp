@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { LibraryBig } from "lucide-react";
 import { Button } from "libComponents/Button";
+import { BountyBitzSumMapping } from "libs/types";
 import { isMostLikelyMobile, sleep } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { useNftsStore } from "store/nfts";
@@ -21,7 +22,7 @@ type MyCollectedAlbumsProps = {
   setBitzGiftingMeta: any;
   shownSolAppDataNfts: any;
   onSendBitzForMusicBounty: any;
-  bountyBitzSumGlobalMapping: any;
+  bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   setMusicBountyBitzSumGlobalMapping: any;
   checkOwnershipOfAlbum: any;
   userHasNoBitzDataNftYet: boolean;
@@ -98,8 +99,6 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {
     // we throttle this so that we don't overwhelm the server and also, the local state updates dont fire if they are all too close together
     for (let i = 0; i < allOwnedAlbums.length; i++) {
-      console.log("&&& fetchBitzPowerUpsAndLikesForSelectedArtist call B4 ");
-
       fetchBitzPowerUpsAndLikesForSelectedArtist({
         giftBitzToArtistMeta: { ...allOwnedAlbums[i] },
         userHasNoBitzDataNftYet,

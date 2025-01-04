@@ -1,17 +1,16 @@
 import React from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Gift, Heart, Loader, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
 import { Button } from "libComponents/Button";
-import { gtagGo } from "libs/utils/misc";
 import { isMostLikelyMobile } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { getBestBuyCtaLink } from "./types/utils";
-import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 
 type ArtistDiscographyProps = {
   albums: any[];
@@ -140,8 +139,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   className="!text-white text-sm mx-2 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% cursor-pointer"
                   onClick={() => {
                     playPausePreview(album.ctaPreviewStream, album.albumId);
-
-                    gtagGo("NtuArAl", "PlayPausePrev", "Album", album.albumId);
                   }}>
                   {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
                     <>
@@ -181,9 +178,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               </div>
             )}
 
-            <div>album = {JSON.stringify(album)}</div>
-            <div>checkOwnershipOfAlbum(album) = {checkOwnershipOfAlbum(album)}</div>
-
             <>
               {checkOwnershipOfAlbum(album) > -1 && (
                 <div className="relative">
@@ -204,8 +198,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                           creatorWallet: artistProfile.creatorWallet,
                         });
                       }
-
-                      gtagGo("NtuArAl", "PlayAlbum", "Album", album.albumId);
                     }}>
                     <>
                       <Music2 />
@@ -229,8 +221,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   <Button
                     className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 md:mx-2 cursor-pointer"
                     onClick={() => {
-                      gtagGo("NtuArAl", "BuyAlbum", "Album", album.albumId);
-
                       window.open(getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }))?.focus();
                     }}>
                     <>
@@ -246,8 +236,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   <Button
                     className="!text-white text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-700 to-orange-800 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
                     onClick={() => {
-                      gtagGo("NtuArAl", "GetAlbum", "Album", album.albumId);
-
                       window.open(album.ctaAirdrop)?.focus();
                     }}>
                     <>

@@ -1,90 +1,3 @@
-declare const window: {
-  ITH_GLOBAL_MVX_RPC_API_SESSION: string;
-} & Window;
-
-window.ITH_GLOBAL_MVX_RPC_API_SESSION = "";
-
-export const getMvxRpcApi = (chainID: string) => {
-  if (window.ITH_GLOBAL_MVX_RPC_API_SESSION !== "") {
-    console.log("ITH_GLOBAL_MVX_RPC_API_SESSION served from session ", window.ITH_GLOBAL_MVX_RPC_API_SESSION);
-    return window.ITH_GLOBAL_MVX_RPC_API_SESSION;
-  }
-
-  const defaultUrl = chainID === "1" ? "api.multiversx.com" : "devnet-api.multiversx.com";
-
-  // 10% of chance, default to the Public API
-  const defaultToPublic = Math.random() < 0.1; // math random gives you close to even distribution from 0 - 1
-
-  if (defaultToPublic) {
-    window.ITH_GLOBAL_MVX_RPC_API_SESSION = defaultUrl;
-
-    console.log("ITH_GLOBAL_MVX_RPC_API_SESSION defaulted based on chance to public ", window.ITH_GLOBAL_MVX_RPC_API_SESSION);
-  } else {
-    // else, we revert to original logic of using ENV variable
-    const envKey = chainID === "1" ? "VITE_ENV_API_MAINNET_KEY" : "VITE_ENV_API_DEVNET_KEY";
-
-    window.ITH_GLOBAL_MVX_RPC_API_SESSION = import.meta.env[envKey] || defaultUrl;
-    console.log("ITH_GLOBAL_MVX_RPC_API_SESSION fetched rom ENV ", window.ITH_GLOBAL_MVX_RPC_API_SESSION);
-  }
-
-  return window.ITH_GLOBAL_MVX_RPC_API_SESSION;
-};
-
-export function shortenAddress(value: string, length: number = 6): string {
-  return value.slice(0, length) + " ... " + value.slice(-length);
-}
-
-const unescape = (str: string) => {
-  return str.replace(/-/g, "+").replace(/_/g, "/");
-};
-
-const decodeValue = (str: string) => {
-  return Buffer.from(unescape(str), "base64").toString("utf8");
-};
-
-export const decodeNativeAuthToken = (accessToken: string) => {
-  const tokenComponents = accessToken.split(".");
-  if (tokenComponents.length !== 3) {
-    throw new Error("Native Auth Token has invalid length");
-  }
-
-  const [address, body, signature] = accessToken.split(".");
-  const parsedAddress = decodeValue(address);
-  const parsedBody = decodeValue(body);
-  const bodyComponents = parsedBody.split(".");
-  if (bodyComponents.length !== 4) {
-    throw new Error("Native Auth Token Body has invalid length");
-  }
-
-  const [origin, blockHash, ttl, extraInfo] = bodyComponents;
-
-  let parsedExtraInfo;
-  try {
-    parsedExtraInfo = JSON.parse(decodeValue(extraInfo));
-  } catch {
-    throw new Error("Extra Info INvalid");
-  }
-
-  const parsedOrigin = decodeValue(origin);
-
-  const result = {
-    ttl: Number(ttl),
-    origin: parsedOrigin,
-    address: parsedAddress,
-    extraInfo: parsedExtraInfo,
-    signature,
-    blockHash,
-    body: parsedBody,
-  };
-
-  // if empty object, delete extraInfo ('e30' = encoded '{}')
-  if (extraInfo === "e30") {
-    delete result.extraInfo;
-  }
-
-  return result;
-};
-
 export const getApiDataMarshal = (chainID: string) => {
   const envKey = chainID.includes("1") ? "VITE_ENV_DATAMARSHAL_MAINNET_API" : "VITE_ENV_DATAMARSHAL_DEVNET_API";
   const defaultUrl = chainID.includes("1")
@@ -115,14 +28,6 @@ export const getApiWeb2Apps = (chainID?: string) => {
   const defaultUrl = chainID === "1" ? "https://api.itheumcloud.com" : "https://api.itheumcloud-stg.com";
 
   return import.meta.env[envKey] || defaultUrl;
-};
-
-export const getApiSolNft = () => {
-  if (import.meta.env.VITE_ENV_NETWORK === "mainnet") {
-    return "https://bitzxp.itheum.io/api";
-  } else {
-    return "https://test.bitzxp.itheum.io/api";
-  }
 };
 
 export const isMostLikelyMobile = () => {

@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { Button } from "libComponents/Button";
+import { BountyBitzSumMapping } from "libs/types";
 import { sleep } from "libs/utils";
-import { gtagGo } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
 import { getArtistsAlbumsData } from "./";
 import { ArtistDiscography } from "./ArtistDiscography";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "./index";
-import { GiftBitzToArtistMeta } from "./types/common";
-import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
+import { GiftBitzToArtistMeta } from "libs/types";
 
 type FeaturedArtistsAndAlbumsProps = {
   viewSolData: (e: number) => void;
@@ -25,7 +25,7 @@ type FeaturedArtistsAndAlbumsProps = {
   checkOwnershipOfAlbum: (e: any) => any;
   openActionFireLogic?: any;
   onSendBitzForMusicBounty: (e: any) => any;
-  bountyBitzSumGlobalMapping: any;
+  bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   setMusicBountyBitzSumGlobalMapping: any;
   userHasNoBitzDataNftYet: boolean;
   onFeaturedArtistDeepLinkSlug: (e: string | undefined) => any;
@@ -153,8 +153,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setSearchParams({ "artist-profile": selDataItem.slug });
     }
 
-    console.log("&&& selDataItem ", selDataItem);
-
     // we clone selDataItem here so as to no accidentally mutate things
     // we debounce this, so that - if the user is jumping tabs.. it wait until they stop at a tab for 2.5 S before running the complex logic
     debounced_fetchBitzPowerUpsAndLikesForSelectedArtist({ ...selDataItem });
@@ -197,14 +195,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         const blob = await fetch(previewStreamUrl).then((r) => r.blob());
         let blobUrl = URL.createObjectURL(blob);
 
-        console.log("Music preview playing via BLOB");
-
         // ios safari seems to not play the music so tried to use blobs like in the other Audio component like Radio
         // but still does not play -- need to debug more (see https://corevo.io/the-weird-case-of-video-streaming-in-safari/)
         audio.src = blobUrl;
       } catch (e) {
-        console.log("Music preview playing via original URL");
-
         audio.src = previewStreamUrl; // this fetches the data, but it may not be ready to play yet until canplaythrough fires
       }
 
@@ -297,8 +291,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                             setUserInteractedWithTabs(true);
                             scrollToSection("artist-profile");
-
-                            gtagGo("NtuArAl", "ViewProfile", "Artist", artist.artistId);
                           }
 
                           setInArtistProfileView(true);

@@ -33,8 +33,6 @@ const LoginPage = () => {
   }, []);
 
   useEffect(() => {
-    // console.log("==== effect for addressSol. addressSol = ", addressSol);
-
     if (!addressSol) {
       solGotConnected = false;
     } else {
@@ -43,8 +41,6 @@ const LoginPage = () => {
 
         // the user came to the unlock page without a solana connection and then connected a wallet,
         // ... i.e a non-logged in user, just logged in using SOL
-        // console.log("==== User JUST logged in with addressSol = ", addressSol);
-
         const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
         logUserLoggedInInUserAccounts(addressSol, chainId);
       }

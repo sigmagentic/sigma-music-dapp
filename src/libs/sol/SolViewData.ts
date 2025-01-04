@@ -109,9 +109,9 @@ export async function getOrCacheAccessNonceAndSignature({
     usedPreAccessNonce = preAccessNonce;
     usedPreAccessSignature = encodedSignature;
 
-    console.log("------> Access NOT FROM Cache");
+    console.log("getOrCacheAccessNonceAndSignature: Sig session [no-cache]");
   } else {
-    console.log("------> Access FROM Cache");
+    console.log("getOrCacheAccessNonceAndSignature: Sig session [cache]");
   }
 
   return {
@@ -148,7 +148,6 @@ export async function viewDataWrapperSol(publicKeySol: PublicKey, usedPreAccessN
 
       return { data, blobDataType, contentType };
     } else {
-      console.log("viewData threw catch error");
       console.error(res.statusText);
 
       return undefined;
