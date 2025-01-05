@@ -87,6 +87,16 @@ module.exports = {
           "50%": { transform: "translateY(10px)" },
           "100%": { transform: "translateY(0px)" },
         },
+        float: {
+          "0%, 100%": {
+            transform: "translateY(0) scale(1)",
+            filter: "brightness(1) opacity(0.95)",
+          },
+          "50%": {
+            transform: "translateY(-10px) scale(1.01)",
+            filter: "brightness(1.2) opacity(1)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -94,6 +104,7 @@ module.exports = {
         "spin-slow": "spin 4s linear infinite",
         "gradient": "gradient 10s linear infinite",
         "cube-down": "cube-down 1s ease-in-out infinite",
+        "float": "float 6s ease-in-out infinite",
       },
     },
   },

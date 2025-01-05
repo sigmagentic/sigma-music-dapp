@@ -3,16 +3,18 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
 import { Link, useSearchParams } from "react-router-dom";
-// import { useThrottledCallback } from "use-debounce";
+import { Timeline } from "react-twitter-widgets";
 import { IS_DEVNET } from "appsConfig";
 import megaphoneLight from "assets/img/nf-tunes/megaphone-light.png";
 import megaphone from "assets/img/nf-tunes/megaphone.png";
-import { RadioPlayer } from "components/AudioPlayer/RadioPlayer";
+import sigmaAgent from "assets/img/sigma-banner.webp";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
+import { RadioPlayer } from "components/AudioPlayer/RadioPlayer";
 import YouTubeEmbed from "components/YouTubeEmbed";
 import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { useTheme } from "contexts/ThemeProvider";
+import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, GiftBitzToArtistMeta, Track } from "libs/types";
 import { scrollToSection } from "libs/utils/ui";
@@ -21,9 +23,9 @@ import { fetchBitSumAndGiverCountsSol } from "pages/AppMarketplace/GetBitz/GetBi
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import { FeaturedArtistsAndAlbums } from "./FeaturedArtistsAndAlbums";
+import { FeaturedBanners } from "./FeaturedBanners";
 import { MyCollectedAlbums } from "./MyCollectedAlbums";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
-import { Loader } from "lucide-react";
 
 export const NFTunes = () => {
   const { theme } = useTheme();
@@ -35,9 +37,7 @@ export const NFTunes = () => {
   const [firstSongBlobUrl, setFirstSongBlobUrl] = useState<string | undefined>();
   const { solNfts, solBitzNfts } = useNftsStore();
   const [stopRadio, setStopRadio] = useState<boolean>(false);
-  const [noRadioAutoPlay, setNoRadioAutoPlay] = useState<boolean>(true);
   const [stopPreviewPlaying, setStopPreviewPlaying] = useState<boolean>(false);
-  const [radioTracks, setRadioTracks] = useState<any[]>([]);
   const [featuredArtistDeepLinkSlug, setFeaturedArtistDeepLinkSlug] = useState<string | undefined>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
@@ -78,7 +78,6 @@ export const NFTunes = () => {
 
     if (isFeaturedArtistDeepLink) {
       scrollToSection("artist-profile", 50);
-      setNoRadioAutoPlay(true); // don't auto-play radio when we deep scroll to artist as its confusing
       setFeaturedArtistDeepLinkSlug(isFeaturedArtistDeepLink.trim());
     } else if (isHlWorkflowDeepLink && isHlWorkflowDeepLink === "sigma") {
       scrollToSection("artist-profile", 50);
@@ -283,55 +282,113 @@ export const NFTunes = () => {
     setMusicPlayerTrackList([]);
   }
 
-  // in Radio, checkOwnershipOfAlbum get called when user clicks on play, as the radio comp is rerendering each time the progress bar moves (memo not working)
-  // ... so we throttle each call by 2000 to improve some performance
-  // const debouncedCheckOwnershipOfAlbum = useThrottledCallback(checkOwnershipOfAlbum, 2000, { "trailing": false });
-
-  const userLoggedInWithWallet = publicKeySol;
-
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
         <div className="flex flex-col justify-center items-center font-[Clash-Regular] w-full pb-6">
-          {/* App Header Row */}
-          <div className="flex flex-col justify-center items-center xl:items-start w-[100%]">
-            {/* Radio */}
-            <div className="flex flex-col w-full xl:w-[100%] mb-[20px]">
-              <RadioPlayer
-                noAutoPlay={noRadioAutoPlay}
-                stopRadioNow={stopRadio}
-                onPlayHappened={(isPlaying: boolean) => {
-                  if (isPlaying) {
-                    setStopRadio(false);
-                  }
+          {/* Radio and main app header CTAs */}
+          <div className="w-full mt-5">
+            <div className="flex flex-col-reverse md:flex-row justify-center items-center xl:items-start w-[100%] bgx-red-500">
+              <div className="flex flex-col w-full gap-4">
+                <div className="radio flex flex-col bgx-blue-500 flex-1">
+                  <div className="text-2xl xl:text-3xl">Listen for free</div>
+                  <RadioPlayer
+                    stopRadioNow={stopRadio}
+                    onPlayHappened={(isPlaying: boolean) => {
+                      if (isPlaying) {
+                        setStopRadio(false);
+                      }
 
-                  if (!stopPreviewPlaying) {
-                    setStopPreviewPlaying(true);
-                  }
-                }}
-                checkOwnershipOfAlbum={checkOwnershipOfAlbum}
-                viewSolData={viewSolData}
-                openActionFireLogic={(_bitzGiftingMeta?: any) => {
-                  setLaunchMusicPlayer(true);
-                  setStopRadio(true);
-                  setStopPreviewPlaying(true);
+                      if (!stopPreviewPlaying) {
+                        setStopPreviewPlaying(true);
+                      }
+                    }}
+                    checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                    viewSolData={viewSolData}
+                    openActionFireLogic={(_bitzGiftingMeta?: any) => {
+                      setLaunchMusicPlayer(true);
+                      setStopRadio(true);
+                      setStopPreviewPlaying(true);
 
-                  if (_bitzGiftingMeta) {
-                    setBitzGiftingMeta(_bitzGiftingMeta);
-                  }
-                }}
-                solBitzNfts={solBitzNfts}
-                onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
-                bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
-                userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
-                dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
-              />
+                      if (_bitzGiftingMeta) {
+                        setBitzGiftingMeta(_bitzGiftingMeta);
+                      }
+                    }}
+                    solBitzNfts={solBitzNfts}
+                    onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
+                    bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                    setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
+                    userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
+                    dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
+                  />
+                </div>
+                <div className="featuredBanners bgx-yellow-500 flex-1">
+                  <FeaturedBanners
+                    onFeaturedArtistDeepLinkSlug={(slug: string) => {
+                      setFeaturedArtistDeepLinkSlug(slug);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col w-full gap-4">
+                <div className="helloSigma bgx-green-500 flex-1">
+                  <div className="text-2xl xl:text-3xl mb-3 w-full text-center bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
+                    hi, i'm sigma, your AI music agent
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-2 justify-center items-center">
+                    <div
+                      className="border-[0.5px] border-neutral-500/90 w-[360px] h-[400px] bg-no-repeat bg-cover rounded-xl animatex-float"
+                      style={{
+                        "backgroundImage": `url(${sigmaAgent})`,
+                        "backgroundPositionX": "-100px",
+                      }}></div>
+                    <div className="bg-black w-[300px] h-[400px] rounded-xl">
+                      <Timeline
+                        dataSource={{
+                          sourceType: "profile",
+                          screenName: "sigmaxmusic",
+                        }}
+                        options={{ theme: "dark", width: "300", height: "400" }}
+                        renderError={(_err: any) => "could not load timeline! are you logged into twitter on this browser?"}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="coCreateWithSigma bgx-orange-500 flex-1 flex flex-col justify-center items-center text-center rounded-xl">
+                  <div className="text-2xl xl:text-3xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text mt-4">
+                    Create with Sigma
+                  </div>
+                  <div>Bringing humans and music AI agents together to create music.</div>
+
+                  <div className="flex flex-col gap-4 mt-4">
+                    <div>
+                      <Button
+                        className="animate-gradient bg-gradient-to-r from-[#737373] via-[#A76262] to-[#5D3899] bg-[length:200%_200%] hover:scale-110 transition duration-700 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg text-white w-[500px]"
+                        onClick={() => {
+                          scrollToSection("join-nf-tunes");
+                        }}>
+                        <div>Co-Launch Your Music with Sigma</div>
+                      </Button>
+                      <div className="text-sm mt-1">For Existing Musicians</div>
+                    </div>
+
+                    <div>
+                      <Button
+                        disabled
+                        className="hover:scale-110 transition duration-700 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% rounded-lg text-white w-[500px]">
+                        <div>Co-Create Original Music with Sigma</div>
+                      </Button>
+                      <div className="text-sm mt-1">For Anyone (coming soon)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Artists and their Albums */}
-          <div className="w-full mt-5">
+          <div className="w-full mt-10">
             <FeaturedArtistsAndAlbums
               viewSolData={viewSolData}
               stopPreviewPlayingNow={stopPreviewPlaying}
@@ -365,48 +422,46 @@ export const NFTunes = () => {
           </div>
 
           {/* Data NFT list shown here */}
-          {userLoggedInWithWallet && (
-            <MyCollectedAlbums
-              viewSolData={viewSolData}
-              isFetchingDataMarshal={isFetchingDataMarshal}
-              setStopRadio={setStopRadio}
-              viewDataRes={viewDataRes}
-              currentDataNftIndex={currentDataNftIndex}
-              dataMarshalResponse={dataMarshalResponse}
-              firstSongBlobUrl={firstSongBlobUrl}
-              setStopPreviewPlaying={setStopPreviewPlaying}
-              setBitzGiftingMeta={setBitzGiftingMeta}
-              shownSolAppDataNfts={shownSolAppDataNfts}
-              onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
-              bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-              checkOwnershipOfAlbum={checkOwnershipOfAlbum}
-              userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
-              setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
-              setFeaturedArtistDeepLinkSlug={(slug: string) => {
-                setFeaturedArtistDeepLinkSlug(slug);
-              }}
-              openActionFireLogic={(_bitzGiftingMeta?: any) => {
-                setLaunchMusicPlayer(true);
-                setStopRadio(true);
-                setStopPreviewPlaying(true);
+          {publicKeySol && (
+            <div className="w-full mt-10">
+              <MyCollectedAlbums
+                viewSolData={viewSolData}
+                isFetchingDataMarshal={isFetchingDataMarshal}
+                setStopRadio={setStopRadio}
+                viewDataRes={viewDataRes}
+                currentDataNftIndex={currentDataNftIndex}
+                dataMarshalResponse={dataMarshalResponse}
+                firstSongBlobUrl={firstSongBlobUrl}
+                setStopPreviewPlaying={setStopPreviewPlaying}
+                setBitzGiftingMeta={setBitzGiftingMeta}
+                shownSolAppDataNfts={shownSolAppDataNfts}
+                onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
+                bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
+                setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
+                setFeaturedArtistDeepLinkSlug={(slug: string) => {
+                  setFeaturedArtistDeepLinkSlug(slug);
+                }}
+                openActionFireLogic={(_bitzGiftingMeta?: any) => {
+                  setLaunchMusicPlayer(true);
+                  setStopRadio(true);
+                  setStopPreviewPlaying(true);
 
-                if (_bitzGiftingMeta) {
-                  setBitzGiftingMeta(_bitzGiftingMeta);
-                }
-              }}
-              dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
-            />
+                  if (_bitzGiftingMeta) {
+                    setBitzGiftingMeta(_bitzGiftingMeta);
+                  }
+                }}
+                dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
+              />
+            </div>
           )}
 
           {/* Calling Musicians Section */}
-          <div className="w-full mt-5">
-            <div
-              id="join-nf-tunes"
-              className="flex flex-col gap-4 justify-center items-center bg-[#333] dark:bg-primary w-full px-[20px] py-[50px] text-center rounded-t-lg ">
-              <span className="text-secondary font-[Clash-Medium] text-2xl xl:text-6xl"> Calling all Indie Musicians!</span>
-              <span className="xl:w-[50%] text-primary-foreground xl:text-2xl ">
-                Be a true Web3 music innovator! We provide you with full support to launch your music on Sigma Music
-              </span>
+          <div className="w-full mt-10">
+            <div id="join-nf-tunes" className="flex flex-col gap-4 justify-center items-center w-full px-[20px] py-[50px] text-center rounded-t-lg ">
+              <span className="font-[Clash-Medium] text-2xl xl:text-6xl"> Calling all Indie Musicians!</span>
+              <span className="xl:w-[50%] xl:text-2xl ">Co-Launch your music with Sigma.</span>
 
               <img className="w-[200px] md:w-400px" src={currentTheme === "dark" ? megaphone : megaphoneLight} alt="megaphone" />
 
@@ -427,13 +482,11 @@ export const NFTunes = () => {
             </div>
 
             {/* What Musicians are saying */}
-            <div className="flex flex-col gap-4 justify-center items-center bg-[#333] dark:bg-primary w-full px-[20px] md:py-[50px] text-center rounded-b-lg">
+            <div className="flex flex-col gap-4 justify-center items-center w-full px-[20px] md:py-[50px] text-center rounded-b-lg">
               <div className="py-8 flex flex-col w-[100%] justify-center items-center xl:items-start xl:p-12 xl:pt-0">
                 <div className="flex flex-col xl:flex-row w-full items-center justify-center h-[300px]">
-                  <div className="flex flex-col gap-8 xl:w-[50%] justify-start items-center xl:items-start w-[330px] md:w-[auto]">
-                    <div className="text-2xl xl:text-4xl text-primary-foreground">
-                      Hear what Indie Musicians are saying about Music Data NFTs and Sigma Music
-                    </div>
+                  <div className="flex flex-col gap-8 xl:w-[50%] justify-start items-center xl:items-start md:w-[auto]">
+                    <div className="text-2xl xl:text-3xl">Hear what Indie Musicians are saying about Music Data NFTs and Sigma Music</div>
                   </div>
                   <div className="flex justify-center items-center h-[30rem] w-full xl:w-[50%]">
                     <div className="w-[380px] h-[170px] md:w-[480px] md:h-[270px]">
@@ -516,10 +569,10 @@ export async function getArtistsAlbumsData() {
   try {
     // cache for 120 seconds
     if (_artistsAlbumsDataCachedOnWindow.length > 0 && Date.now() - _artistsAlbumsDataCachedOn < 120 * 1000) {
-      console.log(`getArtistsAlbumsData: getArtistsAlbumsData [cache]`);
+      console.log(`getArtistsAlbumsData: [cache]`);
       return _artistsAlbumsDataCachedOnWindow;
     } else {
-      console.log(`getArtistsAlbumsData: getArtistsAlbumsData [no-cache]`);
+      console.log(`getArtistsAlbumsData: [no-cache]`);
       const getArtistsAlbumsAPI = `https://api.itheumcloud.com/app_nftunes/assets/json/albumsAndArtistsData.json`;
       const dataRes = await axios.get(getArtistsAlbumsAPI);
       const dataset = dataRes.data;
@@ -561,9 +614,7 @@ export async function fetchBitzPowerUpsAndLikesForSelectedArtist({
     !_bountyBitzSumGlobalMappingWindow[giftBitzToArtistMeta.bountyId] ||
     Date.now() - _bountyBitzSumGlobalMappingWindow[giftBitzToArtistMeta.bountyId].syncedOn > checkInCacheSeconds * 1000
   ) {
-    console.log(
-      `getArtistsAlbumsData: fetchBitzPowerUpsAndLikesForSelectedArtist ${giftBitzToArtistMeta.bountyId} - is album ${isSingleAlbumBounty} [no-cache]`
-    );
+    console.log(`fetchBitzPowerUpsAndLikesForSelectedArtist: ${giftBitzToArtistMeta.bountyId} - is album ${isSingleAlbumBounty} [no-cache]`);
 
     let response;
     let collectionIdToUseOnSol = "";
@@ -588,55 +639,55 @@ export async function fetchBitzPowerUpsAndLikesForSelectedArtist({
     }
 
     // lets make a list of album bounties as well and queue it to be fetched
-    const albumBountyIds = giftBitzToArtistMeta.albums.map((i: any) => i.bountyId);
+    if (giftBitzToArtistMeta.albums) {
+      const albumBountyIds = giftBitzToArtistMeta.albums.map((i: any) => i.bountyId);
 
-    if (albumBountyIds.length > 0) {
-      let albumBitzPowerUpPromises: any[] = [];
+      if (albumBountyIds.length > 0) {
+        let albumBitzPowerUpPromises: any[] = [];
 
-      albumBitzPowerUpPromises = albumBountyIds.map((albumBounty: any) => {
-        if (
-          !_bountyBitzSumGlobalMappingWindow[albumBounty] ||
-          Date.now() - _bountyBitzSumGlobalMappingWindow[albumBounty].syncedOn > checkInCacheSeconds * 1000
-        ) {
-          console.log(`getArtistsAlbumsData: fetchBitzPowerUpsAndLikesForSelectedArtist ${albumBounty} - is album ${isSingleAlbumBounty} [no-cache]`);
+        albumBitzPowerUpPromises = albumBountyIds.map((albumBounty: any) => {
+          if (
+            !_bountyBitzSumGlobalMappingWindow[albumBounty] ||
+            Date.now() - _bountyBitzSumGlobalMappingWindow[albumBounty].syncedOn > checkInCacheSeconds * 1000
+          ) {
+            console.log(`fetchBitzPowerUpsAndLikesForSelectedArtist: ${albumBounty} - is album ${isSingleAlbumBounty} [no-cache]`);
 
-          return fetchBitSumAndGiverCountsSol({
-            getterAddr: giftBitzToArtistMeta?.creatorWallet || "",
-            campaignId: albumBounty || "",
-            collectionId: collectionIdToUseOnSol,
+            return fetchBitSumAndGiverCountsSol({
+              getterAddr: giftBitzToArtistMeta?.creatorWallet || "",
+              campaignId: albumBounty || "",
+              collectionId: collectionIdToUseOnSol,
+            });
+          } else {
+            console.log(`fetchBitzPowerUpsAndLikesForSelectedArtist: ${albumBounty} - is album ${isSingleAlbumBounty} [cache]`);
+            return null;
+          }
+        });
+
+        if (albumBitzPowerUpPromises.filter((i: any) => i !== null).length > 0) {
+          Promise.all(albumBitzPowerUpPromises).then((values) => {
+            albumBountyIds.forEach((albumBountyId: any, idx: number) => {
+              _bountyToBitzLocalMapping[albumBountyId] = {
+                syncedOn: Date.now(),
+                bitsSum: values[idx]?.bitsSum,
+              };
+            });
+
+            _bountyBitzSumGlobalMappingWindow = _bountyToBitzLocalMapping;
+            setMusicBountyBitzSumGlobalMapping(_bountyToBitzLocalMapping);
+            // { receivedBitzSum: response.bitsSum, giverCounts: response.giverCounts }
           });
         } else {
-          console.log(`getArtistsAlbumsData: fetchBitzPowerUpsAndLikesForSelectedArtist ${albumBounty} - is album ${isSingleAlbumBounty} [cache]`);
-          return null;
-        }
-      });
-
-      if (albumBitzPowerUpPromises.filter((i: any) => i !== null).length > 0) {
-        Promise.all(albumBitzPowerUpPromises).then((values) => {
-          albumBountyIds.forEach((albumBountyId: any, idx: number) => {
-            _bountyToBitzLocalMapping[albumBountyId] = {
-              syncedOn: Date.now(),
-              bitsSum: values[idx]?.bitsSum,
-            };
-          });
-
+          // if no album changes were needed, we just set the global mapping to the current state
           _bountyBitzSumGlobalMappingWindow = _bountyToBitzLocalMapping;
           setMusicBountyBitzSumGlobalMapping(_bountyToBitzLocalMapping);
-          // { receivedBitzSum: response.bitsSum, giverCounts: response.giverCounts }
-        });
+        }
       } else {
-        // if no album changes were needed, we just set the global mapping to the current state
         _bountyBitzSumGlobalMappingWindow = _bountyToBitzLocalMapping;
         setMusicBountyBitzSumGlobalMapping(_bountyToBitzLocalMapping);
       }
-    } else {
-      _bountyBitzSumGlobalMappingWindow = _bountyToBitzLocalMapping;
-      setMusicBountyBitzSumGlobalMapping(_bountyToBitzLocalMapping);
     }
   } else {
-    console.log(
-      `getArtistsAlbumsData: fetchBitzPowerUpsAndLikesForSelectedArtist ${giftBitzToArtistMeta.bountyId} - is album ${isSingleAlbumBounty} [no-cache]`
-    );
+    console.log(`fetchBitzPowerUpsAndLikesForSelectedArtist: ${giftBitzToArtistMeta.bountyId} - is album ${isSingleAlbumBounty} [cache]`);
     setMusicBountyBitzSumGlobalMapping(_bountyBitzSumGlobalMappingWindow);
   }
 }

@@ -283,7 +283,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                     {artistAlbumDataset.map((artist: any) => (
                       <div
                         key={artist.artistId}
-                        className={`flex w-[250px] h-[250px] md:w-[300px] md:h-[300px] m-2 cursor-pointer`}
+                        className={`flex w-[250px] h-[250px] md:w-[300px] md:h-[300px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
                         onClick={() => {
                           if (artist.artistId !== selArtistId) {
                             // notify the home page, which then triggers an effect to setSelArtistId

@@ -164,6 +164,9 @@ importers:
       react-slick:
         specifier: 0.30.2
         version: 0.30.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react-twitter-widgets:
+        specifier: ^1.11.0
+        version: 1.11.0(react@18.2.0)
       react-vertical-timeline-component:
         specifier: 3.6.0
         version: 3.6.0(react@18.2.0)
@@ -6067,6 +6070,9 @@ packages:
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
+  loadjs@4.3.0:
+    resolution: {integrity: sha512-vNX4ZZLJBeDEOBvdr2v/F+0aN5oMuPu7JTqrMwp+DtgK+AryOlpy6Xtm2/HpNr+azEa828oQjOtWsB6iDtSfSQ==}
+
   local-pkg@0.5.1:
     resolution: {integrity: sha512-9rrA30MRRP3gBD3HTGnC6cDFpaE1kVDWxWgqWJUN0RvDNAo+Nz/9GxB+nHOH0ifbVFy0hSA1V6vFDvnx54lTEQ==}
     engines: {node: '>=14'}
@@ -7198,6 +7204,11 @@ packages:
     peerDependencies:
       react: '>=16.6.0'
       react-dom: '>=16.6.0'
+
+  react-twitter-widgets@1.11.0:
+    resolution: {integrity: sha512-PMCLJQc30iqy01y1b2+HnMfCX+ZkOxWaPKJb4BhHgOgjSjoZb68K5T0nq3q+3YbX9K7OH0bhptgDihtBG/BqRQ==}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18
 
   react-vertical-timeline-component@3.6.0:
     resolution: {integrity: sha512-l9zulqjIGlRuaQeplGzV4r/tG2RYBpYt84Il8w4IxnJze2cDIGI04MKo3F7f1sHT0Sih1ohEFts8UV23AJS15Q==}
@@ -16387,6 +16398,8 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
+  loadjs@4.3.0: {}
+
   local-pkg@0.5.1:
     dependencies:
       mlly: 1.7.3
@@ -17776,6 +17789,11 @@ snapshots:
       prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
+
+  react-twitter-widgets@1.11.0(react@18.2.0):
+    dependencies:
+      loadjs: 4.3.0
+      react: 18.2.0
 
   react-vertical-timeline-component@3.6.0(react@18.2.0):
     dependencies:

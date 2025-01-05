@@ -11,7 +11,7 @@ export type Track = {
   }>;
   category?: string;
   stream?: string;
-  isExplicit?: "1" | "0";
+  isExplicit?: string;
   ctaBuy?: string;
   dripSet?: string;
   airdrop?: string;

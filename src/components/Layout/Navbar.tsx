@@ -21,16 +21,19 @@ export const Navbar = () => {
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const location = useLocation();
 
+  const appSubtitle = "Create With Music AI Agents. Collect Music NFTs. Support Musicians.";
+
   return (
     <>
       <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-20">
-        <div className="flex flex-row items-center text-xl">
+        <div className="flex flex-col items-left text-xl">
           <Link className="flex flex-row items-center" to={routeNames.home}>
             <div className="flex flex-row leading-none">
               <span className="text-black dark:!text-white text-3xl">Sigma&nbsp;</span>
               <span className="bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent text-sm -ml-1">Music</span>
             </div>
           </Link>
+          <span className="hidden md:block text-xs text-muted-foreground mt-1">{appSubtitle}</span>
         </div>
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
@@ -127,6 +130,10 @@ export const Navbar = () => {
         )}
 
         {showPlayBitzModal && <PlayBitzModal showPlayBitzModel={showPlayBitzModal} handleHideBitzModel={() => setShowPlayBitzModal(false)} />}
+      </div>
+
+      <div className="md:hidden flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem]">
+        <span className="text-xs text-muted-foreground mt-1 text-center">{appSubtitle}</span>
       </div>
 
       {publicKeySol && (
