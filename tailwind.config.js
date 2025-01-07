@@ -97,6 +97,20 @@ module.exports = {
             filter: "brightness(1.2) opacity(1)",
           },
         },
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        slideFadeIn: {
+          "0%": {
+            transform: "translateX(-20px)",
+            opacity: "0",
+          },
+          "100%": {
+            transform: "translateX(0)",
+            opacity: "1",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -105,6 +119,8 @@ module.exports = {
         "gradient": "gradient 10s linear infinite",
         "cube-down": "cube-down 1s ease-in-out infinite",
         "float": "float 6s ease-in-out infinite",
+        "fade-in": "fadeIn 0.5s ease-in-out",
+        "slide-fade-in": "slideFadeIn 0.5s ease-out",
       },
     },
   },

@@ -4,14 +4,33 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
-import { Loader, Pause, Music2, Play, RefreshCcwDot, SkipBack, SkipForward, Volume1, Volume2, VolumeX, Gift, ShoppingCart, Heart, CircleX } from "lucide-react";
+import {
+  Loader,
+  Pause,
+  Music2,
+  Play,
+  RefreshCcwDot,
+  SkipBack,
+  SkipForward,
+  Volume1,
+  Volume2,
+  VolumeX,
+  Gift,
+  ShoppingCart,
+  Heart,
+  CircleX,
+  Library,
+  ChevronDown,
+} from "lucide-react";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./AudioPlayer.css";
+import Slider from "react-slick";
 import { useDebouncedCallback } from "use-debounce";
 import DEFAULT_SONG_IMAGE from "assets/img/audio-player-image.png";
 import DEFAULT_SONG_LIGHT_IMAGE from "assets/img/audio-player-light-image.png";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
+import { DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping, GiftBitzToArtistMeta, Track } from "libs/types";
 import { getApiWeb2Apps } from "libs/utils";
@@ -21,16 +40,16 @@ import { getBestBuyCtaLink } from "pages/AppMarketplace/NFTunes/types/utils";
 
 type RadioPlayerProps = {
   stopRadioNow?: boolean;
-  onPlayHappened?: any;
-  checkOwnershipOfAlbum: (e: any) => any;
-  viewSolData: (e: number) => void;
   openActionFireLogic?: any;
   solBitzNfts?: any;
-  onSendBitzForMusicBounty: (e: any) => any;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   setMusicBountyBitzSumGlobalMapping: any;
   userHasNoBitzDataNftYet: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
+  onPlayHappened: () => void;
+  checkOwnershipOfAlbum: (e: any) => any;
+  viewSolData: (e: number) => void;
+  onSendBitzForMusicBounty: (e: any) => any;
 };
 
 let firstInteractionWithPlayDone = false; // a simple flag so we can track usage on 1st time user clicks on play (as the usage for first track wont capture like other tracks)
@@ -39,22 +58,22 @@ let firstMusicQueueDone = false;
 export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps) {
   const {
     stopRadioNow,
-    onPlayHappened,
-    checkOwnershipOfAlbum,
-    viewSolData,
     openActionFireLogic,
     solBitzNfts,
-    onSendBitzForMusicBounty,
     bountyBitzSumGlobalMapping,
     setMusicBountyBitzSumGlobalMapping,
     userHasNoBitzDataNftYet,
     dataNftPlayingOnMainPlayer,
+    onPlayHappened,
+    checkOwnershipOfAlbum,
+    viewSolData,
+    onSendBitzForMusicBounty,
   } = props;
 
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("00:00");
-  const [audio] = useState(new Audio());
+  const [radioPlayerAudio] = useState(new Audio());
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [isMutedByUserAndWithPriorVolume, setIsMutedByUserAndWithPriorVolume] = useState(-1);
@@ -74,6 +93,40 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   const [isAlbumForFree, setIsAlbumForFree] = useState<boolean>(false);
   const [trackThatsPlaying, setTrackThatsPlaying] = useState<Track | null>(null);
   const [ownershipOfAlbumAndItsIndex, setOwnershipOfAlbumAndItsIndex] = useState<number>(-1);
+  const [displayTrackList, setDisplayTrackList] = useState(false);
+
+  const settings = {
+    infinite: false,
+    speed: 1000,
+    slidesToShow: 4,
+    responsive: [
+      {
+        breakpoint: 1800,
+        settings: {
+          slidesToShow: 3,
+        },
+      },
+      {
+        breakpoint: 980,
+        settings: {
+          slidesToShow: 3,
+        },
+      },
+
+      {
+        breakpoint: 730,
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 550,
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
+  };
 
   function eventToAttachEnded() {
     setCurrentTrackIndex((prevCurrentTrackIndex) => (prevCurrentTrackIndex < radioTracks.length - 1 ? prevCurrentTrackIndex + 1 : 0));
@@ -88,15 +141,15 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
     setIsLoaded(true);
     updateProgress();
     // play the song
-    if (audio.currentTime == 0) togglePlay();
+    if (radioPlayerAudio.currentTime == 0) {
+      togglePlay();
+    }
   }
 
   function eventToAttachPlaying() {
     setIsPlaying(true);
 
-    if (onPlayHappened) {
-      onPlayHappened(true);
-    }
+    onPlayHappened();
   }
 
   const debounced_fetchBitzPowerUpsAndLikesForSelectedArtist = useDebouncedCallback((giftBitzToArtistMeta: GiftBitzToArtistMeta) => {
@@ -110,10 +163,10 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   }, 2500);
 
   useEffect(() => {
-    audio.addEventListener("ended", eventToAttachEnded);
-    audio.addEventListener("timeupdate", eventToAttachTimeUpdate);
-    audio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
-    audio.addEventListener("playing", eventToAttachPlaying);
+    radioPlayerAudio.addEventListener("ended", eventToAttachEnded);
+    radioPlayerAudio.addEventListener("timeupdate", eventToAttachTimeUpdate);
+    radioPlayerAudio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
+    radioPlayerAudio.addEventListener("playing", eventToAttachPlaying);
 
     // get the radio tracks data
     async function getRadioTracksData() {
@@ -126,16 +179,17 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
       setNfTunesRadioFirstTrackCachedBlob(blobUrl);
       setRadioTracksLoading(false);
     }
+
     getRadioTracksData();
 
     return () => {
       firstMusicQueueDone = false; // reset it here so when user leaves app and comes back, we don't auto play again
       firstInteractionWithPlayDone = false;
-      audio.pause();
-      audio.removeEventListener("ended", eventToAttachEnded);
-      audio.removeEventListener("timeupdate", eventToAttachTimeUpdate);
-      audio.removeEventListener("canplaythrough", eventToAttachCanPlayThrough);
-      audio.removeEventListener("playing", eventToAttachPlaying);
+      radioPlayerAudio.pause();
+      radioPlayerAudio.removeEventListener("ended", eventToAttachEnded);
+      radioPlayerAudio.removeEventListener("timeupdate", eventToAttachTimeUpdate);
+      radioPlayerAudio.removeEventListener("canplaythrough", eventToAttachCanPlayThrough);
+      radioPlayerAudio.removeEventListener("playing", eventToAttachPlaying);
     };
   }, []);
 
@@ -199,14 +253,14 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
 
   useEffect(() => {
     updateProgress();
-  }, [audio.src]);
+  }, [radioPlayerAudio.src]);
 
   useEffect(() => {
     if (!trackThatsPlaying) return;
     if (Object.keys(songSource).length === 0) return;
 
-    audio.pause();
-    audio.src = "";
+    radioPlayerAudio.pause();
+    radioPlayerAudio.src = "";
     setIsPlaying(false);
     setIsLoaded(false);
     handleChangeSong();
@@ -294,28 +348,28 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   };
 
   const updateProgress = () => {
-    setCurrentTime(audio.currentTime ? formatTime(audio.currentTime) : "00:00");
-    setDuration(audio.duration ? formatTime(audio.duration) : "00:00");
-    let _percentage = (audio.currentTime / audio.duration) * 100;
+    setCurrentTime(radioPlayerAudio.currentTime ? formatTime(radioPlayerAudio.currentTime) : "00:00");
+    setDuration(radioPlayerAudio.duration ? formatTime(radioPlayerAudio.duration) : "00:00");
+    let _percentage = (radioPlayerAudio.currentTime / radioPlayerAudio.duration) * 100;
     if (isNaN(_percentage)) _percentage = 0;
     setProgress(_percentage);
   };
 
   const togglePlay = () => {
     if (isPlaying) {
-      if (!audio.paused) {
-        audio.pause();
+      if (!radioPlayerAudio.paused) {
+        radioPlayerAudio.pause();
         setIsPlaying(false);
       }
     } else {
-      if (audio.readyState >= 2) {
+      if (radioPlayerAudio.readyState >= 2) {
         if (!firstMusicQueueDone) {
           // its the first time the radio loaded and the first track is ready, but we don't auto play
           // ... we use a local global variable here instead of state var as its only needed once
           firstMusicQueueDone = true;
         } else {
           // Audio is loaded, play it.
-          // audio.play();
+          radioPlayerAudio.play();
 
           // once they interact with the radio play, then no longer need to show the bouncing animation
           if (!radioPlayPromptHide) {
@@ -331,13 +385,13 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
 
   const stopPlaybackNow = () => {
     if (isPlaying) {
-      audio.pause();
+      radioPlayerAudio.pause();
       setIsPlaying(false);
     }
   };
 
   const handleVolumeChange = (newVolume: number) => {
-    audio.volume = newVolume;
+    radioPlayerAudio.volume = newVolume;
     setVolume(newVolume);
 
     // restore the mute to default, as the user might have increased the vol during mute so we restore mute state
@@ -377,15 +431,15 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   };
 
   const repeatTrack = () => {
-    audio.currentTime = 0;
-    if (isPlaying) audio.play();
+    radioPlayerAudio.currentTime = 0;
+    if (isPlaying) radioPlayerAudio.play();
   };
 
   const handleProgressChange = (newProgress: number) => {
-    if (!audio.duration) return;
-    const newTime = (newProgress / 100) * audio.duration;
-    audio.currentTime = newTime;
-    setCurrentTime(formatTime(audio.currentTime));
+    if (!radioPlayerAudio.duration) return;
+    const newTime = (newProgress / 100) * radioPlayerAudio.duration;
+    radioPlayerAudio.currentTime = newTime;
+    setCurrentTime(formatTime(radioPlayerAudio.currentTime));
     setProgress(newProgress);
   };
 
@@ -400,10 +454,10 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
         console.error(songSource[index]);
         toastClosableError("Could not load song due to network error. Please try the next track");
       } else if (!(songSource[index] === "Fetching")) {
-        audio.src = songSource[index];
-        audio.load();
+        radioPlayerAudio.src = songSource[index];
+        radioPlayerAudio.load();
         updateProgress();
-        audio.currentTime = 0;
+        radioPlayerAudio.currentTime = 0;
 
         // doing the radioPlayPromptHide checks makes sure track 1 usage does not get sent until user actually plays
         if (radioPlayPromptHide) {
@@ -439,19 +493,12 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
     return dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName;
   }
 
+  const showPlaylist = () => {
+    setDisplayTrackList(!displayTrackList);
+  };
+
   return (
     <>
-      <div className="debug hidden bg-yellow-500 w-full h-full text-xs">
-        nfTunesRadioFirstTrackCachedBlob = {nfTunesRadioFirstTrackCachedBlob} <br />
-        radioTracks.length = {radioTracks.length} <br />
-        albumActionLink = {albumActionLink} <br />x albumActionText = {albumActionText} <br />
-        isAlbumForFree = {isAlbumForFree.toString()} <br />
-        trackThatsPlaying = {JSON.stringify(trackThatsPlaying)} <br />
-        songSource[trackThatsPlaying] = {trackThatsPlaying ? songSource[trackThatsPlaying.idx] : "null"} <br />
-        songSource = {JSON.stringify(songSource)} <br />
-        ownershipOfAlbumAndItsIndex = {ownershipOfAlbumAndItsIndex} <br />
-        imgLoading = {imgLoading.toString()} <br />
-      </div>
       {radioTracksLoading || radioTracks.length === 0 ? (
         <div className="select-none h-[200px] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/40 relative md:w-[100%] flex flex-col items-center justify-center rounded-xl mt-2 p-3">
           {radioTracksLoading ? (
@@ -481,7 +528,69 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
           {trackThatsPlaying && (
             <div className={`${isCollapsed ? "w-full fixed left-0 bottom-0 z-50" : "w-full"}`}>
               <div className="relative w-full border-[1px] border-foreground/40 rounded-xl bg-black">
-                <div className="player flex flex-col md:flex-row select-none md:h-[200px] bgx-red-800 relative w-full border-t-[1px] border-foreground/10">
+                <div className="debug hidden  bg-yellow-500 w-full h-full text-xs">
+                  nfTunesRadioFirstTrackCachedBlob = {nfTunesRadioFirstTrackCachedBlob} <br />
+                  radioTracks.length = {radioTracks.length} <br />
+                  albumActionLink = {albumActionLink} <br />x albumActionText = {albumActionText} <br />
+                  isAlbumForFree = {isAlbumForFree.toString()} <br />
+                  trackThatsPlaying = {JSON.stringify(trackThatsPlaying)} <br />
+                  songSource[trackThatsPlaying] = {trackThatsPlaying ? songSource[trackThatsPlaying.idx] : "null"} <br />
+                  ownershipOfAlbumAndItsIndex = {ownershipOfAlbumAndItsIndex} <br />
+                  imgLoading = {imgLoading.toString()} <br />
+                </div>
+
+                {isCollapsed && displayTrackList && (
+                  <div className="bg-gradient-to-t from-[#171717] to-black w-full pb-2">
+                    <div className="trackList w-[300px] md:w-[93%] mt-1 pt-3 mx-auto">
+                      <button
+                        className="select-none absolute top-0 right-0 flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden"
+                        onClick={() => setDisplayTrackList(false)}>
+                        <ChevronDown className="w-6 h-6" />
+                      </button>
+                      <h4 className="flex justify-center select-none font-semibold text-foreground mb-3 !text-xl">
+                        {`Tracklist ${radioTracks.length} songs`}{" "}
+                      </h4>
+                      <Slider {...settings}>
+                        {radioTracks.map((song: any, index: number) => {
+                          return (
+                            <div key={index} className="flex items-center justify-center">
+                              <div
+                                onClick={() => {
+                                  setCurrentTrackIndex(index);
+                                }}
+                                className="mx-5 select-none flex flex-row items-center justify-start rounded-xl text-foreground border-[1px] border-foreground/40 hover:opacity-60 cursor-pointer">
+                                <div className="">
+                                  <img
+                                    src={song.cover_art_url}
+                                    alt="Album Cover"
+                                    className="h-20 p-2 rounded-xl m-auto"
+                                    onError={({ currentTarget }) => {
+                                      currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
+                                    }}
+                                  />
+                                </div>
+                                <div className="xl:w-[60%] flex flex-col justify-center text-center">
+                                  <h6 className="!text-sm !text-muted-foreground truncate md:text-left">{song.title}</h6>
+                                  <p className="text-sm text-white truncate md:text-left">{song.artist}</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </Slider>
+                      <style>
+                        {`
+               /* CSS styles for Swiper navigation arrows  */
+               .slick-prev:before,
+               .slick-next:before {
+               color: ${theme === "light" ? "black;" : "white;"},
+                   }`}
+                      </style>
+                    </div>
+                  </div>
+                )}
+
+                <div className="player flex flex-col md:flex-row select-none md:h-[200px] relative w-full border-t-[1px] border-foreground/10 animate-fade-in bgx-800">
                   {isCollapsed && (
                     <button
                       className="select-none absolute top-0 left-0 flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden"
@@ -493,11 +602,12 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                     </button>
                   )}
 
-                  <div className={`songInfo flex flex-row items-center ${isCollapsed ? "px-10 pt-2 md:pt-10 pb-4" : "ml-2 padding-[20px]"} mt-5 md:mt-0`}>
+                  <div
+                    className={`songInfo flex flex-row items-center  bgx-blue-500 ${isCollapsed ? "px-10 pt-2 md:pt-10 pb-4 md:w-[500px]" : "ml-2 padding-[20px] md:w-[250px]"} mt-5 md:mt-0`}>
                     <img
                       src={radioTracks ? trackThatsPlaying.cover_art_url : ""}
                       alt="Album Cover"
-                      className={`select-none ${isCollapsed ? "w-[100px] h-[100px]" : "w-[130px] h-[130px]"} rounded-md md:mr-6 border border-grey-900 ${imgLoading ? "blur-sm" : "blur-none"}`}
+                      className={`select-none ${isCollapsed ? "w-[100px] h-[100px] md:mr-3" : "w-[130px] h-[130px] m-[auto]"} rounded-md border border-grey-900 ${imgLoading ? "blur-sm" : "blur-none"}`}
                       onLoad={() => {
                         setImgLoading(false);
                       }}
@@ -508,17 +618,15 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
 
                     {isCollapsed && (
                       <div className="ml-2 md:ml-0 flex flex-col select-text mt-2">
-                        <div>
-                          <span className="text-sm text-muted-foreground">{trackThatsPlaying.title}</span>{" "}
-                        </div>
-
+                        <span className="text-sm text-muted-foreground">{trackThatsPlaying.title}</span>{" "}
                         <span className="text-sm text-white">{trackThatsPlaying.artist}</span>
+                        <span className="text-xs text-muted-foreground">Track {currentTrackIndex + 1}</span>
                       </div>
                     )}
                   </div>
 
                   <div
-                    className={`songControls flex flex-col justify-center items-center ${!isCollapsed ? "" : ""} gap-2 text-foreground select-none w-full px-2`}>
+                    className={`songControls flex flex-col justify-center items-center  bgx-green-500 ${!isCollapsed ? "" : ""} gap-2 text-foreground select-none w-full px-2`}>
                     <div className="controlButtons flex w-full justify-around">
                       <button className="cursor-pointer" onClick={handlePrevButton}>
                         <SkipBack className="w-full hover:scale-105" />
@@ -590,7 +698,12 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                         />
                       )}
 
-                      {isCollapsed && <span className="text-sm text-muted-foreground">Album: {trackThatsPlaying.album}</span>}
+                      {isCollapsed && (
+                        <div className="songCategoryAndTitle flex flex-col w-full justify-center items-center">
+                          <span className="text-sm text-foreground/60">Genre: {trackThatsPlaying.category}</span>
+                          <span className="text-sm text-muted-foreground">Album: {trackThatsPlaying.album}</span>
+                        </div>
+                      )}
 
                       {!isCollapsed && (
                         <div className="ml-2 md:ml-0 flex flex-col select-text mt-2 w-full items-center">
@@ -603,10 +716,11 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                   </div>
 
                   {isCollapsed && (
-                    <div className="albumControls mb-2 md:mb-0 bgx-green-500 md:w-[500px] select-none p-2 rounded-b-xl flex items-center justify-between z-10">
+                    <div className="albumControls mb-2 md:mb-0 bgx-green-500 md:w-[500px] select-none p-2 flex items-center justify-between z-10 bgx-yellow-500">
                       <button className="cursor-pointer" onClick={repeatTrack}>
                         <RefreshCcwDot className="w-full hover:scale-105" />
                       </button>
+
                       <div className="ml-2 xl:pl-8 flex">
                         <div onClick={toggleMute}>{volume === 0 ? <VolumeX /> : volume >= 0.5 ? <Volume2 /> : <Volume1 />}</div>
                         <input
@@ -619,18 +733,22 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                           className="accent-black dark:accent-white w-[70%] cursor-pointer ml-2"
                         />
                       </div>
+
+                      <button className="mr-2  xl:pr-8" onClick={showPlaylist}>
+                        <Library className="w-full hover:scale-105" />
+                      </button>
                     </div>
                   )}
 
                   {isCollapsed && (
-                    <div className="absolute right-0 flex z-10">
+                    <div className="absolute right-4 top-2 flex z-10">
                       {albumActionLink && (
                         <div className="actionsLinks flex flex-grow justify-end">
                           <div className="mt-[6px] flex flex-col lg:flex-row space-y-2 lg:space-y-0">
                             {ownershipOfAlbumAndItsIndex > -1 && (
                               <Button
                                 disabled={thisIsPlayingOnMainPlayer(trackThatsPlaying)}
-                                className={`${isAlbumForFree ? "!text-white" : "!text-black"} text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r ${isAlbumForFree ? "from-yellow-700 to-orange-800" : "from-yellow-300 to-orange-500"}  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 md:mr-[12px]`}
+                                className={`${isAlbumForFree ? "!text-white" : "!text-black"} text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r ${isAlbumForFree ? "from-yellow-700 to-orange-800" : "from-yellow-300 to-orange-500"} md:mr-[12px]`}
                                 variant="ghost"
                                 onClick={() => {
                                   const albumInOwnershipListIndex = ownershipOfAlbumAndItsIndex;
@@ -651,7 +769,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                             )}
 
                             <Button
-                              className={`${isAlbumForFree ? "!text-white" : "!text-black"} text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r ${isAlbumForFree ? "from-yellow-700 to-orange-800" : "from-yellow-300 to-orange-500"}  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100`}
+                              className={`${isAlbumForFree ? "!text-white" : "!text-black"} text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r ${isAlbumForFree ? "from-yellow-700 to-orange-800" : "from-yellow-300 to-orange-500"}`}
                               variant="ghost"
                               onClick={() => {
                                 window.open(albumActionLink)?.focus();
@@ -665,7 +783,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                         </div>
                       )}
 
-                      {trackThatsPlaying?.bountyId && (
+                      {!DISABLE_BITZ_FEATURES && trackThatsPlaying?.bountyId && (
                         <div className={`albumLikes md:w-[135px] flex flex-col ${!albumActionLink ? "flex-grow items-end" : "items-end"}`}>
                           <div
                             className={`${publicKeySol && typeof bountyBitzSumGlobalMapping[trackThatsPlaying.bountyId]?.bitsSum !== "undefined" ? " hover:bg-orange-100 cursor-pointer dark:hover:text-orange-500" : ""} text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center`}
@@ -718,41 +836,41 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
 
 async function getRadioStreamsData() {
   try {
-    return [
-      {
-        idx: 1,
-        nftCollection: "me2Sj97xewgEodSCRs31jFEyA1m3FQFzziqVXK9SVHX",
-        solNftName: "MUSG17-Olly'G-Christmas Ballad",
-        artist: "Olly'G",
-        category: "EDM, Rock Ballad",
-        album: "Christmas Ballad",
-        cover_art_url: "https://api.itheumcloud.com/app_nftunes/assets/img/MelancholyChristmas.jpg",
-        title: "Melancholy Christmas",
-        stream: "https://gateway.lighthouse.storage/ipfs/bafybeic4bdq7r6lfnqssjktmj6r4im65vln3nguoz2frbwmzfjpnwxh7aq/9691.audio_MelancholyChristmas.mp3",
-        ctaBuy: "",
-        dripSet: "https://drip.haus/itheum/set/7d3117c1-4956-428b-9e2d-d254f19a94a8",
-        creatorWallet: "3ibP6nxaKocQPA8S5ntXSo1Xd4aYSa93QKjPzDaPqAmB",
-        bountyId: "mus_ar14_a2",
-        isExplicit: "0",
-      },
-      {
-        idx: 2,
-        nftCollection: "me2Sj97xewgEodSCRs31jFEyA1m3FQFzziqVXK9SVHX",
-        solNftName: "MUSG17-Olly'G-Christmas Ballad",
-        artist: "Olly'G",
-        category: "EDM, Rock Ballad",
-        album: "Christmas Ballad",
-        cover_art_url: "https://api.itheumcloud.com/app_nftunes/assets/img/TheSilenceofChristmasTears.jpg",
-        title: "The Silence of Christmas Tears",
-        stream:
-          "https://gateway.lighthouse.storage/ipfs/bafybeic4bdq7r6lfnqssjktmj6r4im65vln3nguoz2frbwmzfjpnwxh7aq/96142.audio_TheSilenceofChristmasTears.mp3",
-        ctaBuy: "",
-        dripSet: "",
-        creatorWallet: "3ibP6nxaKocQPA8S5ntXSo1Xd4aYSa93QKjPzDaPqAmB",
-        bountyId: "mus_ar14_a2",
-        isExplicit: "0",
-      },
-    ];
+    // return [
+    //   {
+    //     idx: 1,
+    //     nftCollection: "me2Sj97xewgEodSCRs31jFEyA1m3FQFzziqVXK9SVHX",
+    //     solNftName: "MUSG17-Olly'G-Christmas Ballad",
+    //     artist: "Olly'G",
+    //     category: "EDM, Rock Ballad",
+    //     album: "Christmas Ballad",
+    //     cover_art_url: "https://api.itheumcloud.com/app_nftunes/assets/img/MelancholyChristmas.jpg",
+    //     title: "Melancholy Christmas",
+    //     stream: "https://gateway.lighthouse.storage/ipfs/bafybeic4bdq7r6lfnqssjktmj6r4im65vln3nguoz2frbwmzfjpnwxh7aq/9691.audio_MelancholyChristmas.mp3",
+    //     ctaBuy: "",
+    //     dripSet: "https://drip.haus/itheum/set/7d3117c1-4956-428b-9e2d-d254f19a94a8",
+    //     creatorWallet: "3ibP6nxaKocQPA8S5ntXSo1Xd4aYSa93QKjPzDaPqAmB",
+    //     bountyId: "mus_ar14_a2",
+    //     isExplicit: "0",
+    //   },
+    //   {
+    //     idx: 2,
+    //     nftCollection: "me2Sj97xewgEodSCRs31jFEyA1m3FQFzziqVXK9SVHX",
+    //     solNftName: "MUSG17-Olly'G-Christmas Ballad",
+    //     artist: "Olly'G",
+    //     category: "EDM, Rock Ballad",
+    //     album: "Christmas Ballad",
+    //     cover_art_url: "https://api.itheumcloud.com/app_nftunes/assets/img/TheSilenceofChristmasTears.jpg",
+    //     title: "The Silence of Christmas Tears",
+    //     stream:
+    //       "https://gateway.lighthouse.storage/ipfs/bafybeic4bdq7r6lfnqssjktmj6r4im65vln3nguoz2frbwmzfjpnwxh7aq/96142.audio_TheSilenceofChristmasTears.mp3",
+    //     ctaBuy: "",
+    //     dripSet: "",
+    //     creatorWallet: "3ibP6nxaKocQPA8S5ntXSo1Xd4aYSa93QKjPzDaPqAmB",
+    //     bountyId: "mus_ar14_a2",
+    //     isExplicit: "0",
+    //   },
+    // ];
     // return [
     //   {
     //     idx: 1,
@@ -951,12 +1069,13 @@ async function getRadioStreamsData() {
     //     isExplicit: "0",
     //   },
     // ];
-    // const getRadioStreamAPI = `https://api.itheumcloud.com/app_nftunes/assets/json/radioStreamData.json`;
 
-    // const tracksRes = await axios.get(getRadioStreamAPI);
-    // const tracksData = tracksRes.data;
+    const getRadioStreamAPI = `https://api.itheumcloud.com/app_nftunes/assets/json/radioStreamData.json`;
 
-    // return tracksData;
+    const tracksRes = await axios.get(getRadioStreamAPI);
+    const tracksData = tracksRes.data;
+
+    return tracksData;
   } catch (e) {
     console.error(e);
     return [];

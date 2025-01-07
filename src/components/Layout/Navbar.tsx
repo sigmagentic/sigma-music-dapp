@@ -12,6 +12,7 @@ import { routeNames } from "routes";
 import { useLocalStorageStore } from "store/LocalStorageStore.ts";
 import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
+import { DISABLE_BITZ_FEATURES } from "config";
 
 export const Navbar = () => {
   const { publicKey: publicKeySol } = useWallet();
@@ -21,7 +22,7 @@ export const Navbar = () => {
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const location = useLocation();
 
-  const appSubtitle = "Create With Music AI Agents. Collect Music NFTs. Support Musicians.";
+  const appSubtitle = "Create Music with AI Agents. Collect Music NFTs. Support Musicians.";
 
   return (
     <>
@@ -38,7 +39,7 @@ export const Navbar = () => {
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
           <NavigationMenuList>
-            {isLoggedInSol ? (
+            {!DISABLE_BITZ_FEATURES && isLoggedInSol ? (
               <>
                 <NavigationMenuItem>
                   {isLoggedInSol && (
@@ -129,18 +130,20 @@ export const Navbar = () => {
           </div>
         )}
 
-        {showPlayBitzModal && <PlayBitzModal showPlayBitzModel={showPlayBitzModal} handleHideBitzModel={() => setShowPlayBitzModal(false)} />}
+        {!DISABLE_BITZ_FEATURES && showPlayBitzModal && (
+          <PlayBitzModal showPlayBitzModel={showPlayBitzModal} handleHideBitzModel={() => setShowPlayBitzModal(false)} />
+        )}
       </div>
 
       <div className="md:hidden flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem]">
         <span className="text-xs text-muted-foreground mt-1 text-center">{appSubtitle}</span>
       </div>
 
-      {publicKeySol && (
+      {/* {publicKeySol && (
         <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem]">
           <DataNftAirdropsBannerCTA />
         </div>
-      )}
+      )} */}
     </>
   );
 };

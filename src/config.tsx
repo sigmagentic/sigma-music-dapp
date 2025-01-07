@@ -6,8 +6,6 @@ export const walletConnectV2ProjectId = import.meta.env.VITE_ENV_WALLETCONNECTV2
 
 export const apiTimeout = 10_000; // 10s
 
-export const TOOLS_API_URL = "https://tools.multiversx.com";
-
 export const dAppName = "Sigma Music";
 
 export const SHOW_NFTS_STEP = 20;
@@ -44,3 +42,5 @@ export enum MVX_ENV_ENUM {
   devnet = "ED",
   mainnet = "E1",
 }
+
+export const DISABLE_BITZ_FEATURES = import.meta.env.VITE_ENV_DISABLE_BITZ_FEATURES || true;

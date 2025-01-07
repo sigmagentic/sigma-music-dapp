@@ -3,22 +3,22 @@
   "name": "Sigma Music",
   "icons": [
     {
-      "src": "logo32.png",
+      "src": "tabIcon.png",
       "sizes": "32x32",
       "type": "image/x-icon"
     },
     {
-      "src": "logo16.png",
+      "src": "tabIcon.png",
       "sizes": "16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "tabIcon.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "tabIcon.png",
       "type": "image/png",
       "sizes": "512x512"
     }

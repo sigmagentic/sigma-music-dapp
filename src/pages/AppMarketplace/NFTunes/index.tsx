@@ -3,7 +3,6 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
 import { Link, useSearchParams } from "react-router-dom";
-import { Timeline } from "react-twitter-widgets";
 import { IS_DEVNET } from "appsConfig";
 import megaphoneLight from "assets/img/nf-tunes/megaphone-light.png";
 import megaphone from "assets/img/nf-tunes/megaphone.png";
@@ -11,7 +10,7 @@ import sigmaAgent from "assets/img/sigma-banner.webp";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
 import { RadioPlayer } from "components/AudioPlayer/RadioPlayer";
 import YouTubeEmbed from "components/YouTubeEmbed";
-import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
+import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS, DISABLE_BITZ_FEATURES } from "config";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { useTheme } from "contexts/ThemeProvider";
 import { Button } from "libComponents/Button";
@@ -26,6 +25,7 @@ import { FeaturedArtistsAndAlbums } from "./FeaturedArtistsAndAlbums";
 import { FeaturedBanners } from "./FeaturedBanners";
 import { MyCollectedAlbums } from "./MyCollectedAlbums";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
+import { FaXTwitter } from "react-icons/fa6";
 
 export const NFTunes = () => {
   const { theme } = useTheme();
@@ -71,6 +71,8 @@ export const NFTunes = () => {
   // this is a copy of the bitz balances bounties are getting (inside FeaturedArtistsAndAlbums.tsx) during the users ui session
   // ... but it only get progressively loaded as the user moves between tabs to see the atrist and their albums (so its not a complete state)
   const [bountyBitzSumGlobalMapping, setMusicBountyBitzSumGlobalMapping] = useState<any>({});
+
+  const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
 
   useEffect(() => {
     const isFeaturedArtistDeepLink = searchParams.get("artist-profile");
@@ -282,6 +284,13 @@ export const NFTunes = () => {
     setMusicPlayerTrackList([]);
   }
 
+  function handleCloseMusicPlayer() {
+    resetAudioPlayerState();
+    setLaunchMusicPlayer(false);
+    // clear this -- its used to carry a like content via bits session to the player so we can collect likes inside it
+    setBitzGiftingMeta(null);
+  }
+
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
@@ -294,14 +303,15 @@ export const NFTunes = () => {
                   <div className="text-2xl xl:text-3xl">Listen for free</div>
                   <RadioPlayer
                     stopRadioNow={stopRadio}
-                    onPlayHappened={(isPlaying: boolean) => {
-                      if (isPlaying) {
-                        setStopRadio(false);
-                      }
+                    onPlayHappened={() => {
+                      setStopRadio(false);
 
                       if (!stopPreviewPlaying) {
                         setStopPreviewPlaying(true);
                       }
+
+                      // close the main player if playing
+                      handleCloseMusicPlayer();
                     }}
                     checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                     viewSolData={viewSolData}
@@ -336,24 +346,20 @@ export const NFTunes = () => {
                   <div className="text-2xl xl:text-3xl mb-3 w-full text-center bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
                     hi, i'm sigma, your AI music agent
                   </div>
-                  <div className="flex flex-col md:flex-row gap-2 justify-center items-center">
-                    <div
-                      className="border-[0.5px] border-neutral-500/90 w-[360px] h-[400px] bg-no-repeat bg-cover rounded-xl animatex-float"
-                      style={{
-                        "backgroundImage": `url(${sigmaAgent})`,
-                        "backgroundPositionX": "-100px",
-                      }}></div>
-                    <div className="bg-black w-[300px] h-[400px] rounded-xl">
-                      <Timeline
-                        dataSource={{
-                          sourceType: "profile",
-                          screenName: "sigmaxmusic",
-                        }}
-                        options={{ theme: "dark", width: "300", height: "400" }}
-                        renderError={(_err: any) => "could not load timeline! are you logged into twitter on this browser?"}
-                      />
-                    </div>
+                  <div className="text-sm text-center mb-5">
+                    Click below to interact with me on <FaXTwitter className="inline-block text-xl" />
                   </div>
+                  <a href="https://x.com/SigmaXMusic" target="_blank">
+                    <div className="flex flex-col md:flex-row gap-2 justify-center items-center cursor-pointer">
+                      <div
+                        className="border-[0.5px] border-neutral-500/90 w-[90%] h-[400px] bg-no-repeat bg-cover rounded-xl animate-float"
+                        style={{
+                          "backgroundImage": `url(${sigmaAgent})`,
+                          "backgroundBlendMode": "darken",
+                          "backgroundColor": "#fcc73d",
+                        }}></div>
+                    </div>
+                  </a>
                 </div>
                 <div className="coCreateWithSigma bgx-orange-500 flex-1 flex flex-col justify-center items-center text-center rounded-xl">
                   <div className="text-2xl xl:text-3xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text mt-4">
@@ -394,14 +400,17 @@ export const NFTunes = () => {
               stopPreviewPlayingNow={stopPreviewPlaying}
               featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
               onFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
-              onPlayHappened={(isPlaying: boolean) => {
-                if (isPlaying) {
-                  setStopPreviewPlaying(false);
-                }
+              onPlayHappened={() => {
+                // pause the preview tracks if playing
+                setStopPreviewPlaying(false);
 
+                // pause the radio if playing
                 if (!stopRadio) {
                   setStopRadio(true);
                 }
+
+                // pause the main player if playing
+                setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
               }}
               checkOwnershipOfAlbum={checkOwnershipOfAlbum}
               openActionFireLogic={(_bitzGiftingMeta?: any) => {
@@ -503,18 +512,20 @@ export const NFTunes = () => {
             <div className="w-full fixed left-0 bottom-0 z-50">
               <MusicPlayer
                 dataNftToOpen={shownSolAppDataNfts[currentDataNftIndex]}
-                // trackList={dataMarshalResponse ? dataMarshalResponse.data : []}
                 trackList={musicPlayerTrackList}
                 firstSongBlobUrl={firstSongBlobUrl}
                 onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                 bitzGiftingMeta={bitzGiftingMeta}
                 bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                onClosePlayer={() => {
-                  resetAudioPlayerState();
-                  setLaunchMusicPlayer(false);
-                  // clear this -- its used to carry a like content via bits session to the player so we can collect likes inside it
-                  setBitzGiftingMeta(null);
+                onPlayHappened={() => {
+                  setStopPreviewPlaying(true);
+
+                  if (!stopRadio) {
+                    setStopRadio(true);
+                  }
                 }}
+                onCloseMusicPlayer={handleCloseMusicPlayer}
+                pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
               />
             </div>
           )}
@@ -607,6 +618,10 @@ export async function fetchBitzPowerUpsAndLikesForSelectedArtist({
   setMusicBountyBitzSumGlobalMapping: any;
   isSingleAlbumBounty: boolean;
 }) {
+  if (DISABLE_BITZ_FEATURES) {
+    return;
+  }
+
   const _bountyToBitzLocalMapping: Record<any, any> = { ..._bountyBitzSumGlobalMappingWindow };
   const checkInCacheSeconds = 120; // cache for 120 seconds
 

@@ -6,7 +6,9 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Gift, Heart, Loader, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
+import { DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
+import { BountyBitzSumMapping } from "libs/types";
 import { isMostLikelyMobile } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { routeNames } from "routes";
@@ -14,22 +16,22 @@ import { getBestBuyCtaLink } from "./types/utils";
 
 type ArtistDiscographyProps = {
   albums: any[];
-  viewSolData: any;
-  bountyBitzSumGlobalMapping?: any;
-  onSendBitzForMusicBounty?: any;
-  artistProfile?: any;
-  isPreviewPlaying?: any;
-  previewIsReadyToPlay?: any;
-  playPausePreview?: any;
+  bountyBitzSumGlobalMapping: BountyBitzSumMapping;
+  artistProfile: any;
+  isPreviewPlaying?: boolean;
+  previewIsReadyToPlay?: boolean;
   previewPlayingForAlbumId?: any;
-  currentTime?: any;
-  isFreeDropSampleWorkflow?: any;
-  checkOwnershipOfAlbum?: any;
-  openActionFireLogic?: any;
+  currentTime?: string;
+  isFreeDropSampleWorkflow?: boolean;
   inCollectedAlbumsView?: boolean;
   artist?: any;
-  setFeaturedArtistDeepLinkSlug?: any;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
+  viewSolData: (e: number) => void;
+  onSendBitzForMusicBounty: (e: any) => any;
+  playPausePreview?: (e: any, f: any) => any;
+  checkOwnershipOfAlbum: (e: any) => any;
+  openActionFireLogic: (e: any) => any;
+  setFeaturedArtistDeepLinkSlug?: (e: any) => any;
 };
 
 export const ArtistDiscography = (props: ArtistDiscographyProps) => {
@@ -38,16 +40,16 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     artist,
     albums,
     bountyBitzSumGlobalMapping,
-    onSendBitzForMusicBounty,
     artistProfile,
     isPreviewPlaying,
     previewIsReadyToPlay,
-    playPausePreview,
     previewPlayingForAlbumId,
     currentTime,
     isFreeDropSampleWorkflow,
+    onSendBitzForMusicBounty,
     checkOwnershipOfAlbum,
     viewSolData,
+    playPausePreview,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
     dataNftPlayingOnMainPlayer,
@@ -92,43 +94,45 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               <p className="">{album.desc}</p>
             </div>
 
-            <div className="albumLikes md:w-[135px] flex flex-col items-center">
-              <div
-                className={`${userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum !== "undefined" ? " hover:bg-orange-100 cursor-pointer dark:hover:text-orange-500" : ""} text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center`}
-                onClick={() => {
-                  if (userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum !== "undefined") {
-                    onSendBitzForMusicBounty({
-                      creatorIcon: album.img,
-                      creatorName: `${artistProfile.name}'s ${album.title}`,
-                      giveBitzToWho: artistProfile.creatorWallet,
-                      giveBitzToCampaignId: album.bountyId,
-                      isLikeMode: true,
-                    });
-                  }
-                }}>
-                {typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum === "undefined" ? (
-                  <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
-                ) : (
-                  <div
-                    className="p-5 md:p-0 flex items-center gap-2"
-                    title={userLoggedInWithWallet ? "Like This Album With 5 BiTz" : "Login to Like This Album"}
-                    onClick={() => {
-                      if (userLoggedInWithWallet) {
-                        onSendBitzForMusicBounty({
-                          creatorIcon: album.img,
-                          creatorName: `${artistProfile.name}'s ${album.title}`,
-                          giveBitzToWho: artistProfile.creatorWallet,
-                          giveBitzToCampaignId: album.bountyId,
-                          isLikeMode: true,
-                        });
-                      }
-                    }}>
-                    {bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum}
-                    <Heart className="w-4 h-4" />
-                  </div>
-                )}
+            {!DISABLE_BITZ_FEATURES && (
+              <div className="albumLikes md:w-[135px] flex flex-col items-center">
+                <div
+                  className={`${userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum !== "undefined" ? " hover:bg-orange-100 cursor-pointer dark:hover:text-orange-500" : ""} text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center`}
+                  onClick={() => {
+                    if (userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum !== "undefined") {
+                      onSendBitzForMusicBounty({
+                        creatorIcon: album.img,
+                        creatorName: `${artistProfile.name}'s ${album.title}`,
+                        giveBitzToWho: artistProfile.creatorWallet,
+                        giveBitzToCampaignId: album.bountyId,
+                        isLikeMode: true,
+                      });
+                    }
+                  }}>
+                  {typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum === "undefined" ? (
+                    <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
+                  ) : (
+                    <div
+                      className="p-5 md:p-0 flex items-center gap-2"
+                      title={userLoggedInWithWallet ? "Like This Album With 5 BiTz" : "Login to Like This Album"}
+                      onClick={() => {
+                        if (userLoggedInWithWallet) {
+                          onSendBitzForMusicBounty({
+                            creatorIcon: album.img,
+                            creatorName: `${artistProfile.name}'s ${album.title}`,
+                            giveBitzToWho: artistProfile.creatorWallet,
+                            giveBitzToCampaignId: album.bountyId,
+                            isLikeMode: true,
+                          });
+                        }
+                      }}>
+                      {bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum}
+                      <Heart className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="albumActions mt-3 flex flex-wrap flex-col items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
@@ -138,7 +142,9 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   disabled={isPreviewPlaying && !previewIsReadyToPlay}
                   className="!text-white text-sm mx-2 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% cursor-pointer"
                   onClick={() => {
-                    playPausePreview(album.ctaPreviewStream, album.albumId);
+                    if (playPausePreview) {
+                      playPausePreview(album.ctaPreviewStream, album.albumId);
+                    }
                   }}>
                   {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
                     <>
@@ -251,7 +257,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   <Button
                     className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 md:mx-2 cursor-pointer"
                     onClick={() => {
-                      setFeaturedArtistDeepLinkSlug(artist.slug);
+                      if (setFeaturedArtistDeepLinkSlug) {
+                        setFeaturedArtistDeepLinkSlug(artist.slug);
+                      }
+
                       setSearchParams({ "artist-profile": artist.slug });
                       scrollToSection("artist-profile");
                     }}>

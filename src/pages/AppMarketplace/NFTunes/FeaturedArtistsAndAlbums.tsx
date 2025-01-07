@@ -6,7 +6,9 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
+import { DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
+import { GiftBitzToArtistMeta } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
 import { sleep } from "libs/utils";
 import { scrollToSection } from "libs/utils/ui";
@@ -15,40 +17,39 @@ import { useNftsStore } from "store/nfts";
 import { getArtistsAlbumsData } from "./";
 import { ArtistDiscography } from "./ArtistDiscography";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "./index";
-import { GiftBitzToArtistMeta } from "libs/types";
 
 type FeaturedArtistsAndAlbumsProps = {
-  viewSolData: (e: number) => void;
   stopPreviewPlayingNow?: boolean;
   featuredArtistDeepLinkSlug?: string;
-  onPlayHappened?: any;
-  checkOwnershipOfAlbum: (e: any) => any;
-  openActionFireLogic?: any;
-  onSendBitzForMusicBounty: (e: any) => any;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   setMusicBountyBitzSumGlobalMapping: any;
   userHasNoBitzDataNftYet: boolean;
-  onFeaturedArtistDeepLinkSlug: (e: string | undefined) => any;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
+  openActionFireLogic: (e: any) => any;
+  viewSolData: (e: number) => void;
+  onPlayHappened: () => void;
+  checkOwnershipOfAlbum: (e: any) => any;
+  onSendBitzForMusicBounty: (e: any) => any;
+  onFeaturedArtistDeepLinkSlug: (e: string | undefined) => any;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
   const {
-    viewSolData,
-    openActionFireLogic,
     stopPreviewPlayingNow,
     featuredArtistDeepLinkSlug,
-    onPlayHappened,
-    checkOwnershipOfAlbum,
-    onSendBitzForMusicBounty,
     bountyBitzSumGlobalMapping,
     setMusicBountyBitzSumGlobalMapping,
     userHasNoBitzDataNftYet,
-    onFeaturedArtistDeepLinkSlug,
     dataNftPlayingOnMainPlayer,
+    openActionFireLogic,
+    viewSolData,
+    onPlayHappened,
+    checkOwnershipOfAlbum,
+    onSendBitzForMusicBounty,
+    onFeaturedArtistDeepLinkSlug,
   } = props;
   const { publicKey: publicKeySol } = useWallet();
-  const [audio] = useState(new Audio());
+  const [previewTrackAudio] = useState(new Audio());
   const [isPreviewPlaying, setIsPreviewPlaying] = useState<boolean>(false);
   const [previewPlayingForAlbumId, setPreviewPlayingForAlbumId] = useState<string | undefined>();
   const [previewIsReadyToPlay, setPreviewIsReadyToPlay] = useState(false);
@@ -67,9 +68,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
 
   function eventToAttachEnded() {
-    audio.src = "";
-    audio.currentTime = 0;
-    audio.pause();
+    previewTrackAudio.src = "";
+    previewTrackAudio.currentTime = 0;
+    previewTrackAudio.pause();
     setPreviewIsReadyToPlay(false);
     setIsPreviewPlaying(false);
     setPreviewPlayingForAlbumId(undefined);
@@ -83,8 +84,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     // Audio is ready to be played
     setPreviewIsReadyToPlay(true);
     // play the song
-    if (audio.currentTime == 0) {
-      audio.play();
+    if (previewTrackAudio.currentTime == 0) {
+      previewTrackAudio.play();
     }
   }
 
@@ -107,9 +108,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setIsSigmaWorkflow(true);
     }
 
-    audio.addEventListener("ended", eventToAttachEnded);
-    audio.addEventListener("timeupdate", eventToAttachTimeUpdate);
-    audio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
+    previewTrackAudio.addEventListener("ended", eventToAttachEnded);
+    previewTrackAudio.addEventListener("timeupdate", eventToAttachTimeUpdate);
+    previewTrackAudio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
 
     (async () => {
       sleep(5);
@@ -121,10 +122,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     })();
 
     return () => {
-      audio.pause();
-      audio.removeEventListener("ended", eventToAttachEnded);
-      audio.removeEventListener("timeupdate", eventToAttachTimeUpdate);
-      audio.removeEventListener("canplaythrough", eventToAttachCanPlayThrough);
+      previewTrackAudio.pause();
+      previewTrackAudio.removeEventListener("ended", eventToAttachEnded);
+      previewTrackAudio.removeEventListener("timeupdate", eventToAttachTimeUpdate);
+      previewTrackAudio.removeEventListener("canplaythrough", eventToAttachCanPlayThrough);
     };
   }, []);
 
@@ -182,7 +183,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
   async function playPausePreview(previewStreamUrl?: string, albumId?: string) {
     if (previewStreamUrl && albumId && (!isPreviewPlaying || previewPlayingForAlbumId !== albumId)) {
-      onPlayHappened(true); // inform parent to stop any other playing streams on its ui
+      onPlayHappened(); // inform parent to stop any other playing streams on its ui
 
       resetPreviewPlaying();
       // await sleep(0.1); // this seems to help when some previews overlapped (took it out as it did not seem to do much when testing)
@@ -197,32 +198,32 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
         // ios safari seems to not play the music so tried to use blobs like in the other Audio component like Radio
         // but still does not play -- need to debug more (see https://corevo.io/the-weird-case-of-video-streaming-in-safari/)
-        audio.src = blobUrl;
+        previewTrackAudio.src = blobUrl;
       } catch (e) {
-        audio.src = previewStreamUrl; // this fetches the data, but it may not be ready to play yet until canplaythrough fires
+        previewTrackAudio.src = previewStreamUrl; // this fetches the data, but it may not be ready to play yet until canplaythrough fires
       }
 
-      audio.load();
+      previewTrackAudio.load();
       updateProgress();
-      audio.currentTime = 0;
+      previewTrackAudio.currentTime = 0;
     } else {
       resetPreviewPlaying();
     }
   }
 
   function resetPreviewPlaying() {
-    audio.src = "";
-    audio.currentTime = 0;
-    audio.pause();
+    previewTrackAudio.src = "";
+    previewTrackAudio.currentTime = 0;
+    previewTrackAudio.pause();
     setPreviewIsReadyToPlay(false);
     setIsPreviewPlaying(false);
     setPreviewPlayingForAlbumId(undefined);
   }
 
   const updateProgress = () => {
-    setCurrentTime(audio.currentTime ? formatTime(audio.currentTime) : "00:00");
-    setDuration(audio.duration ? formatTime(audio.duration) : "00:00");
-    let _percentage = (audio.currentTime / audio.duration) * 100;
+    setCurrentTime(previewTrackAudio.currentTime ? formatTime(previewTrackAudio.currentTime) : "00:00");
+    setDuration(previewTrackAudio.duration ? formatTime(previewTrackAudio.duration) : "00:00");
+    let _percentage = (previewTrackAudio.currentTime / previewTrackAudio.duration) * 100;
     if (isNaN(_percentage)) _percentage = 0;
     setProgress(_percentage);
   };
@@ -322,6 +323,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
                         variant="outline"
                         onClick={() => {
+                          playPausePreview(); // with no params wil always go into the stop logic
+
                           setInArtistProfileView(false);
 
                           // remove the artist-profile param from the url
@@ -353,73 +356,75 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                         {/* artists details and power up */}
                         <div className="p-5 flex-1">
-                          <div className="flex flex-col md:flex-row items-center">
-                            <div className="relative">
-                              {userLoggedInWithWallet ? (
-                                <Button
-                                  className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 mx-2 cursor-pointer rounded-none rounded-l-sm"
-                                  disabled={!publicKeySol}
-                                  onClick={() => {
-                                    onSendBitzForMusicBounty({
-                                      creatorIcon: artistProfile.img,
-                                      creatorName: artistProfile.name,
-                                      giveBitzToWho: artistProfile.creatorWallet,
-                                      giveBitzToCampaignId: artistProfile.bountyId,
-                                    });
-                                  }}>
-                                  <>
-                                    <Zap className="w-4 h-4" />
-                                    <span className="ml-2">Power-Up Musician</span>
-                                  </>
-                                </Button>
-                              ) : (
-                                <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
+                          {!DISABLE_BITZ_FEATURES && (
+                            <div className="powerUpWithBitz flex flex-col md:flex-row items-center mb-5">
+                              <div className="relative">
+                                {userLoggedInWithWallet ? (
                                   <Button
-                                    className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 rounded-none rounded-l-sm"
-                                    variant="outline">
-                                    <>
-                                      <WalletMinimal />
-                                      <span className="ml-2">Login to Power-Up Musician</span>
-                                    </>
-                                  </Button>
-                                </Link>
-                              )}
-                              {isSigmaWorkflow && (
-                                <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
-                                  <div className="m-auto mb-[2px] bg-white dark:bg-slate-800 p-2 w-10 h-10 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center">
-                                    <FontAwesomeIcon icon={faHandPointer} />
-                                  </div>
-                                  <span className="text-center">Click To Vote</span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div
-                              className={`${userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "ml-0"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-2 md:mt-0 rounded-r md:min-w-[100px] flex items-center justify-center `}>
-                              {typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum === "undefined" ? (
-                                <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
-                              ) : (
-                                <div
-                                  className="p-10 md:p-10"
-                                  onClick={() => {
-                                    if (userLoggedInWithWallet) {
+                                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 mx-2 cursor-pointer rounded-none rounded-l-sm"
+                                    disabled={!publicKeySol}
+                                    onClick={() => {
                                       onSendBitzForMusicBounty({
                                         creatorIcon: artistProfile.img,
                                         creatorName: artistProfile.name,
                                         giveBitzToWho: artistProfile.creatorWallet,
                                         giveBitzToCampaignId: artistProfile.bountyId,
                                       });
-                                    }
-                                  }}>
-                                  <span className="font-bold text-sm">Total Power</span>
-                                  <span className="ml-1 mt-[10px] text-sm">{bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum}</span>
-                                </div>
-                              )}
+                                    }}>
+                                    <>
+                                      <Zap className="w-4 h-4" />
+                                      <span className="ml-2">Power-Up Musician</span>
+                                    </>
+                                  </Button>
+                                ) : (
+                                  <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
+                                    <Button
+                                      className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 rounded-none rounded-l-sm"
+                                      variant="outline">
+                                      <>
+                                        <WalletMinimal />
+                                        <span className="ml-2">Login to Power-Up Musician</span>
+                                      </>
+                                    </Button>
+                                  </Link>
+                                )}
+                                {isSigmaWorkflow && (
+                                  <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
+                                    <div className="m-auto mb-[2px] bg-white dark:bg-slate-800 p-2 w-10 h-10 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center">
+                                      <FontAwesomeIcon icon={faHandPointer} />
+                                    </div>
+                                    <span className="text-center">Click To Vote</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div
+                                className={`${userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "ml-0"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-2 md:mt-0 rounded-r md:min-w-[100px] flex items-center justify-center `}>
+                                {typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum === "undefined" ? (
+                                  <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
+                                ) : (
+                                  <div
+                                    className="p-10 md:p-10"
+                                    onClick={() => {
+                                      if (userLoggedInWithWallet) {
+                                        onSendBitzForMusicBounty({
+                                          creatorIcon: artistProfile.img,
+                                          creatorName: artistProfile.name,
+                                          giveBitzToWho: artistProfile.creatorWallet,
+                                          giveBitzToCampaignId: artistProfile.bountyId,
+                                        });
+                                      }
+                                    }}>
+                                    <span className="font-bold text-sm">Total Power</span>
+                                    <span className="ml-1 mt-[10px] text-sm">{bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum}</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )}
 
                           <div className={`${isSigmaWorkflow ? "opacity-[0.1]" : ""}`}>
-                            <p className="artist-who mt-5">{artistProfile.bio}</p>
+                            <p className="artist-who">{artistProfile.bio}</p>
 
                             {(artistProfile.dripLink !== "" ||
                               artistProfile.xLink !== "" ||
@@ -479,18 +484,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         <ArtistDiscography
                           albums={artistProfile.albums}
                           bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                          onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                           artistProfile={artistProfile}
                           isPreviewPlaying={isPreviewPlaying}
                           previewIsReadyToPlay={previewIsReadyToPlay}
-                          playPausePreview={playPausePreview}
                           previewPlayingForAlbumId={previewPlayingForAlbumId}
                           currentTime={currentTime}
                           isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
+                          dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
+                          onSendBitzForMusicBounty={onSendBitzForMusicBounty}
+                          playPausePreview={playPausePreview}
                           checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                           viewSolData={viewSolData}
                           openActionFireLogic={openActionFireLogic}
-                          dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
                         />
                       </div>
                     </>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { LibraryBig } from "lucide-react";
+import { DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping } from "libs/types";
 import { isMostLikelyMobile, sleep } from "libs/utils/misc";
@@ -9,9 +10,9 @@ import { useNftsStore } from "store/nfts";
 import { getArtistsAlbumsData } from "./";
 import { ArtistDiscography } from "./ArtistDiscography";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "./index";
+import { useSearchParams } from "react-router-dom";
 
 type MyCollectedAlbumsProps = {
-  viewSolData: (e: number) => void;
   isFetchingDataMarshal: boolean;
   setStopRadio: any;
   viewDataRes: any;
@@ -24,30 +25,32 @@ type MyCollectedAlbumsProps = {
   onSendBitzForMusicBounty: any;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   setMusicBountyBitzSumGlobalMapping: any;
-  checkOwnershipOfAlbum: any;
   userHasNoBitzDataNftYet: boolean;
-  openActionFireLogic: any;
-  setFeaturedArtistDeepLinkSlug: any;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
+  checkOwnershipOfAlbum: (e: any) => any;
+  setFeaturedArtistDeepLinkSlug: (e: any) => any;
+  openActionFireLogic: (e: any) => any;
+  viewSolData: (e: number) => void;
 };
 
 export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   const {
-    viewSolData,
     shownSolAppDataNfts,
     onSendBitzForMusicBounty,
     bountyBitzSumGlobalMapping,
-    checkOwnershipOfAlbum,
     setMusicBountyBitzSumGlobalMapping,
     userHasNoBitzDataNftYet,
+    dataNftPlayingOnMainPlayer,
+    checkOwnershipOfAlbum,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
-    dataNftPlayingOnMainPlayer,
+    viewSolData,
   } = props;
   const { isLoadingSol, solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [myCollectedArtistsAlbums, setMyCollectedArtistsAlbums] = useState<any[]>([]);
   const [allOwnedAlbums, setAllOwnedAlbums] = useState<any[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     (async () => {
@@ -58,10 +61,29 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
 
   useEffect(() => {
     (async () => {
+      if (DISABLE_BITZ_FEATURES) {
+        return;
+      }
+
       if (allOwnedAlbums.length > 0) {
         queueBitzPowerUpsAndLikesForAllOwnedAlbums();
       }
     })();
+  }, [allOwnedAlbums]);
+
+  useEffect(() => {
+    console.log("allOwnedAlbums", allOwnedAlbums.length);
+    if (allOwnedAlbums.length > 0) {
+      // only scroll direct to focus on my collected albums of the user just came from login
+      const isDirectFromLogin = searchParams.get("fromLogin");
+
+      if (isDirectFromLogin) {
+        const currentParams = Object.fromEntries(searchParams.entries());
+        delete currentParams["fromLogin"];
+        setSearchParams(currentParams);
+        scrollToSection("myCollectedAlbums");
+      }
+    }
   }, [allOwnedAlbums]);
 
   useEffect(() => {
@@ -112,7 +134,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   }
 
   return (
-    <div className="flex flex-col justify-center items-center w-full">
+    <div id="myCollectedAlbums" className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-16 xl:mb-32 justify-center w-[100%] items-center xl:items-start">
         <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
           <span className="m-auto md:m-0">My collected albums</span>
@@ -134,9 +156,9 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                   <>
                     {myCollectedArtistsAlbums.length > 0 ? (
                       <>
-                        <div className="my-2 font-bold text-lg">
+                        <div className="my-2 font-bold text-2xl mb-5">
                           You have collected{" "}
-                          <span className="ext-md mb-2 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-base">
+                          <span className="text-2xl bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold">
                             {allOwnedAlbums.length} {allOwnedAlbums.length > 1 ? `albums` : `album`}
                           </span>
                         </div>
@@ -148,13 +170,13 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                                 artist={artist}
                                 albums={artist.albums}
                                 bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                                onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                                 artistProfile={artist}
                                 checkOwnershipOfAlbum={checkOwnershipOfAlbum}
-                                viewSolData={viewSolData}
                                 openActionFireLogic={openActionFireLogic}
                                 setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
                                 dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
+                                onSendBitzForMusicBounty={onSendBitzForMusicBounty}
+                                viewSolData={viewSolData}
                               />
                             </div>
                           );
@@ -163,10 +185,9 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                     ) : (
                       <div className="">
                         ⚠️ You have not collected any albums. Let's fix that!
-                        <br />
-                        Get your{" "}
+                        <span className="hidden">Get your </span>
                         <span
-                          className="text-primary cursor-pointer text-[#fde047] hover:text-[#f97316]"
+                          className="hidden text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
                           onClick={() => {
                             window.scrollTo({
                               top: 0,
@@ -175,9 +196,9 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                           }}>
                           free airdrop on top of this page (if you are eligible)
                         </span>{" "}
-                        or get some by{" "}
+                        Get some by{" "}
                         <span
-                          className="text-primary cursor-pointer text-[#fde047] hover:text-[#f97316]"
+                          className="text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
                           onClick={() => {
                             scrollToSection("artist-profile");
                           }}>

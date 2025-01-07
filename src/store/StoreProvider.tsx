@@ -7,13 +7,13 @@ import { computeRemainingCooldown } from "libs/utils/functions";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
 import { useNftsStore } from "./nfts";
+import { DISABLE_BITZ_FEATURES } from "config";
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
   const { publicKey: publicKeySol, signMessage } = useWallet();
   const addressSol = publicKeySol?.toBase58();
 
   // ACCOUNT Store
-
   const {
     updateBitzBalance: updateBitzBalanceSol,
     updateCooldown: updateCooldownSol,
@@ -75,6 +75,10 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   // SOL - Bitz Bootstrap
   useEffect(() => {
     (async () => {
+      if (DISABLE_BITZ_FEATURES) {
+        return;
+      }
+
       resetBitzValsToLoadingSOL();
 
       if (solBitzNfts.length > 0 && solPreaccessNonce !== "" && solPreaccessSignature !== "" && publicKeySol) {

@@ -70,13 +70,13 @@ export function DataNftAirdropsBannerCTA() {
         <div className="py-2 px-4 md:px-0 m-5 border rounded-lg bg-[#fa882157] w-[100%]">
           <div className="flex flex-col md:flex-col items-center">
             <div className="flex flex-col justify-center p-2">
-              <p className="dark:text-white text-2xl mb-1 text-center">Hello Human, You Have Some Free Data NFTs to Claim!</p>
-              <p className="dark:text-white text-md text-center">
+              <p className="dark:text-white text-2xl text-center">Hello Human, You Have Some Free Data NFTs to Claim!</p>
+              <p className="dark:text-white text-md text-center hidden">
                 Claim the free Data NFTs, join the AI Data Workforce, prove your reputation, co-create creative data with AI and get rewarded
               </p>
             </div>
-            <div className="flex flex-col md:flex-row justify-center p-2">
-              <div className="flex md:flex-col justify-center mt-3 ml-auto mr-auto md:mr-2">
+            <div className="flex flex-col md:flex-row justify-center">
+              <div className="hidden flex md:flex-col justify-center mt-3 ml-auto mr-auto md:mr-2">
                 <Link to={routeNames.getbitz}>
                   <Button
                     disabled={freeBitzClaimed || location.pathname === routeNames.getbitz}
@@ -95,7 +95,7 @@ export function DataNftAirdropsBannerCTA() {
                   Claim Music Data NFT
                 </Button>
               </div>
-              <div className="flex md:flex-col justify-center mt-3 ml-auto mr-auto md:mr-2">
+              <div className="hidden flex md:flex-col justify-center ml-auto mr-auto md:mr-2">
                 <Link
                   to={`${publicKeySol ? "https://ai-workforce.itheum.io/nfmeid" : "https://datadex.itheum.io/nfmeid"}`}
                   target="_blank"

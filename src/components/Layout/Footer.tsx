@@ -38,13 +38,6 @@ export const Footer = () => {
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 </li>
-                <li>
-                  {" "}
-                  <a href="https://stats.uptimerobot.com/D8JBwIo983" target="_blank" className="flex justify-center items-center gap-0.5 hover:underline">
-                    <small>Protocol Status</small>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                </li>
               </ul>
               <div className="flex flex-col mt-2 opacity-60">
                 <p>

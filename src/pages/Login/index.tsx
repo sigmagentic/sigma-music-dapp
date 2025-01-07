@@ -102,6 +102,12 @@ const LoginPage = () => {
         }
 
         // login was a success, so we take them back to where they were if possible
+        if (fromWhere.includes("?")) {
+          fromWhere = `${fromWhere}&fromLogin=1`;
+        } else {
+          fromWhere = `${fromWhere}?fromLogin=1`;
+        }
+
         navigate(fromWhere);
       }
     } catch (e) {
@@ -131,12 +137,15 @@ const LoginPage = () => {
               </div>
 
               <div className="mt-10 text-sm">
-                Don't have an account? <br />
-                Click on the button above to create one using a solana wallet or google account. You get a{" "}
-                <span className="ext-md mb-2 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-base">
-                  Free Music NFT
-                </span>{" "}
-                as a joining gift.
+                <span className="opacity-50">Don't have an account?</span> <br />
+                Click on the button above to create one using a solana wallet or google account.{" "}
+                <span className="hidden">
+                  You get a{" "}
+                  <span className="ext-md mb-2 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-base">
+                    Free Music NFT
+                  </span>{" "}
+                  as a joining gift.
+                </span>
               </div>
             </div>
           )}
