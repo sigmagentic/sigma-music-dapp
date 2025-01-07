@@ -13,7 +13,11 @@ export const Footer = () => {
             <p className="mb-3 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-[1.5rem]">
               Sigma Music
             </p>
-            <p className="text-xs md:text-sm">Stream and collect Music. Support your favorite artists.</p>
+            <p className="text-xs md:text-sm">
+              Sigma Music is a revolutionary music platform powered by Blockchain, Itheum (a data NFT platform), and AI Agent technology. Real-world musicians
+              can launch their music as Music Data NFTs on Sigma Music and have Sigma, an AI Agent, serve as their music agent and help them amplify their music
+              to a new generation of fans.
+            </p>
           </div>
           <div className="">
             <div className="flex py-5 flex-col">
@@ -62,6 +66,21 @@ export const Footer = () => {
                   {"> "}
                   <a href="https://x.com/SigmaXMusic" target="_blank" className="hover:underline">
                     Sigma AI Agent on X
+                  </a>
+                </li>
+                <li>
+                  {"> "}
+                  <a href="https://drip.haus/itheum" target="_blank" className="hover:underline">
+                    Music on our Drip Haus Channel
+                  </a>
+                </li>
+                <li>
+                  {"> "}
+                  <a
+                    href="https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform"
+                    target="_blank"
+                    className="hover:underline">
+                    Launch Your Music with Sigma Music
                   </a>
                 </li>
               </ul>

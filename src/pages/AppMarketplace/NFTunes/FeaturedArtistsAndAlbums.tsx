@@ -12,11 +12,10 @@ import { GiftBitzToArtistMeta } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
 import { sleep } from "libs/utils";
 import { scrollToSection } from "libs/utils/ui";
+import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/AppMarketplace/NFTunes/shared/utils";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
-import { getArtistsAlbumsData } from "./";
 import { ArtistDiscography } from "./ArtistDiscography";
-import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "./index";
 
 type FeaturedArtistsAndAlbumsProps = {
   stopPreviewPlayingNow?: boolean;

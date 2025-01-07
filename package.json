@@ -1,8 +1,8 @@
 {
   "name": "sigma-music-dapp",
   "description": "Web3 music service",
-  "version": "1.0.0",
-  "author": "Sigmagentic",
+  "version": "1.0.1",
+  "author": "sigmagentic",
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "6.5.2",

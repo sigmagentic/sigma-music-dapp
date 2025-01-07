@@ -1,26 +1,47 @@
-import React, { useState } from "react";
+declare const window: {
+  ITH_SOL_WALLET_CONNECTED: boolean;
+} & Window;
+
+import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Menu } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { SolBitzDropdown, FlaskBottleAnimation } from "components/BitzDropdown/SolBitzDropdown";
+import { SolBitzDropdown } from "components/BitzDropdown/SolBitzDropdown";
+import { DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuSeparator, DropdownMenuTrigger } from "libComponents/DropdownMenu";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libComponents/NavigationMenu";
 import { sleep } from "libs/utils";
 import { routeNames } from "routes";
 import { useLocalStorageStore } from "store/LocalStorageStore.ts";
-import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
+// import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
-import { DISABLE_BITZ_FEATURES } from "config";
 
 export const Navbar = () => {
-  const { publicKey: publicKeySol } = useWallet();
+  const { publicKey: publicKeySol, connected } = useWallet();
   const addressSol = publicKeySol?.toBase58();
   const isLoggedInSol = !!addressSol;
   const setDefaultChain = useLocalStorageStore((state) => state.setDefaultChain);
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const location = useLocation();
+
+  useEffect(() => {
+    // if the user is logged in (even after they reload page and still have a session)
+    // ... and then they logout, we hard reload the page to clear the app state to pristine
+    // ... but we dont do any this logic in the login route as that messes with the post login redirect
+    if (location.pathname !== routeNames.login) {
+      if (!addressSol && window.ITH_SOL_WALLET_CONNECTED) {
+        setTimeout(() => {
+          window.ITH_SOL_WALLET_CONNECTED = false;
+          window.location = window.location.href.split("?")[0];
+        }, 200);
+      } else if (connected && !window.ITH_SOL_WALLET_CONNECTED) {
+        // connected user reloaded page
+        window.ITH_SOL_WALLET_CONNECTED = true;
+      }
+    }
+  }, [addressSol, connected, location]);
 
   const appSubtitle = "Create Music with AI Agents. Collect Music NFTs. Support Musicians.";
 

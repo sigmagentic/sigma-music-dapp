@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { LibraryBig } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping } from "libs/types";
 import { isMostLikelyMobile, sleep } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
+import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from "pages/AppMarketplace/NFTunes/shared/utils";
 import { useNftsStore } from "store/nfts";
-import { getArtistsAlbumsData } from "./";
 import { ArtistDiscography } from "./ArtistDiscography";
-import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "./index";
-import { useSearchParams } from "react-router-dom";
 
 type MyCollectedAlbumsProps = {
   isFetchingDataMarshal: boolean;

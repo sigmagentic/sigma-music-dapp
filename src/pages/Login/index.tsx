@@ -14,7 +14,11 @@ we use global vars here so we can maintain this state across routing back and fo
 these vars are used to detect a "new login", i.e a logged out user logged in. we can use this to enable
 "user accounts" type activity, i.e. check if its a new user or returning user etc
 */
-let solGotConnected = false;
+declare const window: {
+  ITH_SOL_WALLET_CONNECTED: boolean;
+} & Window;
+
+window.ITH_SOL_WALLET_CONNECTED = false;
 
 const loggingInMsgs = ["Logging you in", "Taking you to Web3", "Plugging you in", "Letting you in the backdoor"];
 
@@ -34,9 +38,9 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (!addressSol) {
-      solGotConnected = false;
+      window.ITH_SOL_WALLET_CONNECTED = false;
     } else {
-      if (!solGotConnected) {
+      if (!window.ITH_SOL_WALLET_CONNECTED) {
         setIsUserAccountLoggingIn(true);
 
         // the user came to the unlock page without a solana connection and then connected a wallet,
@@ -45,7 +49,7 @@ const LoginPage = () => {
         logUserLoggedInInUserAccounts(addressSol, chainId);
       }
 
-      solGotConnected = true;
+      window.ITH_SOL_WALLET_CONNECTED = true;
     }
   }, [addressSol]);
 
