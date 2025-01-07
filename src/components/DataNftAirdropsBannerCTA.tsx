@@ -76,15 +76,6 @@ export function DataNftAirdropsBannerCTA() {
               </p>
             </div>
             <div className="flex flex-col md:flex-row justify-center">
-              <div className="hidden flex md:flex-col justify-center mt-3 ml-auto mr-auto md:mr-2">
-                <Link to={routeNames.getbitz}>
-                  <Button
-                    disabled={freeBitzClaimed || location.pathname === routeNames.getbitz}
-                    className="!text-black text-sm tracking-tight relative px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 w-[220px]">
-                    {`${location.pathname === routeNames.getbitz ? "Claim Below" : "Claim BiTz XP Data NFT"}`}
-                  </Button>
-                </Link>
-              </div>
               <div className="flex md:flex-col justify-center mt-3 ml-auto mr-auto md:mr-2">
                 <Button
                   disabled={freeMusicGiftClaimed}

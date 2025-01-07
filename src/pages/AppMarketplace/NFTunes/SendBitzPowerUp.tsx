@@ -238,11 +238,6 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                   {bitBalanceOnChain > -1 && bitBalanceOnChain < minBitzValNeeded && (
                     <div className="mt-2">⚠️ You don't have enough BiTz for this action. To play the BiTz game and get free XP, click on the button below.</div>
                   )}
-                  {/* <Link to={routeNames.getbitz} className="text-base hover:!no-underline hover:text-black">
-                    <Button className="text-sm mt-2 cursor-pointer !text-orange-500 dark:!text-yellow-300" variant="secondary">
-                      Get BiTz XP
-                    </Button>
-                  </Link> */}
                 </>
               )}
               {(bitBalanceOnChain >= minBitzValNeeded || powerUpSuccessfullyDone) && (

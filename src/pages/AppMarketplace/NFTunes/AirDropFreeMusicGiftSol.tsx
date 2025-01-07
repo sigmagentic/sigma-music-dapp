@@ -227,7 +227,7 @@ export const AirDropFreeMusicGiftSol = (props: AirDropFreeMusicGiftSolSolProps) 
                           <Button
                             onClick={() => {
                               // we reload like this so that if the user is in nftunes, then we actually get the workflow into focus (or it wont)
-                              location.href = `${routeNames.nftunes}/?artist-profile=waveborn-luminex&hl=sample`;
+                              location.href = `${routeNames.home}/?artist-profile=waveborn-luminex&hl=sample`;
 
                               setGetAirdropWorkflow(false);
                               setErrFreeMintGeneric(null);

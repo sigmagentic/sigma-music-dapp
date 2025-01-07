@@ -1,7 +1,7 @@
 {
   "name": "sigma-music-dapp",
   "description": "Web3 music service",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": "Sigmagentic",
   "license": "GPL-3.0-or-later",
   "dependencies": {
@@ -65,7 +65,7 @@
     "build": "tsc & vite build",
     "serve": "tsc & vite preview",
     "test": "vitest",
-    "predeploy": "npm run build",
+    "predeploy": "pnpm run build",
     "lint": "eslint --ext js,ts,tsx src",
     "format": "prettier --write . && npm run lint -- --fix"
   },
