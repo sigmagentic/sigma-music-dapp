@@ -1,9 +1,10 @@
-export const getApiDataMarshal = (chainID: string) => {
-  const envKey = chainID.includes("1") ? "VITE_ENV_DATAMARSHAL_MAINNET_API" : "VITE_ENV_DATAMARSHAL_DEVNET_API";
-  const defaultUrl = chainID.includes("1")
-    ? "https://api.itheumcloud.com/datamarshalapi/router/v1"
-    : "https://api.itheumcloud-stg.com/datamarshalapi/router/v1";
-  return import.meta.env[envKey] || defaultUrl;
+export const getApiDataMarshal = () => {
+  // we can call this without chainID (e.g. solana mode or no login mode), and we get the API endpoint based on ENV
+  if (import.meta.env.VITE_ENV_NETWORK === "mainnet") {
+    return "https://api.itheumcloud.com/datamarshalapi/router/v1";
+  } else {
+    return "https://api.itheumcloud-stg.com/datamarshalapi/router/v1";
+  }
 };
 
 export const sleep = (sec: number) => {
@@ -14,20 +15,13 @@ export const sleep = (sec: number) => {
   });
 };
 
-export const getApiWeb2Apps = (chainID?: string) => {
+export const getApiWeb2Apps = () => {
   // we can call this without chainID (e.g. solana mode or no login mode), and we get the API endpoint based on ENV
-  if (!chainID) {
-    if (import.meta.env.VITE_ENV_NETWORK === "mainnet") {
-      return "https://api.itheumcloud.com";
-    } else {
-      return "https://api.itheumcloud-stg.com";
-    }
+  if (import.meta.env.VITE_ENV_NETWORK === "mainnet") {
+    return "https://api.itheumcloud.com";
+  } else {
+    return "https://api.itheumcloud-stg.com";
   }
-
-  const envKey = chainID === "1" ? "VITE_ENV_WEB2_APPS_MAINNET_API" : "VITE_ENV_WEB2_APPS_DEVNET_API";
-  const defaultUrl = chainID === "1" ? "https://api.itheumcloud.com" : "https://api.itheumcloud-stg.com";
-
-  return import.meta.env[envKey] || defaultUrl;
 };
 
 export const isMostLikelyMobile = () => {

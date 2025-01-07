@@ -4,7 +4,6 @@ import { ExternalLinkIcon } from "lucide-react";
 import moment from "moment-timezone";
 import { Link } from "react-router-dom";
 import stampFinalized from "assets/img/getbitz/givebitz/stampFinalized.png";
-import { MARKETPLACE_DETAILS_PAGE } from "config";
 import { cn } from "libs/utils";
 import GiveBitzLowerCard from "./GiveBitzLowerCard";
 import { PowerUpBountyProps } from "../interfaces";
@@ -70,13 +69,6 @@ const PowerUpBounty = (props: PowerUpBountyProps) => {
                 <div className="h-[21rem]">
                   <img src={stampFinalized} alt="Finalized" className="w-40 mx-auto" />
                   <div className="text-center text-2xl bg-[#2495AC] dark:bg-[#022629] p-1 px-3 rounded-2xl shadow-inner shadow-[#35d9fa]/30">Finalized</div>
-                  <Link
-                    to={MARKETPLACE_DETAILS_PAGE + finalizedDataNftIdentifier}
-                    target="_blank"
-                    className="relative z-[100] mt-16 text-[#35d9fa] hover:underline   md:text-xl  flex flex-row gap-1 justify-center items-center">
-                    View Collection
-                    <ExternalLinkIcon width={20} />
-                  </Link>
                 </div>
               ) : (
                 <>
@@ -105,14 +97,6 @@ const PowerUpBounty = (props: PowerUpBountyProps) => {
               ) : !solAddress ? (
                 <div className="flex flex-row gap-2 justify-between items-center">
                   <div className="text-center items-center bg-[#2495AC] dark:bg-[#022629] p-1 px-3 rounded-2xl shadow-inner shadow-[#35d9fa]/30">Finalized</div>
-
-                  <Link
-                    to={MARKETPLACE_DETAILS_PAGE + finalizedDataNftIdentifier}
-                    target="_blank"
-                    className="relative z-[100]  text-[#35d9fa] hover:underline text-xs md:text-sm  flex flex-row gap-1 justify-center items-center">
-                    View Collection
-                    <ExternalLinkIcon width={15} />
-                  </Link>
                 </div>
               ) : (
                 <div className="h-6"> </div>

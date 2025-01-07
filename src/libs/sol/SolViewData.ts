@@ -7,7 +7,7 @@ import { getApiDataMarshal, getApiWeb2Apps } from "libs/utils";
 
 export async function itheumSolPreaccess() {
   const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
-  const preaccessUrl = `${getApiDataMarshal(chainId)}/preaccess?chainId=${chainId}`;
+  const preaccessUrl = `${getApiDataMarshal()}/preaccess?chainId=${chainId}`;
   const response = await fetch(preaccessUrl);
   const data = await response.json();
   return data.nonce;
@@ -25,7 +25,7 @@ export async function viewDataViaMarshalSol(
   cacheDurationSeconds?: number
 ): Promise<Response> {
   const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
-  let accessUrl = `${getApiDataMarshal(chainId)}/access?nonce=${nonce}&NFTId=${assetId}&signature=${signature}&chainId=${chainId}&accessRequesterAddr=${address.toBase58()}`;
+  let accessUrl = `${getApiDataMarshal()}/access?nonce=${nonce}&NFTId=${assetId}&signature=${signature}&chainId=${chainId}&accessRequesterAddr=${address.toBase58()}`;
   if (streamInLine) {
     accessUrl += `&streamInLine=1`;
   }
@@ -164,7 +164,6 @@ export async function mintMiscDataNft(mintTemplate: string, mintForSolAddr: stri
     };
 
     const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
-
     const requestBody = { mintTemplate, mintForSolAddr, solSignature, signatureNonce, chainId };
 
     const res = await fetch(`${getApiWeb2Apps()}/datadexapi/solNftUtils/mintMiscDataNft`, {
