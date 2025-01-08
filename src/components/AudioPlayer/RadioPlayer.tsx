@@ -283,7 +283,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   useEffect(() => {
     if (trackThatsPlaying) {
       // we should not do the image loading logic on until user interacts with play, or there is a race condition and 1st image stays blurred
-      if (firstMusicQueueDone) {
+      if (firstMusicQueueDone && !displayTrackList) {
         setImgLoading(true);
       }
     }
@@ -528,7 +528,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
           {trackThatsPlaying && (
             <div className={`${isCollapsed ? "w-full fixed left-0 bottom-0 z-50" : "w-full"}`}>
               <div className="relative w-full border-[1px] border-foreground/40 rounded-xl bg-black">
-                <div className="debug hidden  bg-yellow-500 w-full h-full text-xs">
+                <div className="debug hidden bg-yellow-500 w-full h-full text-xs">
                   nfTunesRadioFirstTrackCachedBlob = {nfTunesRadioFirstTrackCachedBlob} <br />
                   radioTracks.length = {radioTracks.length} <br />
                   albumActionLink = {albumActionLink} <br />x albumActionText = {albumActionText} <br />
@@ -626,11 +626,15 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                   </div>
 
                   <div
-                    className={`songControls flex flex-col justify-center items-center  bgx-green-500 ${!isCollapsed ? "" : ""} gap-2 text-foreground select-none w-full px-2`}>
+                    className={`songControls flex justify-center items-center bgx-green-500 ${!isCollapsed ? "flex-row-reverse" : "flex-col"} gap-2 text-foreground select-none w-full px-2`}>
                     <div className="controlButtons flex w-full justify-around">
-                      <button className="cursor-pointer" onClick={handlePrevButton}>
-                        <SkipBack className="w-full hover:scale-105" />
-                      </button>
+                      {/* only show if collapsed  as there is some issue in playback logic where it plays when not collapsed */}
+                      {isCollapsed && (
+                        <button className="skipBack cursor-pointer" onClick={handlePrevButton}>
+                          <SkipBack className="w-full hover:scale-105" />
+                        </button>
+                      )}
+
                       {/* Keep the bounce animation prompt if needed */}
                       {isLoaded && !isPlaying && !radioPlayPromptHide && (
                         <div className="animate-bounce p-3 text-sm absolute w-[100px] mt-[-58px] text-center">
@@ -640,7 +644,8 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                           </div>
                         </div>
                       )}
-                      <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-900/0 border border-grey-300 shadow-xl flex items-center justify-center">
+                      <div
+                        className={`playOrPause ${!isCollapsed ? "w-20 h-20" : "w-16 h-16"}  rounded-full bg-slate-100 dark:bg-slate-900/0 border border-grey-300 shadow-xl flex items-center justify-center`}>
                         <button
                           onClick={() => {
                             // for the first time user clicks on play only, track the usage of the first track
@@ -649,11 +654,11 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                               logTrackUsageMetrics(1);
                             }
 
-                            togglePlay();
-
                             if (!isCollapsed && !isPlaying) {
                               setIsCollapsed(true);
                             }
+
+                            togglePlay();
                           }}
                           className="focus:outline-none"
                           disabled={!isLoaded}>
@@ -667,9 +672,12 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                         </button>
                       </div>
 
-                      <button className="cursor-pointer" onClick={handleNextButton}>
-                        <SkipForward className="w-full hover:scale-105" />
-                      </button>
+                      {/* only show if collapsed  as there is some issue in playback logic where it plays when not collapsed */}
+                      {isCollapsed && (
+                        <button className="skipForward cursor-pointer" onClick={handleNextButton}>
+                          <SkipForward className="w-full hover:scale-105" />
+                        </button>
+                      )}
                     </div>
 
                     {isCollapsed && (
@@ -707,9 +715,9 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
 
                       {!isCollapsed && (
                         <div className="ml-2 md:ml-0 flex flex-col select-text mt-2 w-full items-center">
-                          <span className="text-sm text-muted-foreground">{trackThatsPlaying.title}</span>{" "}
-                          <span className="text-sm text-white">{trackThatsPlaying.artist}</span>
-                          <span className="text-sm text-muted-foreground">Album: {trackThatsPlaying.album}</span>
+                          <span className="text-md text-muted-foreground">{trackThatsPlaying.title}</span>{" "}
+                          <span className="text-md text-white">{trackThatsPlaying.artist}</span>
+                          <span className="text-md text-muted-foreground">Album: {trackThatsPlaying.album}</span>
                         </div>
                       )}
                     </div>
