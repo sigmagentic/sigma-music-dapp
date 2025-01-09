@@ -13,6 +13,7 @@ import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/s
 import { BountyBitzSumMapping, Track } from "libs/types";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
+import { useAudioPlayerStore } from "store/audioPlayer";
 
 type MusicPlayerProps = {
   trackList: Track[];
@@ -24,6 +25,7 @@ type MusicPlayerProps = {
     bountyBitzSum: number;
     creatorWallet: string;
   } | null;
+  isRadioPlayer?: boolean;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   onSendBitzForMusicBounty: (e: any) => any;
   onCloseMusicPlayer: () => void;
@@ -38,10 +40,12 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     bitzGiftingMeta,
     bountyBitzSumGlobalMapping,
     pauseAsOtherAudioPlaying,
+    isRadioPlayer,
     onSendBitzForMusicBounty,
     onCloseMusicPlayer,
     onPlayHappened,
   } = props;
+  const { updateTrackPlayIsQueued } = useAudioPlayerStore();
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("00:00");
@@ -55,14 +59,14 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const { publicKey, signMessage } = useWallet();
   const [songSource, setSongSource] = useState<{ [key: number]: string }>({}); // map to keep the already fetched trackList
   const settings = {
-    infinite: false,
+    infinite: isRadioPlayer ? true : false,
     speed: 1000,
     slidesToShow: 4,
     responsive: [
       {
         breakpoint: 1800,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: 4,
         },
       },
       {
@@ -120,9 +124,11 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       // here we queue all the songs in the trackList by advanced fetching them from Marshal
       if (trackList && trackList.length > 0) {
         trackList.forEach((song: any) => {
-          if (song.idx === 1) return; // the first some will be cached by the firstSongBlobUrl
-          fetchMarshalForSong(song.idx);
+          const trackIdx = parseInt(song.idx, 10);
+          if (trackIdx === 1) return; // the first some will be cached by the firstSongBlobUrl
+          fetchMarshalForSong(trackIdx);
         });
+
         updateProgress();
       }
 
@@ -149,11 +155,15 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   }, [musicPlayerAudio.src]);
 
   useEffect(() => {
-    if (firstSongBlobUrl)
+    if (firstSongBlobUrl) {
+      updateTrackPlayIsQueued(false);
       setSongSource((prevState) => ({
         ...prevState, // keep all other key-value pairs
         [1]: firstSongBlobUrl, // update the value of the first index
       }));
+    } else {
+      updateTrackPlayIsQueued(true);
+    }
   }, [firstSongBlobUrl]);
 
   useEffect(() => {
@@ -219,6 +229,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             throw new Error("Missing data for viewData");
           }
 
+          console.log(`fetchSong (marshal): Track ${index} Loading [no-cache]`);
+
           const res = await viewDataViaMarshalSol(
             dataNftToOpen.id,
             usedPreAccessNonce,
@@ -239,10 +251,40 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               ...prevState, // keep all other key-value pairs
               [index]: blobUrl, // update the value of specific key
             }));
+
+            console.log(`fetchSong (marshal): Track ${index} Loaded [cache]`);
           } else {
             setSongSource((prevState) => ({
               ...prevState,
               [index]: "Error: " + res.status + " " + res.statusText,
+            }));
+          }
+        } else {
+          let errMsg = null;
+          let blobUrl = "";
+
+          try {
+            const trackInRadioListIndex = index - 1;
+
+            console.log(`fetchSong (HTTP): Track ${index} Loading [no-cache]`);
+
+            const blob = await fetch(trackList[trackInRadioListIndex].stream!).then((r) => r.blob());
+            blobUrl = URL.createObjectURL(blob);
+          } catch (error: any) {
+            errMsg = error.toString();
+          }
+
+          if (!errMsg) {
+            setSongSource((prevState) => ({
+              ...prevState, // keep all other key-value pairs
+              [index]: blobUrl, // update the value of specific key
+            }));
+
+            console.log(`fetchSong (HTTP): Track ${index} Loaded [cache]`);
+          } else {
+            setSongSource((prevState) => ({
+              ...prevState,
+              [index]: "Error: " + errMsg,
             }));
           }
         }
@@ -327,6 +369,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       // if we previously fetched the song and it was an error, show again the exact error.
       if (songSource[index].includes("Error:")) {
         toastClosableError(songSource[index]);
+      } else if (songSource[index] === "Fetching") {
+        return false;
       } else if (!(songSource[index] === "Fetching")) {
         musicPlayerAudio.src = songSource[index];
         musicPlayerAudio.load();
@@ -358,7 +402,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   };
 
   return (
-    <div className="relative w-full border-[1px] border-foreground/40 rounded-xl bg-black">
+    <div className="relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none  border-b-0 bg-black">
       <div className="debug hidden bg-yellow-400 text-black p-2 w-full text-xs">
         <p className="mb-2">trackList = {JSON.stringify(trackList)}</p>
         <p className="mb-2">firstSongBlobUrl = {firstSongBlobUrl}</p>
@@ -368,8 +412,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       </div>
 
       {!firstSongBlobUrl ? (
-        <div className="flex flex-row items-center justify-center h-[200px] bgx-red-500">
-          <div className="songInfo w-[500px] px-10 flex flex-row items-center mt-5 md:mt-0 bgx-green-500">
+        <div className="flex flex-row items-center justify-center h-[200px]">
+          <div className="songInfo w-[500px] px-10 flex flex-row items-center mt-5 md:mt-0">
             {trackList.length > 0 ? (
               <div className="flex items-center animate-slide-fade-in">
                 <img
@@ -401,7 +445,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               </div>
             )}
           </div>
-          <div className="bgx-orange-500 h-[100px] flex flex-col items-center justify-center px-2">
+          <div className="h-[100px] flex flex-col items-center justify-center px-2">
             <Loader className="w-full text-center animate-spin hover:scale-105" />
             <p className="text-center text-foreground text-xs mt-3">hold tight, streaming music from the blockchain</p>
           </div>
@@ -425,12 +469,12 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                           onClick={() => {
                             setCurrentTrackIndex(index);
                           }}
-                          className="mx-5 select-none flex flex-row items-center justify-start rounded-xl text-foreground border-[1px] border-foreground/40 hover:opacity-60 cursor-pointer">
+                          className="mx-5 select-none flex flex-row items-center justify-start rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 cursor-pointer">
                           <div className="">
                             <img
                               src={song.cover_art_url}
                               alt="Album Cover"
-                              className="h-20 p-2 rounded-xl m-auto"
+                              className="h-20 p-2 rounded-lg m-auto"
                               onError={({ currentTarget }) => {
                                 currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                               }}
@@ -457,14 +501,21 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             </div>
           )}
 
-          <div className="player flex flex-col md:flex-row select-none md:h-[200px] relative w-full border-t-[1px] border-foreground/10 animate-fade-in bgx-red-800">
+          <div className="player flex flex-col md:flex-row select-none md:h-[200px] relative w-full border-t-[1px] border-foreground/10 animate-fade-in">
             <button
               className="select-none absolute top-0 left-0 flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden"
-              onClick={() => onCloseMusicPlayer()}>
+              onClick={() => {
+                musicPlayerAudio.pause();
+                musicPlayerAudio.src = "";
+                setIsPlaying(false);
+                setIsLoaded(false);
+
+                onCloseMusicPlayer();
+              }}>
               <CircleX className="w-6 h-6" />
             </button>
 
-            <div className="songInfo md:w-[500px] px-10 pt-2 md:pt-10 pb-4 flex flex-row items-center mt-5 md:mt-0 bgx-blue-500">
+            <div className="songInfo md:w-[500px] px-10 pt-2 md:pt-10 pb-4 flex flex-row items-center mt-5 md:mt-0">
               <img
                 src={trackList ? trackList[currentTrackIndex]?.cover_art_url : ""}
                 alt="Album Cover"
@@ -483,7 +534,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               </div>
             </div>
 
-            <div className="songControls bgx-blue-500 gap-2 text-foreground select-none w-full flex flex-col justify-center items-center px-2 bgx-green-500">
+            <div className="songControls gap-2 text-foreground select-none w-full flex flex-col justify-center items-center px-2">
               <div className="controlButtons flex w-full justify-around">
                 <button className="cursor-pointer" onClick={handlePrevButton}>
                   <SkipBack className="w-full hover:scale-105" />
@@ -524,7 +575,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               </div>
             </div>
 
-            <div className="albumControls mb-2 md:mb-0 md:w-[500px] select-none p-2 flex items-center justify-between z-10 bgx-yellow-500">
+            <div className="albumControls mb-2 md:mb-0 md:w-[500px] select-none p-2 flex items-center justify-between z-10">
               <button className="cursor-pointer" onClick={repeatTrack}>
                 <RefreshCcwDot className="w-full hover:scale-105" />
               </button>

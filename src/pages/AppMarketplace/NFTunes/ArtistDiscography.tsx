@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Gift, Heart, Loader, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3 } from "lucide-react";
+import { Gift, Heart, Loader, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
 import { DISABLE_BITZ_FEATURES } from "config";
@@ -12,6 +12,7 @@ import { BountyBitzSumMapping } from "libs/types";
 import { isMostLikelyMobile } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { routeNames } from "routes";
+import { useAudioPlayerStore } from "store/audioPlayer";
 import { getBestBuyCtaLink } from "./types/utils";
 
 type ArtistDiscographyProps = {
@@ -26,12 +27,14 @@ type ArtistDiscographyProps = {
   inCollectedAlbumsView?: boolean;
   artist?: any;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
+  isMusicPlayerOpen?: boolean;
   viewSolData: (e: number) => void;
   onSendBitzForMusicBounty: (e: any) => any;
   playPausePreview?: (e: any, f: any) => any;
   checkOwnershipOfAlbum: (e: any) => any;
   openActionFireLogic: (e: any) => any;
   setFeaturedArtistDeepLinkSlug?: (e: any) => any;
+  onCloseMusicPlayer: () => void;
 };
 
 export const ArtistDiscography = (props: ArtistDiscographyProps) => {
@@ -46,21 +49,40 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     previewPlayingForAlbumId,
     currentTime,
     isFreeDropSampleWorkflow,
+    dataNftPlayingOnMainPlayer,
+    isMusicPlayerOpen,
     onSendBitzForMusicBounty,
     checkOwnershipOfAlbum,
     viewSolData,
     playPausePreview,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
-    dataNftPlayingOnMainPlayer,
+    onCloseMusicPlayer,
   } = props;
   const { publicKey: publicKeySol } = useWallet();
   const [, setSearchParams] = useSearchParams();
-
   const userLoggedInWithWallet = publicKeySol;
+  const { updateAlbumPlayIsQueued, trackPlayIsQueued, albumPlayIsQueued } = useAudioPlayerStore();
+  const [queueAlbumPlay, setQueueAlbumPlay] = useState(false);
 
   function thisIsPlayingOnMainPlayer(album: any) {
     return dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName;
+  }
+
+  function handlePlayAlbum(album: any) {
+    const albumInOwnershipListIndex = checkOwnershipOfAlbum(album);
+
+    if (albumInOwnershipListIndex > -1) {
+      viewSolData(albumInOwnershipListIndex);
+    }
+
+    if (openActionFireLogic) {
+      openActionFireLogic({
+        giveBitzToCampaignId: album.bountyId,
+        bountyBitzSum: bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum,
+        creatorWallet: artistProfile.creatorWallet,
+      });
+    }
   }
 
   return (
@@ -69,7 +91,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         <div key={album.albumId} className="album flex flex-col h-[100%] mb-3 p-2 md:p-5 border w-[100%]">
           <div className="albumDetails flex flex-col md:flex-row">
             <div
-              className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-xl m-auto"
+              className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg m-auto"
               style={{
                 "backgroundImage": `url(${album.img})`,
               }}></div>
@@ -139,8 +161,9 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             {album.ctaPreviewStream && !inCollectedAlbumsView && (
               <div>
                 <Button
-                  disabled={isPreviewPlaying && !previewIsReadyToPlay}
-                  className="!text-white text-sm mx-2 bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% cursor-pointer"
+                  disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || albumPlayIsQueued}
+                  className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                  variant="outline"
                   onClick={() => {
                     if (playPausePreview) {
                       playPausePreview(album.ctaPreviewStream, album.albumId);
@@ -153,7 +176,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     </>
                   ) : (
                     <>
-                      <Play />
+                      {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <Play />}
                       <span className="ml-2">Play Preview</span>
                     </>
                   )}
@@ -188,26 +211,38 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               {checkOwnershipOfAlbum(album) > -1 && (
                 <div className="relative">
                   <Button
-                    disabled={(isPreviewPlaying && !previewIsReadyToPlay) || thisIsPlayingOnMainPlayer(album)}
+                    disabled={
+                      (isPreviewPlaying && !previewIsReadyToPlay) ||
+                      thisIsPlayingOnMainPlayer(album) ||
+                      queueAlbumPlay ||
+                      trackPlayIsQueued ||
+                      albumPlayIsQueued
+                    }
                     className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 cursor-pointer"
                     onClick={() => {
-                      const albumInOwnershipListIndex = checkOwnershipOfAlbum(album);
+                      // if the user is jumping between multiple albums, the audio player was getting into some weird state
+                      // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
+                      // @TODO: we can improve UX by using some global store state to toggle "queuing" of music when tracks are loading, or are in some
+                      // transition state and prevent users from click spamming play buttons during this time
+                      if (isMusicPlayerOpen) {
+                        setQueueAlbumPlay(true);
+                        updateAlbumPlayIsQueued(true);
+                        onCloseMusicPlayer();
 
-                      if (albumInOwnershipListIndex > -1) {
-                        viewSolData(albumInOwnershipListIndex);
-                      }
-
-                      if (openActionFireLogic) {
-                        openActionFireLogic({
-                          giveBitzToCampaignId: album.bountyId,
-                          bountyBitzSum: bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum,
-                          creatorWallet: artistProfile.creatorWallet,
-                        });
+                        setTimeout(() => {
+                          handlePlayAlbum(album);
+                          setQueueAlbumPlay(false);
+                          updateAlbumPlayIsQueued(false);
+                        }, 5000);
+                      } else {
+                        handlePlayAlbum(album);
+                        setQueueAlbumPlay(false);
+                        updateAlbumPlayIsQueued(false);
                       }
                     }}>
                     <>
-                      <Music2 />
-                      <span className="ml-2">{thisIsPlayingOnMainPlayer(album) ? "Playing..." : "Play Album"}</span>
+                      {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <Music2 />}
+                      <span className="ml-2">{thisIsPlayingOnMainPlayer(album) ? "Playing..." : queueAlbumPlay ? "Queued" : "Play Album"}</span>
                     </>
                   </Button>
 

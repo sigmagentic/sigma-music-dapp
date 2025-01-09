@@ -6,12 +6,12 @@ export const Footer = () => {
   const appVersion = import.meta.env.VITE_APP_VERSION ? `v${import.meta.env.VITE_APP_VERSION}` : "version number unknown";
 
   return (
-    <footer className="mx-[1rem] md:mx-[1rem] h-auto mb-10 mt-10 border-t-2">
+    <footer className="mx-[1rem] md:mx-[1rem] h-auto mb-10 mt-10 border-t-2 opacity-70">
       <div className="flex flex-col md:flex-row">
         <div className="md:w-[50%] p-5">
           <div>
             <p className="mb-3 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-[1.5rem]">
-              Sigma Music
+              Sigma Music (Beta)
             </p>
             <p className="text-xs md:text-sm">
               Sigma Music is a revolutionary music platform powered by Blockchain, Itheum (a data NFT platform), and AI Agent technology. Real-world musicians

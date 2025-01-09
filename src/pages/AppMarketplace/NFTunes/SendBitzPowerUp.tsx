@@ -221,7 +221,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
               <div className="bg1-green-200 flex flex-col md:flex-row md:items-center">
                 <div className="bg1-blue-200">
                   <div
-                    className="border-[0.5px] border-neutral-500/90 w-[150px] h-[150px] md:h-[150px] md:w-[150px] bg-no-repeat bg-cover rounded-xl"
+                    className="border-[0.5px] border-neutral-500/90 w-[150px] h-[150px] md:h-[150px] md:w-[150px] bg-no-repeat bg-cover rounded-lg"
                     style={{
                       "backgroundImage": `url(${creatorIcon})`,
                     }}></div>

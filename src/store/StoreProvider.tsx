@@ -2,12 +2,12 @@ import React, { PropsWithChildren, useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { IS_DEVNET } from "appsConfig";
+import { DISABLE_BITZ_FEATURES } from "config";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { computeRemainingCooldown } from "libs/utils/functions";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
 import { useNftsStore } from "./nfts";
-import { DISABLE_BITZ_FEATURES } from "config";
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
   const { publicKey: publicKeySol, signMessage } = useWallet();

@@ -13,7 +13,6 @@ import { ArtistDiscography } from "./ArtistDiscography";
 
 type MyCollectedAlbumsProps = {
   isFetchingDataMarshal: boolean;
-  setStopRadio: any;
   viewDataRes: any;
   currentDataNftIndex: any;
   dataMarshalResponse: any;
@@ -26,10 +25,12 @@ type MyCollectedAlbumsProps = {
   setMusicBountyBitzSumGlobalMapping: any;
   userHasNoBitzDataNftYet: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
+  isMusicPlayerOpen?: boolean;
   checkOwnershipOfAlbum: (e: any) => any;
   setFeaturedArtistDeepLinkSlug: (e: any) => any;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number) => void;
+  onCloseMusicPlayer: () => void;
 };
 
 export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
@@ -40,10 +41,12 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
     setMusicBountyBitzSumGlobalMapping,
     userHasNoBitzDataNftYet,
     dataNftPlayingOnMainPlayer,
+    isMusicPlayerOpen,
     checkOwnershipOfAlbum,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
     viewSolData,
+    onCloseMusicPlayer,
   } = props;
   const { isLoadingSol, solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
@@ -71,7 +74,6 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   }, [allOwnedAlbums]);
 
   useEffect(() => {
-    console.log("allOwnedAlbums", allOwnedAlbums.length);
     if (allOwnedAlbums.length > 0) {
       // only scroll direct to focus on my collected albums of the user just came from login
       const isDirectFromLogin = searchParams.get("fromLogin");
@@ -140,14 +142,14 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
         </div>
 
         <div id="data-nfts" className="flex flex-col md:flex-row w-[100%] items-start">
-          <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px] w-[100%]">
+          <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-lg border border-primary/50 min-h-[350px] w-[100%]">
             <>
               <div className="flex flex-col justify-center w-[100%]">
                 {isLoadingSol ? (
                   <div className="m-auto w-full">
                     <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
                       {[...Array(3)].map((_, index) => (
-                        <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-xl animate-pulse bg-gray-200 dark:bg-gray-700" />
+                        <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
                       ))}
                     </div>
                   </div>
@@ -157,7 +159,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                       <>
                         <div className="my-2 font-bold text-2xl mb-5">
                           You have collected{" "}
-                          <span className="text-2xl bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold">
+                          <span className="text-2xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
                             {allOwnedAlbums.length} {allOwnedAlbums.length > 1 ? `albums` : `album`}
                           </span>
                         </div>
@@ -176,6 +178,8 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                                 dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
                                 onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                                 viewSolData={viewSolData}
+                                isMusicPlayerOpen={isMusicPlayerOpen}
+                                onCloseMusicPlayer={onCloseMusicPlayer}
                               />
                             </div>
                           );

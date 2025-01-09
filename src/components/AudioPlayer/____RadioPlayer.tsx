@@ -103,7 +103,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
       {
         breakpoint: 1800,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: 4,
         },
       },
       {
@@ -129,7 +129,12 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   };
 
   function eventToAttachEnded() {
-    setCurrentTrackIndex((prevCurrentTrackIndex) => (prevCurrentTrackIndex < radioTracks.length - 1 ? prevCurrentTrackIndex + 1 : 0));
+    debugger;
+    console.log("eventToAttachEnded radioTracks.length ", radioTracks.length);
+    let nextIndex = currentTrackIndex + 1;
+    nextIndex = nextIndex >= radioTracks.length ? 0 : nextIndex;
+
+    setCurrentTrackIndex(nextIndex);
   }
 
   function eventToAttachTimeUpdate() {
@@ -163,11 +168,6 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   }, 2500);
 
   useEffect(() => {
-    radioPlayerAudio.addEventListener("ended", eventToAttachEnded);
-    radioPlayerAudio.addEventListener("timeupdate", eventToAttachTimeUpdate);
-    radioPlayerAudio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
-    radioPlayerAudio.addEventListener("playing", eventToAttachPlaying);
-
     // get the radio tracks data
     async function getRadioTracksData() {
       setRadioTracksLoading(true);
@@ -192,6 +192,16 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
       radioPlayerAudio.removeEventListener("playing", eventToAttachPlaying);
     };
   }, []);
+
+  // we add the listeners here as event methods like eventToAttachEnded depend on radiotracks to be loaded (or else they use closure values of 0 )
+  useEffect(() => {
+    if (radioTracks.length > 0) {
+      radioPlayerAudio.addEventListener("ended", eventToAttachEnded);
+      radioPlayerAudio.addEventListener("timeupdate", eventToAttachTimeUpdate);
+      radioPlayerAudio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
+      radioPlayerAudio.addEventListener("playing", eventToAttachPlaying);
+    }
+  }, [radioTracks]);
 
   useEffect(() => {
     if (radioTracks.length > 0 && nfTunesRadioFirstTrackCachedBlob !== "") {
@@ -230,7 +240,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
 
       if (ctaBuyLink) {
         getAlbumActionLink = ctaBuyLink;
-        getAlbumActionText = checkedOwnershipOfAlbumAndItsIndex > -1 ? "Buy More Album Copies" : "Buy Album";
+        getAlbumActionText = checkedOwnershipOfAlbumAndItsIndex > -1 ? "Buy More Copies" : "Buy Album";
       } else if (_trackThatsPlaying?.airdrop) {
         getAlbumActionLink = _trackThatsPlaying.airdrop;
         getAlbumActionText = "Get Album Airdrop!";
@@ -500,7 +510,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
   return (
     <>
       {radioTracksLoading || radioTracks.length === 0 ? (
-        <div className="select-none h-[200px] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/40 relative md:w-[100%] flex flex-col items-center justify-center rounded-xl mt-2 p-3">
+        <div className="select-none h-[200px] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/20 relative md:w-[100%] flex flex-col items-center justify-center rounded-lg mt-2 p-3">
           {radioTracksLoading ? (
             <span className="text-xs">
               <Loader className="w-full text-center animate-spin hover:scale-105 mb-2" />
@@ -527,16 +537,17 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
 
           {trackThatsPlaying && (
             <div className={`${isCollapsed ? "w-full fixed left-0 bottom-0 z-50" : "w-full"}`}>
-              <div className="relative w-full border-[1px] border-foreground/40 rounded-xl bg-black">
-                <div className="debug hidden bg-yellow-500 w-full h-full text-xs">
+              <div className="relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black">
+                <div className="debug bg-yellow-500 w-full h-full text-xs">
                   nfTunesRadioFirstTrackCachedBlob = {nfTunesRadioFirstTrackCachedBlob} <br />
                   radioTracks.length = {radioTracks.length} <br />
-                  albumActionLink = {albumActionLink} <br />x albumActionText = {albumActionText} <br />
+                  albumActionLink = {albumActionLink} <br /> albumActionText = {albumActionText} <br />
                   isAlbumForFree = {isAlbumForFree.toString()} <br />
                   trackThatsPlaying = {JSON.stringify(trackThatsPlaying)} <br />
                   songSource[trackThatsPlaying] = {trackThatsPlaying ? songSource[trackThatsPlaying.idx] : "null"} <br />
                   ownershipOfAlbumAndItsIndex = {ownershipOfAlbumAndItsIndex} <br />
                   imgLoading = {imgLoading.toString()} <br />
+                  currentTrackIndex = {currentTrackIndex.toString()} <br />
                 </div>
 
                 {isCollapsed && displayTrackList && (
@@ -556,14 +567,15 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                             <div key={index} className="flex items-center justify-center">
                               <div
                                 onClick={() => {
+                                  debugger;
                                   setCurrentTrackIndex(index);
                                 }}
-                                className="mx-5 select-none flex flex-row items-center justify-start rounded-xl text-foreground border-[1px] border-foreground/40 hover:opacity-60 cursor-pointer">
+                                className="mx-5 select-none flex flex-row items-center justify-start rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 cursor-pointer">
                                 <div className="">
                                   <img
                                     src={song.cover_art_url}
                                     alt="Album Cover"
-                                    className="h-20 p-2 rounded-xl m-auto"
+                                    className="h-20 p-2 rounded-lg m-auto"
                                     onError={({ currentTarget }) => {
                                       currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                                     }}
@@ -756,7 +768,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                             {ownershipOfAlbumAndItsIndex > -1 && (
                               <Button
                                 disabled={thisIsPlayingOnMainPlayer(trackThatsPlaying)}
-                                className={`${isAlbumForFree ? "!text-white" : "!text-black"} text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r ${isAlbumForFree ? "from-yellow-700 to-orange-800" : "from-yellow-300 to-orange-500"} md:mr-[12px]`}
+                                className={`${isAlbumForFree ? "!text-white" : "!text-black"} text-xs tracking-tight relative left-2 bottom-1.5 bg-gradient-to-r ${isAlbumForFree ? "from-yellow-700 to-orange-800" : "from-yellow-300 to-orange-500"} md:mr-[12px]`}
                                 variant="ghost"
                                 onClick={() => {
                                   const albumInOwnershipListIndex = ownershipOfAlbumAndItsIndex;
@@ -777,7 +789,7 @@ export const RadioPlayer = memo(function RadioPlayerBase(props: RadioPlayerProps
                             )}
 
                             <Button
-                              className={`${isAlbumForFree ? "!text-white" : "!text-black"} text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r ${isAlbumForFree ? "from-yellow-700 to-orange-800" : "from-yellow-300 to-orange-500"}`}
+                              className={`${isAlbumForFree ? "!text-white" : "!text-black"} text-xs tracking-tight relative left-2 bottom-1.5 bg-gradient-to-r ${isAlbumForFree ? "from-yellow-700 to-orange-800" : "from-yellow-300 to-orange-500"}`}
                               variant="ghost"
                               onClick={() => {
                                 window.open(albumActionLink)?.focus();

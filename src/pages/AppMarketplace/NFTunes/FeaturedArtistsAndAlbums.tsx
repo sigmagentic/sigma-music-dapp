@@ -24,12 +24,14 @@ type FeaturedArtistsAndAlbumsProps = {
   setMusicBountyBitzSumGlobalMapping: any;
   userHasNoBitzDataNftYet: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
+  isMusicPlayerOpen?: boolean;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number) => void;
   onPlayHappened: () => void;
   checkOwnershipOfAlbum: (e: any) => any;
   onSendBitzForMusicBounty: (e: any) => any;
   onFeaturedArtistDeepLinkSlug: (e: string | undefined) => any;
+  onCloseMusicPlayer: () => void;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
@@ -40,12 +42,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setMusicBountyBitzSumGlobalMapping,
     userHasNoBitzDataNftYet,
     dataNftPlayingOnMainPlayer,
+    isMusicPlayerOpen,
     openActionFireLogic,
     viewSolData,
     onPlayHappened,
     checkOwnershipOfAlbum,
     onSendBitzForMusicBounty,
     onFeaturedArtistDeepLinkSlug,
+    onCloseMusicPlayer,
   } = props;
   const { publicKey: publicKeySol } = useWallet();
   const [previewTrackAudio] = useState(new Audio());
@@ -262,12 +266,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
         <div id="artist-profile" className="flex flex-col md:flex-row w-[100%] items-start">
           {artistAlbumDataLoading || artistAlbumDataset.length === 0 ? (
-            <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px] w-full bgx-red-800">
+            <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-lg border-[1px] border-foreground/20 min-h-[350px] w-full">
               {artistAlbumDataLoading ? (
                 <div className="m-auto w-full">
                   <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
                     {[...Array(3)].map((_, index) => (
-                      <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-xl animate-pulse bg-gray-200 dark:bg-gray-700" />
+                      <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
                     ))}
                   </div>
                 </div>
@@ -278,12 +282,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
           ) : (
             <div className="w-full">
               {!inArtistProfileView && (
-                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 min-h-[350px] w-full">
-                  <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
+                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background border-[1px] border-foreground/20 rounded-lg min-h-[350px] w-full">
+                  <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px] ">
                     {artistAlbumDataset.map((artist: any) => (
                       <div
                         key={artist.artistId}
-                        className={`flex w-[250px] h-[250px] md:w-[300px] md:h-[300px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
+                        className={`flex w-[250px] h-[250px] md:w-[300px] md:h-[300px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105 border-[1px] border-foreground/20 rounded-lg`}
                         onClick={() => {
                           if (artist.artistId !== selArtistId) {
                             // notify the home page, which then triggers an effect to setSelArtistId
@@ -296,7 +300,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           setInArtistProfileView(true);
                         }}>
                         <div
-                          className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-xl cursor-pointer"
+                          className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
                           style={{
                             "backgroundImage": `url(${artist.img})`,
                             "backgroundPosition": getImagePosition(artist.img),
@@ -312,7 +316,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               )}
 
               {inArtistProfileView && (
-                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-xl border border-primary/50 md:min-h-[350px]">
+                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-lg border border-primary/50 md:min-h-[350px]">
                   {!artistProfile ? (
                     <div>Loading</div>
                   ) : (
@@ -343,7 +347,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                       <div className="artist-bio w-[300px] md:w-full flex flex-col md:flex-row">
                         <div className="">
                           <div
-                            className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] md:w-[400px] flex-1 bg-no-repeat bg-cover rounded-xl"
+                            className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] md:w-[400px] flex-1 bg-no-repeat bg-cover rounded-lg"
                             style={{
                               "backgroundImage": `url(${artistProfile.img})`,
                             }}>
@@ -495,6 +499,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                           viewSolData={viewSolData}
                           openActionFireLogic={openActionFireLogic}
+                          isMusicPlayerOpen={isMusicPlayerOpen}
+                          onCloseMusicPlayer={onCloseMusicPlayer}
                         />
                       </div>
                     </>

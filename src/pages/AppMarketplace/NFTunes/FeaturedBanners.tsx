@@ -13,7 +13,7 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
         <div className="flex flex-col justify-center items-center w-full">
           <div
             id="featured1"
-            className="flex md:flex-1 mt-2 min-h-[200px] md:h-[330px] bg-no-repeat bg-cover rounded-3xl w-[100%]"
+            className="flex md:flex-1 mt-2 min-h-[200px] md:h-[330px] bg-no-repeat bg-cover rounded-3xl w-[100%] border-[1px] border-foreground/20"
             style={{
               "backgroundImage": `url(https://api.itheumcloud.com/app_nftunes/assets/img/BeatsbyScooby.jpg)`,
               "backgroundBlendMode": "multiply",
@@ -35,7 +35,7 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
 
           <div
             id="featured1"
-            className="flex md:flex-1 mt-2 min-h-[200px] md:h-[330px] bg-no-repeat bg-cover rounded-3xl w-[100%]"
+            className="flex md:flex-1 mt-2 min-h-[200px] md:h-[330px] bg-no-repeat bg-cover rounded-3xl w-[100%] border-[1px] border-foreground/20"
             style={{
               "backgroundImage": `url(https://api.itheumcloud.com/app_nftunes/assets/img/Physixdude.jpg)`,
               "backgroundBlendMode": "multiply",
