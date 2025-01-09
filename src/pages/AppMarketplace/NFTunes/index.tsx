@@ -343,18 +343,18 @@ export const NFTunes = () => {
                   <div className="text-2xl xl:text-3xl mb-3 w-full text-center bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
                     hi, i'm sigma, your AI music agent
                   </div>
-                  <div className="text-sm text-center mb-5">
-                    Click below to interact with me on <FaXTwitter className="inline-block text-xl" />
-                  </div>
+
                   <a href="https://x.com/SigmaXMusic" target="_blank">
+                    <div className="text-sm text-center mb-5">
+                      Click to interact with me on <FaXTwitter className="inline-block text-xl" />
+                    </div>
                     <div className="flex flex-col md:flex-row gap-2 justify-center items-center cursor-pointer">
                       <div
-                        className="border-[0.5px] border-neutral-500/90 w-[90%] h-[400px] bg-no-repeat bg-cover rounded-lg animatex-float"
+                        className="border-[0.5px] border-neutral-500/90 w-[90%] h-[400px] bg-no-repeat bg-cover rounded-lg animate-float bg-bottom xl:bg-top"
                         style={{
                           "backgroundImage": `url(${sigmaAgent})`,
                           "backgroundBlendMode": "darken",
                           "backgroundColor": "#fcc73d",
-                          "backgroundPosition": "bottom",
                         }}></div>
                     </div>
                   </a>
