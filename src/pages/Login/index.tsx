@@ -76,17 +76,16 @@ const LoginPage = () => {
           });
 
           isTriggerFreeGift = "g=1";
-        } else if (userLoggedInCallData?.existingUserAccountLastLoginUpdated) {
-          let userMessage = "";
-
-          userMessage = "Welcome Back Sigma Music OG!";
-
-          toast.success(userMessage, {
-            position: "bottom-center",
-            duration: 6000,
-            icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
-          });
         }
+        // else if (userLoggedInCallData?.existingUserAccountLastLoginUpdated) {
+        // let userMessage = "";
+        // userMessage = "Welcome Back Sigma Music OG!";
+        // toast.success(userMessage, {
+        //   position: "bottom-center",
+        //   duration: 6000,
+        //   icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
+        // });
+        // }
 
         // where can we send them back?
         let fromWhere = location.state?.from || "/";
