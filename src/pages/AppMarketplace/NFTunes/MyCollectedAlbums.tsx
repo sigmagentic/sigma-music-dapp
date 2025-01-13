@@ -95,7 +95,19 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
           .map((artist) => {
             // Filter the albums array for each artist
             const filteredAlbums = artist.albums.filter((album: any) =>
-              shownSolAppDataNfts.some((ownedNft: DasApiAsset) => ownedNft.content.metadata.name === album.solNftName)
+              shownSolAppDataNfts.some((ownedNft: DasApiAsset) => {
+                /*
+                  this should match:
+                  "MUSG20 - Olly'G - MonaLisa Rap" should match "MUSG20-Olly'G-MonaLisa Rap" or "MUSG20 - Olly'G-MonaLisa Rap"
+
+                  this should NOT match:
+                  "MUSG20 - Olly'G - MonaLisa Rap" should not match "MUSG19-Olly'G-MonaLisa Rap" or "MUSG21 - Olly'G-MonaLisa Rap"
+                */
+                // Get the prefix before first "-" or space from both strings
+                const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
+                const albumPrefix = album.solNftName.split(/[-\s]/)[0];
+                return nftPrefix.toLowerCase() === albumPrefix.toLowerCase();
+              })
             );
 
             // we need the creatorWallet from the album level on the album so the bitz can be fetched
