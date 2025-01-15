@@ -1,1 +1,1 @@
-Sigma Music App
+Sigma Music App V1
