@@ -258,6 +258,11 @@ export const NFTunes = () => {
         albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap["MUSGDEV1 : Common"];
       }
     } else if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
+      /* mark the albumInOwnershipListIndex as of the highest rarity album
+        Legendary
+        Rare
+        Common */
+
       // Normalize the album name
       const normalizeString = (str: string) => str.replace(/[^0-9a-zA-Z]/g, "").toLowerCase();
 
