@@ -14,7 +14,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuSepar
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libComponents/NavigationMenu";
 import { sleep } from "libs/utils";
 import { routeNames } from "routes";
-import { useLocalStorageStore } from "store/LocalStorageStore.ts";
 // import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
 
@@ -22,7 +21,6 @@ export const Navbar = () => {
   const { publicKey: publicKeySol, connected } = useWallet();
   const addressSol = publicKeySol?.toBase58();
   const isLoggedInSol = !!addressSol;
-  const setDefaultChain = useLocalStorageStore((state) => state.setDefaultChain);
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const location = useLocation();
 
@@ -66,7 +64,6 @@ export const Navbar = () => {
                   {isLoggedInSol && (
                     <SolBitzDropdown
                       handlePlayActionBtn={async () => {
-                        setDefaultChain("solana");
                         await sleep(0.2);
                         setShowPlayBitzModal(true);
                       }}
@@ -106,7 +103,6 @@ export const Navbar = () => {
                 {isLoggedInSol ? (
                   <SolBitzDropdown
                     handlePlayActionBtn={async () => {
-                      setDefaultChain("solana");
                       await sleep(0.2);
                       setShowPlayBitzModal(true);
                     }}

@@ -4,8 +4,6 @@ import { motion } from "framer-motion";
 import { ArrowBigRightDashIcon, ExternalLinkIcon } from "lucide-react";
 import bitzLogo from "assets/img/getbitz/givebitz/flaskBottle.png";
 import { HoverBorderGradient } from "libComponents/animated/HoverBorderGradient";
-import { useAccountStore } from "store/account";
-import { useLocalStorageStore } from "store/LocalStorageStore.ts";
 import useSolBitzStore from "store/solBitz";
 import GiverLeaderboard from "./GiverLeaderboard";
 import { GiveBitzLowerCardProps } from "../interfaces";
@@ -17,10 +15,8 @@ const GiveBitzLowerCard: React.FC<GiveBitzLowerCardProps> = (props) => {
   const [termsOfUseCheckbox, setTermsOfUseCheckbox] = useState(false);
   const [bitzVal, setBitzVal] = useState<number>(0);
   const [bitzGivenToCreator, setBitzGivenToCreator] = useState<number>(-1);
-  const defaultChain = useLocalStorageStore((state) => state.defaultChain);
   const solBitzBalance = useSolBitzStore((state) => state.bitzBalance);
-  const mvxBitzBalance = useAccountStore((state) => state.bitzBalance);
-  const bitzBalance = defaultChain === "multiversx" ? mvxBitzBalance : solBitzBalance;
+  const bitzBalance = solBitzBalance;
 
   useEffect(() => {
     async function fetchData() {
