@@ -1,7 +1,23 @@
 import { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { ChevronDown, Heart, Library, Loader, Pause, Play, RefreshCcwDot, SkipBack, SkipForward, Volume1, Volume2, VolumeX, CircleX } from "lucide-react";
+import {
+  ChevronDown,
+  Heart,
+  Library,
+  Loader,
+  Pause,
+  Play,
+  RefreshCcwDot,
+  SkipBack,
+  SkipForward,
+  Volume1,
+  Volume2,
+  VolumeX,
+  CircleX,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -14,6 +30,7 @@ import { BountyBitzSumMapping, Track } from "libs/types";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
+import { isMostLikelyMobile } from "libs/utils/misc";
 
 type MusicPlayerProps = {
   trackList: Track[];
@@ -49,7 +66,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("00:00");
-  const [displayTrackList, setDisplayTrackList] = useState(false);
+  const [displayTrackList, setDisplayTrackList] = useState(window.innerWidth >= 768);
   const [musicPlayerAudio] = useState(new Audio());
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
@@ -91,6 +108,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     ],
   };
   const [imgLoading, setImgLoading] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 768);
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -401,8 +419,32 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     }
   };
 
+  // Add useEffect to handle body scroll
+  useEffect(() => {
+    if (isFullScreen) {
+      // Disable main page scroll
+      document.body.style.overflow = "hidden";
+    } else {
+      // Re-enable main page scroll
+      document.body.style.overflow = "auto";
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isFullScreen]);
+
+  // Add scroll handler for tracklist
+  const handleTrackListScroll = (e: React.WheelEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <div className="relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none  border-b-0 bg-black">
+    <div
+      className={`relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black transition-all duration-300 ${
+        isFullScreen ? "fixed inset-0 z-[9999] rounded-none h-screen w-screen overflow-hidden" : ""
+      }`}>
       <div className="debug hidden bg-yellow-400 text-black p-2 w-full text-xs">
         <p className="mb-2">trackList = {JSON.stringify(trackList)}</p>
         <p className="mb-2">firstSongBlobUrl = {firstSongBlobUrl}</p>
@@ -412,14 +454,14 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       </div>
 
       {!firstSongBlobUrl ? (
-        <div className="flex flex-row items-center justify-center h-[200px]">
-          <div className="songInfo w-[500px] px-10 flex flex-row items-center mt-5 md:mt-0">
+        <div className="flex flex-col items-center justify-center h-full">
+          <div className="songInfo flex flex-col items-center justify-center">
             {trackList.length > 0 ? (
-              <div className="flex items-center animate-slide-fade-in">
+              <div className="flex flex-col items-center animate-slide-fade-in">
                 <img
                   src={trackList[currentTrackIndex]?.cover_art_url}
                   alt="Album Cover"
-                  className={`select-none w-[100px] h-[100px] rounded-md border border-grey-900 transition-all duration-300 ${
+                  className={`select-none w-[400px] h-[400px] rounded-md border border-grey-900 transition-all duration-300 ${
                     imgLoading ? "blur-sm opacity-0" : "blur-none opacity-100"
                   }`}
                   onLoad={() => {
@@ -429,113 +471,152 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                     currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                   }}
                 />
-                <div className={`xl:w-[60%] flex flex-col justify-center text-center ml-2`}>
-                  <h6 className="!text-sm !text-muted-foreground truncate md:text-left">{trackList[currentTrackIndex].title}</h6>
-                  <p className="text-sm text-white truncate md:text-left">{trackList[currentTrackIndex].artist}</p>
+                <div className="flex flex-col justify-center text-center mt-6">
+                  <h6 className="text-xl text-muted-foreground">{trackList[currentTrackIndex].title}</h6>
+                  <p className="text-lg text-white mt-2">{trackList[currentTrackIndex].artist}</p>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center animate-fade-in">
+              <div className="flex flex-col items-center animate-fade-in">
                 {/* Skeleton Loader */}
-                <div className="w-[100px] h-[100px] rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                <div className="xl:w-[60%] flex flex-col justify-center ml-2">
-                  <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
-                  <div className="h-5 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="w-[400px] h-[400px] rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                <div className="flex flex-col justify-center mt-6">
+                  <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4" />
+                  <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                 </div>
               </div>
             )}
           </div>
-          <div className="h-[100px] flex flex-col items-center justify-center px-2">
-            <Loader className="w-full text-center animate-spin hover:scale-105" />
-            <p className="text-center text-foreground text-xs mt-3">hold tight, streaming music from the blockchain</p>
+          <div className="flex flex-col items-center justify-center mt-12">
+            <Loader className="w-16 h-16 animate-spin hover:scale-105" />
+            <p className="text-center text-foreground text-lg mt-6">hold tight, streaming music from the blockchain</p>
           </div>
         </div>
       ) : (
         <>
           {displayTrackList && (
-            <div className="bg-gradient-to-t from-[#171717] to-black w-full pb-2">
-              <div className="trackList w-[300px] md:w-[93%] mt-1 pt-3 mx-auto">
-                <button
-                  className="select-none absolute top-0 right-0 flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden"
-                  onClick={() => setDisplayTrackList(false)}>
-                  <ChevronDown className="w-6 h-6" />
-                </button>
-                <h4 className="flex justify-center select-none font-semibold text-foreground mb-3 !text-xl">{`Tracklist ${trackList.length} songs`} </h4>
-                <Slider {...settings}>
-                  {trackList.map((song: any, index: number) => {
-                    return (
-                      <div key={index} className="flex items-center justify-center">
-                        <div
-                          onClick={() => {
-                            setCurrentTrackIndex(index);
+            <div
+              className={`z-10 bg-gradient-to-t from-[#171717] to-black ${
+                isFullScreen ? "fixed right-0 top-0 h-full w-[400px] overflow-y-auto" : "w-full pb-2"
+              }`}
+              onWheel={handleTrackListScroll}>
+              <div className={`trackList ${isFullScreen ? "w-full px-4" : "w-[300px] md:w-[93%]"} mt-1 pt-3 mx-auto`}>
+                {!isFullScreen && (
+                  <button
+                    className={`select-none absolute top-0 ${isFullScreen ? "right-1" : "right-0"} flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
+                    onClick={() => setDisplayTrackList(false)}>
+                    <ChevronDown className="w-6 h-6" />
+                  </button>
+                )}
+                <h4 className="flex justify-center select-none font-semibold text-foreground mb-3 !text-xl">{`Tracklist ${trackList.length} songs`}</h4>
+                {isFullScreen ? (
+                  // Vertical track list for full screen
+                  <div className="flex flex-col gap-4">
+                    {trackList.map((song: any, index: number) => (
+                      <div
+                        key={index}
+                        onClick={() => setCurrentTrackIndex(index)}
+                        className="select-none flex flex-row items-center justify-start p-4 rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 cursor-pointer">
+                        <img
+                          src={song.cover_art_url}
+                          alt="Album Cover"
+                          className="h-24 w-24 rounded-lg"
+                          onError={({ currentTarget }) => {
+                            currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                           }}
-                          className="mx-5 select-none flex flex-row items-center justify-start rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 cursor-pointer">
-                          <div className="">
-                            <img
-                              src={song.cover_art_url}
-                              alt="Album Cover"
-                              className="h-20 p-2 rounded-lg m-auto"
-                              onError={({ currentTarget }) => {
-                                currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
-                              }}
-                            />
-                          </div>
-                          <div className="xl:w-[60%] flex flex-col justify-center text-center">
-                            <h6 className="!text-sm !text-muted-foreground truncate md:text-left">{song.title}</h6>
-                            <p className="text-sm text-white truncate md:text-left">{song.artist}</p>
-                          </div>
+                        />
+                        <div className="ml-4 flex flex-col">
+                          <h6 className="!text-lg !text-muted-foreground">{song.title}</h6>
+                          <p className="text-md text-white">{song.artist}</p>
                         </div>
                       </div>
-                    );
-                  })}
-                </Slider>
-                <style>
-                  {`
-               /* CSS styles for Swiper navigation arrows  */
-               .slick-prev:before,
-               .slick-next:before {
-               color: ${theme === "light" ? "black;" : "white;"},
-                   }`}
-                </style>
+                    ))}
+                  </div>
+                ) : (
+                  // Existing horizontal slider for normal mode
+                  <Slider {...settings}>
+                    {trackList.map((song: any, index: number) => {
+                      return (
+                        <div key={index} className="flex items-center justify-center">
+                          <div
+                            onClick={() => {
+                              setCurrentTrackIndex(index);
+                            }}
+                            className="mx-5 select-none flex flex-row items-center justify-start rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 cursor-pointer">
+                            <div className="">
+                              <img
+                                src={song.cover_art_url}
+                                alt="Album Cover"
+                                className="h-20 p-2 rounded-lg m-auto"
+                                onError={({ currentTarget }) => {
+                                  currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
+                                }}
+                              />
+                            </div>
+                            <div className="xl:w-[60%] flex flex-col justify-center text-center">
+                              <h6 className="!text-sm !text-muted-foreground truncate md:text-left">{song.title}</h6>
+                              <p className="text-sm text-white truncate md:text-left">{song.artist}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </Slider>
+                )}
               </div>
             </div>
           )}
 
-          <div className="player flex flex-col md:flex-row select-none md:h-[200px] relative w-full border-t-[1px] border-foreground/10 animate-fade-in">
-            <button
-              className="select-none absolute top-0 left-0 flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden"
-              onClick={() => {
-                musicPlayerAudio.pause();
-                musicPlayerAudio.src = "";
-                setIsPlaying(false);
-                setIsLoaded(false);
-
-                onCloseMusicPlayer();
-              }}>
-              <CircleX className="w-6 h-6" />
-            </button>
-
-            <div className="songInfo md:w-[500px] px-10 pt-2 md:pt-10 pb-4 flex flex-row items-center mt-5 md:mt-0">
+          <div
+            className={`player flex flex-col select-none ${
+              isFullScreen
+                ? `h-full justify-center items-center ${displayTrackList ? "pr-[400px]" : ""}` // Add margin when tracklist is open
+                : "md:h-[200px] md:flex-row"
+            } relative w-full border-t-[1px] border-foreground/10 animate-fade-in transition-all duration-300`}>
+            <div className="">
+              <button
+                className={`hidden md:flex select-none absolute top-0 ${
+                  isFullScreen ? "left-[50px] top-[10px]" : "right-0"
+                } flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
+                onClick={() => setIsFullScreen(!isFullScreen)}>
+                {isFullScreen ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
+              </button>
+              <button
+                className={`select-none absolute top-0 ${isFullScreen ? "left-[10px] top-[10px]" : "top-0 left-0"} flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
+                onClick={() => {
+                  musicPlayerAudio.pause();
+                  musicPlayerAudio.src = "";
+                  setIsPlaying(false);
+                  setIsLoaded(false);
+                  setIsFullScreen(false);
+                  onCloseMusicPlayer();
+                }}>
+                <CircleX className="w-6 h-6" />
+              </button>
+            </div>
+            <div className={`songInfo px-10 flex flex-col items-center ${isFullScreen ? "mb-12" : "md:w-[500px] pt-2 md:pt-10 pb-4 flex-row"}`}>
               <img
                 src={trackList ? trackList[currentTrackIndex]?.cover_art_url : ""}
                 alt="Album Cover"
-                className={`select-none w-[100px] h-[100px] rounded-md md:mr-6 border border-grey-900 ${imgLoading ? "blur-sm" : "blur-none"}`}
-                onLoad={() => {
-                  setImgLoading(false);
-                }}
+                className={`select-none rounded-md border border-grey-900 transition-all duration-300 ${
+                  isFullScreen ? "w-[400px] h-[400px]" : "w-[100px] h-[100px]"
+                } ${imgLoading ? "blur-sm" : "blur-none"}`}
+                onLoad={() => setImgLoading(false)}
                 onError={({ currentTarget }) => {
                   currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                 }}
               />
-              <div className="ml-2 md:ml-0 flex flex-col select-text mt-2">
-                <span className="text-sm text-muted-foreground">{trackList[currentTrackIndex]?.title}</span>{" "}
-                <span className="text-sm text-white">{trackList[currentTrackIndex]?.artist}</span>
+              <div className={`flex flex-col select-text mt-4 ${isFullScreen ? "text-center" : "ml-2 md:ml-0"}`}>
+                <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"}`}>{trackList[currentTrackIndex]?.title}</span>
+                <span className={`text-white ${isFullScreen ? "text-lg" : "text-sm"}`}>{trackList[currentTrackIndex]?.artist}</span>
                 <span className="text-xs text-muted-foreground">Track {currentTrackIndex + 1}</span>
               </div>
             </div>
-
-            <div className="songControls gap-2 text-foreground select-none w-full flex flex-col justify-center items-center px-2">
-              <div className="controlButtons flex w-full justify-around">
+            <div
+              className={`songControls gap-2 text-foreground select-none ${
+                isFullScreen ? "w-[600px]" : "w-full"
+              } flex flex-col justify-center items-center px-2`}>
+              <div className={`controlButtons flex w-full justify-around ${isFullScreen ? "scale-125 mb-8" : ""}`}>
                 <button className="cursor-pointer" onClick={handlePrevButton}>
                   <SkipBack className="w-full hover:scale-105" />
                 </button>
@@ -574,8 +655,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 <span className="text-sm text-muted-foreground">Album: {trackList[currentTrackIndex]?.album}</span>
               </div>
             </div>
-
-            <div className="albumControls mb-2 md:mb-0 md:w-[500px] select-none p-2 flex items-center justify-between z-10">
+            <div
+              className={`albumControls mb-2 md:mb-0 select-none p-2 flex items-center justify-between z-10 ${
+                isFullScreen ? "w-[600px] scale-125 mt-8" : "md:w-[500px]"
+              }`}>
               <button className="cursor-pointer" onClick={repeatTrack}>
                 <RefreshCcwDot className="w-full hover:scale-105" />
               </button>
@@ -596,7 +679,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 <Library className="w-full hover:scale-105" />
               </button>
             </div>
-
             {/* like album */}
             {!DISABLE_BITZ_FEATURES && bitzGiftingMeta && (
               <div
