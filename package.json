@@ -1,7 +1,7 @@
 {
   "name": "sigma-music-dapp",
   "description": "Web3 music service",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "author": "sigmagentic",
   "license": "GPL-3.0-or-later",
   "dependencies": {
@@ -30,8 +30,6 @@
     "@solana/wallet-adapter-react-ui": "0.9.35",
     "@solana/wallet-adapter-wallets": "0.19.32",
     "@solana/web3.js": "1.91.8",
-    "@tiplink/wallet-adapter": "2.1.18",
-    "@tiplink/wallet-adapter-react-ui": "1.0.0",
     "@tsparticles/confetti": "3.4.0",
     "@tsparticles/engine": "3.7.1",
     "@tsparticles/fireworks": "3.4.0",
