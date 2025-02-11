@@ -30,7 +30,8 @@ import { BountyBitzSumMapping, Track } from "libs/types";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
-import { isMostLikelyMobile } from "libs/utils/misc";
+
+let playerExplicitlyDockedByUser = false;
 
 type MusicPlayerProps = {
   trackList: Track[];
@@ -47,6 +48,52 @@ type MusicPlayerProps = {
   onSendBitzForMusicBounty: (e: any) => any;
   onCloseMusicPlayer: () => void;
   onPlayHappened: () => void;
+};
+
+// Common style constants
+const COMMON_STYLES = {
+  container: "flex items-center",
+  imageBase: "select-none rounded-md border border-grey-900 transition-all duration-300",
+  textContainer: "flex flex-col justify-center",
+  skeletonBase: "bg-gray-200 dark:bg-gray-700 rounded animate-pulse",
+};
+
+// Screen-specific styles
+const SCREEN_STYLES = {
+  full: {
+    container: "flex-col items-center justify-center h-full",
+    songInfo: "flex-col items-center justify-center",
+    image: "w-[400px] h-[400px]",
+    textWrapper: "text-center mt-6",
+    title: "text-xl text-muted-foreground",
+    artist: "text-lg text-white mt-2",
+    loader: {
+      container: "flex flex-col items-center justify-center mt-12",
+      icon: "w-16 h-16 animate-spin hover:scale-105",
+      text: "text-center text-foreground text-lg mt-6",
+    },
+    skeleton: {
+      title: "h-8 w-64 mb-4",
+      artist: "h-6 w-48",
+    },
+  },
+  normal: {
+    container: "flex-row items-center justify-center h-[200px]",
+    songInfo: "w-[500px] px-10 flex-row items-center mt-5 md:mt-0",
+    image: "w-[100px] h-[100px]",
+    textWrapper: "xl:w-[60%] ml-2",
+    title: "!text-sm !text-muted-foreground truncate md:text-left",
+    artist: "text-sm text-white truncate md:text-left",
+    loader: {
+      container: "h-[100px] flex flex-col items-center justify-center px-2",
+      icon: "w-full text-center animate-spin hover:scale-105",
+      text: "text-center text-foreground text-xs mt-3",
+    },
+    skeleton: {
+      title: "h-5 w-32 mb-2",
+      artist: "h-5 w-24",
+    },
+  },
 };
 
 export const MusicPlayer = (props: MusicPlayerProps) => {
@@ -108,7 +155,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     ],
   };
   const [imgLoading, setImgLoading] = useState(false);
-  const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 768);
+  const [isFullScreen, setIsFullScreen] = useState(!playerExplicitlyDockedByUser && window.innerWidth >= 768);
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -164,6 +211,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       // hide the track list as it will be empty
       if (displayTrackList) {
         setDisplayTrackList(false);
+      }
+    } else {
+      if (!displayTrackList && window.innerWidth >= 768) {
+        setDisplayTrackList(true);
       }
     }
   }, [trackList, firstSongBlobUrl]);
@@ -440,6 +491,32 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     e.stopPropagation();
   };
 
+  // Component render section
+  const LoaderSection = () => {
+    const styles = isFullScreen ? SCREEN_STYLES.full : SCREEN_STYLES.normal;
+
+    return (
+      <div className={styles.loader.container}>
+        <Loader className={styles.loader.icon} />
+        <p className={styles.loader.text}>hold tight, streaming music from the blockchain</p>
+      </div>
+    );
+  };
+
+  const SkeletonLoader = () => {
+    const styles = isFullScreen ? SCREEN_STYLES.full : SCREEN_STYLES.normal;
+
+    return (
+      <div className={`${COMMON_STYLES.container} ${isFullScreen ? "animate-fade-in flex-col" : "animate-fade-in"}`}>
+        <div className={`${COMMON_STYLES.skeletonBase} ${styles.image}`} />
+        <div className={`${COMMON_STYLES.textContainer} ${styles.textWrapper}`}>
+          <div className={`${COMMON_STYLES.skeletonBase} ${styles.skeleton.title}`} />
+          <div className={`${COMMON_STYLES.skeletonBase} ${styles.skeleton.artist}`} />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div
       className={`relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black transition-all duration-300 ${
@@ -454,14 +531,14 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       </div>
 
       {!firstSongBlobUrl ? (
-        <div className="flex flex-col items-center justify-center h-full">
-          <div className="songInfo flex flex-col items-center justify-center">
+        <div className={`${COMMON_STYLES.container} ${isFullScreen ? SCREEN_STYLES.full.container : SCREEN_STYLES.normal.container}`}>
+          <div className={`songInfo ${isFullScreen ? SCREEN_STYLES.full.songInfo : SCREEN_STYLES.normal.songInfo}`}>
             {trackList.length > 0 ? (
-              <div className="flex flex-col items-center animate-slide-fade-in">
+              <div className={`${COMMON_STYLES.container} ${isFullScreen ? "flex-col animate-slide-fade-in" : "animate-slide-fade-in"}`}>
                 <img
                   src={trackList[currentTrackIndex]?.cover_art_url}
                   alt="Album Cover"
-                  className={`select-none w-[400px] h-[400px] rounded-md border border-grey-900 transition-all duration-300 ${
+                  className={`${COMMON_STYLES.imageBase} ${isFullScreen ? SCREEN_STYLES.full.image : SCREEN_STYLES.normal.image} ${
                     imgLoading ? "blur-sm opacity-0" : "blur-none opacity-100"
                   }`}
                   onLoad={() => {
@@ -471,26 +548,16 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                     currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                   }}
                 />
-                <div className="flex flex-col justify-center text-center mt-6">
-                  <h6 className="text-xl text-muted-foreground">{trackList[currentTrackIndex].title}</h6>
-                  <p className="text-lg text-white mt-2">{trackList[currentTrackIndex].artist}</p>
+                <div className={`${COMMON_STYLES.textContainer} ${isFullScreen ? SCREEN_STYLES.full.textWrapper : SCREEN_STYLES.normal.textWrapper}`}>
+                  <h6 className={isFullScreen ? SCREEN_STYLES.full.title : SCREEN_STYLES.normal.title}>{trackList[currentTrackIndex].title}</h6>
+                  <p className={isFullScreen ? SCREEN_STYLES.full.artist : SCREEN_STYLES.normal.artist}>{trackList[currentTrackIndex].artist}</p>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center animate-fade-in">
-                {/* Skeleton Loader */}
-                <div className="w-[400px] h-[400px] rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                <div className="flex flex-col justify-center mt-6">
-                  <div className="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4" />
-                  <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                </div>
-              </div>
+              <SkeletonLoader />
             )}
           </div>
-          <div className="flex flex-col items-center justify-center mt-12">
-            <Loader className="w-16 h-16 animate-spin hover:scale-105" />
-            <p className="text-center text-foreground text-lg mt-6">hold tight, streaming music from the blockchain</p>
-          </div>
+          <LoaderSection />
         </div>
       ) : (
         <>
@@ -570,19 +637,24 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           <div
             className={`player flex flex-col select-none ${
               isFullScreen
-                ? `h-full justify-center items-center ${displayTrackList ? "pr-[400px]" : ""}` // Add margin when tracklist is open
+                ? `h-full justify-center items-center ${displayTrackList ? "pr-[400px]" : ""}` // Add madding when tracklist is open
                 : "md:h-[200px] md:flex-row"
             } relative w-full border-t-[1px] border-foreground/10 animate-fade-in transition-all duration-300`}>
             <div className="">
               <button
-                className={`hidden md:flex select-none absolute top-0 ${
+                className={`expandOrDockPlayer z-[100] hidden md:flex select-none absolute top-0 ${
                   isFullScreen ? "left-[50px] top-[10px]" : "right-0"
                 } flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
-                onClick={() => setIsFullScreen(!isFullScreen)}>
+                onClick={() => {
+                  // a flag to indicate the user docked the player (used to "remember" the last use preference and then if they open a new album, then keep the player docked or full screen)
+                  playerExplicitlyDockedByUser = !playerExplicitlyDockedByUser;
+
+                  setIsFullScreen(!isFullScreen);
+                }}>
                 {isFullScreen ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
               </button>
               <button
-                className={`select-none absolute top-0 ${isFullScreen ? "left-[10px] top-[10px]" : "top-0 left-0"} flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
+                className={`closePlayer select-none absolute top-0 ${isFullScreen ? "left-[10px] top-[10px]" : "top-0 left-0"} flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
                 onClick={() => {
                   musicPlayerAudio.pause();
                   musicPlayerAudio.src = "";
@@ -657,7 +729,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             </div>
             <div
               className={`albumControls mb-2 md:mb-0 select-none p-2 flex items-center justify-between z-10 ${
-                isFullScreen ? "w-[600px] scale-125 mt-8" : "md:w-[500px]"
+                isFullScreen ? "w-[600px] mt-8" : "md:w-[500px]"
               }`}>
               <button className="cursor-pointer" onClick={repeatTrack}>
                 <RefreshCcwDot className="w-full hover:scale-105" />
@@ -675,7 +747,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   className="accent-black dark:accent-white w-[70%] cursor-pointer ml-2 "></input>
               </div>
 
-              <button className="mr-2  xl:pr-8" onClick={showPlaylist}>
+              <button className={`mr-2 ${isFullScreen ? "" : "xl:pr-8"}`} onClick={showPlaylist}>
                 <Library className="w-full hover:scale-105" />
               </button>
             </div>
