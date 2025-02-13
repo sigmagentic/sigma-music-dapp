@@ -15,17 +15,17 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
             id="featured1"
             className="flex md:flex-1 mt-2 min-h-[200px] md:h-[330px] bg-no-repeat bg-cover rounded-3xl w-[100%] border-[1px] border-foreground/20"
             style={{
-              "backgroundImage": `url(https://api.itheumcloud.com/app_nftunes/assets/img/Waveborn_Luminex_Lost_And_Wondering.jpeg)`,
+              "backgroundImage": `url(https://api.itheumcloud.com/app_nftunes/assets/img/ANXELS.jpg)`,
               "backgroundBlendMode": "multiply",
               "backgroundColor": "#161616a3",
             }}>
             <div className="flex flex-col h-[100%] m-auto justify-center items-center">
-              <h1 className="!text-lg !text-white text-center md:!text-2xl mb-5">Waveborn's "Lost And Wondering" is Live!</h1>
+              <h1 className="!text-lg !text-white text-center md:!text-2xl mb-5">ANXELS "In the Beginning…" is Live!</h1>
 
               <Button
                 className="!text-black text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100"
                 onClick={() => {
-                  onFeaturedArtistDeepLinkSlug("waveborn-luminex");
+                  onFeaturedArtistDeepLinkSlug("anxels");
                   scrollToSection("artist-profile");
                 }}>
                 Collect & Listen
@@ -37,17 +37,17 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
             id="featured2"
             className="flex md:flex-1 mt-2 min-h-[200px] md:h-[330px] bg-no-repeat bg-cover rounded-3xl w-[100%] border-[1px] border-foreground/20"
             style={{
-              "backgroundImage": `url(https://api.itheumcloud.com/app_nftunes/assets/img/Uncomplex.jpg)`,
+              "backgroundImage": `url(https://api.itheumcloud.com/app_nftunes/assets/img/OllyG_Valentines_Love_Serenade_for_Love.jpg)`,
               "backgroundBlendMode": "multiply",
               "backgroundColor": "#161616a3",
             }}>
             <div className="flex flex-col h-[100%] m-auto justify-center items-center">
-              <h1 className="!text-lg !text-white text-center md:!text-2xl mb-5">Uncomplex's "ISHQNAMA - JOURNEY OF LOVE" is Live!</h1>
+              <h1 className="!text-lg !text-white text-center md:!text-2xl mb-5">Olly-G's "Valentine's Love Whispers" is Live!</h1>
 
               <Button
                 className="!text-black text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100"
                 onClick={() => {
-                  onFeaturedArtistDeepLinkSlug("uncomplex");
+                  onFeaturedArtistDeepLinkSlug("olly-g");
                   scrollToSection("artist-profile");
                 }}>
                 Collect & Listen
