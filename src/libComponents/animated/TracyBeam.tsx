@@ -83,8 +83,8 @@ export const TracingBeam = ({ children, className }: { children: React.ReactNode
               y1={y1} // set y1 for gradient
               y2={y2} // set y2 for gradient
             >
-              <stop stopColor="#35d9fa" stopOpacity="0"></stop>
-              <stop stopColor="#35d9fa"></stop>
+              <stop stopColor="#fde047" stopOpacity="0"></stop>
+              <stop stopColor="#fde047"></stop>
               <stop offset="0.325" stopColor="#18f495"></stop>
               <stop offset="1" stopColor="#022629" stopOpacity="0"></stop>
             </motion.linearGradient>

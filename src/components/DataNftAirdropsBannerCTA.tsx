@@ -5,16 +5,22 @@ import { Button } from "libComponents/Button";
 import { checkIfFreeDataNftGiftMinted } from "libs/sol/SolViewData";
 import { sleep } from "libs/utils";
 import { AirDropFreeMusicGiftSol } from "pages/AppMarketplace/NFTunes/AirDropFreeMusicGiftSol";
-import { routeNames } from "routes";
+import { AirDropFreeXPNft } from "pages/AppMarketplace/NFTunes/AirDropFreeXPNft";
 import { useNftsStore } from "store/nfts";
 
-export function DataNftAirdropsBannerCTA() {
+type DataNftAirdropsBannerCTAProps = {
+  onRemoteTriggerOfBiTzPlayModel: any;
+};
+
+export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
+  const { onRemoteTriggerOfBiTzPlayModel } = props;
   const { publicKey: publicKeySol } = useWallet();
   const [freeDropCheckLoading, setFreeDropCheckLoading] = useState<boolean>(false);
   const [freeBitzClaimed, setFreeBitzClaimed] = useState<boolean>(false);
   const [freeNfMeIdClaimed, setFreeNfMeIdClaimed] = useState<boolean>(false);
   const [freeMusicGiftClaimed, setFreeMusicGiftClaimed] = useState<boolean>(false);
   const [freeMintMusicGiftIntroToAction, setFreeMintMusicGiftIntroToAction] = useState<boolean>(false);
+  const [freeMintXpGiftIntroToAction, setFreeMintXpGiftIntroToAction] = useState<boolean>(false);
   const { solBitzNfts } = useNftsStore();
 
   // below is only for so
@@ -59,10 +65,8 @@ export function DataNftAirdropsBannerCTA() {
   }, [solBitzNfts]);
 
   // should we show the banner?
-  const shouldShowBanner = (!freeBitzClaimed && !freeMusicGiftClaimed) || (location.pathname === routeNames.home && !freeNfMeIdClaimed);
-
-  // should they claims a bitz?
-  //  const shouldClaimBitz = isLoggedInMvx
+  // const shouldShowBanner = (!freeBitzClaimed && !freeMusicGiftClaimed) || (location.pathname === routeNames.home && !freeNfMeIdClaimed);
+  const shouldShowBanner = !freeBitzClaimed;
 
   return (
     <>
@@ -70,13 +74,24 @@ export function DataNftAirdropsBannerCTA() {
         <div className="py-2 px-4 md:px-0 m-5 border rounded-lg bg-[#fa882157] w-[100%]">
           <div className="flex flex-col md:flex-col items-center">
             <div className="flex flex-col justify-center p-2">
-              <p className="dark:text-white text-2xl text-center">Hello Human, You Have Some Free Data NFTs to Claim!</p>
-              <p className="dark:text-white text-md text-center hidden">
-                Claim the free Data NFTs, join the AI Data Workforce, prove your reputation, co-create creative data with AI and get rewarded
+              <p className="dark:text-white text-2xl text-center">Hello Human, You Have a Free XP NFTs to Claim!</p>
+              <p className="dark:text-white text-md text-center">
+                Claim the free XP NFT, join the AI Data Workforce, grow your reputation, curate music with me and get rewarded
               </p>
             </div>
             <div className="flex flex-col md:flex-row justify-center">
-              <div className="flex md:flex-col justify-center mt-3 ml-auto mr-auto md:mr-2">
+              <div className=" flex md:flex-col justify-center mt-3 ml-auto mr-auto md:mr-2">
+                <Button
+                  disabled={freeBitzClaimed}
+                  onClick={() => {
+                    setFreeMintXpGiftIntroToAction(true);
+                  }}
+                  className="!text-black text-sm tracking-tight relative px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 w-[220px]">
+                  Claim XP Data NFT
+                </Button>
+              </div>
+
+              <div className="hidden flex md:flex-col justify-center mt-3 ml-auto mr-auto md:mr-2">
                 <Button
                   disabled={freeMusicGiftClaimed}
                   onClick={() => {
@@ -109,6 +124,16 @@ export function DataNftAirdropsBannerCTA() {
             onCloseModal={() => {
               setFreeMintMusicGiftIntroToAction(false);
             }}
+          />
+        </>
+      )}
+      {freeMintXpGiftIntroToAction && (
+        <>
+          <AirDropFreeXPNft
+            onCloseModal={() => {
+              setFreeMintXpGiftIntroToAction(false);
+            }}
+            onRemoteTriggerOfBiTzPlayModel={onRemoteTriggerOfBiTzPlayModel}
           />
         </>
       )}

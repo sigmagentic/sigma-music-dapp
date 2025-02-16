@@ -14,7 +14,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuSepar
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libComponents/NavigationMenu";
 import { sleep } from "libs/utils";
 import { routeNames } from "routes";
-// import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
+import { useNftsStore } from "store/nfts";
+import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
 
 export const Navbar = () => {
@@ -23,6 +24,7 @@ export const Navbar = () => {
   const isLoggedInSol = !!addressSol;
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const location = useLocation();
+  const { solBitzNfts } = useNftsStore();
 
   useEffect(() => {
     // if the user is logged in (even after they reload page and still have a session)
@@ -58,7 +60,7 @@ export const Navbar = () => {
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
           <NavigationMenuList>
-            {!DISABLE_BITZ_FEATURES && isLoggedInSol ? (
+            {!DISABLE_BITZ_FEATURES && isLoggedInSol && solBitzNfts.length > 0 ? (
               <>
                 <NavigationMenuItem>
                   {isLoggedInSol && (
@@ -148,7 +150,12 @@ export const Navbar = () => {
         )}
 
         {!DISABLE_BITZ_FEATURES && showPlayBitzModal && (
-          <PlayBitzModal showPlayBitzModel={showPlayBitzModal} handleHideBitzModel={() => setShowPlayBitzModal(false)} />
+          <PlayBitzModal
+            showPlayBitzModel={showPlayBitzModal}
+            handleHideBitzModel={() => {
+              setShowPlayBitzModal(false);
+            }}
+          />
         )}
       </div>
 
@@ -156,11 +163,15 @@ export const Navbar = () => {
         <span className="text-xs text-muted-foreground mt-1 text-center">{appSubtitle}</span>
       </div>
 
-      {/* {publicKeySol && (
+      {publicKeySol && (
         <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem]">
-          <DataNftAirdropsBannerCTA />
+          <DataNftAirdropsBannerCTA
+            onRemoteTriggerOfBiTzPlayModel={(open: boolean) => {
+              setShowPlayBitzModal(open);
+            }}
+          />
         </div>
-      )} */}
+      )}
     </>
   );
 };

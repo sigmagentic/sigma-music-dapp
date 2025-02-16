@@ -370,7 +370,7 @@ export const NFTunes = () => {
                     </div>
                     <div className="flex flex-col md:flex-row gap-2 justify-center items-center cursor-pointer">
                       <div
-                        className="border-[0.5px] border-neutral-500/90 w-[90%] h-[400px] bg-no-repeat bg-cover rounded-lg animate-float bg-bottom xl:bg-top"
+                        className="border-[0.5px] border-neutral-500/90 h-[400px] bg-no-repeat bg-cover rounded-lg animate-float bg-bottom xl:bg-top w-full md:w-[90%]"
                         style={{
                           "backgroundImage": `url(${sigmaAgent})`,
                           "backgroundBlendMode": "darken",

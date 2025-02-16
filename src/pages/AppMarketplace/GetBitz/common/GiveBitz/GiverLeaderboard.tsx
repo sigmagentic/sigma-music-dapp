@@ -28,7 +28,7 @@ const GiverLeaderboard: React.FC<GiverLeaderboardProps> = (props) => {
     <div className="relative">
       <div
         onClick={handleLeaderboard}
-        className="relative flex z-[100] cursor-pointer text-foreground  rounded-b-3xl w-full bg-[#35d9fa]/30 dark:bg-neutral-950 hover:bg-[#2495AC]  hover:dark:bg-[#022629]  item-center justify-center border-t-4 border-[#35d9fa]/30">
+        className="relative flex z-[100] cursor-pointer text-foreground  rounded-b-3xl w-full bg-[#fde047]/30 dark:bg-neutral-950 hover:bg-[#2495AC]  hover:dark:bg-[#022629]  item-center justify-center border-t-4 border-[#fde047]/30">
         <p className="p-2">{showLeaderboard ? "Close" : `Leaderboard`} </p>
       </div>
 
@@ -36,7 +36,7 @@ const GiverLeaderboard: React.FC<GiverLeaderboardProps> = (props) => {
         initial={{ y: 0 }}
         animate={{ opacity: showLeaderboard ? 1 : 0, y: showLeaderboard ? -800 : 0 }}
         transition={{ duration: 1, type: "spring" }}
-        className="z-20 h-[797px]  w-full -mt-10   overflow-y-auto border border-[#35d9fa]/30 shadow-inner shadow-[#35d9fa]/30 bg-[#2495AC] dark:bg-[#022629] absolute p-4 rounded-t-xl z-100">
+        className="z-20 h-[797px]  w-full -mt-10   overflow-y-auto border border-[#fde047]/30 shadow-inner shadow-[#fde047]/30 bg-[#2495AC] dark:bg-[#022629] absolute p-4 rounded-t-xl z-100">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col max-w-[100%] p-[.5rem] mb-[3rem] rounded-[1rem]">
           <h4 className="text-center text-white mb-[1rem] !text-[1rem]">
             Giver Leaderboard <br />

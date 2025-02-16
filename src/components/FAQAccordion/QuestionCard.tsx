@@ -12,8 +12,8 @@ interface QuestionCardProps {
 const QuestionCard: React.FC<QuestionCardProps> = ({ title, content, borderStyleStr, shadowStyleStr }) => {
   const [showAnswer, setShowAnswer] = useState(false);
 
-  const borderStyleStrToUse = borderStyleStr || "border border-[#35d9fa]";
-  const shadowStyleStrToUse = shadowStyleStr || "shadow-md shadow-black/20 dark:shadow-[#35d9fa]/20";
+  const borderStyleStrToUse = borderStyleStr || "border border-[#fde047]";
+  const shadowStyleStrToUse = shadowStyleStr || "shadow-md shadow-black/20 dark:shadow-[#fde047]/20";
 
   return (
     <div className={`p-4 px-6 rounded-3xl w-full lg:max-w-[80%] ${shadowStyleStrToUse} ${borderStyleStrToUse}`}>

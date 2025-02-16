@@ -290,24 +290,24 @@ const GiveBitzBase = () => {
   }
 
   return (
-    <div id="givebits" className="flex flex-col max-w-[100%] border border-[#35d9fa] p-[2rem] rounded-[1rem] mt-[3rem]">
+    <div id="givebits" className="flex flex-col max-w-[100%] border border-[#fde047] p-[2rem] rounded-[1rem] mt-[3rem]">
       <div className="flex flex-col mb-8 items-center justify-center">
         <h2 className="text-foreground text-4xl mb-2">Give Bitz</h2>
         <span className="text-base text-foreground/75 text-center ">Power-Up VERIFIED Data Creators and Data Bounties</span>
       </div>
 
       {addressSol && (
-        <div className="my-rank-and-score md:flex md:justify-center border p-[.6rem] mb-[1rem] rounded-[1rem] text-center bg-[#35d9fa] bg-opacity-25">
+        <div className="my-rank-and-score md:flex md:justify-center border p-[.6rem] mb-[1rem] rounded-[1rem] text-center bg-[#fde047] bg-opacity-25">
           <div className="flex flex-col items-center p-[1rem] md:flex-row md:align-baseline md:pr-[2rem]">
             <p className="flex items-end md:text-lg md:mr-[1rem]">Total BitZ You Have Given for Power-Ups</p>
-            <p className="text-xl md:text-2xl dark:text-[#35d9fa] font-bold">
+            <p className="text-xl md:text-2xl dark:text-[#fde047] font-bold">
               {givenBitzSum === -2 ? `...` : <>{givenBitzSum === -1 ? "0" : `${givenBitzSum}`}</>}
             </p>
           </div>
         </div>
       )}
 
-      <div id="giveLeaderboard" className="h-fit flex flex-col max-w-[100%] border border-[#35d9fa] mb-[3rem] rounded-[1rem] p-8">
+      <div id="giveLeaderboard" className="h-fit flex flex-col max-w-[100%] border border-[#fde047] mb-[3rem] rounded-[1rem] p-8">
         <h3 className="text-center mb-[1rem]">POWER-UP LEADERBOARD</h3>
 
         {giverLeaderBoardIsLoading ? (
@@ -333,7 +333,7 @@ const GiveBitzBase = () => {
               {publicKeySol && (
                 <>
                   {bitzBalance === -2 ? `...` : <>{bitzBalance === -1 ? "0" : `${bitzBalance}`}</>}
-                  <FlaskRound className=" w-10 h-10 fill-[#35d9fa]" />
+                  <FlaskRound className=" w-10 h-10 fill-[#f97316]" />
                 </>
               )}
             </div>
@@ -372,7 +372,7 @@ const GiveBitzBase = () => {
           )}
         </div>
         <div className="mt-8 group max-w-[60rem]" data-highlighter>
-          <div className="relative bg-[#35d9fa]/80 dark:bg-[#35d9fa]/50  rounded-3xl p-[2px] before:absolute before:w-96 before:h-96 before:-left-48 before:-top-48 before:bg-[#35d9fa]  before:rounded-full before:opacity-0 before:pointer-events-none before:transition-opacity before:duration-500 before:translate-x-[var(--mouse-x)] before:translate-y-[var(--mouse-y)] before:hover:opacity-20 before:z-30 before:blur-[100px] after:absolute after:inset-0 after:rounded-[inherit] after:opacity-0 after:transition-opacity after:duration-500 after:[background:_radial-gradient(250px_circle_at_var(--mouse-x)_var(--mouse-y),theme(colors.sky.400),transparent)] after:group-hover:opacity-100 after:z-10 overflow-hidden">
+          <div className="relative bg-[#fde047]/80 dark:bg-[#fde047]/50  rounded-3xl p-[2px] before:absolute before:w-96 before:h-96 before:-left-48 before:-top-48 before:bg-[#fde047]  before:rounded-full before:opacity-0 before:pointer-events-none before:transition-opacity before:duration-500 before:translate-x-[var(--mouse-x)] before:translate-y-[var(--mouse-y)] before:hover:opacity-20 before:z-30 before:blur-[100px] after:absolute after:inset-0 after:rounded-[inherit] after:opacity-0 after:transition-opacity after:duration-500 after:[background:_radial-gradient(250px_circle_at_var(--mouse-x)_var(--mouse-y),theme(colors.sky.400),transparent)] after:group-hover:opacity-100 after:z-10 overflow-hidden">
             <div className="relative h-full bg-neutral-950/40 dark:bg-neutral-950/30  rounded-[inherit] z-20 overflow-hidden p-8">
               <div className="text-lg text-bond">💡 Got an idea for a Data Bounty?</div>
               <p>
@@ -381,7 +381,7 @@ const GiveBitzBase = () => {
               </p>
               <p>
                 <a
-                  className="!text-[#35d9fa] hover:underline"
+                  className="!text-[#fde047] hover:underline"
                   href="https://docs.google.com/forms/d/e/1FAIpQLSdnuqbpdCZnYJ_twkf4wWoRBpSzzIiJBNgmv30HWUo1uNU_Ew/viewform?usp=sf_link"
                   target="blank">
                   Express your interest for a new Data Bounty

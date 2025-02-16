@@ -301,7 +301,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                                 value={bitzValToGift}
                                 disabled={poweringUpInProgress}
                                 onChange={(e) => setBitzValToGift(Math.min(Number(e.target.value), bitBalanceOnChain))}
-                                className="bg-[#fde047]/30 focus:none focus:outline-none focus:border-transparent text-center border-[#35d9fa] rounded-md text-[2rem] p-2"
+                                className="bg-[#fde047]/30 focus:none focus:outline-none focus:border-transparent text-center border-[#fde047] rounded-md text-[2rem] p-2"
                               />
                             </div>
                           </div>
@@ -330,7 +330,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                             By gifting, you agree to our a
                             <br />
                             <a
-                              className="!text-[#35d9fa] hover:underline ml-2 flex"
+                              className="!text-[#fde047] hover:underline ml-2 flex"
                               href="https://docs.itheum.io/product-docs/legal/ecosystem-tools-terms/bitz-xp/give-bitz"
                               target="blank">
                               Give BiTz terms of use <ExternalLinkIcon width={16} className="ml-2" />

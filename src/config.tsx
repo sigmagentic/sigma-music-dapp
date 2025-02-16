@@ -22,4 +22,4 @@ export enum MVX_ENV_ENUM {
   mainnet = "E1",
 }
 
-export const DISABLE_BITZ_FEATURES = import.meta.env.VITE_ENV_DISABLE_BITZ_FEATURES || true;
+export const DISABLE_BITZ_FEATURES = import.meta.env.VITE_ENV_DISABLE_BITZ_FEATURES || false;

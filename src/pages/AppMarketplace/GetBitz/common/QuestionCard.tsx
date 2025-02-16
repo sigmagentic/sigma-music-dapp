@@ -11,7 +11,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ title, content }) => {
   const [showAnswer, setShowAnswer] = useState(false);
 
   return (
-    <div className="p-4 px-6 rounded-3xl border border-[#35d9fa] w-full lg:max-w-[80%] shadow-md shadow-black/20 dark:shadow-[#35d9fa]/20">
+    <div className="p-4 px-6 rounded-3xl border border-[#fde047] w-full lg:max-w-[80%] shadow-md shadow-black/20 dark:shadow-[#fde047]/20">
       <div
         className="flex justify-between items-center cursor-pointer"
         onClick={() => {
@@ -20,7 +20,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ title, content }) => {
         <h3 className={"text-4xl font-semibold"}>{title}</h3>
         <div
           className={cn(
-            "w-8 justify-end flex text-[#35d9fa] -mt-1  ",
+            "w-8 justify-end flex text-[#fde047] -mt-1  ",
             showAnswer ? "transform origin-center transition duration-200 ease-out" : " transform rotate-90 origin-center transition duration-200 ease-out"
           )}>
           {showAnswer ? <Minus /> : <Plus />}

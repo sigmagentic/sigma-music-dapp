@@ -75,9 +75,9 @@ const GiveBitzLowerCard: React.FC<GiveBitzLowerCardProps> = (props) => {
   return (
     <>
       <div className="h-[18rem]">
-        <div className=" items-center gap-2   my-rank-and-score  flex  justify-center   p-[.6rem] mb-[1rem] rounded-[1rem] text-center bg-[#35d9fa] bg-opacity-25">
+        <div className=" items-center gap-2   my-rank-and-score  flex  justify-center   p-[.6rem] mb-[1rem] rounded-[1rem] text-center bg-[#fde047] bg-opacity-25">
           <p className="flex  md:text-lg md:mr-[1rem]">Given BiTz</p>
-          <p className="text-lg md:text-xl dark:text-[#35d9fa] font-bold">
+          <p className="text-lg md:text-xl dark:text-[#fde047] font-bold">
             {bitzGivenToCreator === -1 ? "Loading..." : <>{bitzGivenToCreator === -2 ? "0" : bitzGivenToCreator}</>}
           </p>
         </div>
@@ -134,7 +134,7 @@ const GiveBitzLowerCard: React.FC<GiveBitzLowerCardProps> = (props) => {
                   step="1"
                   value={bitzVal}
                   onChange={(e) => setBitzVal(Math.min(Number(e.target.value), bitzBalance))}
-                  className="bg-[#35d9fa]/30 text- dark:text-[#35d9fa] focus:none  focus:outline-none focus:border-transparent text-center border-[#35d9fa] rounded-md"
+                  className="bg-[#fde047]/30 text- dark:text-[#fde047] focus:none  focus:outline-none focus:border-transparent text-center border-[#fde047] rounded-md"
                 />
               </div>
 
@@ -142,14 +142,14 @@ const GiveBitzLowerCard: React.FC<GiveBitzLowerCardProps> = (props) => {
                 <input
                   type="checkbox"
                   required
-                  className="cursor-pointer accent-[#35d9fa]"
+                  className="cursor-pointer accent-[#fde047]"
                   checked={termsOfUseCheckbox}
                   onChange={(e) => setTermsOfUseCheckbox(e.target.checked)}
                 />
                 <div className="ml-1 mt-5 text-sm md:text-base">
                   I have read and agree to the <br />
                   <a
-                    className="!text-[#35d9fa] hover:underline flex flex-row gap-2"
+                    className="!text-[#fde047] hover:underline flex flex-row gap-2"
                     href="https://docs.itheum.io/product-docs/legal/ecosystem-tools-terms/bitz-xp/give-bitz"
                     target="blank">
                     Give BiTz terms of use <ExternalLinkIcon width={16} />
@@ -160,7 +160,7 @@ const GiveBitzLowerCard: React.FC<GiveBitzLowerCardProps> = (props) => {
 
             <button
               disabled={!(bitzVal > 0) || isSendingPowerUp || !termsOfUseCheckbox}
-              className="disabled:cursor-not-allowed hover:scale-110 transition-all flex items-center justify-center disabled:bg-[#35d9fa]/30 bg-[#35d9fa]   mt-10 w-[12rem] md:w-[15rem] mx-auto rounded-3xl h-10"
+              className="disabled:cursor-not-allowed hover:scale-110 transition-all flex items-center justify-center disabled:bg-[#fde047]/30 bg-[#fde047]   mt-10 w-[12rem] md:w-[15rem] mx-auto rounded-3xl h-10"
               onClick={() => {
                 setIsPowerUpSuccess(false);
                 setTweetText("");
@@ -172,8 +172,8 @@ const GiveBitzLowerCard: React.FC<GiveBitzLowerCardProps> = (props) => {
                 </div>
               ) : (
                 <div className="w-[12rem] md:w-[15rem] h-10 relative inline-flex  overflow-hidden rounded-3xl p-[1px] text-foreground ">
-                  <span className="absolute hover:bg-[#35d9fa] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF03,#45d4ff_50%,#111111_50%)]" />
-                  <span className="inline-flex h-full hover:bg-gradient-to-tl from-background to-[#35d9fa] w-full cursor-pointer items-center justify-center rounded-full bg-[#35d9fa]/20 dark:bg-neutral-950 px-3 py-1 text-sm font-medium backdrop-blur-3xl">
+                  <span className="absolute hover:bg-[#fde047] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF03,#45d4ff_50%,#111111_50%)]" />
+                  <span className="inline-flex h-full hover:bg-gradient-to-tl from-background to-[#fde047] w-full cursor-pointer items-center justify-center rounded-full bg-[#fde047]/20 dark:bg-neutral-950 px-3 py-1 text-sm font-medium backdrop-blur-3xl">
                     <p className="text-foreground"> Sending bitz... </p>
                   </span>
                 </div>

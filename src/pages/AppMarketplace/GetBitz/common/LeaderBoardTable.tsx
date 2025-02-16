@@ -15,9 +15,9 @@ const LeaderBoardTable: React.FC<LeaderBoardTableProps> = (props) => {
     <div className="flex flex-col justify-center items-center w-full">
       {showMyPosition && <span className="text-xs text-center mb-2">Your position * {myPosition >= 0 ? myPosition + 1 : "20+"} *</span>}
 
-      <table className="border border-[#35d9fa]/60 text-center m-auto w-[90%] max-w-[500px]">
+      <table className="border border-[#fde047]/60 text-center m-auto w-[90%] max-w-[500px]">
         <thead>
-          <tr className="border border-[#35d9fa]/30 ">
+          <tr className="border border-[#fde047]/30 ">
             <th className="p-2">Rank</th>
             <th className=" ">User</th>
             <th className="p-2 ">{`BiTz`} Points</th>
@@ -25,7 +25,7 @@ const LeaderBoardTable: React.FC<LeaderBoardTableProps> = (props) => {
         </thead>
         <tbody>
           {leaderBoardData.map((item, rank) => (
-            <tr key={rank} className="border border-[#35d9fa]/30 ">
+            <tr key={rank} className="border border-[#fde047]/30 ">
               <td className=" p-2">
                 #{rank + 1} {rank + 1 === 1 && <span> 🥇</span>} {rank + 1 === 2 && <span> 🥈</span>} {rank + 1 === 3 && <span> 🥉</span>}
               </td>
@@ -35,7 +35,7 @@ const LeaderBoardTable: React.FC<LeaderBoardTableProps> = (props) => {
                 ) : (
                   <>
                     <SolAddressLink
-                      textStyle="!text-[#35d9fa]  hover:!text-[#35d9fa] hover:underline"
+                      textStyle="!text-[#fde047]  hover:!text-[#fde047] hover:underline"
                       explorerAddress={"explorerAddress"}
                       address={item.playerAddr}
                       precision={4}

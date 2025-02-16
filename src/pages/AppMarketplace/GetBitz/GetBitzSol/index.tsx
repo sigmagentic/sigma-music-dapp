@@ -471,9 +471,9 @@ const GetBitzSol = (props: any) => {
         onClick={() => {
           resetToStartGame();
         }}>
-        <span className="absolute hover:bg-[#35d9fa] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF03,#45d4ff_50%,#111111_50%)]" />
-        <span className="text-primary inline-flex h-full hover:bg-gradient-to-tl from-background to-[#35d9fa] w-full cursor-pointer items-center justify-center rounded-full bg-background px-3 py-1 text-sm font-medium   backdrop-blur-3xl">
-          RIGHT NOW! Try again <MousePointerClick className="ml-2 text-[#35d9fa]" />
+        <span className="absolute hover:bg-[#fde047] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF03,#45d4ff_50%,#111111_50%)]" />
+        <span className="text-primary inline-flex h-full hover:bg-gradient-to-tl from-background to-[#fde047] w-full cursor-pointer items-center justify-center rounded-full bg-background px-3 py-1 text-sm font-medium   backdrop-blur-3xl">
+          RIGHT NOW! Try again <MousePointerClick className="ml-2 text-[#fde047]" />
         </span>
       </div>
     );
@@ -819,7 +819,7 @@ const GetBitzSol = (props: any) => {
   return (
     <div>
       {usingReferralCode !== "" && (
-        <div className="p-1 text-lg font-bold border border-[#35d9fa] rounded-[1rem] mb-[1rem] text-center">
+        <div className="p-1 text-lg font-bold border border-[#fde047] rounded-[1rem] mb-[1rem] text-center">
           You are playing with referral code {usingReferralCode}
         </div>
       )}
@@ -839,7 +839,7 @@ const GetBitzSol = (props: any) => {
       </div>
       {!modalMode && (
         <>
-          <div className="p-5 text-lg font-bold border border-[#35d9fa] rounded-[1rem] mt-[3rem] max-w-[100%]">
+          <div className="p-5 text-lg font-bold border border-[#fde047] rounded-[1rem] mt-[3rem] max-w-[100%]">
             <h2 className="text-center text-white mb-[1rem] text-4xl">Get BiTz Perks</h2>
 
             <ol className="mt-5">
@@ -850,7 +850,7 @@ const GetBitzSol = (props: any) => {
               <li className="my-5">2. Extra 3 bonus drops of Data NFTs sent randomly to users from top 100 &quot;All Time&quot; LEADERBOARD</li>
               <li className="my-5">
                 3. Got Memes for burning? Join our{" "}
-                <a className="!text-[#35d9fa] hover:underline" href="https://discord.com/channels/869901313616527360/922340575594831872" target="blank">
+                <a className="!text-[#fde047] hover:underline" href="https://discord.com/channels/869901313616527360/922340575594831872" target="blank">
                   Discord Meme Channel
                 </a>{" "}
                 and submit it there. Top 3 memes per week get included into the Meme Burn Game and we will showcase it on Twitter.
@@ -862,21 +862,21 @@ const GetBitzSol = (props: any) => {
             <p>See the full list of {`BiTz`} XP perks listed in the FAQ section below...</p>
           </div>
 
-          <div id="leaderboard" className="flex flex-col max-w-[100%] border border-[#35d9fa] p-[2rem] rounded-[1rem] mt-[3rem]">
+          <div id="leaderboard" className="flex flex-col max-w-[100%] border border-[#fde047] p-[2rem] rounded-[1rem] mt-[3rem]">
             <div className="leaderBoard">
               <h2 className="text-center text-white mb-[1rem] text-4xl">LEADERBOARD</h2>
 
               {addressSol && leaderBoardAllTime.length > 0 && (
-                <div className="my-rank-and-score md:flex md:justify-center border p-[.6rem] mb-[1rem] rounded-[1rem] text-center bg-[#35d9fa] bg-opacity-25">
+                <div className="my-rank-and-score md:flex md:justify-center border p-[.6rem] mb-[1rem] rounded-[1rem] text-center bg-[#fde047] bg-opacity-25">
                   <div className="flex flex-col items-center p-[1rem] md:flex-row md:align-baseline md:pr-[2rem] md:border-r-4 border-[#171717]">
                     <p className="flex items-end md:text-lg md:mr-[1rem]">Your Current All-Time Rank</p>
-                    <p className="text-xl md:text-2xl dark:text-[#35d9fa] font-bold">
+                    <p className="text-xl md:text-2xl dark:text-[#fde047] font-bold">
                       {myRankOnAllTimeLeaderBoard === "-2" ? `...` : myRankOnAllTimeLeaderBoard}
                     </p>
                   </div>
                   <div className="flex flex-col items-center p-[1rem] md:flex-row md:align-baseline md:pr-[2rem] md:pl-[2rem]">
                     <p className="flex items-end md:text-lg md:mr-[1rem]">Your Collected {`BiTz`} Points </p>
-                    <p className="text-xl md:text-2xl dark:text-[#35d9fa] font-bold">
+                    <p className="text-xl md:text-2xl dark:text-[#fde047] font-bold">
                       {collectedBitzSum === -2 ? `...` : <>{collectedBitzSum === -1 ? "0" : `${collectedBitzSum}`}</>}
                     </p>
                   </div>

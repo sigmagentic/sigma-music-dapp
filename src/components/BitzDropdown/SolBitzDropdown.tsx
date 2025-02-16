@@ -6,7 +6,6 @@ import Countdown from "react-countdown";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "libComponents/Button";
 import { Popover, PopoverContent, PopoverTrigger } from "libComponents/Popover";
-import { isMostLikelyMobile } from "libs/utils/misc";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
 
@@ -17,7 +16,7 @@ export const SolBitzDropdown = (props: any) => {
   const { connected: isLoggedInSol } = useWallet();
 
   return (
-    <div className={`${!skipNavBarPopOverOption ? "shadow-sm shadow-[#35d9fa] rounded-lg justify-center cursor-pointer" : ""}`}>
+    <div className={`${!skipNavBarPopOverOption ? "shadow-sm shadow-[#fde047] rounded-lg justify-center cursor-pointer" : ""}`}>
       <Popover>
         {showOnlyClaimBitzButton ? (
           <ClaimBitzButton cooldown={cooldown} handlePlayActionBtn={handlePlayActionBtn} />
@@ -56,8 +55,8 @@ export const SolBitzDropdown = (props: any) => {
                 <PopoverPrimitive.Arrow className="fill-border w-5 h-3" />
                 <div className="flex flex-col justify-center p-3 w-full">
                   <div className="flex justify-center w-full py-4">
-                    <div className="flex w-16 h-16 justify-center items-center border border-b-border rounded-lg shadow-inner shadow-sky-400">
-                      <FlaskRound className="w-7 h-7 fill-[#35d9fa]" />
+                    <div className="flex w-16 h-16 justify-center items-center border border-b-border rounded-lg shadow-inner shadow-[#f97316]">
+                      <FlaskRound className="w-7 h-7 fill-[#f97316]" />
                     </div>
                   </div>
                   <p className="text-xl md:text-2xl text-center font-[Clash-Medium]">What is BiTz XP?</p>
@@ -88,16 +87,16 @@ export const ClaimBitzButton = (props: any) => {
   return (
     <Link
       className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px]"
-      to={cooldown === -2 || isGetBitzAppPage() || isMostLikelyMobile() || !handlePlayActionBtn || solBitzNfts.length === 0 ? "/getbitz" : "#"}
+      to={cooldown === -2 || isGetBitzAppPage() || !handlePlayActionBtn || solBitzNfts.length === 0 ? "/getbitz" : "#"}
       onClick={() => {
-        if (cooldown > -2 && !isGetBitzAppPage() && !isMostLikelyMobile() && handlePlayActionBtn && solBitzNfts.length > 0) {
+        if (cooldown > -2 && !isGetBitzAppPage() && handlePlayActionBtn && solBitzNfts.length > 0) {
           handlePlayActionBtn();
         } else {
           return;
         }
       }}>
-      <span className="absolute hover:bg-[#35d9fa] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF03,#45d4ff_50%,#111111_50%)]" />
-      <span className="inline-flex h-full hover:bg-gradient-to-tl from-background to-[#35d9fa] w-full cursor-pointer items-center justify-center rounded-full bg-background px-3 py-1 text-sm font-medium backdrop-blur-3xl">
+      <span className="absolute hover:bg-[#fde047] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF03,#45d4ff_50%,#111111_50%)]" />
+      <span className="inline-flex h-full hover:bg-gradient-to-tl from-background to-[#fde047] w-full cursor-pointer items-center justify-center rounded-full bg-background px-3 py-1 text-sm font-medium backdrop-blur-3xl">
         {cooldown === -2 ? (
           <span className="blinkMe">Click to Get BiTz XP</span>
         ) : cooldown > 0 ? (
@@ -111,7 +110,7 @@ export const ClaimBitzButton = (props: any) => {
                 return (
                   <PopoverPrimitive.PopoverClose asChild>
                     <div className="flex flex-row justify-center items-center">
-                      <Gift className="mx-2 text-[#35d9fa]" />
+                      <Gift className="mx-2 text-[#fde047]" />
                       <span className="text-[12px] md:text-sm"> Collect Your {`BiTz`} XP </span>
                     </div>
                   </PopoverPrimitive.PopoverClose>
@@ -132,7 +131,7 @@ export const ClaimBitzButton = (props: any) => {
         ) : (
           <PopoverPrimitive.PopoverClose asChild>
             <div className="flex flex-row justify-center items-center">
-              <Gift className="mx-2 text-[#35d9fa]" />
+              <Gift className="mx-2 text-[#fde047]" />
               <span className="text-[12px] md:text-sm"> Collect Your {`BiTz`} XP </span>
             </div>
           </PopoverPrimitive.PopoverClose>
@@ -150,15 +149,15 @@ export const FlaskBottleAnimation = (props: any) => {
       {cooldown <= 0 && cooldown != -2 && (
         <>
           <div
-            className="absolute rounded-full w-[0.4rem] h-[0.4rem] top-[-15px] left-[10px] bg-[#35d9fa] animate-ping-slow"
+            className="absolute rounded-full w-[0.4rem] h-[0.4rem] top-[-15px] left-[10px] bg-[#fde047] animate-ping-slow"
             style={{ animationDelay: "1s" }}></div>
           <div
-            className="absolute rounded-full w-[0.3rem] h-[0.3rem] top-[-8px]  left-[4px] bg-[#35d9fa] animate-ping-slow"
+            className="absolute rounded-full w-[0.3rem] h-[0.3rem] top-[-8px] left-[4px] bg-[#fde047] animate-ping-slow"
             style={{ animationDelay: "0.5s" }}></div>
-          <div className="absolute rounded-full w-1 h-1 top-[-5px] left-[13px]  bg-[#35d9fa] animate-ping-slow"></div>
+          <div className="absolute rounded-full w-1 h-1 top-[-5px] left-[13px] bg-[#fde047] animate-ping-slow"></div>
         </>
       )}
-      <FlaskRound className="fill-[#35d9fa]" />
+      <FlaskRound className="fill-[#f97316]" />
     </div>
   );
 };
