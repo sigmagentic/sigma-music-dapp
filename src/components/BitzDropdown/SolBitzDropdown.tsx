@@ -60,7 +60,7 @@ export const SolBitzDropdown = (props: any) => {
                     </div>
                   </div>
                   <p className="text-xl md:text-2xl text-center font-[Clash-Medium]">What is BiTz XP?</p>
-                  <p className="text-xs md:text-sm  font-[Satoshi-Regular] leading-relaxed py-4 text-center">
+                  <p className="text-xs md:text-sm font-[Satoshi-Regular] leading-relaxed py-4 text-center">
                     BiTz are Sigma Music App XP. BiTz are free to collect every few hours. You use BiTz points to curate and like content in this app and to get
                     rewarded in return for your contributions!
                   </p>
