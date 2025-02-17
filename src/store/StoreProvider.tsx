@@ -14,14 +14,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   const addressSol = publicKeySol?.toBase58();
 
   // ACCOUNT Store
-  const {
-    updateBitzBalance: updateBitzBalanceSol,
-    updateCooldown: updateCooldownSol,
-    updateGivenBitzSum: updateGivenBitzSumSol,
-    updateCollectedBitzSum: updateCollectedBitzSumSol,
-    updateBonusBitzSum: updateBonusBitzSumSol,
-    updateBonusTries: updateBonusTriesSol,
-  } = useSolBitzStore();
+  const { updateBitzBalance, updateCooldown, updateGivenBitzSum, updateCollectedBitzSum, updateBonusBitzSum, updateBonusTries } = useSolBitzStore();
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
 
@@ -110,19 +103,19 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
             sumBonusBitz = 0;
           }
 
-          updateBitzBalanceSol(bitzBeforePlay + sumBonusBitz - sumGivenBits); // collected bits - given bits
-          updateGivenBitzSumSol(sumGivenBits); // given bits -- for power-ups
-          updateBonusBitzSumSol(sumBonusBitz);
+          updateBitzBalance(bitzBeforePlay + sumBonusBitz - sumGivenBits); // collected bits - given bits
+          updateGivenBitzSum(sumGivenBits); // given bits -- for power-ups
+          updateBonusBitzSum(sumBonusBitz);
 
-          updateCooldownSol(
+          updateCooldown(
             computeRemainingCooldown(
               getBitzGameResult.data.gamePlayResult.lastPlayedBeforeThisPlay,
               getBitzGameResult.data.gamePlayResult.configCanPlayEveryMSecs
             )
           );
 
-          updateCollectedBitzSumSol(getBitzGameResult.data.gamePlayResult.bitsScoreBeforePlay); // collected bits by playing
-          updateBonusTriesSol(getBitzGameResult.data.gamePlayResult.bonusTriesBeforeThisPlay || 0); // bonus tries awarded to user (currently only via referral code rewards)
+          updateCollectedBitzSum(getBitzGameResult.data.gamePlayResult.bitsScoreBeforePlay); // collected bits by playing
+          updateBonusTries(getBitzGameResult.data.gamePlayResult.bonusTriesBeforeThisPlay || 0); // bonus tries awarded to user (currently only via referral code rewards)
         }
       } else {
         resetBitzValsToZeroSOL();
@@ -131,19 +124,19 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   }, [publicKeySol, solBitzNfts, solPreaccessNonce, solPreaccessSignature]);
 
   function resetBitzValsToZeroSOL() {
-    updateBitzBalanceSol(-1);
-    updateGivenBitzSumSol(-1);
-    updateCooldownSol(-1);
-    updateCollectedBitzSumSol(-1);
-    updateBonusBitzSumSol(-1);
+    updateBitzBalance(-1);
+    updateGivenBitzSum(-1);
+    updateCooldown(-1);
+    updateCollectedBitzSum(-1);
+    updateBonusBitzSum(-1);
   }
 
   function resetBitzValsToLoadingSOL() {
-    updateBitzBalanceSol(-2);
-    updateGivenBitzSumSol(-2);
-    updateCooldownSol(-2);
-    updateCollectedBitzSumSol(-2);
-    updateBonusBitzSumSol(-2);
+    updateBitzBalance(-2);
+    updateGivenBitzSum(-2);
+    updateCooldown(-2);
+    updateCollectedBitzSum(-2);
+    updateBonusBitzSum(-2);
   }
 
   async function cacheSolSignatureSession() {

@@ -74,7 +74,7 @@ export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
         <div className="py-2 px-4 md:px-0 m-5 border rounded-lg bg-[#fa882157] w-[100%]">
           <div className="flex flex-col md:flex-col items-center">
             <div className="flex flex-col justify-center p-2">
-              <p className="dark:text-white text-2xl text-center">Hello Human, You Have a Free XP NFTs to Claim!</p>
+              <p className="dark:text-white text-2xl text-center">Hello Human, You Have a Free XP NFT to Claim!</p>
               <p className="dark:text-white text-md text-center">
                 Claim the free XP NFT, join the AI Data Workforce, grow your reputation, curate music with me and get rewarded
               </p>

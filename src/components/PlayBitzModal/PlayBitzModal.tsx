@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
+import { LuFlaskRound } from "react-icons/lu";
 import GetBitz from "pages/AppMarketplace/GetBitz";
-
+import useSolBitzStore from "store/solBitz";
 type PathwaysModalProps = {
   showPlayBitzModel?: boolean;
   handleHideBitzModel?: any;
@@ -8,6 +9,8 @@ type PathwaysModalProps = {
 
 export const PlayBitzModal: React.FC<PathwaysModalProps> = (props) => {
   const { showPlayBitzModel, handleHideBitzModel } = props;
+  const bitzBalance = useSolBitzStore((state: any) => state.bitzBalance);
+  const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(false);
 
   return (
     <div
@@ -17,11 +20,15 @@ export const PlayBitzModal: React.FC<PathwaysModalProps> = (props) => {
       <div className="relative p-4 w-full max-w-2xl max-h-full">
         <div className="relative bg-white rounded-lg dark:bg-[#171717] drop-shadow-[0_0px_100px_rgba(250,250,250,.8)]">
           <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Play To Get BiTz XP</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mr-auto">Play To Win BiTz XP</h3>
+            <div className="flex flex-row text-gray-900 dark:text-white ">
+              {bitzBalance === -2 ? <span>...</span> : <>{bitzBalance === -1 ? <div>0</div> : <div>{bitzBalance}</div>}</>}
+              <LuFlaskRound fontSize={"1.4rem"} fill="#03c797" />
+            </div>
             <div>
               <button
                 type="button"
-                className="text-gray-400 ml-2 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                className={` ${isFetchingDataMarshal ? "opacity-30 pointer-events-none" : "text-gray-400"} text-gray-400 ml-2 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white`}
                 onClick={handleHideBitzModel}
                 data-modal-hide="static-modal">
                 <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -32,7 +39,13 @@ export const PlayBitzModal: React.FC<PathwaysModalProps> = (props) => {
             </div>
           </div>
           <div className="p-1 md:p-1">
-            <GetBitz modalMode={true} />
+            <GetBitz
+              modalMode={true}
+              onIsDataMarshalFetching={(isFetching: boolean) => {
+                setIsFetchingDataMarshal(isFetching);
+              }}
+              onHideBitzModel={handleHideBitzModel}
+            />
           </div>
         </div>
       </div>

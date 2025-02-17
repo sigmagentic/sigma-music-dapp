@@ -36,12 +36,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { solBitzNfts } = useNftsStore();
   const [showDetails, setShowDetails] = useState<boolean>(false);
 
-  const {
-    bitzBalance: solBitzBalance,
-    givenBitzSum: givenBitzSumSol,
-    updateBitzBalance: updateBitzBalanceSol,
-    updateGivenBitzSum: updateGivenBitzSumSol,
-  } = useSolBitzStore();
+  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum } = useSolBitzStore();
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
 
   // Cached Signature Store Items
@@ -116,8 +111,8 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
           setPoweringUpError(true);
         } else {
           // we can "locally" estimate and update the balance counts (no need to get it from the marshal as it will be synced when user reloads page or logs in/out or plays the get bitz game)
-          updateBitzBalanceSol(bitBalanceOnChain - bitzValToGift); // current balance - what they donated
-          updateGivenBitzSumSol(givenBitzSumSol + bitzValToGift); // given bits + what they donated
+          updateBitzBalance(bitBalanceOnChain - bitzValToGift); // current balance - what they donated
+          updateGivenBitzSum(givenBitzSumSol + bitzValToGift); // given bits + what they donated
 
           setPowerUpSuccessfullyDone(true);
           showConfetti();

@@ -198,8 +198,12 @@ export const AirDropFreeXPNft = (props: AirDropFreeXPNftProps) => {
                 <div className="md:pr-5">
                   <div className="text-2xl font-bold mb-2">With Sigma Music, your XP Data is yours to own! 🚀</div>
                   <div className="mt-5">
-                    Your XP is stored as in your wallet using Itheum's Data NFT tech. You can collect XP every few hours by being active on the music app. Use
-                    XP to then curate music content on this app in return for earning rewards.
+                    Your XP is stored as in your wallet using{" "}
+                    <a className="text-yellow-500" href="https://x.com/itheum/status/1889675252025745427" target="_blank">
+                      Itheum's Data NFT tech
+                    </a>
+                    . You can collect XP every few hours by being active on the music app. Use XP to then curate music content on this app in return for earning
+                    rewards.
                   </div>
 
                   {errFreeMintGeneric && (
@@ -244,7 +248,7 @@ export const AirDropFreeXPNft = (props: AirDropFreeXPNftProps) => {
                         </>
                       ) : (
                         <div className="bxg-blue-800 flex flex-col mt-5 text-white bg-teal-700 p-5 rounded-lg text-lg text-center">
-                          Success! {`Let's`} get you your first ever BiTz XP, game coming up in 5,4,3,2,1...
+                          Success! {`Let's`} get you your first-ever XP, game coming up in 5,4,3,2,1...
                         </div>
                       )}
                     </div>
@@ -253,7 +257,7 @@ export const AirDropFreeXPNft = (props: AirDropFreeXPNftProps) => {
                   {(!freeBitzClaimed || errFreeMintGeneric) && (
                     <div className="text-xs mt-4">
                       Requirements: Only 1 per address, completely free to you, but you need SOL in your wallet, which will NOT be used but is to make sure your
-                      wallet exists and can receive the NFT. {freeMintBitzXpLoading && <>(⏳ Please wait, this can take a few minutes.)</>}
+                      wallet exists and can receive the NFT.
                     </div>
                   )}
                 </div>

@@ -16,14 +16,14 @@ export const SolBitzDropdown = (props: any) => {
   const { connected: isLoggedInSol } = useWallet();
 
   return (
-    <div className={`${!skipNavBarPopOverOption ? "shadow-sm shadow-[#fde047] rounded-lg justify-center cursor-pointer" : ""}`}>
+    <div className={`${!skipNavBarPopOverOption ? "border border-yellow-500 rounded-sm justify-center cursor-pointer" : ""}`}>
       <Popover>
         {showOnlyClaimBitzButton ? (
           <ClaimBitzButton cooldown={cooldown} handlePlayActionBtn={handlePlayActionBtn} />
         ) : (
           <>
             <PopoverTrigger>
-              <div className="flex flex-row items-center px-3">
+              <div className="flex flex-row items-center px-3 py-[3.5px]">
                 <Button className="text-sm tracking-wide hover:bg-transparent px-0.5 ml-0.5" variant="ghost">
                   {isLoggedInSol ? (
                     solBitzBalance === -2 ? (
@@ -55,7 +55,7 @@ export const SolBitzDropdown = (props: any) => {
                 <PopoverPrimitive.Arrow className="fill-border w-5 h-3" />
                 <div className="flex flex-col justify-center p-3 w-full">
                   <div className="flex justify-center w-full py-4">
-                    <div className="flex w-16 h-16 justify-center items-center border border-b-border rounded-lg shadow-inner shadow-[#f97316]">
+                    <div className="flex w-16 h-16 justify-center items-center rounded-sm border-yellow-500 border-[1px]">
                       <FlaskRound className="w-7 h-7 fill-[#f97316]" />
                     </div>
                   </div>
@@ -77,19 +77,18 @@ export const SolBitzDropdown = (props: any) => {
 
 export const ClaimBitzButton = (props: any) => {
   const { cooldown, handlePlayActionBtn } = props;
-  const { pathname } = useLocation();
-  const isGetBitzAppPage = () => {
-    return !!pathname.match("/getbitz");
-  };
-  const { updateCooldown: updateCooldownSol } = useSolBitzStore();
+  const { updateCooldown } = useSolBitzStore();
   const { solBitzNfts } = useNftsStore();
 
   return (
     <Link
       className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px]"
-      to={cooldown === -2 || isGetBitzAppPage() || !handlePlayActionBtn || solBitzNfts.length === 0 ? "/getbitz" : "#"}
+      to={"#"}
       onClick={() => {
-        if (cooldown > -2 && !isGetBitzAppPage() && handlePlayActionBtn && solBitzNfts.length > 0) {
+        console.log("cooldown", cooldown);
+        console.log("handlePlayActionBtn", handlePlayActionBtn);
+        console.log("solBitzNfts", solBitzNfts);
+        if (cooldown > -2 && handlePlayActionBtn && solBitzNfts.length > 0) {
           handlePlayActionBtn();
         } else {
           return;
@@ -103,7 +102,7 @@ export const ClaimBitzButton = (props: any) => {
           <Countdown
             date={cooldown}
             onComplete={() => {
-              updateCooldownSol(0);
+              updateCooldown(0);
             }}
             renderer={(props: { hours: number; minutes: number; seconds: number; completed: boolean }) => {
               if (props.completed) {

@@ -666,7 +666,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 <CircleX className="w-6 h-6" />
               </button>
             </div>
-            <div className={`songInfo px-10 flex flex-col items-center ${isFullScreen ? "mb-12" : "md:w-[500px] pt-2 md:pt-10 pb-4 flex-row"}`}>
+            <div className={`songInfo px-10 flex flex-col items-center ${isFullScreen ? "mb-8 pt-3" : "md:w-[500px] pt-2 md:pt-10 pb-4 flex-row"}`}>
               <img
                 src={trackList ? trackList[currentTrackIndex]?.cover_art_url : ""}
                 alt="Album Cover"
@@ -729,7 +729,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             </div>
             <div
               className={`albumControls mb-2 md:mb-0 select-none p-2 flex items-center justify-between z-10 ${
-                isFullScreen ? "w-[600px] mt-8" : "md:w-[500px]"
+                isFullScreen ? "w-[600px] mt-4" : "md:w-[500px]"
               }`}>
               <button className="cursor-pointer" onClick={repeatTrack}>
                 <RefreshCcwDot className="w-full hover:scale-105" />
