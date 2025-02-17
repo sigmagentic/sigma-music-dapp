@@ -754,7 +754,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             {/* like album */}
             {!DISABLE_BITZ_FEATURES && bitzGiftingMeta && (
               <div
-                className={`absolute right-2 top-4 text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center cursor-pointer`}
+                className={`absolute right-2 ${isFullScreen && displayTrackList ? "md:right-[410px]" : "md:right-[50px]"} z-10 top-4 text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center cursor-pointer`}
                 onClick={() => {
                   likeAlbumWithBiTz(trackList[currentTrackIndex]);
                 }}>

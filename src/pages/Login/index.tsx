@@ -133,15 +133,18 @@ const LoginPage = () => {
             </div>
           ) : (
             <div className="p-10">
-              <h4 className="mb-4 font-weight-bold">Log in to Sigma Music</h4>
+              <h4 className="mb-4 font-weight-bold">Log into Sigma Music</h4>
 
               <div className="flex flex-col gap-4 px-3 items-center">
-                <WalletMultiButton className="w-full !m-0"> Login Options</WalletMultiButton>
+                <WalletMultiButton className="w-full !m-0">Login Options</WalletMultiButton>
               </div>
 
               <div className="mt-10 text-sm">
                 <span className="opacity-50">Don't have an account?</span> <br />
-                Click on the button above to create one using a solana wallet or google account.{" "}
+                You just need any free solana wallet to login. Not sure which? we recommend{" "}
+                <a className="text-orange-500" href="https://phantom.app/" target="_blank" rel="noreferrer">
+                  Phantom
+                </a>
                 <span className="hidden">
                   You get a{" "}
                   <span className="ext-md mb-2 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-base">

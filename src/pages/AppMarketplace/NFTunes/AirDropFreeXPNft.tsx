@@ -91,10 +91,10 @@ export const AirDropFreeXPNft = (props: AirDropFreeXPNftProps) => {
       startVelocity: 30,
       particleCount: 200,
       scalar: 2,
-      shapes: ["emoji"],
+      shapes: ["emoji", "circle", "square"],
       shapeOptions: {
         emoji: {
-          value: ["🤲🏼", "💎", "🤲🏼", "💎", "🎊", "🐸", "🐸", "🐸", "🐸", "🐹", "🐹"],
+          value: ["💎", "⭐", "✨", "💫", "🎵", "🎶", "🎸", "🎼"],
         },
       },
     });

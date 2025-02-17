@@ -350,14 +350,15 @@ const GetBitzSol = (props: any) => {
             startVelocity: 30,
             particleCount: 200,
             scalar: 2,
-            shapes: ["emoji"],
+            shapes: ["emoji", "circle", "square"],
             shapeOptions: {
               emoji: {
-                value: ["🤲🏼", "💎", "🤲🏼", "💎", "🎊", "🐸", "🐸", "🐸", "🐸", "🐹", "🐹"],
+                value: ["💎", "⭐", "✨", "💫", "🎵", "🎶", "🎸", "🎼"],
               },
             },
           });
         }
+
         // if the user won something, then we should reload the LeaderBoards
         fetchAndLoadLeaderBoards();
       }

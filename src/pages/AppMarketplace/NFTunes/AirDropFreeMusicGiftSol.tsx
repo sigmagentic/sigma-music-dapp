@@ -77,10 +77,10 @@ export const AirDropFreeMusicGiftSol = (props: AirDropFreeMusicGiftSolSolProps) 
       startVelocity: 30,
       particleCount: 200,
       scalar: 2,
-      shapes: ["emoji"],
+      shapes: ["emoji", "circle", "square"],
       shapeOptions: {
         emoji: {
-          value: ["🤲🏼", "💎", "🤲🏼", "💎", "🎊", "🐸", "🐸", "🐸", "🐸", "🐹", "🐹"],
+          value: ["💎", "⭐", "✨", "💫", "🎵", "🎶", "🎸", "🎼"],
         },
       },
     });
