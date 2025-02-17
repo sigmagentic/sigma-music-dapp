@@ -306,7 +306,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             "backgroundPosition": getImagePosition(artist.img),
                           }}>
                           <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-xl">
-                            <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artist.name}</h2>
+                            <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artist.name.replaceAll("_", " ")}</h2>
                           </div>
                         </div>
                       </div>
@@ -352,7 +352,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               "backgroundImage": `url(${artistProfile.img})`,
                             }}>
                             <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-xl">
-                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artistProfile.name}</h2>
+                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artistProfile.name.replaceAll("_", " ")}</h2>
                             </div>
                           </div>
                         </div>

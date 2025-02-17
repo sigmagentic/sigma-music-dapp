@@ -103,7 +103,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   {album.title}{" "}
                   {inCollectedAlbumsView ? (
                     <>
-                      <span className="text-sm">by</span> <span className="font-bold">{artist.name}</span>
+                      <span className="text-sm">by</span> <span className="font-bold">{artist.name.replaceAll("_", " ")}</span>
                     </>
                   ) : (
                     ""
@@ -301,7 +301,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     }}>
                     <>
                       <Disc3 />
-                      <span className="ml-2">{`View more ${!isMostLikelyMobile() ? `from ${artist.name}` : "from artist"} `}</span>
+                      <span className="ml-2">{`View more ${!isMostLikelyMobile() ? `from ${artist.name.replaceAll("_", " ")}` : "from artist"} `}</span>
                     </>
                   </Button>
                 </div>
