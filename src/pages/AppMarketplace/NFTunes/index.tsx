@@ -3,7 +3,7 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { IS_DEVNET } from "appsConfig";
 import megaphoneLight from "assets/img/nf-tunes/megaphone-light.png";
 import megaphone from "assets/img/nf-tunes/megaphone.png";
@@ -26,6 +26,7 @@ import { MyCollectedAlbums } from "./MyCollectedAlbums";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import { routeNames } from "routes";
 
 export const NFTunes = () => {
   const { theme } = useTheme();
@@ -49,6 +50,7 @@ export const NFTunes = () => {
   const [userHasNoBitzDataNftYet, setUserHasNoBitzDataNftYet] = useState(false);
   const [musicPlayerTrackList, setMusicPlayerTrackList] = useState<Track[]>([]);
   const { trackPlayIsQueued, albumPlayIsQueued } = useAudioPlayerStore();
+  const navigate = useNavigate();
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -399,11 +401,13 @@ export const NFTunes = () => {
 
                     <div>
                       <Button
-                        disabled
-                        className="hover:scale-110 transition duration-700 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg  w-[500px]">
-                        <div>Create Original Music with Sigma</div>
+                        onClick={() => {
+                          navigate(routeNames.remix);
+                        }}
+                        className="hover:scale-110 transition duration-700 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg w-[500px]">
+                        <div>Launch Original Music with Sigma REMiX</div>
                       </Button>
-                      <div className="text-sm mt-2">For Everyone (coming soon)</div>
+                      <div className="text-sm mt-2">For Everyone</div>
                     </div>
                   </div>
                 </div>
