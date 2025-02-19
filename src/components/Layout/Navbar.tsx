@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Menu } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SolBitzDropdown } from "components/BitzDropdown/SolBitzDropdown";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
@@ -25,6 +25,7 @@ export const Navbar = () => {
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const location = useLocation();
   const { solBitzNfts } = useNftsStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // if the user is logged in (even after they reload page and still have a session)
@@ -60,6 +61,18 @@ export const Navbar = () => {
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
           <NavigationMenuList>
+            {location.pathname !== routeNames.remix && location.pathname !== routeNames.login && (
+              <>
+                <Button
+                  onClick={() => {
+                    navigate(routeNames.remix);
+                  }}
+                  className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-lg text-center p-2 md:p-3 h-[49px] rounded-lg">
+                  <div>REMiX: Launch AI Music Meme Coins</div>
+                </Button>
+              </>
+            )}
+
             {!DISABLE_BITZ_FEATURES && isLoggedInSol && solBitzNfts.length > 0 ? (
               <>
                 <NavigationMenuItem>

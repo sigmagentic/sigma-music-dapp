@@ -23,3 +23,4 @@ export enum MVX_ENV_ENUM {
 }
 
 export const DISABLE_BITZ_FEATURES = import.meta.env.VITE_ENV_DISABLE_BITZ_FEATURES || false;
+export const DISABLE_REMIX_LAUNCH_BUTTON = import.meta.env.DISABLE_REMIX_LAUNCH || true;
