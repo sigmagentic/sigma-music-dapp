@@ -20,10 +20,10 @@ export const PlayBitzModal: React.FC<PathwaysModalProps> = (props) => {
       <div className="relative p-4 w-full max-w-2xl max-h-full">
         <div className="relative bg-white rounded-lg dark:bg-[#171717] drop-shadow-[0_0px_100px_rgba(250,250,250,.8)]">
           <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mr-auto">Play To Win BiTz XP</h3>
-            <div className="flex flex-row text-gray-900 dark:text-white ">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mr-auto">Play To Win Sigma XP</h3>
+            <div className="flex flex-row text-gray-900 dark:text-white">
               {bitzBalance === -2 ? <span>...</span> : <>{bitzBalance === -1 ? <div>0</div> : <div>{bitzBalance}</div>}</>}
-              <LuFlaskRound fontSize={"1.4rem"} fill="#03c797" />
+              <LuFlaskRound fontSize={"1.4rem"} fill="#f97316" />
             </div>
             <div>
               <button

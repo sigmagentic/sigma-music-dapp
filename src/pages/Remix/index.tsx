@@ -4,9 +4,11 @@ import axios from "axios";
 import { Heart, Loader, Pause, Play } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthRedirectWrapper } from "components";
-import { DISABLE_BITZ_FEATURES } from "config";
+import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON } from "config";
+import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping } from "libs/types";
 import { getApiWeb2Apps, sleep } from "libs/utils";
+import { LaunchMusicMeme } from "pages/AppMarketplace/NFTunes/LaunchMusicMeme";
 import { SendBitzPowerUp } from "pages/AppMarketplace/NFTunes/SendBitzPowerUp";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/AppMarketplace/NFTunes/shared/utils";
 import { updateBountyBitzSumGlobalMappingWindow } from "pages/AppMarketplace/NFTunes/shared/utils";
@@ -49,6 +51,8 @@ const RemixPage = () => {
   const [currentTime, setCurrentTime] = useState("0:00");
   const [bountyBitzSumGlobalMapping, setBountyBitzSumGlobalMapping] = useState<BountyBitzSumMapping>({});
   const { solBitzNfts } = useNftsStore();
+  const [focusedLaunchId, setFocusedLaunchId] = useState<string | null>(null);
+  const [launchMusicMemeModalOpen, setLaunchMusicMemeModalOpen] = useState<boolean>(false);
 
   // give bits to a bounty (power up or like)
   const [giveBitzForMusicBountyConfig, setGiveBitzForMusicBountyConfig] = useState<{
@@ -98,6 +102,16 @@ const RemixPage = () => {
   useEffect(() => {
     console.log("addressSol", addressSol);
   }, [addressSol]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const launchId = params.get("launchId");
+    if (launchId) {
+      setFocusedLaunchId(launchId);
+      // Remove focus after 5 seconds
+      setTimeout(() => setFocusedLaunchId(null), 5000);
+    }
+  }, []);
 
   async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {
     const intialMappingOfVotesForAllTrackBountyIds = newLaunchesData.flatMap((launch: any) =>
@@ -210,14 +224,19 @@ const RemixPage = () => {
       }
     }, [item.createdOn, type]);
 
+    const isFocused = focusedLaunchId === item.launchId;
+
     return (
-      <div className="bg-[#1A1A1A] rounded-lg p-4 mb-4">
+      <div
+        className={`bg-[#1A1A1A] rounded-lg p-4 mb-4 ${
+          isFocused ? "animate-shake bg-gradient-to-r from-[#2A2A2A] to-[#1A1A1A] border-2 border-yellow-500" : ""
+        }`}>
         <div className="flex flex-col">
           <div className="flex gap-4">
             <img src={item.image} alt={item.title} className="w-24 h-24 rounded-lg object-cover" />
             <div className="flex flex-col flex-grow">
               <div className="flex items-center gap-2">
-                <span className="text-gray-400">{idx}.</span>
+                <span className="text-gray-400">{idx + 1}.</span>
                 <h3 className="text-lg font-semibold">{item.title}</h3>
               </div>
               <p className="text-sm text-gray-400">
@@ -227,6 +246,7 @@ const RemixPage = () => {
                 </a>{" "}
                 on {new Date(item.createdOn * 1000).toLocaleDateString()}
               </p>
+              <p className="text-xs text-gray-600">Launch Id = {item.launchId}</p>
             </div>
           </div>
 
@@ -330,7 +350,7 @@ const RemixPage = () => {
                     </>
                   )}
                 </button>
-                <div className="px-4 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full text-sm text-black">
+                <div className="hidden px-4 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full text-sm text-black">
                   Fractionalize and Launch on Pump.fun
                 </div>
               </div>
@@ -407,11 +427,30 @@ const RemixPage = () => {
   return (
     <>
       <div className="flex flex-col w-full min-h-screen p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="!text-3xl font-semibold ">Sigma REMiX: Launch Music Meme Coins!</h1>
+          <div>
+            <Button
+              disabled={!addressSol || DISABLE_REMIX_LAUNCH_BUTTON}
+              className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg"
+              onClick={() => {
+                setLaunchMusicMemeModalOpen(true);
+              }}>
+              <div>
+                {DISABLE_REMIX_LAUNCH_BUTTON ? (
+                  <div>Launch an AI Music Meme Coin Now! (Offline For Now!)</div>
+                ) : (
+                  <div>Launch an AI Music Meme Coin Now! {addressSol ? "" : "Login First"}</div>
+                )}
+              </div>
+            </Button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           {/* Column 1 */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-xl font-semibold">Help Curate New Launches</h2>
+              <h2 className="!text-2xl font-semibold">Help Curate New Launches</h2>
               <button
                 onClick={() =>
                   toast(
@@ -442,7 +481,7 @@ const RemixPage = () => {
           {/* Column 2 */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-xl font-semibold">Graduated Launches</h2>
+              <h2 className="!text-2xl font-semibold">Graduated Launches</h2>
               <button
                 onClick={() =>
                   toast(
@@ -472,7 +511,7 @@ const RemixPage = () => {
           {/* Column 3 */}
           <div className="hidden flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-xl font-semibold">Fractionalized Token Launches</h2>
+              <h2 className="!text-2xl font-semibold">Fractionalized Token Launches</h2>
               <button
                 onClick={() =>
                   toast(
@@ -530,6 +569,16 @@ const RemixPage = () => {
                   updateBountyBitzSumGlobalMappingWindow(_bountyToBitzLocalMapping);
                   setBountyBitzSumGlobalMapping(_bountyToBitzLocalMapping);
                 }
+              }}
+            />
+          )}
+        </>
+
+        <>
+          {launchMusicMemeModalOpen && (
+            <LaunchMusicMeme
+              onCloseModal={() => {
+                setLaunchMusicMemeModalOpen(false);
               }}
             />
           )}

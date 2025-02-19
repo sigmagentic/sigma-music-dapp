@@ -4,7 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { IS_DEVNET } from "appsConfig";
+// import { IS_DEVNET } from "appsConfig";
 import megaphoneLight from "assets/img/nf-tunes/megaphone-light.png";
 import megaphone from "assets/img/nf-tunes/megaphone.png";
 import sigmaAgent from "assets/img/sigma-banner.webp";
@@ -17,6 +17,7 @@ import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/s
 import { BlobDataType, ExtendedViewDataReturnType, Track } from "libs/types";
 import { scrollToSection } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
+import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
@@ -26,7 +27,6 @@ import { MyCollectedAlbums } from "./MyCollectedAlbums";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
-import { routeNames } from "routes";
 
 export const NFTunes = () => {
   const { theme } = useTheme();
@@ -247,19 +247,22 @@ export const NFTunes = () => {
   }
 
   function checkOwnershipOfAlbum(album: any) {
+    console.log("---- checkOwnershipOfAlbum album", album);
     let albumInOwnershipListIndex = -1; // note -1 means we don't own it
 
-    if (IS_DEVNET) {
-      // devnet logic remains unchanged
-      if (
-        album?.solNftName &&
-        ownedSolDataNftNameAndIndexMap &&
-        album.solNftName === "MUSG7 - Galactic Gravity" &&
-        ownedSolDataNftNameAndIndexMap["MUSGDEV1"] !== "undefined"
-      ) {
-        albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap["MUSGDEV1 : Common"];
-      }
-    } else if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
+    // if (IS_DEVNET) {
+    //   // devnet logic remains unchanged
+    //   if (
+    //     album?.solNftName &&
+    //     ownedSolDataNftNameAndIndexMap &&
+    //     album.solNftName === "MUSG7 - Galactic Gravity" &&
+    //     ownedSolDataNftNameAndIndexMap["MUSGDEV1"] !== "undefined"
+    //   ) {
+    //     albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap["MUSGDEV1 : Common"];
+    //   }
+    // } else if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
+
+    if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
       /* mark the albumInOwnershipListIndex as of the highest rarity album
         Legendary
         Rare
@@ -390,24 +393,24 @@ export const NFTunes = () => {
                   <div className="flex flex-col gap-4 mt-4">
                     <div>
                       <Button
+                        onClick={() => {
+                          navigate(routeNames.remix);
+                        }}
+                        className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%]  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg w-[500px]">
+                        <div>Launch AI Music Meme Coins with Sigma REMiX</div>
+                      </Button>
+                      <div className="text-sm mt-2">For Everyone</div>
+                    </div>
+
+                    <div>
+                      <Button
                         className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%]  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg w-[500px]"
                         onClick={() => {
                           scrollToSection("join-nf-tunes");
                         }}>
                         <div>Launch Your Music with Sigma</div>
                       </Button>
-                      <div className="text-sm mt-2">For Existing Musicians</div>
-                    </div>
-
-                    <div>
-                      <Button
-                        onClick={() => {
-                          navigate(routeNames.remix);
-                        }}
-                        className="hover:scale-110 transition duration-700 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg w-[500px]">
-                        <div>Launch Original Music with Sigma REMiX</div>
-                      </Button>
-                      <div className="text-sm mt-2">For Everyone</div>
+                      <div className="text-sm mt-2">For Indie Musicians</div>
                     </div>
                   </div>
                 </div>
