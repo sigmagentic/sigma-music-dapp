@@ -138,8 +138,8 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">6.</span>
-              If your music NFT gets enough votes and graduates, you can fractionalize the Music NFT and launch it on pump.fun as a Music Meme coin (this step
-              is optional -- you don't need to launch anything on pump.fun if you don't want to)
+              If your music NFT gets enough votes and graduates, you can fractionalize the Music NFT and launch it on pump.fun as a AI Music Meme coin (this
+              step is optional -- you don't need to launch anything on pump.fun if you don't want to)
             </li>
           </ul>
         </div>
