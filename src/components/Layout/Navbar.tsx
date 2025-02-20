@@ -96,7 +96,7 @@ export const Navbar = () => {
                   <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
                     <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
                       <Button
-                        className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-lg"
+                        className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-lg h-[48px]"
                         variant="outline">
                         Login
                       </Button>

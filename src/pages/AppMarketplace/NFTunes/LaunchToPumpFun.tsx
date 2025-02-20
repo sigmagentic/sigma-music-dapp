@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import bs58 from "bs58";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { VersionedTransaction, Connection, Keypair } from "@solana/web3.js";
-import { SOLANA_NETWORK_RPC } from "config";
+import { VersionedTransaction, Connection, Keypair, Transaction, SystemProgram } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
+import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
+import { fetchSolPrice, logPaymentToAPI } from "libs/utils/misc";
 
 export const LaunchToPumpFun = ({
   onCloseModal,
@@ -12,6 +14,7 @@ export const LaunchToPumpFun = ({
   tokenSymbol,
   tokenDesc,
   tokenId,
+  twitterUrl,
 }: {
   onCloseModal: () => void;
   tokenImg: string;
@@ -19,6 +22,7 @@ export const LaunchToPumpFun = ({
   tokenSymbol: string;
   tokenDesc: string;
   tokenId: string;
+  twitterUrl?: string;
 }) => {
   const { publicKey, wallet } = useWallet();
   const [description, setDescription] = useState(tokenDesc);
@@ -29,6 +33,10 @@ export const LaunchToPumpFun = ({
   const [launchError, setLaunchError] = useState<string | null>(null);
   const [devBuy, setDevBuy] = useState("0");
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
+  const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
+  const [paymentTx, setPaymentTx] = useState<string | null>(null);
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -38,6 +46,29 @@ export const LaunchToPumpFun = ({
     return () => {
       document.body.style.overflow = "unset";
     };
+  }, []);
+
+  useEffect(() => {
+    // if we had the deep link to the actual tweet that started it all, we use that
+    if (twitterUrl && twitterUrl !== "" && twitterUrl !== "https://x.com/SigmaXMusic") {
+      setTwitter(twitterUrl);
+    }
+  }, [twitterUrl]);
+
+  useEffect(() => {
+    const fetchPrice = async () => {
+      try {
+        const { currentSolPrice } = await fetchSolPrice();
+
+        // Calculate required SOL amount based on USD price
+        const solAmount = LAUNCH_MUSIC_MEME_PRICE_IN_USD / currentSolPrice;
+        setRequiredSolAmount(Number(solAmount.toFixed(4))); // Round to 4 decimal places
+      } catch (error) {
+        console.error("Failed to fetch SOL price:", error);
+      }
+    };
+
+    fetchPrice();
   }, []);
 
   // Add effect to fetch wallet balance
@@ -89,14 +120,47 @@ export const LaunchToPumpFun = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLaunch = async () => {
-    if (!validateForm()) {
-      return;
+  const handlePaymentConfirmation = async () => {
+    if (!publicKey || !requiredSolAmount) return;
+
+    setPaymentStatus("processing");
+    try {
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: new PublicKey(SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS),
+          lamports: requiredSolAmount * 1e9,
+        })
+      );
+
+      const signature = await wallet?.adapter.sendTransaction(transaction, new Connection(SOLANA_NETWORK_RPC));
+      if (!signature) throw new Error("Failed to send transaction");
+
+      await new Connection(SOLANA_NETWORK_RPC).confirmTransaction(signature, "confirmed");
+      setPaymentTx(signature);
+
+      // Log payment to web2 API (placeholder)
+      await logPaymentToAPI({
+        payer: publicKey.toBase58(),
+        tx: signature,
+        task: "pump",
+        amount: requiredSolAmount.toString(),
+      });
+
+      setPaymentStatus("confirmed");
+      setShowPaymentConfirmation(false);
+      // Proceed with token launch
+      handleTokenLaunch();
+    } catch (error) {
+      console.error("Payment failed:", error);
+      setPaymentStatus("idle");
+      setLaunchError("Payment failed. Please try again.");
     }
+  };
 
+  // Separate the token launch logic from payment
+  const handleTokenLaunch = async () => {
     setIsLoading(true);
-    setLaunchError(null);
-
     try {
       // Initialize connection
       if (!SOLANA_NETWORK_RPC) {
@@ -172,8 +236,51 @@ export const LaunchToPumpFun = ({
     }
   };
 
+  // Modified click handler
+  const handleLaunch = () => {
+    if (!validateForm()) return;
+    setShowPaymentConfirmation(true);
+  };
+
+  // Payment confirmation popup component
+  const PaymentConfirmationPopup = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+      <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 className="text-xl font-bold mb-4">Confirm Launch Payment</h3>
+        <div className="space-y-4">
+          <p>
+            Launch fee: {requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
+          </p>
+          <p>Your wallet balance: {walletBalance !== null ? `${walletBalance.toFixed(4)} SOL` : "Loading..."}</p>
+          <p>This payment will be sent to Sigma's service wallet to launch your Music NFT on Pump.fun</p>
+
+          {paymentStatus === "processing" ? (
+            <div className="text-center">
+              <p>Processing payment...</p>
+            </div>
+          ) : paymentStatus === "confirmed" ? (
+            <div className="text-center text-green-500">
+              <p>Payment confirmed! Proceeding with launch...</p>
+            </div>
+          ) : (
+            <div className="flex gap-4">
+              <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
+                Cancel
+              </Button>
+              <Button onClick={handlePaymentConfirmation} className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
+                Proceed with Payment
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-6">
+      {showPaymentConfirmation && <PaymentConfirmationPopup />}
+
       <div className="relative bg-[#1A1A1A] rounded-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Close button - adjusted positioning and styling */}
         <button
@@ -284,7 +391,11 @@ export const LaunchToPumpFun = ({
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">3.</span>
-              To launch it on pump.fun, you need to a small SOL payment of 0.02 to Sigma's wallet.
+              To launch it on pump.fun, Make a small SOL payment of{" "}
+              <span className="text-orange-600 contents">
+                {requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
+              </span>{" "}
+              to Sigma's wallet.
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">4.</span>

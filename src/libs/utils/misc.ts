@@ -68,3 +68,40 @@ export const gtagGo = (category: string, action: any, label?: any, value?: any) 
     (window as any).gtag("event", action, eventObj);
   }
 };
+
+export const fetchSolPrice = async () => {
+  try {
+    const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+    const data = await response.json();
+    const currentSolPrice = data.solana.usd;
+    return { currentSolPrice };
+  } catch (error) {
+    console.error("Failed to fetch SOL price:", error);
+    throw new Error("Failed to fetch SOL price");
+  }
+};
+
+export const logPaymentToAPI = async (paymentData: any) => {
+  console.log("Logging payment to API:", paymentData);
+
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/createPaymentLog`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(paymentData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+    return data;
+  } catch (error) {
+    console.error("Error saving new launch:", error);
+    throw error;
+  }
+};
