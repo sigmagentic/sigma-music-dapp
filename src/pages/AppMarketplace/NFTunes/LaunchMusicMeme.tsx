@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
+import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
 import { fetchSolPrice, logPaymentToAPI } from "libs/utils/misc";
@@ -65,6 +65,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     if (!publicKey || !requiredSolAmount) return;
 
     setPaymentStatus("processing");
+
     try {
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -74,8 +75,22 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         })
       );
 
-      const signature = await sendTransaction(transaction, connection);
-      await connection.confirmTransaction(signature, "confirmed");
+      const latestBlockhash = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = latestBlockhash.blockhash;
+      transaction.feePayer = publicKey;
+
+      const signature = await sendTransaction(transaction, connection, {
+        skipPreflight: false,
+        preflightCommitment: "confirmed",
+      });
+
+      const strategy: TransactionConfirmationStrategy = {
+        signature: signature,
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      };
+
+      await connection.confirmTransaction(strategy, "finalized" as Commitment);
 
       // Update payment transaction hash
       setPaymentTx(signature);

@@ -124,6 +124,7 @@ export const LaunchToPumpFun = ({
     if (!publicKey || !requiredSolAmount) return;
 
     setPaymentStatus("processing");
+
     try {
       const transaction = new Transaction().add(
         SystemProgram.transfer({
