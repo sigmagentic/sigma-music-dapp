@@ -6,7 +6,7 @@ import { PublicKey } from "@solana/web3.js";
 import { ArrowUpRight } from "lucide-react";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
-import { fetchSolPrice, logPaymentToAPI } from "libs/utils/misc";
+import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/misc";
 
 export const LaunchToPumpFun = ({
   onCloseModal,
@@ -161,7 +161,7 @@ export const LaunchToPumpFun = ({
         // Update payment transaction hash
         setPaymentTx(signature);
       } else {
-        signature = "FREE";
+        signature = "FREE-" + tokenId + "-" + Date.now();
       }
 
       // Log payment to web2 API (placeholder)
@@ -197,28 +197,28 @@ export const LaunchToPumpFun = ({
       // Generate a random keypair for the token
       const mintKeypair = Keypair.generate();
 
-      // Prepare metadata
-      const formData = new FormData();
-      formData.append("file", tokenImg); // Using the tokenImg from props
-      formData.append("name", tokenName);
-      formData.append("symbol", tokenSymbol);
-      formData.append("description", description);
-      formData.append("twitter", twitter);
-      formData.append("telegram", telegram);
-      formData.append("website", `https://sigmamusic.fm/remix?album=${tokenId}`);
-      formData.append("showName", "true");
-
-      // Create IPFS metadata storage
-      const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
+      // Create metadata using new API endpoint
+      const metadataResponse = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/createPumpMeta`, {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tokenImg,
+          tokenName,
+          tokenSymbol,
+          description,
+          twitter,
+          telegram,
+          website: `https://sigmamusic.fm/remix?album=${tokenId}`,
+        }),
       });
 
-      if (!metadataResponse.ok) {
-        throw new Error("Failed to upload metadata to IPFS");
-      }
-
       const metadataResponseJSON = await metadataResponse.json();
+
+      if (metadataResponseJSON.error) {
+        throw new Error(metadataResponseJSON.error);
+      }
 
       // Get the create transaction
       const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
@@ -266,6 +266,7 @@ export const LaunchToPumpFun = ({
 
   const handleLaunch = () => {
     if (!validateForm()) return;
+    setPaymentStatus("idle");
     setShowPaymentConfirmation(true);
   };
 
