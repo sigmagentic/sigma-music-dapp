@@ -12,8 +12,7 @@ const MAX_TITLE_LENGTH = 20;
 
 // max length
 /*
-yo @SigmaXMusic create a single titled "I'm So Sigma" in D&B style. Send it to 7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj. SOL payment: 2acubH5SW2zuDn1kkD6K4uBZxM8G2KHLYnmDchHHSyuTeZfqjhcVjGFRjTEinYNsYtmTRbzogsxVFg1Qbfwcttx1. Action: CREATE_MUSIC_PLAYLIST
-
+yo @SigmaXMusic create a single titled "I'm So Sigma" in D&B style. code XXXXX. Send it to 7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj. SOL payment: 2acubH5SW2zuDn1kkD6K4uBZxM8G2KHLYnmDchHHSyuTeZfqjhcVjGFRjTEinYNsYtmTRbzogsxVFg1Qbfwcttx1. Action: CREATE_MUSIC_PLAYLIST
 */
 
 export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) => {

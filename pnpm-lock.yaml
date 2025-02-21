@@ -113,6 +113,9 @@ importers:
       framer-motion:
         specifier: 11.2.10
         version: 11.2.10(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      lodash:
+        specifier: 4.17.21
+        version: 4.17.21
       lucide-react:
         specifier: 0.394.0
         version: 0.394.0(react@18.2.0)
@@ -174,6 +177,9 @@ importers:
       '@types/dompurify':
         specifier: 3.0.5
         version: 3.0.5
+      '@types/lodash':
+        specifier: ^4.17.15
+        version: 4.17.15
       '@types/node':
         specifier: 18.19.34
         version: 18.19.34
@@ -3297,8 +3303,8 @@ packages:
   '@types/keyv@3.1.4':
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
 
-  '@types/lodash@4.17.13':
-    resolution: {integrity: sha512-lfx+dftrEZcdBPczf9d0Qv0x+j/rfNCMuC6OcfXmO8gkfeNAY88PgKUbvG56whcN23gc27yenwF6oJZXGFpYxg==}
+  '@types/lodash@4.17.15':
+    resolution: {integrity: sha512-w/P33JFeySuhN6JLkysYUK2gEmy9kHHFN7E8ro0tkfmlDOgxBDzWEZ/J8cWA+fHqFevpswDTFZnDx+R9lbL6xw==}
 
   '@types/long@4.0.2':
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
@@ -12518,7 +12524,7 @@ snapshots:
     dependencies:
       '@types/node': 18.19.34
 
-  '@types/lodash@4.17.13': {}
+  '@types/lodash@4.17.15': {}
 
   '@types/long@4.0.2': {}
 
@@ -17388,7 +17394,7 @@ snapshots:
 
   ripple-lib@1.10.1(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
-      '@types/lodash': 4.17.13
+      '@types/lodash': 4.17.15
       '@types/ws': 7.4.7
       bignumber.js: 9.1.2
       https-proxy-agent: 5.0.1

@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
+import { debounce } from "lodash";
 import { ArrowUpRight, Heart, Loader, Pause, Play } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthRedirectWrapper } from "components";
 import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON, SIGMA_MEME_FEATURE_WHITELIST } from "config";
 import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping } from "libs/types";
-import { getApiWeb2Apps, sleep } from "libs/utils";
+import { getApiWeb2Apps, logStatusChangeToAPI, sleep } from "libs/utils";
 import { LaunchMusicMeme } from "pages/AppMarketplace/NFTunes/LaunchMusicMeme";
 import { LaunchToPumpFun } from "pages/AppMarketplace/NFTunes/LaunchToPumpFun";
 import { SendBitzPowerUp } from "pages/AppMarketplace/NFTunes/SendBitzPowerUp";
@@ -36,6 +37,7 @@ interface Launch {
   streamUrl?: string; // Optional, used in graduated launches
   assetIdOrTokenName: string;
   tweet?: string; // the tweet link that started it all
+  pumpTokenId?: string; // the pump token id
 }
 
 const VOTES_TO_GRADUATE = 20;
@@ -121,6 +123,7 @@ const RemixPage = () => {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [newLaunchesData, setNewLaunchesData] = useState<Launch[]>([]);
   const [graduatedLaunchesData, setGraduatedLaunchesData] = useState<Launch[]>([]);
+  const [onPumpFunLaunchesData, setOnPumpFunLaunchesData] = useState<Launch[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentTime, setCurrentTime] = useState("0:00");
   const [bountyBitzSumGlobalMapping, setBountyBitzSumGlobalMapping] = useState<BountyBitzSumMapping>({});
@@ -130,13 +133,15 @@ const RemixPage = () => {
   const [launchMusicMemeModalOpen, setLaunchMusicMemeModalOpen] = useState<boolean>(false);
   const [launchToPumpFunModalOpen, setLaunchToPumpFunModalOpen] = useState<boolean>(false);
   const [pumpFunTokenData, setPumpFunTokenData] = useState<{
+    launchId: string;
+    createdOn: number;
     tokenImg: string;
     tokenName: string;
     tokenSymbol: string;
     tokenDesc: string;
     tokenId: string;
     tweet?: string;
-  }>({ tokenImg: "", tokenName: "", tokenSymbol: "", tokenDesc: "", tokenId: "", tweet: "" });
+  }>({ launchId: "", tokenImg: "", tokenName: "", tokenSymbol: "", tokenDesc: "", tokenId: "", tweet: "", createdOn: 0 });
 
   // give bits to a bounty (power up or like)
   const [giveBitzForMusicBountyConfig, setGiveBitzForMusicBountyConfig] = useState<{
@@ -158,6 +163,53 @@ const RemixPage = () => {
   >([]);
 
   const [isJobsModalOpen, setIsJobsModalOpen] = useState(false);
+
+  // Add new state to track pending refreshes
+  const [shouldRefreshData, setShouldRefreshData] = useState(false);
+  const [shouldRefreshDataPumpFun, setShouldRefreshDataPumpFun] = useState(false);
+
+  // Add useCallback for the debounced refresh function (to move new items to graduated if votes are enough)
+  const debouncedRefreshData = useCallback(
+    debounce(async () => {
+      try {
+        const responseA = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/launchesByStatus/new`);
+        setNewLaunchesData(responseA.data);
+        const responseB = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/launchesByStatus/graduated`);
+        setGraduatedLaunchesData(responseB.data);
+      } catch (error) {
+        console.error("Error refreshing graduated data:", error);
+      }
+      setShouldRefreshData(false);
+    }, 3000), // 3 second delay
+    []
+  );
+
+  // Add useCallback for the debounced refresh function (to move graduated items to launched if sent to pump.fun)
+  const debouncedRefreshDataPumpFun = useCallback(
+    debounce(async () => {
+      try {
+        const responseA = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/launchesByStatus/launched`);
+        setOnPumpFunLaunchesData(responseA.data);
+      } catch (error) {
+        console.error("Error refreshing graduated data:", error);
+      }
+      setShouldRefreshDataPumpFun(false);
+    }, 3000), // 3 second delay
+    []
+  );
+
+  // Add effect to handle the refresh
+  useEffect(() => {
+    if (shouldRefreshData) {
+      debouncedRefreshData();
+    }
+  }, [shouldRefreshData, debouncedRefreshData]);
+
+  useEffect(() => {
+    if (shouldRefreshDataPumpFun) {
+      debouncedRefreshDataPumpFun();
+    }
+  }, [shouldRefreshDataPumpFun, debouncedRefreshDataPumpFun]);
 
   useEffect(() => {
     window.scrollTo({
@@ -187,16 +239,19 @@ const RemixPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const responseA = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/newLaunches`);
+        const responseA = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/launchesByStatus/new`);
         setNewLaunchesData(responseA.data);
 
-        const responseB = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/graduatedLaunches`);
+        const responseB = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/launchesByStatus/graduated`);
         setGraduatedLaunchesData(responseB.data);
+
+        const responseC = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/launchesByStatus/launched`);
+        setOnPumpFunLaunchesData(responseC.data);
 
         // Fetch payment logs if user is logged in
         if (addressSol) {
-          const responseC = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/paymentLogs?payer=${addressSol}`);
-          setMyJobsPayments(responseC.data);
+          const responseD = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/paymentLogs?payer=${addressSol}`);
+          setMyJobsPayments(responseD.data);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -406,16 +461,16 @@ const RemixPage = () => {
                   <span className={timeProgress.isExpired ? "text-red-500" : ""}>{timeProgress.timeLeftText}</span>
                 </div>
                 <div className="flex flex-col gap-2 mt-2">
-                  <div className="text-xs text-gray-400">Which one do you like?</div>
-                  {item.versions.map((version: Version, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between">
+                  <div className="text-xs text-gray-400">Vote with XP to graduate this music meme</div>
+                  {item.versions.map((version: Version, idx2: number) => (
+                    <div key={idx2} className="flex items-center justify-between">
                       <button
                         className={`flex items-center gap-2 ${
-                          currentPlayingId && currentPlayingId !== `${item.launchId}-${idx}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
+                          currentPlayingId && currentPlayingId !== `${item.launchId}-${idx2}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
                         }`}
-                        disabled={currentPlayingId ? currentPlayingId !== `${item.launchId}-${idx}` : false}
-                        onClick={() => handlePlay(version.streamUrl, `${item.launchId}-${idx}`)}>
-                        {currentPlayingId === `${item.launchId}-${idx}` ? (
+                        disabled={currentPlayingId ? currentPlayingId !== `${item.launchId}-${idx2}` : false}
+                        onClick={() => handlePlay(version.streamUrl, `${item.launchId}-${idx2}`)}>
+                        {currentPlayingId === `${item.launchId}-${idx2}` ? (
                           <>
                             {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
                             <span className="ml-2">{currentTime} - Stop Playing</span>
@@ -436,7 +491,7 @@ const RemixPage = () => {
                                 if (addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined") {
                                   handleSendBitzForMusicBounty({
                                     creatorIcon: item.image,
-                                    creatorName: `${item.title} Version ${idx + 1}`,
+                                    creatorName: `${item.title} Version ${idx2 + 1}`,
                                     giveBitzToWho: item.remixedBy,
                                     giveBitzToCampaignId: version.bountyId,
                                   });
@@ -452,7 +507,7 @@ const RemixPage = () => {
                                     if (addressSol) {
                                       handleSendBitzForMusicBounty({
                                         creatorIcon: item.image,
-                                        creatorName: `${item.title} Version ${idx + 1}`,
+                                        creatorName: `${item.title} Version ${idx2 + 1}`,
                                         giveBitzToWho: item.remixedBy,
                                         giveBitzToCampaignId: version.bountyId,
                                       });
@@ -467,10 +522,10 @@ const RemixPage = () => {
                         )}
 
                         <span className="text-xs text-gray-400">
-                          {VOTES_TO_GRADUATE - (bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0) <= 0 ? (
+                          {hasGraduated({ launchId: item.launchId, createdOn: item.createdOn, bountyId: version.bountyId }) ? (
                             <span className="text-green-500">🎉 Graduated... stay tuned!</span>
                           ) : (
-                            `${VOTES_TO_GRADUATE - (bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0)} Votes To Graduate`
+                            `${VOTES_TO_GRADUATE - (bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0)} More Votes To Graduate`
                           )}
                         </span>
                       </div>
@@ -545,9 +600,11 @@ const RemixPage = () => {
                     className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm text-center p-2 md:p-4 rounded-lg"
                     onClick={() => {
                       setPumpFunTokenData({
+                        launchId: item.launchId,
+                        createdOn: item.createdOn,
                         tokenImg: item.image,
                         tokenName: item.title,
-                        tokenSymbol: `SIGMA-${item.title.toUpperCase().slice(0, 3)}${item.title.toUpperCase().slice(-3)}`,
+                        tokenSymbol: generateTokenSymbol(item.title),
                         tokenDesc: `Official AI Music Meme Coin to access the launch of ${item.title} of Sigma Music. Owning this token grants you fractionalized ownership of the music track forever.`,
                         tokenId: item.assetIdOrTokenName.replaceAll(" ", "_"),
                         tweet: item.tweet || "",
@@ -560,27 +617,33 @@ const RemixPage = () => {
               </div>
             )}
 
-            {type === "fractionalized" && (
+            {type === "launched" && (
               <div className="mt-2 flex items-center justify-between">
                 <button
                   className={`flex items-center gap-2 ${
-                    currentPlayingId && currentPlayingId !== `fractionalized-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
+                    currentPlayingId && currentPlayingId !== `launched-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
                   }`}
-                  disabled={currentPlayingId ? currentPlayingId !== `fractionalized-${item.launchId}` : false}
-                  onClick={() => handlePlay(item.graduatedStreamUrl || "", `fractionalized-${item.launchId}`)}>
-                  {currentPlayingId === `fractionalized-${item.launchId}` ? (
+                  disabled={currentPlayingId ? currentPlayingId !== `launched-${item.launchId}` : false}
+                  onClick={() => handlePlay(item.graduatedStreamUrl || item.versions[0].streamUrl, `launched-${item.launchId}`)}>
+                  {currentPlayingId === `launched-${item.launchId}` ? (
                     <>
                       {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                      <span className="ml-2 text-xs">{currentTime} - Stop Playing</span>
+                      <span className="ml-2">{currentTime} - Stop Playing</span>
                     </>
                   ) : (
                     <>
                       <Play className="w-4 h-4" />
-                      <span className="ml-2">Listen</span>
+                      <span className="ml-2">Play Track</span>
                     </>
                   )}
                 </button>
-                <div className="px-4 py-1 bg-gradient-to-r from-yellow-500 to-green-500 rounded-full text-sm">{item.status}</div>
+                <a
+                  href={`https://pump.fun/coin/${item.pumpTokenId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-1 bg-gradient-to-r from-yellow-500 to-green-500 rounded-full text-sm">
+                  View on Pump.fun
+                </a>
               </div>
             )}
           </div>
@@ -634,6 +697,58 @@ const RemixPage = () => {
     return whitelistedAddresses.includes(wallet);
   };
 
+  const generateTokenSymbol = (title: string): string => {
+    // Remove any non-alphabetic characters and convert to uppercase
+    const cleanTitle = title.replace(/[^A-Za-z]/g, "").toUpperCase();
+
+    // Get up to 4 random characters from the cleaned title
+    const chars = cleanTitle.split("");
+    const randomChars: string[] = [];
+
+    // If we have 4 or more characters, pick 4 random ones
+    if (chars.length >= 4) {
+      while (randomChars.length < 4) {
+        const randomIndex = Math.floor(Math.random() * chars.length);
+        randomChars.push(chars[randomIndex]);
+        // Remove the used character to avoid duplicates
+        chars.splice(randomIndex, 1);
+      }
+    } else {
+      // Use all available characters
+      randomChars.push(...chars);
+
+      // Generate random alphabets for the remaining slots
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      while (randomChars.length < 4) {
+        const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+        randomChars.push(randomLetter);
+      }
+    }
+
+    return `SIGMA-${randomChars.join("")}`;
+  };
+
+  // Modify the hasGraduated function
+  const hasGraduated = ({ launchId, createdOn, bountyId }: { launchId: string; createdOn: number; bountyId: string }) => {
+    const currentVotes = bountyBitzSumGlobalMapping[bountyId]?.bitsSum || 0;
+    const tokenGraduated = VOTES_TO_GRADUATE - currentVotes <= 0;
+
+    if (tokenGraduated) {
+      // Make the API call
+      logStatusChangeToAPI({
+        launchId,
+        createdOn,
+        newStatus: "graduated",
+        bountyId,
+      });
+
+      // Trigger a refresh of the graduated data
+      setShouldRefreshData(true);
+    }
+
+    return tokenGraduated;
+  };
+
   return (
     <>
       <div className="flex flex-col w-full min-h-screen p-6">
@@ -670,11 +785,11 @@ const RemixPage = () => {
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-          {/* Column 1 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+          {/* New */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-2xl font-semibold">Help Curate New AI Meme Coin Candidates</h2>
+              <h2 className="!text-2xl font-semibold">Vote on New AI Meme Coins</h2>
               <button
                 onClick={() =>
                   toast(
@@ -718,13 +833,19 @@ const RemixPage = () => {
                   <LoadingSkeleton />
                   <LoadingSkeleton />
                 </>
+              ) : newLaunchesData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                  <span className="text-6xl mb-4">🎵</span>
+                  <p className="text-center">No new meme coins yet!</p>
+                  <p className="text-center text-sm">Be the first to launch one!</p>
+                </div>
               ) : (
                 newLaunchesData.map((item: Launch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="new" />)
               )}
             </div>
           </div>
 
-          {/* Column 2 */}
+          {/* Graduated */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="!text-2xl font-semibold">Graduated: Send to Pump.fun</h2>
@@ -769,21 +890,46 @@ const RemixPage = () => {
                 <>
                   <LoadingSkeleton />
                   <LoadingSkeleton />
+                  <LoadingSkeleton />
                 </>
+              ) : graduatedLaunchesData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                  <span className="text-6xl mb-4">🎓</span>
+                  <p className="text-center">No graduates yet!</p>
+                  <p className="text-center text-sm">Vote for your favorite memes to help them graduate!</p>
+                </div>
               ) : (
                 graduatedLaunchesData.map((item: Launch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="graduated" />)
               )}
             </div>
           </div>
 
-          {/* Column 3 */}
-          <div className="hidden flex flex-col bg-white/5 rounded-lg p-4">
+          {/* Pump.fun Launches */}
+          <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-2xl font-semibold">Fractionalized Token Launches</h2>
+              <h2 className="!text-2xl font-semibold">Token Launches on Pump.fun</h2>
               <button
                 onClick={() =>
                   toast(
-                    "Fractionalized Token Launches: These fractionalized Music NFTs are available for purchase on pump.fun. Any who owns a fraction of the token, becomes a co-owner of the music track forever."
+                    (t) => (
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1">
+                          <p className="mb-4">
+                            <strong className="text-yellow-500">Token Launches on Pump.fun:</strong> These fractionalized Music NFTs are available for purchase
+                            on pump.fun as AI Music Meme Coins.
+                          </p>
+                          <p className="mb-4">
+                            Anyone who owns a fraction of the token (i.e. a token bought on the pump.fun bonding curve or on raydium etc), becomes a co-owner of
+                            the music track forever and you can listen to the music or trade access to the music with others. No more dev-rugs on pump.fun where
+                            tokens are ghosted with no utility or value
+                          </p>
+                        </div>
+                        <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white p-1">
+                          ✕
+                        </button>
+                      </div>
+                    ),
+                    customToastStyle
                   )
                 }
                 className="p-1 rounded-full hover:bg-white/10">
@@ -794,11 +940,22 @@ const RemixPage = () => {
                 </svg>
               </button>
             </div>
-            {/* Content for column 3 */}
             <div className="space-y-4">
-              {graduatedLaunchesData.map((item: Launch, idx: number) => (
-                <LaunchCard key={idx} idx={idx} item={item} type="fractionalized" />
-              ))}
+              {isDataLoading ? (
+                <>
+                  <LoadingSkeleton />
+                  <LoadingSkeleton />
+                  <LoadingSkeleton />
+                </>
+              ) : onPumpFunLaunchesData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                  <span className="text-6xl mb-4">🚀</span>
+                  <p className="text-center">No tokens on Pump.fun yet!</p>
+                  <p className="text-center text-sm">Launch your graduated memes to be the first!</p>
+                </div>
+              ) : (
+                onPumpFunLaunchesData.map((item: Launch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="launched" />)
+              )}
             </div>
           </div>
         </div>
@@ -855,15 +1012,20 @@ const RemixPage = () => {
         <>
           {launchToPumpFunModalOpen && (
             <LaunchToPumpFun
+              launchId={pumpFunTokenData.launchId}
+              createdOn={pumpFunTokenData.createdOn}
               tokenImg={pumpFunTokenData.tokenImg}
               tokenName={pumpFunTokenData.tokenName}
               tokenSymbol={pumpFunTokenData.tokenSymbol}
               tokenDesc={pumpFunTokenData.tokenDesc}
               tokenId={pumpFunTokenData.tokenId}
               twitterUrl={pumpFunTokenData.tweet || ""}
-              onCloseModal={() => {
+              onCloseModal={({ refreshData }: { refreshData: boolean }) => {
                 setLaunchToPumpFunModalOpen(false);
-                setPumpFunTokenData({ tokenImg: "", tokenName: "", tokenSymbol: "", tokenDesc: "", tokenId: "" });
+                setPumpFunTokenData({ launchId: "", tokenImg: "", tokenName: "", tokenSymbol: "", tokenDesc: "", tokenId: "", createdOn: 0 });
+                if (refreshData) {
+                  setShouldRefreshDataPumpFun(true);
+                }
               }}
             />
           )}

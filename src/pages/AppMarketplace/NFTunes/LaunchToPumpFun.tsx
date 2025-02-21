@@ -6,10 +6,12 @@ import { PublicKey } from "@solana/web3.js";
 import { ArrowUpRight } from "lucide-react";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
-import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/misc";
+import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI } from "libs/utils/misc";
 
 export const LaunchToPumpFun = ({
   onCloseModal,
+  launchId,
+  createdOn,
   tokenImg,
   tokenName,
   tokenSymbol,
@@ -17,7 +19,9 @@ export const LaunchToPumpFun = ({
   tokenId,
   twitterUrl,
 }: {
-  onCloseModal: () => void;
+  onCloseModal: ({ refreshData }: { refreshData: boolean }) => void;
+  launchId: string;
+  createdOn: number;
   tokenImg: string;
   tokenName: string;
   tokenSymbol: string;
@@ -124,7 +128,6 @@ export const LaunchToPumpFun = ({
   };
 
   const handlePaymentConfirmation = async () => {
-    debugger;
     if (!publicKey || requiredSolAmount === null) return;
 
     setPaymentStatus("processing");
@@ -164,7 +167,7 @@ export const LaunchToPumpFun = ({
         signature = "FREE-" + tokenId + "-" + Date.now();
       }
 
-      // Log payment to web2 API (placeholder)
+      // Log payment to web2 API
       await logPaymentToAPI({
         payer: publicKey.toBase58(),
         tx: signature,
@@ -191,8 +194,6 @@ export const LaunchToPumpFun = ({
       if (!SOLANA_NETWORK_RPC) {
         throw new Error("No RPC endpoint provided");
       }
-
-      const web3Connection = new Connection(SOLANA_NETWORK_RPC, "finalized");
 
       // Generate a random keypair for the token
       const mintKeypair = Keypair.generate();
@@ -269,11 +270,19 @@ export const LaunchToPumpFun = ({
 
         await connection.confirmTransaction(strategy, "finalized" as Commitment);
 
-        console.log("Transaction: https://solscan.io/tx/" + signature);
+        // console.log("Transaction: https://solscan.io/tx/" + signature);
 
         setPumpTokenId(mintKeypair.publicKey.toBase58());
 
-        onCloseModal(); // Close modal on success
+        // here we also make a web2 API call to update the status of the launch to launched
+        await logStatusChangeToAPI({
+          launchId,
+          createdOn,
+          newStatus: "launched",
+          pumpTokenId: mintKeypair.publicKey.toBase58(),
+        });
+
+        onCloseModal({ refreshData: true }); // Close modal on success
       } else {
         throw new Error(response.statusText);
       }
@@ -333,7 +342,7 @@ export const LaunchToPumpFun = ({
       <div className="relative bg-[#1A1A1A] rounded-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Close button - adjusted positioning and styling */}
         <button
-          onClick={onCloseModal}
+          onClick={() => onCloseModal({ refreshData: false })}
           className="absolute top-2 right-0 w-10 h-10 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-50 shadow-lg">
           ✕
         </button>

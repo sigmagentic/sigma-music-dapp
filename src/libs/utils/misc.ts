@@ -105,3 +105,52 @@ export const logPaymentToAPI = async (paymentData: any) => {
     throw error;
   }
 };
+
+export const logStatusChangeToAPI = async ({
+  launchId,
+  createdOn,
+  newStatus,
+  pumpTokenId,
+  bountyId,
+}: {
+  launchId: string;
+  createdOn: number;
+  newStatus: string;
+  pumpTokenId?: string;
+  bountyId?: string;
+}) => {
+  try {
+    const payload: Record<string, string | number> = {
+      launchId,
+      createdOn,
+      newStatus,
+    };
+
+    if (pumpTokenId) {
+      payload.pumpTokenId = pumpTokenId;
+    }
+
+    if (bountyId) {
+      payload.bountyId = bountyId;
+    }
+
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/updateLaunchStatus`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+    return data;
+  } catch (error) {
+    console.error("Error saving new launch:", error);
+    throw error;
+  }
+};
