@@ -896,7 +896,7 @@ const RemixPage = () => {
                 <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                   <span className="text-6xl mb-4">🎓</span>
                   <p className="text-center">No graduates yet!</p>
-                  <p className="text-center text-sm">Vote for your favorite memes to help them graduate!</p>
+                  <p className="text-center text-sm">Vote for your favorite music memes to help them graduate to pump.fun!</p>
                 </div>
               ) : (
                 graduatedLaunchesData.map((item: Launch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="graduated" />)
@@ -951,7 +951,7 @@ const RemixPage = () => {
                 <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                   <span className="text-6xl mb-4">🚀</span>
                   <p className="text-center">No tokens on Pump.fun yet!</p>
-                  <p className="text-center text-sm">Launch your graduated memes to be the first!</p>
+                  <p className="text-center text-sm">Send your graduated memes to pump.fun to make them liquid!</p>
                 </div>
               ) : (
                 onPumpFunLaunchesData.map((item: Launch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="launched" />)
