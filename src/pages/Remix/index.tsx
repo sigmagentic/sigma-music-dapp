@@ -366,7 +366,17 @@ const RemixPage = () => {
                 </a>{" "}
                 on {new Date(item.createdOn * 1000).toLocaleDateString()}
               </p>
-              <p className="text-xs text-gray-600">Launch Id = {item.launchId}</p>
+              <p className="text-xs text-gray-600">Launch Id: {item.launchId}</p>
+              <p className="text-xs text-gray-600">
+                Music Token:{" "}
+                <a
+                  href={`https://solscan.io/token/Ceh3mR1AkiERPqzB6SiZgX9Jtk9fxWyWjWmhbWfQffiB`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-yellow-500 hover:underline">
+                  {item.assetIdOrTokenName}
+                </a>
+              </p>
               {item.tweet && (
                 <p className="text-xs text-gray-600">
                   <a href={item.tweet} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline flex items-center gap-2">
