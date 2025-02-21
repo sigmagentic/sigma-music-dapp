@@ -6,8 +6,15 @@ import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS 
 import { Button } from "libComponents/Button";
 import { fetchSolPrice, logPaymentToAPI } from "libs/utils/misc";
 
-const MUSIC_STYLES = ["D&B Music", "EDM Music"];
+const MUSIC_STYLES = ["D&B", "EDM"];
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
+const MAX_TITLE_LENGTH = 20;
+
+// max length
+/*
+yo @SigmaXMusic create a single titled "I'm So Sigma" in D&B style. Send it to 7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj. SOL payment: 2acubH5SW2zuDn1kkD6K4uBZxM8G2KHLYnmDchHHSyuTeZfqjhcVjGFRjTEinYNsYtmTRbzogsxVFg1Qbfwcttx1. Action: CREATE_MUSIC_PLAYLIST
+
+*/
 
 export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) => {
   const { connection } = useConnection();
@@ -65,6 +72,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     if (!publicKey || !requiredSolAmount) return;
 
     setPaymentStatus("processing");
+
     try {
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -106,6 +114,11 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     setShowPaymentConfirmation(true);
   };
 
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.slice(0, MAX_TITLE_LENGTH);
+    setSongTitle(value);
+  };
+
   // Payment confirmation popup
   const PaymentConfirmationPopup = () => (
     <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
@@ -143,7 +156,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
 
   const getTweetUrl = () => {
     const tweetText = encodeURIComponent(
-      `hey @SigmaXMusic can you create me a unique single titled "${songTitle}" in the style of ${musicStyle} and send it to my wallet ${publicKey?.toBase58()}. Here is the SOL payment TX: ${paymentTx}. Trigger this ACTION: CREATE_MUSIC_PLAYLIST`
+      `yo @SigmaXMusic create a single titled "${songTitle}" in ${musicStyle} style. Send it to ${publicKey?.toBase58()}. SOL payment: ${paymentTx}. Action: CREATE_MUSIC_PLAYLIST`
     );
     return `https://twitter.com/intent/tweet?text=${tweetText}`;
   };
@@ -169,11 +182,15 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
           <div className="space-y-4">
             <div className={`flex flex-col gap-4 ${promptGenerated ? "opacity-50 cursor-not-allowed" : ""}`}>
               <div>
-                <label className="block text-sm font-medium mb-2">Song Title / Lyrics Theme</label>
+                <label className="block text-sm font-medium mb-2">
+                  Song Title / Lyrics Theme
+                  <span className="float-right text-gray-400">{MAX_TITLE_LENGTH - songTitle.length} characters left</span>
+                </label>
                 <input
                   type="text"
                   value={songTitle}
-                  onChange={(e) => setSongTitle(e.target.value)}
+                  onChange={handleTitleChange}
+                  maxLength={MAX_TITLE_LENGTH}
                   placeholder={EXAMPLE_THEMES.join(" • ")}
                   className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
                 />
@@ -195,8 +212,16 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
 
               <div>
                 <label className="block text-sm font-medium mb-2">Your Wallet Address (for receiving the music NFT)</label>
-                <p className="text-sm">{publicKey?.toBase58() || "..."}</p>
-                <p className="text-xs text-gray-400 mt-1">Make sure payment comes from this wallet as Sigma will verify</p>
+                <p className="text-sm">
+                  <a
+                    href={`https://solscan.io/account/${publicKey?.toBase58()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline">
+                    {publicKey?.toBase58() || "..."}
+                  </a>
+                </p>
+                <p className="text-xs text-gray-400 mt-1">Make sure payment ALSO comes from this wallet as Sigma will verify this.</p>
               </div>
             </div>
 

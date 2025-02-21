@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import bs58 from "bs58";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { VersionedTransaction, Connection, Keypair, Transaction, SystemProgram } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
+import { ArrowUpRight } from "lucide-react";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
 import { fetchSolPrice, logPaymentToAPI } from "libs/utils/misc";
@@ -24,7 +25,8 @@ export const LaunchToPumpFun = ({
   tokenId: string;
   twitterUrl?: string;
 }) => {
-  const { publicKey, wallet } = useWallet();
+  const { publicKey, wallet, sendTransaction } = useWallet();
+  const { connection } = useConnection();
   const [description, setDescription] = useState(tokenDesc);
   const [twitter, setTwitter] = useState("https://x.com/SigmaXMusic");
   const [telegram, setTelegram] = useState("https://t.me/SigmaXMusicOfficial");
@@ -37,6 +39,7 @@ export const LaunchToPumpFun = ({
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [paymentTx, setPaymentTx] = useState<string | null>(null);
+  const [pumpTokenId, setPumpTokenId] = useState<string | null>(null);
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -121,23 +124,32 @@ export const LaunchToPumpFun = ({
   };
 
   const handlePaymentConfirmation = async () => {
-    if (!publicKey || !requiredSolAmount) return;
+    debugger;
+    if (!publicKey || requiredSolAmount === null) return;
 
     setPaymentStatus("processing");
+
+    let signature = null;
+
     try {
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: new PublicKey(SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS),
-          lamports: requiredSolAmount * 1e9,
-        })
-      );
+      if (requiredSolAmount > 0) {
+        const transaction = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: new PublicKey(SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS),
+            lamports: requiredSolAmount * 1e9, // Convert SOL to lamports
+          })
+        );
 
-      const signature = await wallet?.adapter.sendTransaction(transaction, new Connection(SOLANA_NETWORK_RPC));
-      if (!signature) throw new Error("Failed to send transaction");
+        signature = await sendTransaction(transaction, connection);
+        if (!signature) throw new Error("Failed to send transaction");
+        await connection.confirmTransaction(signature, "confirmed");
 
-      await new Connection(SOLANA_NETWORK_RPC).confirmTransaction(signature, "confirmed");
-      setPaymentTx(signature);
+        // Update payment transaction hash
+        setPaymentTx(signature);
+      } else {
+        signature = "FREE";
+      }
 
       // Log payment to web2 API (placeholder)
       await logPaymentToAPI({
@@ -224,6 +236,9 @@ export const LaunchToPumpFun = ({
         tx.sign([mintKeypair]); // Note: Removed signerKeyPair as we're using wallet adapter
         const signature = await web3Connection.sendTransaction(tx);
         console.log("Transaction: https://solscan.io/tx/" + signature);
+
+        setPumpTokenId(mintKeypair.publicKey.toBase58());
+
         onCloseModal(); // Close modal on success
       } else {
         throw new Error(response.statusText);
@@ -236,7 +251,6 @@ export const LaunchToPumpFun = ({
     }
   };
 
-  // Modified click handler
   const handleLaunch = () => {
     if (!validateForm()) return;
     setShowPaymentConfirmation(true);
@@ -249,7 +263,7 @@ export const LaunchToPumpFun = ({
         <h3 className="text-xl font-bold mb-4">Confirm Launch Payment</h3>
         <div className="space-y-4">
           <p>
-            Launch fee: {requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
+            Launch fee: {requiredSolAmount === 0 ? "FREE" : requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
           </p>
           <p>Your wallet balance: {walletBalance !== null ? `${walletBalance.toFixed(4)} SOL` : "Loading..."}</p>
           <p>This payment will be sent to Sigma's service wallet to launch your Music NFT on Pump.fun</p>
@@ -300,77 +314,95 @@ export const LaunchToPumpFun = ({
               <img src={tokenImg} alt={tokenName} className="w-32 h-32 rounded-lg object-cover mb-4" />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Name</label>
-              <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{tokenName}</div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Symbol</label>
-              <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{tokenSymbol}</div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none min-h-[100px]"
-              />
-              {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
-              <p className="text-xs text-gray-400 mt-1">{description.length}/800 characters</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Twitter URL</label>
-              <input
-                type="url"
-                value={twitter}
-                onChange={(e) => setTwitter(e.target.value)}
-                className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
-              />
-              {errors.twitter && <p className="text-red-500 text-xs mt-1">{errors.twitter}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Telegram URL</label>
-              <input
-                type="url"
-                value={telegram}
-                onChange={(e) => setTelegram(e.target.value)}
-                className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
-              />
-              {errors.telegram && <p className="text-red-500 text-xs mt-1">{errors.telegram}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Website</label>
-              <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{`https://sigmamusic.fm/remix?album=${tokenId}`}</div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Dev Buy Amount (SOL)</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={devBuy}
-                  onChange={(e) => setDevBuy(e.target.value)}
-                  step="any"
-                  min="0"
-                  className="flex-1 p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
-                  placeholder="0"
-                />
-                <span className="text-sm text-gray-400">Balance: {walletBalance !== null ? `${walletBalance.toFixed(4)} SOL` : "Loading..."}</span>
+            {(pumpTokenId && (
+              <div>
+                <p className="text-green-500 my-5">
+                  {tokenName}'s Pump Fun Token ID: {pumpTokenId}
+                </p>
+                <a
+                  href={`https://pump.fun/coin/${pumpTokenId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center bg-green-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
+                  View Token on Pump.fun <ArrowUpRight className="w-4 h-4 inline-block" />
+                </a>
               </div>
-              {errors.devBuy && <p className="text-red-500 text-xs mt-1">{errors.devBuy}</p>}
-            </div>
+            )) || (
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Name</label>
+                  <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{tokenName}</div>
+                </div>
 
-            <Button
-              onClick={handleLaunch}
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
-              {isLoading ? "Launching..." : "LFG, Send It to Pump.fun"}
-            </Button>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Symbol</label>
+                  <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{tokenSymbol}</div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Description</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none min-h-[100px]"
+                  />
+                  {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+                  <p className="text-xs text-gray-400 mt-1">{description.length}/800 characters</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Twitter URL</label>
+                  <input
+                    type="url"
+                    value={twitter}
+                    onChange={(e) => setTwitter(e.target.value)}
+                    className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
+                  />
+                  {errors.twitter && <p className="text-red-500 text-xs mt-1">{errors.twitter}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Telegram URL</label>
+                  <input
+                    type="url"
+                    value={telegram}
+                    onChange={(e) => setTelegram(e.target.value)}
+                    className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
+                  />
+                  {errors.telegram && <p className="text-red-500 text-xs mt-1">{errors.telegram}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Website</label>
+                  <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{`https://sigmamusic.fm/remix?album=${tokenId}`}</div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Dev Buy Amount (SOL)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={devBuy}
+                      onChange={(e) => setDevBuy(e.target.value)}
+                      step="any"
+                      min="0"
+                      className="flex-1 p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
+                      placeholder="0"
+                    />
+                    <span className="text-sm text-gray-400">Balance: {walletBalance !== null ? `${walletBalance.toFixed(4)} SOL` : "Loading..."}</span>
+                  </div>
+                  {errors.devBuy && <p className="text-red-500 text-xs mt-1">{errors.devBuy}</p>}
+                </div>
+
+                <Button
+                  onClick={handleLaunch}
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                  {isLoading ? "Launching..." : "LFG, Send It to Pump.fun"}
+                </Button>
+              </div>
+            )}
+
             {launchError && <p className="text-red-500 text-sm mt-2">{launchError}</p>}
           </div>
         </div>
@@ -413,6 +445,10 @@ export const LaunchToPumpFun = ({
           </ul>
         </div>
       </div>
+
+      {pumpTokenId && (
+        <div className="absolute top-4 right-4 bg-green-500 text-white p-4 rounded-lg">Success Token launched! You can now view it on pump.fun.</div>
+      )}
     </div>
   );
 };
