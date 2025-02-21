@@ -205,7 +205,7 @@ export const LaunchToPumpFun = ({
       formData.append("description", description);
       formData.append("twitter", twitter);
       formData.append("telegram", telegram);
-      formData.append("website", `https://sigmamusic.fm/remix?listen=${tokenId}`);
+      formData.append("website", `https://sigmamusic.fm/remix?album=${tokenId}`);
       formData.append("showName", "true");
 
       // Create IPFS metadata storage
