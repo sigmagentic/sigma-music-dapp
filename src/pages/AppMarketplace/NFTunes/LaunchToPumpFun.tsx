@@ -246,8 +246,29 @@ export const LaunchToPumpFun = ({
       if (response.ok) {
         const data = await response.arrayBuffer();
         const tx = VersionedTransaction.deserialize(new Uint8Array(data));
-        tx.sign([mintKeypair]); // Note: Removed signerKeyPair as we're using wallet adapter
-        const signature = await web3Connection.sendTransaction(tx);
+
+        // Get latest blockhash before sending transaction
+        const latestBlockhash = await connection.getLatestBlockhash();
+
+        // Sign with mintKeypair
+        tx.sign([mintKeypair]);
+
+        // Send and confirm transaction
+        const signature = await sendTransaction(tx, connection, {
+          skipPreflight: false,
+          preflightCommitment: "confirmed",
+          maxRetries: 3,
+        });
+
+        // Wait for confirmation
+        const strategy: TransactionConfirmationStrategy = {
+          signature,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        };
+
+        await connection.confirmTransaction(strategy, "finalized" as Commitment);
+
         console.log("Transaction: https://solscan.io/tx/" + signature);
 
         setPumpTokenId(mintKeypair.publicKey.toBase58());
