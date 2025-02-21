@@ -356,7 +356,11 @@ const RemixPage = () => {
                 <h3 className="text-lg font-semibold">{item.title}</h3>
               </div>
               <p className="text-sm text-gray-400">
-                Based on music by {item.basedOn}, remixed by{" "}
+                Based on music by{" "}
+                <a href={`/?artist-profile=${item.basedOn}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                  {item.basedOn}
+                </a>
+                , remixed by{" "}
                 <a href={`https://solscan.io/account/${item.remixedBy}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
                   {formatAddress(item.remixedBy)}
                 </a>{" "}
@@ -395,12 +399,12 @@ const RemixPage = () => {
                         {currentPlayingId === `${item.launchId}-${idx}` ? (
                           <>
                             {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                            <span className="ml-2 text-xs">{currentTime} - Stop Playing</span>
+                            <span className="ml-2">{currentTime} - Stop Playing</span>
                           </>
                         ) : (
                           <>
                             <Play className="w-4 h-4" />
-                            <span className="ml-2">Play Version {idx + 1}</span>
+                            <span className="ml-2">Play Track</span>
                           </>
                         )}
                       </button>
@@ -464,19 +468,58 @@ const RemixPage = () => {
                     currentPlayingId && currentPlayingId !== `graduated-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
                   }`}
                   disabled={currentPlayingId ? currentPlayingId !== `graduated-${item.launchId}` : false}
-                  onClick={() => handlePlay(item.graduatedStreamUrl || "", `graduated-${item.launchId}`)}>
+                  onClick={() => handlePlay(item.graduatedStreamUrl || item.versions[0].streamUrl, `graduated-${item.launchId}`)}>
                   {currentPlayingId === `graduated-${item.launchId}` ? (
                     <>
                       {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                      <span className="ml-2 text-xs">{currentTime} - Stop Playing</span>
+                      <span className="ml-2">{currentTime} - Stop Playing</span>
                     </>
                   ) : (
                     <>
                       <Play className="w-4 h-4" />
-                      <span className="ml-2">Version 1: {bountyBitzSumGlobalMapping[item.versions[0].bountyId]?.bitsSum || "..."} Votes</span>
+                      <span className="ml-2">Play Track</span>
                     </>
                   )}
                 </button>
+
+                {!DISABLE_BITZ_FEATURES && (
+                  <div className="albumLikes md:w-[135px] flex flex-col items-center">
+                    <div
+                      className={`${addressSol && typeof bountyBitzSumGlobalMapping[item.versions[0].bountyId]?.bitsSum !== "undefined" ? " hover:bg-orange-100 cursor-pointer dark:hover:text-orange-500" : ""} text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center`}
+                      onClick={() => {
+                        if (addressSol && typeof bountyBitzSumGlobalMapping[item.versions[0].bountyId]?.bitsSum !== "undefined") {
+                          handleSendBitzForMusicBounty({
+                            creatorIcon: item.image,
+                            creatorName: `${item.title} Version 1`,
+                            giveBitzToWho: item.remixedBy,
+                            giveBitzToCampaignId: item.versions[0].bountyId,
+                          });
+                        }
+                      }}>
+                      {typeof bountyBitzSumGlobalMapping[item.versions[0].bountyId]?.bitsSum === "undefined" ? (
+                        <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
+                      ) : (
+                        <div
+                          className="p-5 md:p-0 flex items-center gap-2"
+                          title={addressSol ? "Like This Album With 5 BiTz" : "Login to Like This Album"}
+                          onClick={() => {
+                            if (addressSol) {
+                              handleSendBitzForMusicBounty({
+                                creatorIcon: item.image,
+                                creatorName: `${item.title} Version 1`,
+                                giveBitzToWho: item.remixedBy,
+                                giveBitzToCampaignId: item.versions[0].bountyId,
+                              });
+                            }
+                          }}>
+                          {bountyBitzSumGlobalMapping[item.versions[0].bountyId]?.bitsSum}
+                          <Heart className="w-4 h-4" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className={`${!addressSol || addressSol !== item.remixedBy ? "hidden" : ""}`}>
                   <Button
                     disabled={!addressSol}
