@@ -126,6 +126,7 @@ const RemixPage = () => {
   const [bountyBitzSumGlobalMapping, setBountyBitzSumGlobalMapping] = useState<BountyBitzSumMapping>({});
   const { solBitzNfts } = useNftsStore();
   const [focusedLaunchId, setFocusedLaunchId] = useState<string | null>(null);
+  const [focusedAlbumId, setFocusedAlbumId] = useState<string | null>(null);
   const [launchMusicMemeModalOpen, setLaunchMusicMemeModalOpen] = useState<boolean>(false);
   const [launchToPumpFunModalOpen, setLaunchToPumpFunModalOpen] = useState<boolean>(false);
   const [pumpFunTokenData, setPumpFunTokenData] = useState<{
@@ -168,10 +169,18 @@ const RemixPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const launchId = params.get("launchId");
+    const albumId = params.get("album");
+
     if (launchId) {
       setFocusedLaunchId(launchId);
       // Remove focus after 5 seconds
       setTimeout(() => setFocusedLaunchId(null), 5000);
+    }
+
+    if (albumId) {
+      setFocusedAlbumId(albumId);
+      // Remove focus after 5 seconds
+      setTimeout(() => setFocusedAlbumId(null), 5000);
     }
   }, []);
 
@@ -340,7 +349,7 @@ const RemixPage = () => {
       }
     }, [item.createdOn, type]);
 
-    const isFocused = focusedLaunchId === item.launchId;
+    const isFocused = focusedLaunchId === item.launchId || focusedAlbumId === item.assetIdOrTokenName;
 
     return (
       <div
