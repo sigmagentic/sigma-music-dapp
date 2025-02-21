@@ -135,13 +135,14 @@ const RemixPage = () => {
   const [pumpFunTokenData, setPumpFunTokenData] = useState<{
     launchId: string;
     createdOn: number;
+    nftId: string;
     tokenImg: string;
     tokenName: string;
     tokenSymbol: string;
     tokenDesc: string;
     tokenId: string;
     tweet?: string;
-  }>({ launchId: "", tokenImg: "", tokenName: "", tokenSymbol: "", tokenDesc: "", tokenId: "", tweet: "", createdOn: 0 });
+  }>({ launchId: "", tokenImg: "", tokenName: "", tokenSymbol: "", tokenDesc: "", tokenId: "", tweet: "", createdOn: 0, nftId: "" });
 
   // give bits to a bounty (power up or like)
   const [giveBitzForMusicBountyConfig, setGiveBitzForMusicBountyConfig] = useState<{
@@ -602,6 +603,7 @@ const RemixPage = () => {
                       setPumpFunTokenData({
                         launchId: item.launchId,
                         createdOn: item.createdOn,
+                        nftId: item.assetIdOrTokenName,
                         tokenImg: item.image,
                         tokenName: item.title,
                         tokenSymbol: generateTokenSymbol(item.title),
@@ -1014,6 +1016,7 @@ const RemixPage = () => {
             <LaunchToPumpFun
               launchId={pumpFunTokenData.launchId}
               createdOn={pumpFunTokenData.createdOn}
+              nftId={pumpFunTokenData.nftId}
               tokenImg={pumpFunTokenData.tokenImg}
               tokenName={pumpFunTokenData.tokenName}
               tokenSymbol={pumpFunTokenData.tokenSymbol}
@@ -1022,7 +1025,7 @@ const RemixPage = () => {
               twitterUrl={pumpFunTokenData.tweet || ""}
               onCloseModal={({ refreshData }: { refreshData: boolean }) => {
                 setLaunchToPumpFunModalOpen(false);
-                setPumpFunTokenData({ launchId: "", tokenImg: "", tokenName: "", tokenSymbol: "", tokenDesc: "", tokenId: "", createdOn: 0 });
+                setPumpFunTokenData({ launchId: "", tokenImg: "", tokenName: "", tokenSymbol: "", tokenDesc: "", tokenId: "", createdOn: 0, nftId: "" });
                 if (refreshData) {
                   setShouldRefreshDataPumpFun(true);
                 }

@@ -12,6 +12,7 @@ export const LaunchToPumpFun = ({
   onCloseModal,
   launchId,
   createdOn,
+  nftId,
   tokenImg,
   tokenName,
   tokenSymbol,
@@ -22,6 +23,7 @@ export const LaunchToPumpFun = ({
   onCloseModal: ({ refreshData }: { refreshData: boolean }) => void;
   launchId: string;
   createdOn: number;
+  nftId: string;
   tokenImg: string;
   tokenName: string;
   tokenSymbol: string;
@@ -280,6 +282,7 @@ export const LaunchToPumpFun = ({
           createdOn,
           newStatus: "launched",
           pumpTokenId: mintKeypair.publicKey.toBase58(),
+          nftId,
         });
 
         onCloseModal({ refreshData: true }); // Close modal on success

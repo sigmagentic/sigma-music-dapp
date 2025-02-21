@@ -112,12 +112,14 @@ export const logStatusChangeToAPI = async ({
   newStatus,
   pumpTokenId,
   bountyId,
+  nftId,
 }: {
   launchId: string;
   createdOn: number;
   newStatus: string;
   pumpTokenId?: string;
   bountyId?: string;
+  nftId?: string;
 }) => {
   try {
     const payload: Record<string, string | number> = {
@@ -132,6 +134,10 @@ export const logStatusChangeToAPI = async ({
 
     if (bountyId) {
       payload.bountyId = bountyId;
+    }
+
+    if (nftId) {
+      payload.nftId = nftId;
     }
 
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/updateLaunchStatus`, {
