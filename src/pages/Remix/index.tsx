@@ -38,6 +38,7 @@ interface Launch {
   assetIdOrTokenName: string;
   tweet?: string; // the tweet link that started it all
   pumpTokenId?: string; // the pump token id
+  prompt?: string; // the prompt that started it all
 }
 
 const VOTES_TO_GRADUATE = 30;
@@ -83,6 +84,7 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
                 <th className="text-left p-2">Task</th>
                 <th className="text-left p-2">Launch Details</th>
                 <th className="text-left p-2">Transaction</th>
+                <th className="text-left p-2">Prompt</th>
               </tr>
             </thead>
             <tbody>
@@ -104,6 +106,19 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
                       {job.tx.slice(0, 4)}...{job.tx.slice(-4)}
                     </a>
                   </td>
+                  {job.prompt && (
+                    <td className="p-2">
+                      <a href={job.prompt} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                        <a
+                          href={`https://twitter.com/intent/tweet?text=${job.prompt}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-full text-center bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
+                          Send Prompt to Sigma on X
+                        </a>
+                      </a>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -437,7 +452,7 @@ const RemixPage = () => {
               <p className="text-xs text-gray-600">
                 Music Token:{" "}
                 <a
-                  href={`https://solscan.io/token/Ceh3mR1AkiERPqzB6SiZgX9Jtk9fxWyWjWmhbWfQffiB`}
+                  href={`https://solscan.io/token/${item.assetIdOrTokenName}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-yellow-500 hover:underline">

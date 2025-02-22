@@ -13,7 +13,7 @@ const MAX_TITLE_LENGTH = 20;
 
 // max length
 /*
-yo @SigmaXMusic create a single titled "I'm So Sigma" in D&B style. code XXXXX. Send it to 7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj. SOL payment: 2acubH5SW2zuDn1kkD6K4uBZxM8G2KHLYnmDchHHSyuTeZfqjhcVjGFRjTEinYNsYtmTRbzogsxVFg1Qbfwcttx1. Action: CREATE_MUSIC_PLAYLIST
+yo @SigmaXMusic create a music single titled "I'm So Sigma" in D&B style. code XXXXX. Send it to 7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj. SOL payment: 2acubH5SW2zuDn1kkD6K4uBZxM8G2KHLYnmDchHHSyuTeZfqjhcVjGFRjTEinYNsYtmTRbzogsxVFg1Qbfwcttx1. Action: CREATE_MUSIC_PLAYLIST
 */
 
 export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) => {
@@ -108,6 +108,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         tx: signature,
         task: "gen",
         amount: requiredSolAmount.toString(),
+        prompt: getTweetUrl(true),
       });
 
       toastSuccess("Payment Successful!", true);
@@ -169,11 +170,11 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     </div>
   );
 
-  const getTweetUrl = () => {
+  const getTweetUrl = (sendBackOnlyText: boolean = false) => {
     const tweetText = encodeURIComponent(
-      `yo @SigmaXMusic create a single titled "${songTitle}" in ${musicStyle} style. Send it to ${publicKey?.toBase58()}. SOL payment: ${paymentTx}. Action: CREATE_MUSIC_PLAYLIST`
+      `yo @SigmaXMusic create a music single titled "${songTitle}" in ${musicStyle} style. Send it to ${publicKey?.toBase58()}. SOL payment: ${paymentTx}. Action: CREATE_MUSIC_PLAYLIST`
     );
-    return `https://twitter.com/intent/tweet?text=${tweetText}`;
+    return sendBackOnlyText ? tweetText : `https://twitter.com/intent/tweet?text=${tweetText}`;
   };
 
   return (
@@ -249,7 +250,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
               </Button>
             ) : (
               <a
-                href={getTweetUrl()}
+                href={getTweetUrl(false)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full text-center bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
