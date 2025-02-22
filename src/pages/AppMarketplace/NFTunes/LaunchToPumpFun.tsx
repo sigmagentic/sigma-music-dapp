@@ -6,6 +6,7 @@ import { PublicKey } from "@solana/web3.js";
 import { ArrowUpRight } from "lucide-react";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
+import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI } from "libs/utils/misc";
 
 export const LaunchToPumpFun = ({
@@ -35,7 +36,8 @@ export const LaunchToPumpFun = ({
   const { connection } = useConnection();
   const [description, setDescription] = useState(tokenDesc);
   const [twitter, setTwitter] = useState("https://x.com/SigmaXMusic");
-  const [telegram, setTelegram] = useState("https://t.me/SigmaXMusicOfficial");
+  // const [telegram, setTelegram] = useState("https://t.me/SigmaXMusicOfficial");
+  const [telegram, setTelegram] = useState("https://t.me/web3musicorg");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [launchError, setLaunchError] = useState<string | null>(null);
@@ -177,6 +179,7 @@ export const LaunchToPumpFun = ({
         amount: requiredSolAmount.toString(),
       });
 
+      toastSuccess("Payment Successful!", true);
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
       // Proceed with token launch
@@ -191,6 +194,7 @@ export const LaunchToPumpFun = ({
   // Separate the token launch logic from payment
   const handleTokenLaunch = async () => {
     setIsLoading(true);
+
     try {
       // Initialize connection
       if (!SOLANA_NETWORK_RPC) {
@@ -213,7 +217,8 @@ export const LaunchToPumpFun = ({
           description,
           twitter,
           telegram,
-          website: `https://sigmamusic.fm/remix?album=${tokenId}`,
+          // website: `https://sigmamusic.fm/remix?album=${tokenId}`,
+          website: `https://www.web3music.org/`,
         }),
       });
 
@@ -284,8 +289,6 @@ export const LaunchToPumpFun = ({
           pumpTokenId: mintKeypair.publicKey.toBase58(),
           nftId,
         });
-
-        onCloseModal({ refreshData: true }); // Close modal on success
       } else {
         throw new Error(response.statusText);
       }
@@ -317,7 +320,7 @@ export const LaunchToPumpFun = ({
 
           {paymentStatus === "processing" ? (
             <div className="text-center">
-              <p>Processing payment...</p>
+              <p className="text-yellow-500">⚙️ Payment transfer in process... do not close this page</p>
             </div>
           ) : paymentStatus === "confirmed" ? (
             <div className="text-center text-green-500">
@@ -345,7 +348,8 @@ export const LaunchToPumpFun = ({
       <div className="relative bg-[#1A1A1A] rounded-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Close button - adjusted positioning and styling */}
         <button
-          onClick={() => onCloseModal({ refreshData: false })}
+          disabled={isLoading || paymentStatus === "processing"}
+          onClick={() => onCloseModal({ refreshData: true })}
           className="absolute top-2 right-0 w-10 h-10 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-50 shadow-lg">
           ✕
         </button>
@@ -421,7 +425,8 @@ export const LaunchToPumpFun = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Website</label>
-                  <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{`https://sigmamusic.fm/remix?album=${tokenId}`}</div>
+                  {/* <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{`https://sigmamusic.fm/remix?album=${tokenId}`}</div> */}
+                  <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{`https://www.web3music.org/`}</div>
                 </div>
 
                 <div>

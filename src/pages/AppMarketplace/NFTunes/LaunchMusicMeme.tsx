@@ -4,6 +4,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
+import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, logPaymentToAPI } from "libs/utils/misc";
 
 const MUSIC_STYLES = ["D&B", "EDM"];
@@ -109,6 +110,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         amount: requiredSolAmount.toString(),
       });
 
+      toastSuccess("Payment Successful!", true);
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
       setPromptGenerated(true);
@@ -146,7 +148,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
 
           {paymentStatus === "processing" ? (
             <div className="text-center">
-              <p>Payment transfer in process... do not close this page</p>
+              <p className="text-yellow-500">⚙️ Payment transfer in process... do not close this page</p>
             </div>
           ) : paymentStatus === "confirmed" ? (
             <div className="text-center text-green-500">
@@ -181,6 +183,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
       <div className="relative bg-[#1A1A1A] rounded-lg p-6 max-w-5xl w-full mx-4 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Close button - moved outside the grid */}
         <button
+          disabled={paymentStatus === "processing"}
           onClick={onCloseModal}
           className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
           ✕

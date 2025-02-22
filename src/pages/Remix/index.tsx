@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
 import { debounce } from "lodash";
-import { ArrowUpRight, Heart, Loader, Pause, Play } from "lucide-react";
+import { ArrowUpRight, Heart, Info, Loader, Pause, Play } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthRedirectWrapper } from "components";
 import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON, SIGMA_MEME_FEATURE_WHITELIST } from "config";
@@ -40,8 +40,8 @@ interface Launch {
   pumpTokenId?: string; // the pump token id
 }
 
-const VOTES_TO_GRADUATE = 20;
-const HOURS_TO_GRADUATE = 24;
+const VOTES_TO_GRADUATE = 30;
+// const HOURS_TO_GRADUATE = 24;
 
 // Add this custom toast style near the top of the file after imports
 const customToastStyle = {
@@ -191,6 +191,8 @@ const RemixPage = () => {
       try {
         const responseA = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/launchesByStatus/launched`);
         setOnPumpFunLaunchesData(responseA.data);
+        const responseB = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/launchesByStatus/graduated`);
+        setGraduatedLaunchesData(responseB.data);
       } catch (error) {
         console.error("Error refreshing graduated data:", error);
       }
@@ -367,24 +369,24 @@ const RemixPage = () => {
     }
   };
 
-  const calculateTimeProgress = (startTimestampMilliSeconds: number) => {
-    const nowMilliSeconds = Date.now();
-    const endTimeMilliSeconds = startTimestampMilliSeconds + HOURS_TO_GRADUATE * 60 * 60 * 1000; // 24 hours in milliseconds
-    const timeLeftMilliSeconds = endTimeMilliSeconds - nowMilliSeconds;
+  // const calculateTimeProgress = (startTimestampMilliSeconds: number) => {
+  //   const nowMilliSeconds = Date.now();
+  //   const endTimeMilliSeconds = startTimestampMilliSeconds + HOURS_TO_GRADUATE * 60 * 60 * 1000; // 24 hours in milliseconds
+  //   const timeLeftMilliSeconds = endTimeMilliSeconds - nowMilliSeconds;
 
-    // Calculate progress percentage
-    const progress = Math.max(0, Math.min(100, (timeLeftMilliSeconds / (HOURS_TO_GRADUATE * 60 * 60 * 1000)) * 100));
+  //   // Calculate progress percentage
+  //   const progress = Math.max(0, Math.min(100, (timeLeftMilliSeconds / (HOURS_TO_GRADUATE * 60 * 60 * 1000)) * 100));
 
-    // Format time left for display
-    const hoursLeft = Math.max(0, Math.floor(timeLeftMilliSeconds / (1000 * 60 * 60)));
-    const minutesLeft = Math.max(0, Math.floor((timeLeftMilliSeconds % (1000 * 60 * 60)) / (1000 * 60)));
+  //   // Format time left for display
+  //   const hoursLeft = Math.max(0, Math.floor(timeLeftMilliSeconds / (1000 * 60 * 60)));
+  //   const minutesLeft = Math.max(0, Math.floor((timeLeftMilliSeconds % (1000 * 60 * 60)) / (1000 * 60)));
 
-    return {
-      progress,
-      timeLeftText: timeLeftMilliSeconds <= 0 ? "Expired" : `${hoursLeft}h ${minutesLeft}m left`,
-      isExpired: timeLeftMilliSeconds <= 0,
-    };
-  };
+  //   return {
+  //     progress,
+  //     timeLeftText: timeLeftMilliSeconds <= 0 ? "Expired" : `${hoursLeft}h ${minutesLeft}m left`,
+  //     isExpired: timeLeftMilliSeconds <= 0,
+  //   };
+  // };
 
   const formatAddress = (address: string) => {
     if (address.length < 8) return address;
@@ -392,18 +394,18 @@ const RemixPage = () => {
   };
 
   const LaunchCard = ({ item, type, idx }: { item: Launch; type: string; idx: number }) => {
-    const [timeProgress, setTimeProgress] = useState(() => calculateTimeProgress(item.createdOn));
+    // const [timeProgress, setTimeProgress] = useState(() => calculateTimeProgress(item.createdOn));
 
-    // Update progress every minute
-    useEffect(() => {
-      if (type === "new") {
-        const interval = setInterval(() => {
-          setTimeProgress(calculateTimeProgress(item.createdOn));
-        }, 60000); // Update every minute
+    // // Update progress every minute
+    // useEffect(() => {
+    //   if (type === "new") {
+    //     const interval = setInterval(() => {
+    //       setTimeProgress(calculateTimeProgress(item.createdOn));
+    //     }, 60000); // Update every minute
 
-        return () => clearInterval(interval);
-      }
-    }, [item.createdOn, type]);
+    //     return () => clearInterval(interval);
+    //   }
+    // }, [item.createdOn, type]);
 
     const isFocused = focusedLaunchId === item.launchId || focusedAlbumId === item.assetIdOrTokenName;
 
@@ -455,57 +457,57 @@ const RemixPage = () => {
           <div className="mt-4">
             {type === "new" && (
               <>
-                <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
+                {/* <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
                   <div className="w-full bg-gray-700 h-1 rounded-full">
                     <div className="bg-yellow-500 h-1 rounded-full transition-all duration-1000" style={{ width: `${timeProgress.progress}%` }}></div>
                   </div>
                   <span className={timeProgress.isExpired ? "text-red-500" : ""}>{timeProgress.timeLeftText}</span>
-                </div>
+                </div> */}
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="text-xs text-gray-400">Vote with XP to graduate this music meme</div>
                   {item.versions.map((version: Version, idx2: number) => (
-                    <div key={idx2} className="flex items-center justify-between">
-                      <button
-                        className={`flex items-center gap-2 ${
-                          currentPlayingId && currentPlayingId !== `${item.launchId}-${idx2}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
-                        }`}
-                        disabled={currentPlayingId ? currentPlayingId !== `${item.launchId}-${idx2}` : false}
-                        onClick={() => handlePlay(version.streamUrl, `${item.launchId}-${idx2}`)}>
-                        {currentPlayingId === `${item.launchId}-${idx2}` ? (
-                          <>
-                            {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                            <span className="ml-2">{currentTime} - Stop Playing</span>
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-4 h-4" />
-                            <span className="ml-2">Play Track</span>
-                          </>
-                        )}
-                      </button>
-                      <div className="flex items-center gap-2">
-                        {!DISABLE_BITZ_FEATURES && (
-                          <div className="albumLikes md:w-[135px] flex flex-col items-center">
-                            <div
-                              className={`${addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined" ? " hover:bg-orange-100 cursor-pointer dark:hover:text-orange-500" : ""} text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center`}
-                              onClick={() => {
-                                if (addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined") {
-                                  handleSendBitzForMusicBounty({
-                                    creatorIcon: item.image,
-                                    creatorName: `${item.title} Version ${idx2 + 1}`,
-                                    giveBitzToWho: item.remixedBy,
-                                    giveBitzToCampaignId: version.bountyId,
-                                  });
-                                }
-                              }}>
-                              {typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum === "undefined" ? (
-                                <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
-                              ) : (
+                    <div key={idx2} className="flex flex-col gap-2">
+                      <div className="votes-progress flex items-center gap-2 text-xs text-gray-400">
+                        <div className="w-full bg-gray-700 h-1 rounded-full">
+                          <div
+                            className="bg-green-500 h-1 rounded-full transition-all duration-1000"
+                            style={{
+                              width: `${Math.min(100, ((bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0) / VOTES_TO_GRADUATE) * 100)}%`,
+                            }}></div>
+                        </div>
+                        <span>
+                          {hasGraduated({ launchId: item.launchId, createdOn: item.createdOn, bountyId: version.bountyId })
+                            ? "Graduated!"
+                            : `${VOTES_TO_GRADUATE - (bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0)} More Votes Needed`}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <button
+                          className={`flex items-center gap-2 ${
+                            currentPlayingId && currentPlayingId !== `${item.launchId}-${idx2}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
+                          }`}
+                          disabled={currentPlayingId ? currentPlayingId !== `${item.launchId}-${idx2}` : false}
+                          onClick={() => handlePlay(version.streamUrl, `${item.launchId}-${idx2}`)}>
+                          {currentPlayingId === `${item.launchId}-${idx2}` ? (
+                            <>
+                              {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
+                              <span className="ml-2">{currentTime} - Stop Playing</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4" />
+                              <span className="ml-2">Play Track</span>
+                            </>
+                          )}
+                        </button>
+                        <div className="flex flex-col gap-2 flex-grow ml-4">
+                          <div className="flex items-center gap-2">
+                            {!DISABLE_BITZ_FEATURES && (
+                              <div className="albumLikes md:w-[135px] flex flex-col items-center">
                                 <div
-                                  className="p-5 md:p-0 flex items-center gap-2"
-                                  title={addressSol ? "Like This Album With 5 BiTz" : "Login to Like This Album"}
+                                  className={`${addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined" ? " hover:bg-orange-100 cursor-pointer dark:hover:text-orange-500" : ""} text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center`}
                                   onClick={() => {
-                                    if (addressSol) {
+                                    if (addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined") {
                                       handleSendBitzForMusicBounty({
                                         creatorIcon: item.image,
                                         creatorName: `${item.title} Version ${idx2 + 1}`,
@@ -514,21 +516,31 @@ const RemixPage = () => {
                                       });
                                     }
                                   }}>
-                                  {bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum}
-                                  <Heart className="w-4 h-4" />
+                                  {typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum === "undefined" ? (
+                                    <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
+                                  ) : (
+                                    <div
+                                      className="p-5 md:p-0 flex items-center gap-2"
+                                      title={addressSol ? "Like This Album With 5 BiTz" : "Login to Like This Album"}
+                                      onClick={() => {
+                                        if (addressSol) {
+                                          handleSendBitzForMusicBounty({
+                                            creatorIcon: item.image,
+                                            creatorName: `${item.title} Version ${idx2 + 1}`,
+                                            giveBitzToWho: item.remixedBy,
+                                            giveBitzToCampaignId: version.bountyId,
+                                          });
+                                        }
+                                      }}>
+                                      {bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum}
+                                      <Heart className="w-4 h-4" />
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-
-                        <span className="text-xs text-gray-400">
-                          {hasGraduated({ launchId: item.launchId, createdOn: item.createdOn, bountyId: version.bountyId }) ? (
-                            <span className="text-green-500">🎉 Graduated... stay tuned!</span>
-                          ) : (
-                            `${VOTES_TO_GRADUATE - (bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0)} More Votes To Graduate`
-                          )}
-                        </span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -537,7 +549,7 @@ const RemixPage = () => {
             )}
 
             {type === "graduated" && (
-              <div className="mt-2 flex items-center justify-between">
+              <div className="mt-2 flex flex-col xl:flex-row items-center justify-between">
                 <button
                   className={`flex items-center gap-2 ${
                     currentPlayingId && currentPlayingId !== `graduated-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
@@ -600,20 +612,31 @@ const RemixPage = () => {
                     disabled={!addressSol}
                     className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm text-center p-2 md:p-4 rounded-lg"
                     onClick={() => {
+                      // setPumpFunTokenData({
+                      //   launchId: item.launchId,
+                      //   createdOn: item.createdOn,
+                      //   nftId: item.assetIdOrTokenName,
+                      //   tokenImg: item.image,
+                      //   tokenName: item.title,
+                      //   tokenSymbol: generateTokenSymbol(item.title),
+                      //   tokenDesc: `Official AI Music Meme Coin to access the launch of ${item.title} of Sigma Music. Owning this token grants you fractionalized ownership of the music track forever.`,
+                      //   tokenId: item.assetIdOrTokenName.replaceAll(" ", "_"),
+                      //   tweet: item.tweet || "",
+                      // });
                       setPumpFunTokenData({
                         launchId: item.launchId,
                         createdOn: item.createdOn,
                         nftId: item.assetIdOrTokenName,
                         tokenImg: item.image,
                         tokenName: item.title,
-                        tokenSymbol: generateTokenSymbol(item.title),
-                        tokenDesc: `Official AI Music Meme Coin to access the launch of ${item.title} of Sigma Music. Owning this token grants you fractionalized ownership of the music track forever.`,
+                        tokenSymbol: "MUSICX1",
+                        tokenDesc: `Official AI Music Meme Coin to access the launch of ${item.title}. Owning this token grants you fractionalized ownership of the music track forever.`,
                         tokenId: item.assetIdOrTokenName.replaceAll(" ", "_"),
-                        tweet: item.tweet || "",
+                        tweet: "https://www.web3music.org/",
                       });
                       setLaunchToPumpFunModalOpen(true);
                     }}>
-                    <div>Fractionalize and Launch on Pump.fun</div>
+                    <div>Send to Pump.fun</div>
                   </Button>
                 </div>
               </div>
@@ -643,7 +666,7 @@ const RemixPage = () => {
                   href={`https://pump.fun/coin/${item.pumpTokenId}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-1 bg-gradient-to-r from-yellow-500 to-green-500 rounded-full text-sm">
+                  className="px-4 py-1 text-black bg-gradient-to-r from-yellow-500 to-green-500 rounded-full text-sm">
                   View on Pump.fun
                 </a>
               </div>
@@ -821,11 +844,7 @@ const RemixPage = () => {
                   )
                 }
                 className="p-1 rounded-full hover:bg-white/10">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
+                <Info className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4">
@@ -880,11 +899,7 @@ const RemixPage = () => {
                   )
                 }
                 className="p-1 rounded-full hover:bg-white/10">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
+                <Info className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4">
@@ -909,7 +924,7 @@ const RemixPage = () => {
           {/* Pump.fun Launches */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-2xl font-semibold">Token Launches on Pump.fun</h2>
+              <h2 className="!text-2xl font-semibold">Launched on Pump.fun</h2>
               <button
                 onClick={() =>
                   toast(
@@ -917,7 +932,7 @@ const RemixPage = () => {
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
                           <p className="mb-4">
-                            <strong className="text-yellow-500">Token Launches on Pump.fun:</strong> These fractionalized Music NFTs are available for purchase
+                            <strong className="text-yellow-500">Token Launched on Pump.fun:</strong> These fractionalized Music NFTs are available for purchase
                             on pump.fun as AI Music Meme Coins.
                           </p>
                           <p className="mb-4">
@@ -935,11 +950,7 @@ const RemixPage = () => {
                   )
                 }
                 className="p-1 rounded-full hover:bg-white/10">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
+                <Info className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4">
