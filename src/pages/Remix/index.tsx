@@ -731,12 +731,6 @@ const RemixPage = () => {
     });
   }
 
-  const isWalletWhitelisted = (wallet: string | undefined) => {
-    if (!wallet || !SIGMA_MEME_FEATURE_WHITELIST) return false;
-    const whitelistedAddresses = SIGMA_MEME_FEATURE_WHITELIST.split(",").map((addr) => addr.trim());
-    return whitelistedAddresses.includes(wallet);
-  };
-
   const generateTokenSymbol = (title: string): string => {
     // Remove any non-alphabetic characters and convert to uppercase
     const cleanTitle = title.replace(/[^A-Za-z]/g, "").toUpperCase();
@@ -789,6 +783,12 @@ const RemixPage = () => {
     return tokenGraduated;
   };
 
+  const isWalletWhitelisted = (wallet: string | undefined) => {
+    if (!wallet || !SIGMA_MEME_FEATURE_WHITELIST) return false;
+    const whitelistedAddresses = SIGMA_MEME_FEATURE_WHITELIST.split(",").map((addr) => addr.trim());
+    return whitelistedAddresses.includes(wallet);
+  };
+
   return (
     <>
       <div className="flex flex-col w-full min-h-screen p-6">
@@ -829,7 +829,7 @@ const RemixPage = () => {
           {/* New */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-2xl font-semibold">Vote on New AI Meme Coins</h2>
+              <h2 className="!text-2xl font-semibold">Vote on New AI Music Meme Coins</h2>
               <button
                 onClick={() =>
                   toast(

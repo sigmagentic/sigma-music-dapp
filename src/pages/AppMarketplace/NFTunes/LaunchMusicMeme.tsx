@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
+import axios from "axios";
+import { Loader } from "lucide-react";
 import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
@@ -27,6 +29,10 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [paymentTx, setPaymentTx] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -109,6 +115,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         task: "gen",
         amount: requiredSolAmount.toString(),
         prompt: getTweetUrl(true),
+        inviteCodeUsed: inviteCode,
       });
 
       toastSuccess("Payment Successful!", true);
@@ -177,6 +184,25 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     return sendBackOnlyText ? tweetText : `https://twitter.com/intent/tweet?text=${tweetText}`;
   };
 
+  const handleVerifyInviteCode = async () => {
+    setIsVerifying(true);
+    setVerificationError("");
+
+    try {
+      const response = await axios.get(`https://api.itheumcloud.com/itheumapi/check-invitation/${inviteCode}`);
+      if (response.data.exists && !response.data.isUsed) {
+        setIsVerified(true);
+        toastSuccess("Invite code verified!", true);
+      } else {
+        setVerificationError("Invite code cannot be used, are you sure it's good?");
+      }
+    } catch (error) {
+      setVerificationError("Error verifying invite code. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       {showPaymentConfirmation && <PaymentConfirmationPopup />}
@@ -197,7 +223,34 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
           </div>
 
           <div className="space-y-4">
-            <div className={`flex flex-col gap-4 ${promptGenerated ? "opacity-50 cursor-not-allowed" : ""}`}>
+            <div>
+              <label className="block text-sm font-medium mb-2">Invite Code</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                  disabled={isVerified}
+                  placeholder="Enter your invite code"
+                  className={`w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none ${isVerified ? "opacity-50" : ""}`}
+                />
+                <Button disabled={inviteCode.length < 5 || isVerifying || isVerified} onClick={handleVerifyInviteCode} className="whitespace-nowrap">
+                  {isVerifying ? (
+                    <div className="flex items-center gap-2">
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Verifying...
+                    </div>
+                  ) : isVerified ? (
+                    "Verified"
+                  ) : (
+                    "Verify"
+                  )}
+                </Button>
+              </div>
+              {verificationError && <p className="text-red-500 text-sm mt-1">{verificationError}</p>}
+            </div>
+
+            <div className={`flex flex-col gap-4 ${!isVerified ? "opacity-50" : ""} ${promptGenerated ? "opacity-50 cursor-not-allowed" : ""}`}>
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Song Title / Lyrics Theme
@@ -207,6 +260,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
                   type="text"
                   value={songTitle}
                   onChange={handleTitleChange}
+                  disabled={!isVerified}
                   maxLength={MAX_TITLE_LENGTH}
                   placeholder={EXAMPLE_THEMES.join(" • ")}
                   className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
@@ -218,6 +272,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
                 <select
                   value={musicStyle}
                   onChange={(e) => setMusicStyle(e.target.value)}
+                  disabled={!isVerified}
                   className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none">
                   {MUSIC_STYLES.map((style) => (
                     <option key={style} value={style}>
@@ -245,6 +300,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
             {!promptGenerated ? (
               <Button
                 onClick={handleGeneratePrompt}
+                disabled={!isVerified}
                 className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
                 Make Payment and Generate Prompt for Sigma
               </Button>
@@ -266,7 +322,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
           <ul className="space-y-3 list-none">
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">1.</span>
-              Fill the form for your music meme preferences
+              Enter an invite code and fill the form for your music meme preferences
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">2.</span>
