@@ -837,12 +837,12 @@ const RemixPage = () => {
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
                           <p className="mb-4">
-                            <strong className="text-yellow-500">New AI Meme Coin Candidates:</strong> 'Remixers' (anyone can be a 'Remixer' by 'Launch an AI
-                            Music Meme Coin Now') use Sigma Music AI to generate a remix album based on real-world music content.
+                            <strong className="text-yellow-500">New AI Meme Coin Candidates:</strong> 'Remixers' use Sigma Music AI to generate a remix album
+                            based on real-world music content. (Click on the "Launch an AI Music Meme Coin Now!" button to generate your own!)
                           </p>
                           <p className="mb-4">
                             However, the music may not be ready for the mainstream since Music LLMs are not very mature and need improvement. If you see (and
-                            listen to) a new candidate music NFT that sounds great, you can use your XP points to vote for it to 'graduate'.
+                            listen to) a new Music NFT that sounds great, you can use your XP points to vote for it to 'graduate'.
                           </p>
                           <p>
                             This helps Sigma improve her Music LLM model by identifying content that is more attractive to human listeners. At the same time, it
