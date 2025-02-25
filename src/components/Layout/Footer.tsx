@@ -14,9 +14,9 @@ export const Footer = () => {
               Sigma Music (Beta)
             </p>
             <p className="text-xs md:text-sm">
-              Sigma Music is a revolutionary music platform powered by Blockchain, Itheum (a data NFT platform), and AI Agent technology. Real-world musicians
-              can launch their music as Music Data NFTs on Sigma Music and have Sigma, an AI Agent, serve as their music agent and help them amplify their music
-              to a new generation of fans.
+              Sigma Music is a revolutionary music platform powered by Blockchain, Itheum (a data NFT platform), and AI Agent technology. Musicians can launch
+              their music as Music Data NFTs and have Sigma AI serve as their music agent to amplify their reach. With Sigma Remix, users can remix opted-in
+              tracks, which are tokenized into music meme coins and launched on pump.fun, creating immediate liquidity and new fanbases.
             </p>
           </div>
           <div className="">
@@ -70,8 +70,14 @@ export const Footer = () => {
                 </li>
                 <li>
                   {"> "}
+                  <a href="https://t.me/SigmaXMusicOfficial" target="_blank" className="hover:underline">
+                    Official Telegram Community
+                  </a>
+                </li>
+                <li>
+                  {"> "}
                   <a href="https://drip.haus/itheum" target="_blank" className="hover:underline">
-                    Music on our Drip Haus Channel
+                    Get Sigma Music NFTs on Drip Haus
                   </a>
                 </li>
                 <li>

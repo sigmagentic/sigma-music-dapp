@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
@@ -12,6 +12,23 @@ import { fetchSolPrice, logPaymentToAPI } from "libs/utils/misc";
 const MUSIC_STYLES = ["D&B", "EDM"];
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
 const MAX_TITLE_LENGTH = 20;
+
+const MUSIC_STYLE_OPTIONS = [
+  {
+    id: "dnb",
+    label: "Seimic Pulse Style D&B Track by 7g0Strike",
+    value: "D&B",
+    previewUrl: "https://raw.githubusercontent.com/Itheum/data-assets/main/Misc/1-dnandb-seimicpulse-a.mp3",
+    enabled: true,
+  },
+  {
+    id: "coming-soon",
+    label: "More track styles coming soon",
+    value: "",
+    previewUrl: "",
+    enabled: false,
+  },
+];
 
 // max length
 /*
@@ -33,6 +50,8 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [verificationError, setVerificationError] = useState("");
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -142,6 +161,29 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     setSongTitle(value);
   };
 
+  const handlePlayPreview = (trackId: string, previewUrl: string) => {
+    if (playingAudio === trackId) {
+      audioRef.current?.pause();
+      setPlayingAudio(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      audioRef.current = new Audio(previewUrl);
+      audioRef.current.play();
+      setPlayingAudio(trackId);
+    }
+  };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
+
   // Payment confirmation popup
   const PaymentConfirmationPopup = () => (
     <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
@@ -209,6 +251,57 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     }
   };
 
+  const MusicStyleSelector = () => (
+    <div className="space-y-3">
+      <label className="block text-sm font-medium mb-2">Remix Music Style</label>
+      <div className="space-y-2">
+        {MUSIC_STYLE_OPTIONS.map((style) => (
+          <button
+            key={style.id}
+            disabled={!style.enabled || !isVerified}
+            onClick={() => style.enabled && setMusicStyle(style.value)}
+            className={`
+              w-full p-4 rounded-lg border transition-all duration-300
+              flex items-center justify-between
+              ${
+                !style.enabled
+                  ? "opacity-50 cursor-not-allowed bg-gray-800 border-gray-700"
+                  : musicStyle === style.value
+                    ? "border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-orange-500/10"
+                    : "border-gray-600 hover:border-yellow-500 bg-[#2A2A2A]"
+              }
+            `}>
+            <span>{style.label}</span>
+            {style.enabled && style.previewUrl && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePlayPreview(style.id, style.previewUrl);
+                }}
+                className="p-2 rounded-full hover:bg-black/30">
+                {playingAudio === style.id ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6h4v12H6zm8 0h4v12h-4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </button>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       {showPaymentConfirmation && <PaymentConfirmationPopup />}
@@ -259,7 +352,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
             <div className={`flex flex-col gap-4 ${!isVerified ? "opacity-50" : ""} ${promptGenerated ? "opacity-50 cursor-not-allowed" : ""}`}>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Song Title / Lyrics Theme
+                  Song Title. (Also used as lyrics theme)
                   <span className="float-right text-gray-400">{MAX_TITLE_LENGTH - songTitle.length} characters left</span>
                 </label>
                 <input
@@ -273,20 +366,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Art / Music Style</label>
-                <select
-                  value={musicStyle}
-                  onChange={(e) => setMusicStyle(e.target.value)}
-                  disabled={!isVerified}
-                  className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none">
-                  {MUSIC_STYLES.map((style) => (
-                    <option key={style} value={style}>
-                      {style}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <MusicStyleSelector />
 
               <div>
                 <label className="block text-sm font-medium mb-2">Your Wallet Address (for receiving the music NFT)</label>
