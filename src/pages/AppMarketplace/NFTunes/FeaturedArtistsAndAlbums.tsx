@@ -305,7 +305,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             "backgroundImage": `url(${artist.img})`,
                             "backgroundPosition": getImagePosition(artist.img),
                           }}>
-                          <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-xl">
+                          <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
                             <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artist.name.replaceAll("_", " ")}</h2>
                           </div>
                         </div>
@@ -340,7 +340,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         }}>
                         <>
                           <CircleArrowLeft />
-                          <span className="ml-2">Back to All Artists</span>
+                          rounded-b- <span className="ml-2">Back to All Artists</span>
                         </>
                       </Button>
 
@@ -351,7 +351,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             style={{
                               "backgroundImage": `url(${artistProfile.img})`,
                             }}>
-                            <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-xl">
+                            <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
                               <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artistProfile.name.replaceAll("_", " ")}</h2>
                             </div>
                           </div>

@@ -16,7 +16,8 @@ const MAX_TITLE_LENGTH = 20;
 const MUSIC_STYLE_OPTIONS = [
   {
     id: "dnb",
-    label: "Seimic Pulse Style D&B Track by 7g0Strike",
+    label: "Seimic Pulse Style D&B Track by {7g0Strike}",
+    artistBlob: "7g0strike",
     value: "D&B",
     previewUrl: "https://raw.githubusercontent.com/Itheum/data-assets/main/Misc/1-dnandb-seimicpulse-a.mp3",
     enabled: true,
@@ -253,7 +254,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
 
   const MusicStyleSelector = () => (
     <div className="space-y-3">
-      <label className="block text-sm font-medium mb-2">Remix Music Style</label>
+      <label className="block text-sm font-medium mb-2">Pick Remix Music Style</label>
       <div className="space-y-2">
         {MUSIC_STYLE_OPTIONS.map((style) => (
           <button
@@ -271,7 +272,23 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
                     : "border-gray-600 hover:border-yellow-500 bg-[#2A2A2A]"
               }
             `}>
-            <span>{style.label}</span>
+            <span>
+              {style.label.split(/{|}/g).map((part, index) => {
+                if (index % 2 === 1 && style.artistBlob) {
+                  return (
+                    <a
+                      key={index}
+                      href={`?artist-profile=${style.artistBlob}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300">
+                      {part}
+                    </a>
+                  );
+                }
+                return part;
+              })}
+            </span>
             {style.enabled && style.previewUrl && (
               <button
                 onClick={(e) => {
