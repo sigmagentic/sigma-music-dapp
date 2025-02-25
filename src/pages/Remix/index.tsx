@@ -269,7 +269,7 @@ const RemixPage = () => {
         // Fetch payment logs if user is logged in
         if (addressSol) {
           const responseD = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/paymentLogs?payer=${addressSol}`);
-          setMyJobsPayments(responseD.data);
+          setMyJobsPayments(responseD.data.reverse());
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -307,7 +307,7 @@ const RemixPage = () => {
       setMyJobsPayments([]);
       await sleep(1);
       const responseC = await axios.get(`${getApiWeb2Apps()}/datadexapi/sigma/paymentLogs?payer=${addressSol}`);
-      setMyJobsPayments(responseC.data);
+      setMyJobsPayments(responseC.data.reverse());
     }
   };
 

@@ -114,7 +114,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         tx: signature,
         task: "gen",
         amount: requiredSolAmount.toString(),
-        prompt: getTweetUrl(true),
+        prompt: getTweetUrl(true, signature),
         inviteCodeUsed: inviteCode,
       });
 
@@ -177,9 +177,15 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     </div>
   );
 
-  const getTweetUrl = (sendBackOnlyText: boolean = false) => {
+  const getTweetUrl = (sendBackOnlyText: boolean = false, _paymentTx?: string) => {
+    let paymentTxToUse = paymentTx;
+
+    if (_paymentTx) {
+      paymentTxToUse = _paymentTx;
+    }
+
     const tweetText = encodeURIComponent(
-      `yo @SigmaXMusic create a music single titled "${songTitle}" in ${musicStyle} style. Send it to ${publicKey?.toBase58()}. SOL payment: ${paymentTx}. Action: CREATE_MUSIC_PLAYLIST`
+      `yo @SigmaXMusic create a music single titled "${songTitle}" in ${musicStyle} style. Send it to ${publicKey?.toBase58()}. SOL payment: ${paymentTxToUse}. Action: CREATE_MUSIC_PLAYLIST`
     );
     return sendBackOnlyText ? tweetText : `https://twitter.com/intent/tweet?text=${tweetText}`;
   };
