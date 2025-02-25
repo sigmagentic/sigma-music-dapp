@@ -439,7 +439,11 @@ const RemixPage = () => {
               </div>
               <p className="text-sm text-gray-400">
                 Based on music by{" "}
-                <a href={`/?artist-profile=${item.basedOn}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                <a
+                  href={`https://sigmamusic.fm/?artist-profile=${item.basedOn}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-yellow-500 hover:underline">
                   {item.basedOn}
                 </a>
                 , remixed by{" "}
