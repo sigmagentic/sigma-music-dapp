@@ -228,7 +228,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     }
 
     const tweetText = encodeURIComponent(
-      `yo @SigmaXMusic create a music single titled "${songTitle}" in ${musicStyle} style. Send it to ${publicKey?.toBase58()}. SOL payment: ${paymentTxToUse}. Action: CREATE_MUSIC_PLAYLIST`
+      `yo @SigmaXMusic create a music single titled "${songTitle}" in ${musicStyle} style. Send it to ${publicKey?.toBase58()}. SOL payment: ${paymentTxToUse}`
     );
     return sendBackOnlyText ? tweetText : `https://twitter.com/intent/tweet?text=${tweetText}`;
   };
