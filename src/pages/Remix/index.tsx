@@ -772,6 +772,15 @@ const RemixPage = () => {
     const tokenGraduated = VOTES_TO_GRADUATE - currentVotes <= 0;
 
     if (tokenGraduated) {
+      // Stop any playing music and reset playback state
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+      setIsPlaying(false);
+      setCurrentPlayingId(null);
+      setCurrentTime("0:00");
+
       // Make the API call
       logStatusChangeToAPI({
         launchId,
