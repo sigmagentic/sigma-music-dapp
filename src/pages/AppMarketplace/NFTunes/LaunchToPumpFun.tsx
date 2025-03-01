@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import bs58 from "bs58";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { VersionedTransaction, Connection, Keypair, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Info } from "lucide-react";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
@@ -36,8 +36,7 @@ export const LaunchToPumpFun = ({
   const { connection } = useConnection();
   const [description, setDescription] = useState(tokenDesc);
   const [twitter, setTwitter] = useState("https://x.com/SigmaXMusic");
-  // const [telegram, setTelegram] = useState("https://t.me/SigmaXMusicOfficial");
-  const [telegram, setTelegram] = useState("https://t.me/web3musicorg");
+  const [telegram, setTelegram] = useState("https://t.me/SigmaXMusicOfficial");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [launchError, setLaunchError] = useState<string | null>(null);
@@ -48,6 +47,8 @@ export const LaunchToPumpFun = ({
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [paymentTx, setPaymentTx] = useState<string | null>(null);
   const [pumpTokenId, setPumpTokenId] = useState<string | null>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -99,6 +100,19 @@ export const LaunchToPumpFun = ({
 
     fetchBalance();
   }, [publicKey]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(event.target as Node)) {
+        setShowTooltip(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -217,8 +231,7 @@ export const LaunchToPumpFun = ({
           description,
           twitter,
           telegram,
-          // website: `https://sigmamusic.fm/remix?album=${tokenId}`,
-          website: `https://www.web3music.org/`,
+          website: `https://sigmamusic.fm/remix?album=${tokenId}`,
         }),
       });
 
@@ -346,7 +359,6 @@ export const LaunchToPumpFun = ({
       {showPaymentConfirmation && <PaymentConfirmationPopup />}
 
       <div className="relative bg-[#1A1A1A] rounded-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Close button - adjusted positioning and styling */}
         <button
           disabled={isLoading || paymentStatus === "processing"}
           onClick={() => onCloseModal({ refreshData: true })}
@@ -382,12 +394,12 @@ export const LaunchToPumpFun = ({
               <div className="flex flex-col gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Name</label>
-                  <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{tokenName}</div>
+                  <div className="w-full opacity-50 p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{tokenName}</div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Symbol</label>
-                  <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{tokenSymbol}</div>
+                  <div className="w-full opacity-50 p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{tokenSymbol}</div>
                 </div>
 
                 <div>
@@ -425,12 +437,29 @@ export const LaunchToPumpFun = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Website</label>
-                  {/* <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{`https://sigmamusic.fm/remix?album=${tokenId}`}</div> */}
-                  <div className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{`https://www.web3music.org/`}</div>
+                  <div className="w-full text-sm opacity-50 p-2 rounded-lg bg-[#2A2A2A] border border-gray-600">{`https://sigmamusic.fm/remix?album=${tokenId}`}</div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Dev Buy Amount (SOL)</label>
+                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                    Dev Buy Amount (SOL)
+                    <div className="relative" ref={tooltipRef}>
+                      <Info
+                        className="w-4 h-4 text-gray-400 hover:text-gray-300 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowTooltip(!showTooltip);
+                        }}
+                      />
+                      <div
+                        className={`absolute bottom-full left-0 mb-2 px-3 py-2 text-sm bg-gray-900 text-white rounded-lg transition-opacity duration-200 w-[300px] z-50 ${
+                          showTooltip ? "opacity-100" : "opacity-0 pointer-events-none"
+                        }`}>
+                        How much of your token supply do you want to buy when it launches, this is the same &apos;dev buy&apos; feature of pump.fun token
+                        launches
+                      </div>
+                    </div>
+                  </label>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"

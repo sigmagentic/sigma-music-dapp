@@ -9,7 +9,6 @@ import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, logPaymentToAPI } from "libs/utils/misc";
 
-const MUSIC_STYLES = ["D&B", "EDM"];
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
 const MAX_TITLE_LENGTH = 20;
 
@@ -31,16 +30,11 @@ const MUSIC_STYLE_OPTIONS = [
   },
 ];
 
-// max length
-/*
-yo @SigmaXMusic create a music single titled "I'm So Sigma" in D&B style. code XXXXX. Send it to 7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj. SOL payment: 2acubH5SW2zuDn1kkD6K4uBZxM8G2KHLYnmDchHHSyuTeZfqjhcVjGFRjTEinYNsYtmTRbzogsxVFg1Qbfwcttx1. Action: CREATE_MUSIC_PLAYLIST
-*/
-
 export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) => {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [songTitle, setSongTitle] = useState("");
-  const [musicStyle, setMusicStyle] = useState(MUSIC_STYLES[0]);
+  const [musicStyle, setMusicStyle] = useState("D&B");
   const [promptGenerated, setPromptGenerated] = useState(false);
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);

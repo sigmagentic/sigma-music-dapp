@@ -633,28 +633,18 @@ const RemixPage = () => {
                     disabled={!addressSol}
                     className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm text-center p-2 md:p-4 rounded-lg"
                     onClick={() => {
-                      // setPumpFunTokenData({
-                      //   launchId: item.launchId,
-                      //   createdOn: item.createdOn,
-                      //   nftId: item.assetIdOrTokenName,
-                      //   tokenImg: item.image,
-                      //   tokenName: item.title,
-                      //   tokenSymbol: generateTokenSymbol(item.title),
-                      //   tokenDesc: `Official AI Music Meme Coin to access the launch of ${item.title} of Sigma Music. Owning this token grants you fractionalized ownership of the music track forever.`,
-                      //   tokenId: item.assetIdOrTokenName.replaceAll(" ", "_"),
-                      //   tweet: item.tweet || "",
-                      // });
                       setPumpFunTokenData({
                         launchId: item.launchId,
                         createdOn: item.createdOn,
                         nftId: item.assetIdOrTokenName,
                         tokenImg: item.image,
                         tokenName: item.title,
-                        tokenSymbol: "MUSICX1",
-                        tokenDesc: `Official AI Music Meme Coin to access the launch of ${item.title}. Owning this token grants you fractionalized ownership of the music track forever.`,
+                        tokenSymbol: generateTokenSymbol(item.title),
+                        tokenDesc: `Official AI Music Meme Coin to access the launch of ${item.title} of Sigma Music. Owning this token grants you fractionalized ownership of the music track forever.`,
                         tokenId: item.assetIdOrTokenName.replaceAll(" ", "_"),
-                        tweet: "https://www.web3music.org/",
+                        tweet: item.tweet || "",
                       });
+
                       setLaunchToPumpFunModalOpen(true);
                     }}>
                     <div>Send to Pump.fun</div>
