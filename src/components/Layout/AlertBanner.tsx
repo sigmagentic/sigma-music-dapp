@@ -18,7 +18,7 @@ export const AlertBanner = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <span className="text-yellow-500 text-lg">⚠️</span>
-            <p className="text-md font-medium text-gray-100">
+            <p className="text-md md:text-lg font-medium text-gray-100">
               🚨 Heads up, Sigma fam! No official CA token yet - don't fall for imposters! Follow us on
               <a href="https://x.com/SigmaXMusic" target="_blank" className="text-blue-400 hover:text-blue-300 mx-1">
                 X
