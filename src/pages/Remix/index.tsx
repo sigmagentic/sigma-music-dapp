@@ -432,8 +432,8 @@ const RemixPage = () => {
           isFocused ? "animate-shake bg-gradient-to-r from-[#2A2A2A] to-[#1A1A1A] border-2 border-yellow-500" : ""
         }`}>
         <div className="flex flex-col">
-          <div className="flex gap-4">
-            <img src={item.image} alt={item.title} className="w-24 h-24 rounded-lg object-cover" />
+          <div className="flex flex-col md:flex-row gap-4">
+            <img src={item.image} alt={item.title} className="w-full m-auto md:m-0 md:w-24 md:h-24 rounded-lg object-cover" />
             <div className="flex flex-col flex-grow">
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">{idx + 1}.</span>
@@ -502,7 +502,7 @@ const RemixPage = () => {
                             : `${VOTES_TO_GRADUATE - (bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0)} More Votes Needed`}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-2">
                         <button
                           className={`flex items-center gap-2 ${
                             currentPlayingId && currentPlayingId !== `${item.launchId}-${idx2}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
@@ -516,7 +516,7 @@ const RemixPage = () => {
                             </>
                           ) : (
                             <>
-                              <Play className="w-4 h-4" />
+                              <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
                               <span className="ml-2">Play Track</span>
                             </>
                           )}
@@ -570,7 +570,7 @@ const RemixPage = () => {
             )}
 
             {type === "graduated" && (
-              <div className="mt-2 flex flex-col xl:flex-row items-center justify-between">
+              <div className="mt-2 flex flex-col xl:flex-row items-center justify-between gap-2 md:gap-0">
                 <button
                   className={`flex items-center gap-2 ${
                     currentPlayingId && currentPlayingId !== `graduated-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
@@ -580,11 +580,11 @@ const RemixPage = () => {
                   {currentPlayingId === `graduated-${item.launchId}` ? (
                     <>
                       {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                      <span className="ml-2">{currentTime} - Stop Playing</span>
+                      <span className="ml-2 text-xs md:text-sm">{currentTime} - Stop Playing</span>
                     </>
                   ) : (
                     <>
-                      <Play className="w-4 h-4" />
+                      <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
                       <span className="ml-2">Play Track</span>
                     </>
                   )}
@@ -678,7 +678,7 @@ const RemixPage = () => {
                     </>
                   ) : (
                     <>
-                      <Play className="w-4 h-4" />
+                      <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
                       <span className="ml-2">Play Track</span>
                     </>
                   )}
@@ -807,12 +807,12 @@ const RemixPage = () => {
   return (
     <>
       <div className="flex flex-col w-full min-h-screen p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h1 className="!text-3xl font-semibold ">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-5">
+          <h1 className="!text-2xl md:!text-3xl font-semibold text-center md:text-left">
             <span className="text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">Sigma REMiX</span> : Launch AI
             Music Meme Coins!
           </h1>
-          <div className="flex gap-4">
+          <div className="flex flex-col md:flex-row md:gap-4 gap-2">
             {myJobsPayments.length > 0 && (
               <Button
                 className="bg-gradient-to-r from-purple-500 to-blue-500 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg"
