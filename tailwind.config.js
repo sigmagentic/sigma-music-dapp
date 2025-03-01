@@ -116,6 +116,10 @@ module.exports = {
           "10%, 30%, 50%, 70%, 90%": { transform: "translateX(-4px)" },
           "20%, 40%, 60%, 80%": { transform: "translateX(4px)" },
         },
+        pointer: {
+          "0%, 100%": { transform: "translateY(0) translateX(-50%)" },
+          "50%": { transform: "translateY(-20px) translateX(-50%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -127,6 +131,7 @@ module.exports = {
         "fade-in": "fadeIn 0.5s ease-in-out",
         "slide-fade-in": "slideFadeIn 0.5s ease-out",
         "shake": "shake 0.8s cubic-bezier(.36,.07,.19,.97) 10",
+        "point": "pointer 2s ease-in-out infinite",
       },
     },
   },

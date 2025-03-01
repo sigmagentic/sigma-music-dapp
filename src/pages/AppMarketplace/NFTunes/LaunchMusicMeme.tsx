@@ -272,7 +272,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
                   return (
                     <a
                       key={index}
-                      href={`?artist-profile=${style.artistBlob}`}
+                      href={`/?artist-profile=${style.artistBlob}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-400 hover:text-blue-300">

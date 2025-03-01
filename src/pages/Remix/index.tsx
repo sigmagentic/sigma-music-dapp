@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
 import { debounce } from "lodash";
-import { ArrowUpRight, Heart, Info, Loader, Pause, Play } from "lucide-react";
+import { ArrowUpRight, Heart, Info, Loader, Pause, Play, Pointer } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthRedirectWrapper } from "components";
 import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON, SIGMA_MEME_FEATURE_WHITELIST } from "config";
@@ -245,14 +245,14 @@ const RemixPage = () => {
 
     if (launchId) {
       setFocusedLaunchId(launchId);
-      // Remove focus after 5 seconds
-      setTimeout(() => setFocusedLaunchId(null), 5000);
+      // Remove focus after 10 seconds
+      setTimeout(() => setFocusedLaunchId(null), 10000);
     }
 
     if (albumId) {
       setFocusedAlbumId(albumId);
-      // Remove focus after 5 seconds
-      setTimeout(() => setFocusedAlbumId(null), 5000);
+      // Remove focus after 10 seconds
+      setTimeout(() => setFocusedAlbumId(null), 10000);
     }
   }, []);
 
@@ -411,19 +411,6 @@ const RemixPage = () => {
   };
 
   const LaunchCard = ({ item, type, idx }: { item: Launch; type: string; idx: number }) => {
-    // const [timeProgress, setTimeProgress] = useState(() => calculateTimeProgress(item.createdOn));
-
-    // // Update progress every minute
-    // useEffect(() => {
-    //   if (type === "new") {
-    //     const interval = setInterval(() => {
-    //       setTimeProgress(calculateTimeProgress(item.createdOn));
-    //     }, 60000); // Update every minute
-
-    //     return () => clearInterval(interval);
-    //   }
-    // }, [item.createdOn, type]);
-
     const isFocused = focusedLaunchId === item.launchId || focusedAlbumId === item.assetIdOrTokenName;
 
     return (
@@ -441,11 +428,7 @@ const RemixPage = () => {
               </div>
               <p className="text-sm text-gray-400">
                 Based on music by{" "}
-                <a
-                  href={`https://sigmamusic.fm/?artist-profile=${item.basedOn}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-yellow-500 hover:underline">
+                <a href={`/?artist-profile=${item.basedOn}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
                   {item.basedOn}
                 </a>
                 , remixed by{" "}
@@ -478,12 +461,6 @@ const RemixPage = () => {
           <div className="mt-4">
             {type === "new" && (
               <>
-                {/* <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
-                  <div className="w-full bg-gray-700 h-1 rounded-full">
-                    <div className="bg-yellow-500 h-1 rounded-full transition-all duration-1000" style={{ width: `${timeProgress.progress}%` }}></div>
-                  </div>
-                  <span className={timeProgress.isExpired ? "text-red-500" : ""}>{timeProgress.timeLeftText}</span>
-                </div> */}
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="text-xs text-gray-400">Vote with XP to graduate this music meme</div>
                   {item.versions.map((version: Version, idx2: number) => (
@@ -503,24 +480,31 @@ const RemixPage = () => {
                         </span>
                       </div>
                       <div className="flex flex-col md:flex-row items-center justify-between gap-2">
-                        <button
-                          className={`flex items-center gap-2 ${
-                            currentPlayingId && currentPlayingId !== `${item.launchId}-${idx2}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
-                          }`}
-                          disabled={currentPlayingId ? currentPlayingId !== `${item.launchId}-${idx2}` : false}
-                          onClick={() => handlePlay(version.streamUrl, `${item.launchId}-${idx2}`)}>
-                          {currentPlayingId === `${item.launchId}-${idx2}` ? (
-                            <>
-                              {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                              <span className="ml-2">{currentTime} - Stop Playing</span>
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
-                              <span className="ml-2">Play Track</span>
-                            </>
+                        <div className="relative">
+                          <button
+                            className={`flex items-center gap-2 ${
+                              currentPlayingId && currentPlayingId !== `${item.launchId}-${idx2}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
+                            }`}
+                            disabled={currentPlayingId ? currentPlayingId !== `${item.launchId}-${idx2}` : false}
+                            onClick={() => handlePlay(version.streamUrl, `${item.launchId}-${idx2}`)}>
+                            {currentPlayingId === `${item.launchId}-${idx2}` ? (
+                              <>
+                                {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
+                                <span className="ml-2">{currentTime} - Stop Playing</span>
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
+                                <span className="ml-2">Play Track</span>
+                              </>
+                            )}
+                          </button>
+                          {isFocused && (
+                            <div className="absolute -bottom-16 left-1/2">
+                              <Pointer className="w-12 h-12 text-yellow-500 animate-point" />
+                            </div>
                           )}
-                        </button>
+                        </div>
                         <div className="flex flex-col gap-2 flex-grow ml-4">
                           <div className="flex items-center gap-2">
                             {!DISABLE_BITZ_FEATURES && (
@@ -571,24 +555,31 @@ const RemixPage = () => {
 
             {type === "graduated" && (
               <div className="mt-2 flex flex-col xl:flex-row items-center justify-between gap-2 md:gap-0">
-                <button
-                  className={`flex items-center gap-2 ${
-                    currentPlayingId && currentPlayingId !== `graduated-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
-                  }`}
-                  disabled={currentPlayingId ? currentPlayingId !== `graduated-${item.launchId}` : false}
-                  onClick={() => handlePlay(item.graduatedStreamUrl || item.versions[0].streamUrl, `graduated-${item.launchId}`)}>
-                  {currentPlayingId === `graduated-${item.launchId}` ? (
-                    <>
-                      {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                      <span className="ml-2 text-xs md:text-sm">{currentTime} - Stop Playing</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
-                      <span className="ml-2">Play Track</span>
-                    </>
+                <div className="relative">
+                  <button
+                    className={`flex items-center gap-2 ${
+                      currentPlayingId && currentPlayingId !== `graduated-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
+                    }`}
+                    disabled={currentPlayingId ? currentPlayingId !== `graduated-${item.launchId}` : false}
+                    onClick={() => handlePlay(item.graduatedStreamUrl || item.versions[0].streamUrl, `graduated-${item.launchId}`)}>
+                    {currentPlayingId === `graduated-${item.launchId}` ? (
+                      <>
+                        {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
+                        <span className="ml-2 text-xs md:text-sm">{currentTime} - Stop Playing</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
+                        <span className="ml-2">Play Track</span>
+                      </>
+                    )}
+                  </button>
+                  {isFocused && (
+                    <div className="absolute -bottom-16 left-1/2">
+                      <Pointer className="w-12 h-12 text-yellow-500 animate-point" />
+                    </div>
                   )}
-                </button>
+                </div>
 
                 {!DISABLE_BITZ_FEATURES && (
                   <div className="albumLikes md:w-[135px] flex flex-col items-center">
@@ -655,24 +646,31 @@ const RemixPage = () => {
 
             {type === "launched" && (
               <div className="mt-2 flex items-center justify-between">
-                <button
-                  className={`flex items-center gap-2 ${
-                    currentPlayingId && currentPlayingId !== `launched-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
-                  }`}
-                  disabled={currentPlayingId ? currentPlayingId !== `launched-${item.launchId}` : false}
-                  onClick={() => handlePlay(item.graduatedStreamUrl || item.versions[0].streamUrl, `launched-${item.launchId}`)}>
-                  {currentPlayingId === `launched-${item.launchId}` ? (
-                    <>
-                      {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                      <span className="ml-2">{currentTime} - Stop Playing</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
-                      <span className="ml-2">Play Track</span>
-                    </>
+                <div className="relative">
+                  <button
+                    className={`flex items-center gap-2 ${
+                      currentPlayingId && currentPlayingId !== `launched-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
+                    }`}
+                    disabled={currentPlayingId ? currentPlayingId !== `launched-${item.launchId}` : false}
+                    onClick={() => handlePlay(item.graduatedStreamUrl || item.versions[0].streamUrl, `launched-${item.launchId}`)}>
+                    {currentPlayingId === `launched-${item.launchId}` ? (
+                      <>
+                        {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
+                        <span className="ml-2">{currentTime} - Stop Playing</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
+                        <span className="ml-2">Play Track</span>
+                      </>
+                    )}
+                  </button>
+                  {isFocused && (
+                    <div className="absolute -bottom-16 left-1/2">
+                      <Pointer className="w-12 h-12 text-yellow-500 animate-point" />
+                    </div>
                   )}
-                </button>
+                </div>
                 {/* <a
                   href={`https://pump.fun/coin/${item.pumpTokenId}`}
                   target="_blank"
