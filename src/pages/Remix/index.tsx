@@ -113,8 +113,10 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
                           href={`https://twitter.com/intent/tweet?text=${job.prompt}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block w-full text-center bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
-                          Send Prompt to Sigma on X
+                          className={`block w-full text-center text-white font-bold py-2 px-4 rounded-lg transition-colors ${
+                            job.launchId ? "bg-green-500 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"
+                          }`}>
+                          {job.launchId ? "See Prompt on X" : "ReSend Prompt on X"}
                         </a>
                       </a>
                     </td>

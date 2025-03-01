@@ -15,6 +15,7 @@ import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libCompo
 import { sleep } from "libs/utils";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
+import { AlertBanner } from "./AlertBanner";
 import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
 
@@ -185,6 +186,8 @@ export const Navbar = () => {
           />
         </div>
       )}
+
+      <AlertBanner />
     </>
   );
 };
