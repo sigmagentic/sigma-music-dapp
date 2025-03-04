@@ -340,7 +340,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         }}>
                         <>
                           <CircleArrowLeft />
-                          rounded-b- <span className="ml-2">Back to All Artists</span>
+                          <span className="ml-2">Back to All Artists</span>
                         </>
                       </Button>
 
