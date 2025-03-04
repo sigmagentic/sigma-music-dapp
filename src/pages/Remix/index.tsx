@@ -438,7 +438,7 @@ const RemixPage = () => {
                 on {new Date(item.createdOn * 1000).toLocaleDateString()}
               </p>
               <p className="text-xs text-gray-600">Launch Id: {item.launchId}</p>
-              {/* <p className="text-xs text-gray-600">
+              <p className="text-xs text-gray-600">
                 Music Token:{" "}
                 <a
                   href={`https://solscan.io/token/${item.assetIdOrTokenName}`}
@@ -447,7 +447,7 @@ const RemixPage = () => {
                   className="text-yellow-500 hover:underline">
                   {item.assetIdOrTokenName}
                 </a>
-              </p> */}
+              </p>
               {item.tweet && (
                 <p className="text-xs text-gray-600">
                   <a href={item.tweet} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline flex items-center gap-2">
@@ -671,13 +671,13 @@ const RemixPage = () => {
                     </div>
                   )}
                 </div>
-                {/* <a
+                <a
                   href={`https://pump.fun/coin/${item.pumpTokenId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-1 text-black bg-gradient-to-r from-yellow-500 to-green-500 rounded-full text-sm">
                   View on Pump.fun
-                </a> */}
+                </a>
               </div>
             )}
           </div>
