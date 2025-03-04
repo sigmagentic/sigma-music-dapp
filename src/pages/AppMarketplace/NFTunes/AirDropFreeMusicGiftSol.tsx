@@ -167,7 +167,7 @@ export const AirDropFreeMusicGiftSol = (props: AirDropFreeMusicGiftSolSolProps) 
           }
         }}
         closeOnOverlayClick={false}
-        title={"Get Your Free Sample Music Data NFT Airdrop!"}
+        title={"Get Your Free Sample Music Album NFT Airdrop!"}
         hasFilter={false}
         filterData={[]}
         modalClassName="-mt-5"
@@ -183,14 +183,14 @@ export const AirDropFreeMusicGiftSol = (props: AirDropFreeMusicGiftSolSolProps) 
                 <div className="md:pr-5">
                   <div className="text-2xl font-bold mb-2">Revolutionizing Music with AI 🚀</div>
                   <div className="mt-5">
-                    Itheum connects AI Agents, musicians, and fans to amplify music and train AI models, empowering real-world artists and enhancing music
-                    content. Get your free Music Data NFT and join this initiative!
+                    Sigma Music connects AI Agents, musicians, and fans to amplify music and train AI models, empowering real-world artists and enhancing music
+                    content. Get your free Music Album NFT and join this initiative!
                   </div>
 
                   {errFreeMintGeneric && (
                     <div className="h-[100px] text-lg mt-10">
                       <div className="text-orange-700 dark:text-orange-300 text-sm">
-                        Error! Free mint of Music Gift Data NFT is not possible right now. More Info = {errFreeMintGeneric}
+                        Error! Free mint of Music Album NFT is not possible right now. More Info = {errFreeMintGeneric}
                       </div>
                       <Button
                         className="text-sm mt-2 cursor-pointer !text-white"
@@ -226,15 +226,14 @@ export const AirDropFreeMusicGiftSol = (props: AirDropFreeMusicGiftSolSolProps) 
                           🙌 Success! {`Let's`} try it out now!
                           <Button
                             onClick={() => {
-                              // we reload like this so that if the user is in nftunes, then we actually get the workflow into focus (or it wont)
-                              location.href = `${routeNames.home}/?artist-profile=waveborn-luminex&hl=sample`;
+                              location.href = `/?fromFreeMusicGift=1&hl=sample`;
 
                               setGetAirdropWorkflow(false);
                               setErrFreeMintGeneric(null);
                               onCloseModal();
                             }}
                             className="!text-black mt-5 text-xs md:text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100">
-                            Use Music Data NFT on Sigma Music
+                            Use Music Album NFT on Sigma Music
                           </Button>
                         </div>
                       )}

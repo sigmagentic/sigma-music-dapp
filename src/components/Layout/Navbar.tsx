@@ -177,6 +177,8 @@ export const Navbar = () => {
         <span className="text-xs text-muted-foreground mt-1 text-center">{appSubtitle}</span>
       </div>
 
+      <AlertBanner />
+
       {publicKeySol && (
         <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem]">
           <DataNftAirdropsBannerCTA
@@ -186,8 +188,6 @@ export const Navbar = () => {
           />
         </div>
       )}
-
-      <AlertBanner />
     </>
   );
 };

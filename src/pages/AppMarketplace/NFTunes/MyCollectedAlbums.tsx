@@ -54,6 +54,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   const [allOwnedAlbums, setAllOwnedAlbums] = useState<any[]>([]);
   const [allOwnedSigmaAlbums, setAllOwnedSigmaAlbums] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isFreeDropSampleWorkflow, setIsFreeDropSampleWorkflow] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -78,12 +79,28 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
     if (allOwnedAlbums.length > 0) {
       // only scroll direct to focus on my collected albums of the user just came from login
       const isDirectFromLogin = searchParams.get("fromLogin");
+      const isDirectFromFreeMusicGift = searchParams.get("fromFreeMusicGift");
+      const isHlWorkflowDeepLink = searchParams.get("hl");
 
       if (isDirectFromLogin) {
         const currentParams = Object.fromEntries(searchParams.entries());
         delete currentParams["fromLogin"];
         setSearchParams(currentParams);
         scrollToSection("myCollectedAlbums");
+      }
+
+      if (isDirectFromFreeMusicGift) {
+        const currentParams = Object.fromEntries(searchParams.entries());
+        delete currentParams["fromFreeMusicGift"];
+        setSearchParams(currentParams);
+        scrollToSection("myCollectedAlbums");
+      }
+
+      if (isHlWorkflowDeepLink === "sample") {
+        const currentParams = Object.fromEntries(searchParams.entries());
+        delete currentParams["hl"];
+        setSearchParams(currentParams);
+        setIsFreeDropSampleWorkflow(true);
       }
     }
   }, [allOwnedAlbums]);
@@ -253,6 +270,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                                 viewSolData={viewSolData}
                                 isMusicPlayerOpen={isMusicPlayerOpen}
                                 onCloseMusicPlayer={onCloseMusicPlayer}
+                                isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
                               />
                             </div>
                           );

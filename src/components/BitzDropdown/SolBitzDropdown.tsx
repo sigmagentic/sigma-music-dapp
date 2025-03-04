@@ -85,9 +85,6 @@ export const ClaimBitzButton = (props: any) => {
       className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px]"
       to={"#"}
       onClick={() => {
-        console.log("cooldown", cooldown);
-        console.log("handlePlayActionBtn", handlePlayActionBtn);
-        console.log("solBitzNfts", solBitzNfts);
         if (cooldown > -2 && handlePlayActionBtn && solBitzNfts.length > 0) {
           handlePlayActionBtn();
         } else {
