@@ -14,11 +14,13 @@ import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { useTheme } from "contexts/ThemeProvider";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { BlobDataType, ExtendedViewDataReturnType, Track } from "libs/types";
+import { BlobDataType, ExtendedViewDataReturnType, Track, RadioTrackData } from "libs/types";
+import { filterRadioTracksByUserPreferences } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
+import { useAppStore } from "store/app";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
 import { FeaturedArtistsAndAlbums } from "./FeaturedArtistsAndAlbums";
@@ -82,6 +84,8 @@ export const NFTunes = () => {
   const [launchRadioPlayer, setLaunchRadioPlayer] = useState(false);
   const [nfTunesRadioFirstTrackCachedBlob, setNfTunesRadioFirstTrackCachedBlob] = useState<string>("");
 
+  const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
+
   useEffect(() => {
     const isFeaturedArtistDeepLink = searchParams.get("artist-profile");
     const isHlWorkflowDeepLink = searchParams.get("hl");
@@ -92,25 +96,8 @@ export const NFTunes = () => {
     } else if (isHlWorkflowDeepLink && isHlWorkflowDeepLink === "sigma") {
       scrollToSection("artist-profile", 50);
     }
-  }, []);
 
-  useEffect(() => {
-    // get the radio tracks data
-    async function getRadioTracksData() {
-      setRadioTracksLoading(true);
-      const allRadioTracks = await getRadioStreamsData();
-      setRadioTracks(allRadioTracks);
-
-      // cache the first track blob
-      const blobUrl = await getNFTuneFirstTrackBlobData(allRadioTracks[0]);
-      setNfTunesRadioFirstTrackCachedBlob(blobUrl);
-
-      setTimeout(() => {
-        setRadioTracksLoading(false);
-      }, 1000);
-    }
-
-    getRadioTracksData();
+    fetchAndUpdateRadioTracks();
   }, []);
 
   useEffect(() => {
@@ -150,6 +137,61 @@ export const NFTunes = () => {
       setUserHasNoBitzDataNftYet(false);
     }
   }, [solBitzNfts]);
+
+  // user changed their radio genres, so we need to reorder the radio tracks
+  useEffect(() => {
+    if (radioGenresUpdatedByUserSinceLastRadioTracksRefresh) {
+      (async () => {
+        setRadioTracksLoading(true);
+        const _radioTracksSorted: RadioTrackData[] = await reorderRadioTracksAndCacheFirstTrackBlob(radioTracks);
+        setRadioTracks(_radioTracksSorted);
+        setRadioTracksLoading(false);
+        updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(false);
+      })();
+    }
+  }, [radioGenresUpdatedByUserSinceLastRadioTracksRefresh]);
+
+  async function fetchAndUpdateRadioTracks() {
+    try {
+      setRadioTracksLoading(true);
+      setRadioTracks([]);
+
+      const allRadioTracks = (await getRadioStreamsData()) as RadioTrackData[];
+
+      // Extract and normalize unique categories
+      const uniqueGenres = new Set<string>();
+      allRadioTracks.forEach((track: RadioTrackData) => {
+        if (track.category) {
+          // Split by comma and trim each category
+          const categories = track.category.split(",").map((cat: string) => cat.trim().toLowerCase());
+          categories.forEach((cat: string) => uniqueGenres.add(cat));
+        }
+      });
+
+      // Convert Set to array and update store for available radio stream genres
+      updateRadioGenres(Array.from(uniqueGenres));
+
+      const _radioTracksSorted: RadioTrackData[] = await reorderRadioTracksAndCacheFirstTrackBlob(allRadioTracks);
+
+      setRadioTracks(_radioTracksSorted);
+
+      setTimeout(() => {
+        setRadioTracksLoading(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Error fetching radio tracks:", error);
+    }
+  }
+
+  async function reorderRadioTracksAndCacheFirstTrackBlob(allRadioTracks: RadioTrackData[]) {
+    const _radioTracksSorted = filterRadioTracksByUserPreferences(allRadioTracks);
+
+    // cache the first track blob
+    const blobUrl = await getNFTuneFirstTrackBlobData(_radioTracksSorted[0]);
+    setNfTunesRadioFirstTrackCachedBlob(blobUrl);
+
+    return _radioTracksSorted;
+  }
 
   async function viewSolData(index: number) {
     try {
@@ -247,7 +289,7 @@ export const NFTunes = () => {
   }
 
   function checkOwnershipOfAlbum(album: any) {
-    console.log("---- checkOwnershipOfAlbum album", album);
+    // console.log("---- checkOwnershipOfAlbum album", album);
     let albumInOwnershipListIndex = -1; // note -1 means we don't own it
 
     // if (IS_DEVNET) {
@@ -397,7 +439,7 @@ export const NFTunes = () => {
                           navigate(routeNames.remix);
                         }}
                         className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%]  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg w-[500px]">
-                        <div>Launch AI Music Meme Coins with Sigma REMiX</div>
+                        <div>Launch AI Music Meme Coins with REMiX</div>
                       </Button>
                       <div className="text-sm mt-2">For Everyone</div>
                     </div>

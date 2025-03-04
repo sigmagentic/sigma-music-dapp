@@ -1,8 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 export const AlertBanner = () => {
   const [isVisible, setIsVisible] = useState(true);
+  const ALERT_IGNORE_HOURS_MS = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+
+  useEffect(() => {
+    // Check if we should show the banner based on session storage
+    const lastClosedTimestamp = sessionStorage.getItem("sig-ux-ca-alert");
+    if (lastClosedTimestamp) {
+      const timeSinceLastClose = Date.now() - parseInt(lastClosedTimestamp);
+      if (timeSinceLastClose < ALERT_IGNORE_HOURS_MS) {
+        setIsVisible(false);
+      }
+    }
+  }, []);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    // Store current timestamp in session storage
+    sessionStorage.setItem("sig-ux-ca-alert", Date.now().toString());
+  };
 
   if (!isVisible) return null;
 
@@ -30,7 +48,7 @@ export const AlertBanner = () => {
               for the real deal when it drops! Stay smart, stay safe! 🛡️
             </p>
           </div>
-          <button onClick={() => setIsVisible(false)} className="text-gray-400 hover:text-gray-300 transition-colors" aria-label="Close banner">
+          <button onClick={handleClose} className="text-gray-400 hover:text-gray-300 transition-colors" aria-label="Close banner">
             <X size={20} />
           </button>
         </div>

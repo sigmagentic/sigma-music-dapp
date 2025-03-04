@@ -1,3 +1,5 @@
+import { RadioTrackData } from "libs/types";
+
 export const getApiDataMarshal = () => {
   // we can call this without chainID (e.g. solana mode or no login mode), and we get the API endpoint based on ENV
   if (import.meta.env.VITE_ENV_NETWORK === "mainnet") {
@@ -159,4 +161,33 @@ export const logStatusChangeToAPI = async ({
     console.error("Error saving new launch:", error);
     throw error;
   }
+};
+
+export const filterRadioTracksByUserPreferences = (allRadioTracks: RadioTrackData[]) => {
+  const _allRadioTracksSorted = [...allRadioTracks];
+  // let now check if the user has some preferences for genres (initially we get this from session storage, later we get this from the NFMe ID)
+  const savedGenres = sessionStorage.getItem("sig-pref-genres");
+
+  // Reorder tracks based on user preferences if they exist
+  if (savedGenres) {
+    const userPreferences = JSON.parse(savedGenres) as string[];
+    const normalizedPreferences = userPreferences.map((genre: string) => genre.toLowerCase());
+
+    // Sort tracks based on preference matches
+    _allRadioTracksSorted.sort((a: any, b: any) => {
+      const aCategories = a.category?.split(",").map((cat: string) => cat.trim().toLowerCase()) || [];
+      const bCategories = b.category?.split(",").map((cat: string) => cat.trim().toLowerCase()) || [];
+
+      // Check if any category matches user preferences
+      const aMatches = aCategories.some((cat: string) => normalizedPreferences.some((pref: string) => cat.includes(pref)));
+      const bMatches = bCategories.some((cat: string) => normalizedPreferences.some((pref: string) => cat.includes(pref)));
+
+      // If both match or both don't match, maintain original order
+      if (aMatches === bMatches) return 0;
+      // If only one matches, put it first
+      return aMatches ? -1 : 1;
+    });
+  }
+
+  return _allRadioTracksSorted;
 };

@@ -88,7 +88,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   return (
     <>
       {albums.map((album: any, idx: number) => (
-        <div key={album.albumId} className="album flex flex-col h-[100%] mb-3 p-2 md:p-5 border w-[100%]">
+        <div key={`${album.albumId}-${idx}`} className="album flex flex-col h-[100%] mb-3 p-2 md:p-5 border w-[100%]">
           <div className="albumDetails flex flex-col md:flex-row">
             <div
               className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg m-auto"

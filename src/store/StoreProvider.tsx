@@ -19,7 +19,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     useAccountStore();
 
   // NFT Store
-  const { solBitzNfts, solNfts, updateSolNfts, updateIsLoadingSol, updateSolBitzNfts } = useNftsStore();
+  const { solBitzNfts, solNfts, updateSolNfts, updateIsLoadingSol, updateSolBitzNfts, updateSolNFMeIdNfts } = useNftsStore();
 
   // SOL Logged in - bootstrap nft store
   useEffect(() => {
@@ -59,7 +59,10 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
         ? solNfts.filter((nft) => nft.content.metadata.name.includes("XP"))
         : solNfts.filter((nft) => nft.content.metadata.name.includes("IXPG")); // @TODO, what is the user has multiple BiTz? IXPG2 was from drip and IXPG3 will be from us direct via the airdrop
 
+      const _nfMeIdNfts: DasApiAsset[] = solNfts.filter((nft) => nft.content.metadata.name.includes("NFMeID"));
+
       updateSolBitzNfts(_bitzDataNfts);
+      updateSolNFMeIdNfts(_nfMeIdNfts);
 
       updateIsLoadingSol(false);
     })();

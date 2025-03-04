@@ -12,3 +12,12 @@ export enum BlobDataType {
 export interface ExtendedViewDataReturnType extends ViewDataReturnType {
   blobDataType: BlobDataType;
 }
+
+export interface RadioTrackData {
+  idx: number;
+  title: string;
+  artist: string;
+  album: string;
+  cover_art_url: string;
+  category?: string;
+}

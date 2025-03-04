@@ -323,7 +323,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                     <>
                       {/* back to all artists  */}
                       <Button
-                        className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
+                        className="!text-black text-xl px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
                         variant="outline"
                         onClick={() => {
                           playPausePreview(); // with no params wil always go into the stop logic
@@ -350,15 +350,15 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] md:w-[400px] flex-1 bg-no-repeat bg-cover rounded-lg"
                             style={{
                               "backgroundImage": `url(${artistProfile.img})`,
-                            }}>
-                            <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
-                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artistProfile.name.replaceAll("_", " ")}</h2>
-                            </div>
-                          </div>
+                            }}></div>
                         </div>
 
                         {/* artists details and power up */}
-                        <div className="p-5 flex-1">
+                        <div className="p-5 pt-2 flex-1">
+                          <h2 className={`!text-xl !text-white lg:!text-3xl text-nowrap mb-5 text-center md:text-left`}>
+                            {artistProfile.name.replaceAll("_", " ")}
+                          </h2>
+
                           {!DISABLE_BITZ_FEATURES && (
                             <div className="powerUpWithBitz flex flex-col md:flex-row items-center mb-5">
                               <div className="relative">

@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { X } from "lucide-react";
 import { Button } from "libComponents/Button";
 import { checkIfFreeDataNftGiftMinted } from "libs/sol/SolViewData";
 import { sleep } from "libs/utils";
 import { AirDropFreeMusicGiftSol } from "pages/AppMarketplace/NFTunes/AirDropFreeMusicGiftSol";
 import { AirDropFreeXPNft } from "pages/AppMarketplace/NFTunes/AirDropFreeXPNft";
 import { useNftsStore } from "store/nfts";
+import { GetNFMeModal } from "./GetNFMeModal";
 
 type DataNftAirdropsBannerCTAProps = {
   onRemoteTriggerOfBiTzPlayModel: any;
 };
 
 export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
+  const ALERT_IGNORE_HOURS_MS = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+
   const { onRemoteTriggerOfBiTzPlayModel } = props;
   const { publicKey: publicKeySol } = useWallet();
   const [freeDropCheckLoading, setFreeDropCheckLoading] = useState<boolean>(false);
@@ -20,8 +24,9 @@ export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
   const [freeMusicGiftClaimed, setFreeMusicGiftClaimed] = useState<boolean>(false);
   const [freeMintMusicGiftIntroToAction, setFreeMintMusicGiftIntroToAction] = useState<boolean>(false);
   const [freeMintXpGiftIntroToAction, setFreeMintXpGiftIntroToAction] = useState<boolean>(false);
-  const { solBitzNfts } = useNftsStore();
+  const { solBitzNfts, solNFMeIdNfts } = useNftsStore();
   const [showNfMeIdModal, setShowNfMeIdModal] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   // below is only for so
   useEffect(() => {
@@ -58,19 +63,39 @@ export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
   }, [publicKeySol]);
 
   useEffect(() => {
+    // Check if we should show the banner based on session storage
+    const lastClosedTimestamp = sessionStorage.getItem("sig-ux-freedrops-alert");
+    if (lastClosedTimestamp) {
+      const timeSinceLastClose = Date.now() - parseInt(lastClosedTimestamp);
+      if (timeSinceLastClose < ALERT_IGNORE_HOURS_MS) {
+        setIsVisible(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     // if the user didn't have one and claimed it, the nft store will update and we can change the CTA below
     if (solBitzNfts.length > 0) {
       setFreeBitzClaimed(true);
     }
-  }, [solBitzNfts]);
+    if (solNFMeIdNfts.length > 0) {
+      setFreeNfMeIdClaimed(true);
+    }
+  }, [solBitzNfts, solNFMeIdNfts]);
 
-  // should we show the banner?
-  const shouldShowBanner = !freeBitzClaimed || !freeMusicGiftClaimed || !freeNfMeIdClaimed;
+  const handleClose = () => {
+    setIsVisible(false);
+    // Store current timestamp in session storage
+    sessionStorage.setItem("sig-ux-freedrops-alert", Date.now().toString());
+  };
+
+  // should we show the banner? (we dont need to show the banner if the user does not have a NFMe, we can do this at a different place so it's not noisy)
+  const shouldShowBanner = isVisible && (!freeBitzClaimed || !freeMusicGiftClaimed);
 
   return (
     <>
       {!freeDropCheckLoading && shouldShowBanner && (
-        <div className="py-2 px-4 md:px-0 m-5 border rounded-lg bg-[#fa882157] w-[100%]">
+        <div className="py-2 px-4 md:px-0 m-5 border rounded-lg bg-[#fa882157] w-[100%] relative">
           <div className="flex flex-col md:flex-col items-center">
             <div className="flex flex-col justify-center p-2">
               <p className="dark:text-white text-2xl text-center">Hello Human, You Have some Free App NFTs to Claim!</p>
@@ -110,6 +135,9 @@ export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
                 </Button>
               </div>
             </div>
+            <button onClick={handleClose} className="text-gray-400 hover:text-gray-300 transition-colors absolute top-2 right-2" aria-label="Close banner">
+              <X size={20} />
+            </button>
           </div>
         </div>
       )}
@@ -123,6 +151,7 @@ export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
           />
         </>
       )}
+
       {freeMintXpGiftIntroToAction && (
         <>
           <AirDropFreeXPNft
@@ -135,32 +164,7 @@ export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
       )}
 
       {/* NFMe ID Confirmation Modal */}
-      {showNfMeIdModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex flex-col gap-4">
-              <h3 className="text-xl font-semibold text-center">Claim Your NFMe ID</h3>
-              <p className="text-gray-300 text-center">Taking you now to Itheum's AI Data Workforce app, where you can mint a free NFMe ID</p>
-              <p className="text-gray-400 text-sm text-center">
-                An NFMe ID is a special NFT that you can use to store your personal data like your music preferences etc. Your data is your business!
-              </p>
-              <div className="flex gap-4 justify-center mt-4">
-                <Button onClick={() => setShowNfMeIdModal(false)} className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg">
-                  Close
-                </Button>
-                <Button
-                  onClick={() => {
-                    window.open(`${publicKeySol ? "https://ai-workforce.itheum.io/nfmeid" : "https://datadex.itheum.io/nfmeid"}`, "_blank");
-                    setShowNfMeIdModal(false);
-                  }}
-                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 rounded-lg">
-                  Proceed
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {showNfMeIdModal && <GetNFMeModal setShowNfMeIdModal={setShowNfMeIdModal} />}
     </>
   );
 }

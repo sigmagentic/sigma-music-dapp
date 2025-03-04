@@ -86,7 +86,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
         const currentParams = Object.fromEntries(searchParams.entries());
         delete currentParams["fromLogin"];
         setSearchParams(currentParams);
-        scrollToSection("myCollectedAlbums");
+        // scrollToSection("myCollectedAlbums");
       }
 
       if (isDirectFromFreeMusicGift) {
@@ -198,9 +198,6 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
             ];
           }
 
-          console.log("filteredArtists", filteredArtists);
-          console.log("_allOwnedAlbums", _allOwnedAlbums);
-          console.log("_allOwnedSigmaAlbums", _allOwnedSigmaAlbums);
           setMyCollectedArtistsAlbums([...filteredArtists]);
           setAllOwnedAlbums(_allOwnedAlbums);
           setAllOwnedSigmaAlbums(_allOwnedSigmaAlbums);

@@ -213,7 +213,7 @@ export const AirDropFreeMusicGiftSol = (props: AirDropFreeMusicGiftSolSolProps) 
                       {!freeMusicGiftClaimed ? (
                         <>
                           <Button
-                            className="!text-white md:text-lg bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% cursor-pointer md:w-[300px] h-[50px]"
+                            className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity cursor-pointer md:w-[300px] h-[50px]"
                             disabled={freeMintMusicGiftLoading}
                             onClick={() => {
                               handleFreeMintMusicGift();

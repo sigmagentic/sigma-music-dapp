@@ -3,9 +3,10 @@ declare const window: {
 } & Window;
 
 import React, { useEffect, useState } from "react";
+import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Menu } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SolBitzDropdown } from "components/BitzDropdown/SolBitzDropdown";
 import { DISABLE_BITZ_FEATURES } from "config";
@@ -17,16 +18,31 @@ import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
 import { AlertBanner } from "./AlertBanner";
 import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
+import { GetNFMeModal } from "../GetNFMeModal";
+import { NFMePreferencesModal } from "../NFMePreferencesModal";
 import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
+
+interface NFMeIdContent {
+  links: {
+    image: string;
+  };
+  metadata: {
+    name: string;
+    description: string;
+  };
+}
 
 export const Navbar = () => {
   const { publicKey: publicKeySol, connected } = useWallet();
   const addressSol = publicKeySol?.toBase58();
   const isLoggedInSol = !!addressSol;
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
+  const [showNfMeIdModal, setShowNfMeIdModal] = useState<boolean>(false);
+  const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
   const location = useLocation();
-  const { solBitzNfts } = useNftsStore();
+  const { solBitzNfts, solNFMeIdNfts } = useNftsStore();
   const navigate = useNavigate();
+  const [nfMeIdImageUrl, setNfMeIdImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     // if the user is logged in (even after they reload page and still have a session)
@@ -45,6 +61,22 @@ export const Navbar = () => {
     }
   }, [addressSol, connected, location]);
 
+  useEffect(() => {
+    if (solNFMeIdNfts.length > 0) {
+      // Get the NFMe ID image if available (@TODO : in reality user may have multiple NFMes and only 1 that is bonded into a NFMe ID, we can do this later)
+      const nfMeId = solNFMeIdNfts[0] as (DasApiAsset & { content: NFMeIdContent }) | undefined;
+
+      const nfmeImg = nfMeId?.content?.links?.image;
+
+      if (nfmeImg) {
+        sessionStorage.removeItem("sig-nfme-later"); // cleanup this session storage key
+        setNfMeIdImageUrl(nfmeImg);
+      } else {
+        setNfMeIdImageUrl(null);
+      }
+    }
+  }, [solNFMeIdNfts]);
+
   const appSubtitle = "Create Music with AI Agents. Collect Music NFTs. Support Musicians.";
 
   return (
@@ -62,6 +94,7 @@ export const Navbar = () => {
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
           <NavigationMenuList>
+            {/* REMiX Button */}
             {location.pathname !== routeNames.remix && location.pathname !== routeNames.login && (
               <>
                 <Button
@@ -74,37 +107,67 @@ export const Navbar = () => {
               </>
             )}
 
-            {!DISABLE_BITZ_FEATURES && isLoggedInSol && solBitzNfts.length > 0 ? (
+            {/* Bitz XP Button */}
+            {!DISABLE_BITZ_FEATURES && isLoggedInSol && solBitzNfts.length > 0 && (
               <>
                 <NavigationMenuItem>
-                  {isLoggedInSol && (
-                    <SolBitzDropdown
-                      handlePlayActionBtn={async () => {
-                        await sleep(0.2);
-                        setShowPlayBitzModal(true);
-                      }}
-                    />
-                  )}
+                  <SolBitzDropdown
+                    handlePlayActionBtn={async () => {
+                      await sleep(0.2);
+                      setShowPlayBitzModal(true);
+                    }}
+                  />
                 </NavigationMenuItem>
               </>
-            ) : (
-              <></>
+            )}
+
+            {isLoggedInSol && (
+              <>
+                <NavigationMenuItem>
+                  {/* NFMe ID Profile Image */}
+                  <div className="flex items-center relative group">
+                    {nfMeIdImageUrl ? (
+                      <img
+                        src={nfMeIdImageUrl}
+                        alt="NFMe ID"
+                        className="w-[48px] h-[48px] rounded-md object-cover transition-transform duration-300 group-hover:scale-110 cursor-pointer"
+                        onClick={() => setShowNfMePreferencesModal(true)}
+                      />
+                    ) : (
+                      <div
+                        onClick={() => setShowNfMeIdModal(true)}
+                        className="w-[48px] h-[48px] rounded-md bg-gray-800 flex items-center justify-center cursor-pointer transition-transform duration-300 group-hover:scale-110">
+                        <User className="w-6 h-6 text-gray-400" />
+                      </div>
+                    )}
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                      {nfMeIdImageUrl ? "Your NFMe ID" : "Get NFMe ID"}
+                    </div>
+                  </div>
+                </NavigationMenuItem>
+              </>
             )}
 
             {location.pathname !== routeNames.login && (
               <NavigationMenuItem>
                 {!publicKeySol ? (
-                  <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
-                    <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
-                      <Button
-                        className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-lg h-[48px]"
-                        variant="outline">
-                        Login
-                      </Button>
-                    </div>
-                  </Link>
+                  <>
+                    {/* Web3 Wallet Login Button */}
+                    <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
+                      <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
+                        <Button
+                          className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-lg h-[48px]"
+                          variant="outline">
+                          Login
+                        </Button>
+                      </div>
+                    </Link>
+                  </>
                 ) : (
-                  <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
+                  <>
+                    {/* Web3 Wallet Account Button */}
+                    <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
+                  </>
                 )}
               </NavigationMenuItem>
             )}
@@ -163,6 +226,7 @@ export const Navbar = () => {
           </div>
         )}
 
+        {/* Inline Game For Play Bitz Modal */}
         {!DISABLE_BITZ_FEATURES && showPlayBitzModal && (
           <PlayBitzModal
             showPlayBitzModel={showPlayBitzModal}
@@ -188,6 +252,12 @@ export const Navbar = () => {
           />
         </div>
       )}
+
+      {/* NFMe ID Claim Modal */}
+      {showNfMeIdModal && <GetNFMeModal setShowNfMeIdModal={setShowNfMeIdModal} setShowNfMePreferencesModal={setShowNfMePreferencesModal} />}
+
+      {/* NFMe Preferences Modal */}
+      <NFMePreferencesModal isOpen={showNfMePreferencesModal} onClose={() => setShowNfMePreferencesModal(false)} />
     </>
   );
 };
