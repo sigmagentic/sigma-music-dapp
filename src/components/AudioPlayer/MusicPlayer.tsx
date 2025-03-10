@@ -166,7 +166,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       if (firstSongBlobUrl) {
         setSongSource((prevState) => ({
           ...prevState, // keep all other key-value pairs
-          [1]: firstSongBlobUrl, // update the value of the first index
+          [trackList[0].idx]: firstSongBlobUrl, // update the value of the first index
         }));
       }
 
@@ -189,9 +189,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       // here we queue all the songs in the trackList by advanced fetching them from Marshal
       if (trackList && trackList.length > 0) {
         trackList.forEach((song: any) => {
-          const trackIdx = parseInt(song.idx, 10);
-          if (trackIdx === 1) return; // the first some will be cached by the firstSongBlobUrl
-          fetchMarshalForSong(trackIdx);
+          // const trackIdx = parseInt(song.idx, 10);
+          if (trackList[0].idx === song.idx) return; // the first song in the playlist will be cached by the firstSongBlobUrl
+
+          fetchMarshalForSong(song.idx);
         });
 
         updateProgress();
@@ -224,16 +225,16 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   }, [musicPlayerAudio.src]);
 
   useEffect(() => {
-    if (firstSongBlobUrl) {
+    if (firstSongBlobUrl && trackList && trackList.length > 0) {
       updateTrackPlayIsQueued(false);
       setSongSource((prevState) => ({
         ...prevState, // keep all other key-value pairs
-        [1]: firstSongBlobUrl, // update the value of the first index
+        [trackList[0].idx]: firstSongBlobUrl, // update the value of the first index
       }));
     } else {
       updateTrackPlayIsQueued(true);
     }
-  }, [firstSongBlobUrl]);
+  }, [trackList, firstSongBlobUrl]);
 
   useEffect(() => {
     musicPlayerAudio.pause();
@@ -333,12 +334,16 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           let blobUrl = "";
 
           try {
-            const trackInRadioListIndex = index - 1;
-
             console.log(`fetchSong (HTTP): Track ${index} Loading [no-cache]`);
 
-            const blob = await fetch(trackList[trackInRadioListIndex].stream!).then((r) => r.blob());
-            blobUrl = URL.createObjectURL(blob);
+            const trackInRadioList = trackList.find((track: any) => track.idx === index);
+
+            if (!trackInRadioList) {
+              errMsg = "Track not found";
+            } else {
+              const blob = await fetch(trackInRadioList.stream!).then((r) => r.blob());
+              blobUrl = URL.createObjectURL(blob);
+            }
           } catch (error: any) {
             errMsg = error.toString();
           }

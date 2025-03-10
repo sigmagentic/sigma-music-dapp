@@ -181,6 +181,7 @@ export async function getRadioStreamsData() {
     //     isExplicit: "0",
     //   },
     // ];
+
     // return [
     //   {
     //     idx: 1,
@@ -383,7 +384,10 @@ export async function getRadioStreamsData() {
     const getRadioStreamAPI = `https://api.itheumcloud.com/app_nftunes/assets/json/radioStreamData.json`;
 
     const tracksRes = await axios.get(getRadioStreamAPI);
-    const tracksData = tracksRes.data;
+    const tracksData = tracksRes.data.map((track: any) => ({
+      ...track,
+      idx: parseInt(track.idx, 10),
+    }));
 
     return tracksData;
   } catch (e) {

@@ -164,7 +164,7 @@ export const logStatusChangeToAPI = async ({
 };
 
 export const filterRadioTracksByUserPreferences = (allRadioTracks: RadioTrackData[]) => {
-  const _allRadioTracksSorted = [...allRadioTracks];
+  const _allRadioTracksSorted = [...allRadioTracks]; // we clone it so we dont mutate the original list
   // let now check if the user has some preferences for genres (initially we get this from session storage, later we get this from the NFMe ID)
   const savedGenres = sessionStorage.getItem("sig-pref-genres");
 

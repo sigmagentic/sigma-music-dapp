@@ -79,7 +79,8 @@ export const NFTunes = () => {
   const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
 
   // Radio Player state
-  const [radioTracks, setRadioTracks] = useState<Track[]>([]);
+  const [radioTracksSorted, setRadioTracksSorted] = useState<Track[]>([]);
+  const [radioTracksOriginal, setRadioTracksOriginal] = useState<Track[]>([]);
   const [radioTracksLoading, setRadioTracksLoading] = useState(true);
   const [launchRadioPlayer, setLaunchRadioPlayer] = useState(false);
   const [nfTunesRadioFirstTrackCachedBlob, setNfTunesRadioFirstTrackCachedBlob] = useState<string>("");
@@ -143,20 +144,31 @@ export const NFTunes = () => {
     if (radioGenresUpdatedByUserSinceLastRadioTracksRefresh) {
       (async () => {
         setRadioTracksLoading(true);
-        const _radioTracksSorted: RadioTrackData[] = await reorderRadioTracksAndCacheFirstTrackBlob(radioTracks);
-        setRadioTracks(_radioTracksSorted);
+        setRadioTracksSorted([]);
+        setNfTunesRadioFirstTrackCachedBlob("");
+
+        // we always reorder the master list of radio tracks (not the already sorted previous list)
+        const _radioTracksSorted: RadioTrackData[] = await reorderRadioTracksAndCacheFirstTrackBlob(radioTracksOriginal);
+        setRadioTracksSorted(_radioTracksSorted);
         setRadioTracksLoading(false);
         updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(false);
       })();
     }
   }, [radioGenresUpdatedByUserSinceLastRadioTracksRefresh]);
 
+  /*
+    when the app boots, we get the master radio tracks from the server
+    we then create a list of available genres from the master list
+    we then check if the user has some preference in session storage and then sort the list based on the user's preferences
+  */
   async function fetchAndUpdateRadioTracks() {
     try {
       setRadioTracksLoading(true);
-      setRadioTracks([]);
+      setRadioTracksSorted([]);
+      setNfTunesRadioFirstTrackCachedBlob("");
 
       const allRadioTracks = (await getRadioStreamsData()) as RadioTrackData[];
+      setRadioTracksOriginal([...allRadioTracks]); // this is the master list of radio tracks as we got from the server
 
       // Extract and normalize unique categories
       const uniqueGenres = new Set<string>();
@@ -173,7 +185,7 @@ export const NFTunes = () => {
 
       const _radioTracksSorted: RadioTrackData[] = await reorderRadioTracksAndCacheFirstTrackBlob(allRadioTracks);
 
-      setRadioTracks(_radioTracksSorted);
+      setRadioTracksSorted(_radioTracksSorted);
 
       setTimeout(() => {
         setRadioTracksLoading(false);
@@ -389,7 +401,7 @@ export const NFTunes = () => {
                 <div className="radioTeaser flex flex-col mt-10 md:mt-0 flex-1">
                   <div className="text-2xl xl:text-3xl">Listen for free</div>
                   <RadioTeaser
-                    radioTracks={radioTracks}
+                    radioTracks={radioTracksSorted}
                     radioTracksLoading={radioTracksLoading}
                     launchRadioPlayer={launchRadioPlayer}
                     setLaunchRadioPlayer={setLaunchRadioPlayer}
@@ -604,7 +616,7 @@ export const NFTunes = () => {
           {launchRadioPlayer && (
             <div className="w-full fixed left-0 bottom-0 z-40">
               <MusicPlayer
-                trackList={radioTracks}
+                trackList={radioTracksSorted}
                 isRadioPlayer={true}
                 firstSongBlobUrl={nfTunesRadioFirstTrackCachedBlob}
                 onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
