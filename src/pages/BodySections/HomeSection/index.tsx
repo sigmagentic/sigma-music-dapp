@@ -30,7 +30,7 @@ import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
 
-export const NFTunes = () => {
+export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
   const { theme } = useTheme();
   const currentTheme = theme !== "system" ? theme : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
@@ -84,6 +84,8 @@ export const NFTunes = () => {
   const [radioTracksLoading, setRadioTracksLoading] = useState(true);
   const [launchRadioPlayer, setLaunchRadioPlayer] = useState(false);
   const [nfTunesRadioFirstTrackCachedBlob, setNfTunesRadioFirstTrackCachedBlob] = useState<string>("");
+  const [loadRadioPlayerIntoDockedMode, setLoadRadioPlayerIntoDockedMode] = useState(false);
+  const [loadIntoArtistTileView, setLoadIntoArtistTileView] = useState(false);
 
   const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
 
@@ -100,6 +102,23 @@ export const NFTunes = () => {
 
     fetchAndUpdateRadioTracks();
   }, []);
+
+  useEffect(() => {
+    if (homeMode === "radio" && !launchRadioPlayer) {
+      setLaunchRadioPlayer(true);
+      // setLoadRadioPlayerIntoDockedMode(true);
+    }
+
+    if (homeMode.includes("artists")) {
+      setLoadIntoArtistTileView(true);
+    }
+  }, [homeMode]);
+
+  useEffect(() => {
+    if (launchRadioPlayer) {
+      setHomeMode("radio");
+    }
+  }, [launchRadioPlayer]);
 
   useEffect(() => {
     if (publicKeySol && solNfts.length > 0) {
@@ -395,199 +414,198 @@ export const NFTunes = () => {
       <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
         <div className="flex flex-col justify-center items-center font-[Clash-Regular] w-full pb-6">
           {/* Radio and main app header CTAs */}
-          <div className="w-full mt-5">
-            <div className="flex flex-col-reverse md:flex-row justify-center items-center xl:items-start w-[100%]">
-              <div className="flex flex-col w-full gap-4">
-                <div className="radioTeaser flex flex-col mt-10 md:mt-0 flex-1">
-                  <div className="text-2xl xl:text-3xl">Listen for free</div>
-                  <RadioTeaser
-                    radioTracks={radioTracksSorted}
-                    radioTracksLoading={radioTracksLoading}
-                    launchRadioPlayer={launchRadioPlayer}
-                    setLaunchRadioPlayer={setLaunchRadioPlayer}
-                  />
+          {homeMode === "home" && (
+            <div className="w-full mt-5">
+              <div className="flex flex-col-reverse md:flex-row justify-center items-center xl:items-start w-[100%]">
+                <div className="flex flex-col w-full gap-4">
+                  <div className="radioTeaser flex flex-col mt-10 md:mt-0 flex-1">
+                    <div className="text-2xl xl:text-3xl">Listen for free</div>
+                    <RadioTeaser
+                      radioTracks={radioTracksSorted}
+                      radioTracksLoading={radioTracksLoading}
+                      launchRadioPlayer={launchRadioPlayer}
+                      setLaunchRadioPlayer={setLaunchRadioPlayer}
+                    />
+                  </div>
+
+                  <div className="featuredBanners flex-1 mt-10 md:mt-0">
+                    <FeaturedBanners
+                      onFeaturedArtistDeepLinkSlug={(slug: string) => {
+                        setHomeMode(`artists-${new Date().getTime()}`);
+                        setFeaturedArtistDeepLinkSlug(slug);
+                      }}
+                    />
+                  </div>
                 </div>
 
-                <div className="featuredBanners flex-1 mt-10 md:mt-0">
-                  <FeaturedBanners
-                    onFeaturedArtistDeepLinkSlug={(slug: string) => {
-                      setFeaturedArtistDeepLinkSlug(slug);
-                    }}
-                  />
+                <div className="flex flex-col w-full gap-4">
+                  <div className="helloSigma flex-1">
+                    <div className="text-2xl xl:text-3xl mb-3 w-full text-center bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
+                      hi, i'm sigma, your AI music agent
+                    </div>
+
+                    <a href="https://x.com/SigmaXMusic" target="_blank">
+                      <div className="text-sm text-center mb-5">
+                        Click to interact with me on <FaXTwitter className="inline-block text-xl" />
+                      </div>
+                      <div className="flex flex-col md:flex-row gap-2 justify-center items-center cursor-pointer">
+                        <div
+                          className="border-[0.5px] border-neutral-500/90 h-[400px] bg-no-repeat bg-cover rounded-lg animate-float bg-bottom xl:bg-top w-full md:w-[90%]"
+                          style={{
+                            "backgroundImage": `url(${sigmaAgent})`,
+                            "backgroundBlendMode": "darken",
+                            "backgroundColor": "#fcc73d",
+                          }}></div>
+                      </div>
+                    </a>
+                  </div>
+                  <div className="coCreateWithSigma flex-1 flex flex-col justify-center items-center text-center rounded-lg">
+                    <div className="text-2xl xl:text-3xl bg-gradient-to-r from-yellow-300 to-orange-500 inline-block text-transparent bg-clip-text mt-4">
+                      Create with Sigma
+                    </div>
+                    <div>Bringing humans and music AI agents together to create music.</div>
+
+                    <div className="flex flex-col gap-4 mt-4">
+                      <div>
+                        <Button
+                          onClick={() => {
+                            navigate(routeNames.remix);
+                          }}
+                          className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%]  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg w-[500px]">
+                          <div>Launch AI Music Meme Coins with REMiX</div>
+                        </Button>
+                        <div className="text-sm mt-2">For Everyone</div>
+                      </div>
+
+                      <div>
+                        <Button
+                          className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%]  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg w-[500px]"
+                          onClick={() => {
+                            scrollToSection("join-nf-tunes");
+                          }}>
+                          <div>Launch Your Music with Sigma</div>
+                        </Button>
+                        <div className="text-sm mt-2">For Indie Musicians</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div className="flex flex-col w-full gap-4">
-                <div className="helloSigma flex-1">
-                  <div className="text-2xl xl:text-3xl mb-3 w-full text-center bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
-                    hi, i'm sigma, your AI music agent
-                  </div>
-
-                  <a href="https://x.com/SigmaXMusic" target="_blank">
-                    <div className="text-sm text-center mb-5">
-                      Click to interact with me on <FaXTwitter className="inline-block text-xl" />
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-2 justify-center items-center cursor-pointer">
-                      <div
-                        className="border-[0.5px] border-neutral-500/90 h-[400px] bg-no-repeat bg-cover rounded-lg animate-float bg-bottom xl:bg-top w-full md:w-[90%]"
-                        style={{
-                          "backgroundImage": `url(${sigmaAgent})`,
-                          "backgroundBlendMode": "darken",
-                          "backgroundColor": "#fcc73d",
-                        }}></div>
-                    </div>
-                  </a>
-                </div>
-                <div className="coCreateWithSigma flex-1 flex flex-col justify-center items-center text-center rounded-lg">
-                  <div className="text-2xl xl:text-3xl bg-gradient-to-r from-yellow-300 to-orange-500 inline-block text-transparent bg-clip-text mt-4">
-                    Create with Sigma
-                  </div>
-                  <div>Bringing humans and music AI agents together to create music.</div>
-
-                  <div className="flex flex-col gap-4 mt-4">
-                    <div>
-                      <Button
-                        onClick={() => {
-                          navigate(routeNames.remix);
-                        }}
-                        className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%]  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg w-[500px]">
-                        <div>Launch AI Music Meme Coins with REMiX</div>
-                      </Button>
-                      <div className="text-sm mt-2">For Everyone</div>
-                    </div>
-
-                    <div>
-                      <Button
-                        className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%]  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg w-[500px]"
-                        onClick={() => {
-                          scrollToSection("join-nf-tunes");
-                        }}>
-                        <div>Launch Your Music with Sigma</div>
-                      </Button>
-                      <div className="text-sm mt-2">For Indie Musicians</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Artists and their Albums */}
-          <div className="w-full mt-10">
-            <FeaturedArtistsAndAlbums
-              viewSolData={viewSolData}
-              stopPreviewPlayingNow={stopPreviewPlaying}
-              featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
-              onFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
-              onPlayHappened={() => {
-                // pause the preview tracks if playing
-                setStopPreviewPlaying(false);
-
-                // pause the radio if playing
-                if (launchRadioPlayer) {
-                  setLaunchRadioPlayer(false);
-                }
-
-                // pause the main player if playing
-                setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
-              }}
-              checkOwnershipOfAlbum={checkOwnershipOfAlbum}
-              openActionFireLogic={(_bitzGiftingMeta?: any) => {
-                setLaunchMusicPlayer(true);
-                setStopPreviewPlaying(true);
-
-                if (_bitzGiftingMeta) {
-                  setBitzGiftingMeta(_bitzGiftingMeta);
-                }
-              }}
-              onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
-              bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-              setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
-              userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
-              dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
-              onCloseMusicPlayer={resetAudioPlayerState}
-              isMusicPlayerOpen={launchMusicPlayer}
-            />
-          </div>
-
-          {/* Data NFT list shown here */}
-          {publicKeySol && (
-            <div className="w-full mt-10">
-              <MyCollectedAlbums
-                viewSolData={viewSolData}
-                isFetchingDataMarshal={isFetchingDataMarshal}
-                viewDataRes={viewDataRes}
-                currentDataNftIndex={currentDataNftIndex}
-                dataMarshalResponse={dataMarshalResponse}
-                firstSongBlobUrl={firstSongBlobUrl}
-                setStopPreviewPlaying={setStopPreviewPlaying}
-                setBitzGiftingMeta={setBitzGiftingMeta}
-                shownSolAppDataNfts={shownSolAppDataNfts}
-                onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
-                bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                checkOwnershipOfAlbum={checkOwnershipOfAlbum}
-                userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
-                setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
-                setFeaturedArtistDeepLinkSlug={(slug: string) => {
-                  setFeaturedArtistDeepLinkSlug(slug);
-                }}
-                openActionFireLogic={(_bitzGiftingMeta?: any) => {
-                  setLaunchMusicPlayer(true);
-                  setStopPreviewPlaying(true);
-
-                  if (_bitzGiftingMeta) {
-                    setBitzGiftingMeta(_bitzGiftingMeta);
-                  }
-                }}
-                dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
-                onCloseMusicPlayer={resetAudioPlayerState}
-                isMusicPlayerOpen={launchMusicPlayer}
-              />
             </div>
           )}
 
-          {/* Calling Musicians Section */}
-          <div className="w-full mt-10">
-            <div id="join-nf-tunes" className="flex flex-col gap-4 justify-center items-center w-full px-[20px] py-[50px] text-center rounded-t-lg ">
-              <span className="font-[Clash-Medium] text-2xl xl:text-6xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
-                Calling all Indie Musicians!
-              </span>
-              <span className="xl:w-[50%] xl:text-2xl ">Launch your music with Sigma Music.</span>
+          {/* Artists and their Albums */}
+          {(homeMode.includes("artists") || homeMode === "radio") && (
+            <>
+              <div className="w-full mt-10">
+                <FeaturedArtistsAndAlbums
+                  viewSolData={viewSolData}
+                  stopPreviewPlayingNow={stopPreviewPlaying}
+                  featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
+                  onFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
+                  onPlayHappened={() => {
+                    // pause the preview tracks if playing
+                    setStopPreviewPlaying(false);
 
-              <img className="w-[200px] md:w-400px" src={currentTheme === "dark" ? megaphone : megaphoneLight} alt="megaphone" />
+                    // pause the radio if playing
+                    if (launchRadioPlayer) {
+                      setLaunchRadioPlayer(false);
+                    }
 
-              <div className="flex flex-col md:flex-row">
-                <Link
-                  to={`https://api.itheumcloud.com/app_nftunes/other/nf-tunes-bizdev-deck-V2.pdf`}
-                  target="_blank"
-                  className="mt-10 md:mx-3 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg md:max-w-[50%] !text-black transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100">
-                  Why Sigma Music? <div className="text-sm">(Perks and Benefits)</div>
-                </Link>
-                <Link
-                  to={`https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform`}
-                  target="_blank"
-                  className="flex items-center mt-10 md:mx-3 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg md:max-w-[50%] !text-black transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100">
-                  Launch Your Music!
-                </Link>
+                    // pause the main player if playing
+                    setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
+                  }}
+                  checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                  openActionFireLogic={(_bitzGiftingMeta?: any) => {
+                    setLaunchMusicPlayer(true);
+                    setStopPreviewPlaying(true);
+
+                    if (_bitzGiftingMeta) {
+                      setBitzGiftingMeta(_bitzGiftingMeta);
+                    }
+                  }}
+                  onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
+                  bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                  setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
+                  userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
+                  dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
+                  onCloseMusicPlayer={resetAudioPlayerState}
+                  isMusicPlayerOpen={launchMusicPlayer}
+                  loadIntoArtistTileView={loadIntoArtistTileView}
+                  setLoadIntoArtistTileView={setLoadIntoArtistTileView}
+                />
               </div>
-            </div>
+            </>
+          )}
 
-            {/* What Musicians are saying */}
-            <div className="hidden flex flex-col gap-4 justify-center items-center w-full px-[20px] md:py-[50px] text-center rounded-b-lg">
-              <div className="py-8 flex flex-col w-[100%] justify-center items-center xl:items-start xl:p-12 xl:pt-0">
-                <div className="flex flex-col xl:flex-row w-full items-center justify-center h-[300px]">
-                  <div className="flex flex-col gap-8 xl:w-[50%] justify-start items-center xl:items-start md:w-[auto]">
-                    <div className="text-2xl xl:text-3xl">Hear what Indie Musicians are saying about Music Data NFTs and Sigma Music</div>
-                  </div>
-                  <div className="flex justify-center items-center h-[30rem] w-full xl:w-[50%]">
-                    <div className="w-[380px] h-[170px] md:w-[480px] md:h-[270px]">
-                      <YouTubeEmbed embedId="sDTBpwSu33I" title="Meet Manu" />
-                    </div>
-                  </div>
+          {/* Data NFT list shown here */}
+          {homeMode === "myAlbums" && (
+            <>
+              {publicKeySol && (
+                <div className="w-full mt-10">
+                  <MyCollectedAlbums
+                    viewSolData={viewSolData}
+                    isFetchingDataMarshal={isFetchingDataMarshal}
+                    viewDataRes={viewDataRes}
+                    currentDataNftIndex={currentDataNftIndex}
+                    dataMarshalResponse={dataMarshalResponse}
+                    firstSongBlobUrl={firstSongBlobUrl}
+                    setStopPreviewPlaying={setStopPreviewPlaying}
+                    setBitzGiftingMeta={setBitzGiftingMeta}
+                    shownSolAppDataNfts={shownSolAppDataNfts}
+                    onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
+                    bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                    checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                    userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
+                    setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
+                    setFeaturedArtistDeepLinkSlug={(slug: string) => {
+                      setFeaturedArtistDeepLinkSlug(slug);
+                    }}
+                    openActionFireLogic={(_bitzGiftingMeta?: any) => {
+                      setLaunchMusicPlayer(true);
+                      setStopPreviewPlaying(true);
+
+                      if (_bitzGiftingMeta) {
+                        setBitzGiftingMeta(_bitzGiftingMeta);
+                      }
+                    }}
+                    dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
+                    onCloseMusicPlayer={resetAudioPlayerState}
+                    isMusicPlayerOpen={launchMusicPlayer}
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Calling Musicians Section */}
+          {homeMode === "home" && (
+            <div className="w-full mt-10">
+              <div id="join-sigma" className="flex flex-col md:flex-row gap-4 py-[40px] px-[20px] text-center rounded-t-lg">
+                <div className="flex flex-col flex-1 text-left">
+                  <span className="text-center md:text-left font-[Clash-Medium] text-2xl xl:text-5xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
+                    Calling all Indie Musicians!
+                  </span>
+                  <span className="text-center md:text-left xl:text-2xl">Launch your music with Sigma Music.</span>
+                </div>
+
+                <div className="flex flex-col md:flex-row">
+                  <Link
+                    to={`https://api.itheumcloud.com/app_nftunes/other/nf-tunes-bizdev-deck-V2.pdf`}
+                    target="_blank"
+                    className="mt-10 md:mx-3 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg md:max-w-[50%] !text-black transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100">
+                    Why Sigma Music? <div className="text-sm">(Perks and Benefits)</div>
+                  </Link>
+                  <Link
+                    to={`https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform`}
+                    target="_blank"
+                    className="mt-10 md:mx-3 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg md:max-w-[50%] !text-black transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100">
+                    Launch Your Music!
+                  </Link>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* The album player footer bar */}
           {launchMusicPlayer && (
@@ -630,6 +648,7 @@ export const NFTunes = () => {
                 }}
                 onCloseMusicPlayer={handleCloseRadioPlayer}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
+                loadIntoDockedMode={loadRadioPlayerIntoDockedMode}
               />
             </div>
           )}
@@ -645,11 +664,6 @@ export const NFTunes = () => {
               </div>
             </div>
           )}
-        </div>
-
-        <div className="hidden bg-red-500 h-200px font-bold text-2xl fixed bottom-0 left-0 z-50">
-          trackPlayIsQueued = {trackPlayIsQueued ? "true" : "false"} <br />
-          albumPlayIsQueued = {albumPlayIsQueued ? "true" : "false"}
         </div>
 
         {/* The bitz power up for creators and album likes */}

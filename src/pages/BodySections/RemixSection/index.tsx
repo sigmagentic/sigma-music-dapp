@@ -9,11 +9,11 @@ import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON, SIGMA_MEME_FEATURE_
 import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping } from "libs/types";
 import { getApiWeb2Apps, logStatusChangeToAPI, sleep } from "libs/utils";
-import { LaunchMusicMeme } from "pages/AppMarketplace/NFTunes/LaunchMusicMeme";
-import { LaunchToPumpFun } from "pages/AppMarketplace/NFTunes/LaunchToPumpFun";
-import { SendBitzPowerUp } from "pages/AppMarketplace/NFTunes/SendBitzPowerUp";
-import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/AppMarketplace/NFTunes/shared/utils";
-import { updateBountyBitzSumGlobalMappingWindow } from "pages/AppMarketplace/NFTunes/shared/utils";
+import { LaunchMusicMeme } from "pages/BodySections/HomeSection/LaunchMusicMeme";
+import { LaunchToPumpFun } from "pages/BodySections/HomeSection/LaunchToPumpFun";
+import { SendBitzPowerUp } from "pages/BodySections/HomeSection/SendBitzPowerUp";
+import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
+import { updateBountyBitzSumGlobalMappingWindow } from "pages/BodySections/HomeSection/shared/utils";
 import { useNftsStore } from "store/nfts";
 
 interface Version {
@@ -131,7 +131,7 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
   );
 };
 
-const RemixPage = () => {
+const RemixSectionContent = () => {
   const { publicKey: publicKeySol } = useWallet();
   const addressSol = publicKeySol?.toBase58();
   const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
@@ -1070,8 +1070,8 @@ const RemixPage = () => {
   );
 };
 
-export const Remix = () => (
+export const RemixSection = () => (
   <AuthRedirectWrapper>
-    <RemixPage />
+    <RemixSectionContent />
   </AuthRedirectWrapper>
 );

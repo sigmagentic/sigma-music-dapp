@@ -84,8 +84,6 @@ export const fetchSolPrice = async () => {
 };
 
 export const logPaymentToAPI = async (paymentData: any) => {
-  console.log("Logging payment to API:", paymentData);
-
   try {
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/createPaymentLog`, {
       method: "POST",
@@ -100,7 +98,6 @@ export const logPaymentToAPI = async (paymentData: any) => {
     }
 
     const data = await response.json();
-    console.log(data);
     return data;
   } catch (error) {
     console.error("Error saving new launch:", error);

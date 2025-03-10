@@ -12,7 +12,7 @@ import { GiftBitzToArtistMeta } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
 import { sleep } from "libs/utils";
 import { scrollToSection } from "libs/utils/ui";
-import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/AppMarketplace/NFTunes/shared/utils";
+import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
@@ -25,6 +25,7 @@ type FeaturedArtistsAndAlbumsProps = {
   userHasNoBitzDataNftYet: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
+  loadIntoArtistTileView?: boolean;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number) => void;
   onPlayHappened: () => void;
@@ -32,6 +33,7 @@ type FeaturedArtistsAndAlbumsProps = {
   onSendBitzForMusicBounty: (e: any) => any;
   onFeaturedArtistDeepLinkSlug: (e: string | undefined) => any;
   onCloseMusicPlayer: () => void;
+  setLoadIntoArtistTileView: (e: boolean) => void;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
@@ -43,6 +45,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     userHasNoBitzDataNftYet,
     dataNftPlayingOnMainPlayer,
     isMusicPlayerOpen,
+    loadIntoArtistTileView,
     openActionFireLogic,
     viewSolData,
     onPlayHappened,
@@ -50,6 +53,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     onSendBitzForMusicBounty,
     onFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
+    setLoadIntoArtistTileView,
   } = props;
   const { publicKey: publicKeySol } = useWallet();
   const [previewTrackAudio] = useState(new Audio());
@@ -184,6 +188,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     }
   }, [stopPreviewPlayingNow]);
 
+  useEffect(() => {
+    if (loadIntoArtistTileView && inArtistProfileView) {
+      handleBackToArtistTileView();
+    }
+  }, [loadIntoArtistTileView]);
+
   async function playPausePreview(previewStreamUrl?: string, albumId?: string) {
     if (previewStreamUrl && albumId && (!isPreviewPlaying || previewPlayingForAlbumId !== albumId)) {
       onPlayHappened(); // inform parent to stop any other playing streams on its ui
@@ -251,22 +261,32 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     }
   }
 
+  function handleBackToArtistTileView() {
+    playPausePreview(); // with no params wil always go into the stop logic
+
+    setInArtistProfileView(false);
+
+    // remove the artist-profile param from the url
+    const currentParams = Object.fromEntries(searchParams.entries());
+    delete currentParams["artist-profile"];
+    setSearchParams(currentParams);
+
+    // reset the featuredArtistDeepLinkSlug
+    onFeaturedArtistDeepLinkSlug(undefined);
+  }
+
   const userLoggedInWithWallet = publicKeySol;
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
-        <div
-          className="text-2xl xl:text-3xl cursor-pointer mb-3 w-full"
-          onClick={() => {
-            setInArtistProfileView(false);
-          }}>
-          <span className="">Popular artists</span>
+        <div className="text-2xl xl:text-3xl cursor-pointer mb-3 w-full">
+          <span className="">Artists</span>
         </div>
 
         <div id="artist-profile" className="flex flex-col md:flex-row w-[100%] items-start">
           {artistAlbumDataLoading || artistAlbumDataset.length === 0 ? (
-            <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-lg border-[1px] border-foreground/20 min-h-[350px] w-full">
+            <div className="flex flex-col gap-4 p-2 items-start bg-background rounded-lg min-h-[350px] w-full">
               {artistAlbumDataLoading ? (
                 <div className="m-auto w-full">
                   <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
@@ -282,12 +302,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
           ) : (
             <div className="w-full">
               {!inArtistProfileView && (
-                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background border-[1px] border-foreground/20 rounded-lg min-h-[350px] w-full">
+                <div className="flex flex-col gap-4 p-2 items-start bg-background min-h-[350px] w-full">
                   <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px] ">
                     {artistAlbumDataset.map((artist: any) => (
                       <div
                         key={artist.artistId}
-                        className={`flex w-[250px] h-[250px] md:w-[300px] md:h-[300px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105 border-[1px] border-foreground/20 rounded-lg`}
+                        className={`flex w-[250px] h-[250px] md:w-[300px] md:h-[300px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
                         onClick={() => {
                           if (artist.artistId !== selArtistId) {
                             // notify the home page, which then triggers an effect to setSelArtistId
@@ -298,6 +318,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           }
 
                           setInArtistProfileView(true);
+                          setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
                         }}>
                         <div
                           className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
@@ -316,7 +337,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               )}
 
               {inArtistProfileView && (
-                <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-lg border border-primary/50 md:min-h-[350px]">
+                <div className="flex flex-col gap-4 p-2 items-start bg-background">
                   {!artistProfile ? (
                     <div>Loading</div>
                   ) : (
@@ -325,19 +346,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                       <Button
                         className="!text-black text-xl px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
                         variant="outline"
-                        onClick={() => {
-                          playPausePreview(); // with no params wil always go into the stop logic
-
-                          setInArtistProfileView(false);
-
-                          // remove the artist-profile param from the url
-                          const currentParams = Object.fromEntries(searchParams.entries());
-                          delete currentParams["artist-profile"];
-                          setSearchParams(currentParams);
-
-                          // reset the featuredArtistDeepLinkSlug
-                          onFeaturedArtistDeepLinkSlug(undefined);
-                        }}>
+                        onClick={handleBackToArtistTileView}>
                         <>
                           <CircleArrowLeft />
                           <span className="ml-2">Back to All Artists</span>

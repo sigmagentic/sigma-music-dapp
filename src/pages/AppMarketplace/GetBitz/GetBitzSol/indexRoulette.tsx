@@ -447,9 +447,9 @@ const GetBitzSol = (props: any) => {
     if (_loadBlankGameCanvas) {
       return (
         <>
-          <div className="relative overflow-hidden flex flex-col justify-center items-center bgx-red-700">
-            <div className="gameCanvas bgx-green-500 flex flex-col md:flex-row">
-              <div className={`scale-75 bgx-green-700 relative ${isFetchingDataMarshal ? "opacity-50 blur-sm" : ""}`}>
+          <div className="relative overflow-hidden flex flex-col justify-center items-center">
+            <div className="gameCanvas flex flex-col md:flex-row">
+              <div className={`scale-75 relative ${isFetchingDataMarshal ? "opacity-50 blur-sm" : ""}`}>
                 <Wheel mustStartSpinning={mustSpin} prizeNumber={prizeNumber} data={rouletteData} onStopSpinning={handleSpinOver} />
               </div>
               <div className="flex flex-col justify-center items-center pb-[10px] md:pb-[0px]">
@@ -478,7 +478,7 @@ const GetBitzSol = (props: any) => {
             </div>
 
             {spinComplete && (
-              <div className="gamePlayMeta bgx-blue-700 pb-5">
+              <div className="gamePlayMeta pb-5">
                 {viewDataRes && !viewDataRes.error && (
                   <>
                     {viewDataRes.data.gamePlayResult.triedTooSoonTryAgainInMs > 0 && (
@@ -557,7 +557,7 @@ const GetBitzSol = (props: any) => {
             )}
 
             {!userClickedToPlay && cooldown > 0 && (
-              <div className="gamePlayMeta bgx-blue-700 pb-5">
+              <div className="gamePlayMeta pb-5">
                 <Countdown
                   className="mx-auto text-3"
                   date={cooldown}

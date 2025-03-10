@@ -1,17 +1,11 @@
 import * as React from "react";
-import { routeNames } from "routes";
-import { NFTunes } from "pages/AppMarketplace/NFTunes";
+import { HomeSection } from "pages/BodySections/HomeSection";
+// import { routeNames } from "routes";
 
-export function returnRoute(routeKey: string) {
-  return (routeNames as any)[routeKey];
-}
+// export function returnRoute(routeKey: string) {
+//   return (routeNames as any)[routeKey];
+// }
 
-export const Home = () => {
-  return (
-    <>
-      <div className="flex flex-col py-2 px-4 md:px-0">
-        <NFTunes />
-      </div>
-    </>
-  );
+export const Home = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
+  return <HomeSection homeMode={homeMode} setHomeMode={setHomeMode} />;
 };

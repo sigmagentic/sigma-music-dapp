@@ -45,6 +45,7 @@ type MusicPlayerProps = {
   } | null;
   isRadioPlayer?: boolean;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
+  loadIntoDockedMode?: boolean;
   onSendBitzForMusicBounty: (e: any) => any;
   onCloseMusicPlayer: () => void;
   onPlayHappened: () => void;
@@ -105,6 +106,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     bountyBitzSumGlobalMapping,
     pauseAsOtherAudioPlaying,
     isRadioPlayer,
+    loadIntoDockedMode,
     onSendBitzForMusicBounty,
     onCloseMusicPlayer,
     onPlayHappened,
@@ -250,6 +252,12 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       pauseMusicPlayer();
     }
   }, [pauseAsOtherAudioPlaying]);
+
+  useEffect(() => {
+    if (loadIntoDockedMode && isFullScreen) {
+      setIsFullScreen(false);
+    }
+  }, [loadIntoDockedMode]);
 
   const pauseMusicPlayer = () => {
     if (isPlaying) {
@@ -528,8 +536,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         isFullScreen ? "fixed inset-0 z-[9999] rounded-none h-screen w-screen overflow-hidden" : ""
       }`}>
       <div className="debug hidden bg-yellow-400 text-black p-2 w-full text-xs">
-        <p className="mb-2">trackList = {JSON.stringify(trackList)}</p>
-        <p className="mb-2">firstSongBlobUrl = {firstSongBlobUrl}</p>
+        <p className="mb-2">isFullScreen = {isFullScreen.toString()}</p>
+        <p className="mb-2">loadIntoDockedMode = {loadIntoDockedMode?.toString()}</p>
+        {/* <p className="mb-2">trackList = {JSON.stringify(trackList)}</p> */}
+        {/* <p className="mb-2">firstSongBlobUrl = {firstSongBlobUrl}</p> */}
         <p className="mb-2">isPlaying = {isPlaying.toString()}</p>
         <p className="mb-2">pauseAsOtherAudioPlaying = {pauseAsOtherAudioPlaying?.toString()}</p>
         <p className="mb-2">musicPlayerAudio.src = {musicPlayerAudio.src}</p>

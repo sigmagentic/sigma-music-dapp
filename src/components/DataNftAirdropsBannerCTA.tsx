@@ -4,8 +4,8 @@ import { X } from "lucide-react";
 import { Button } from "libComponents/Button";
 import { checkIfFreeDataNftGiftMinted } from "libs/sol/SolViewData";
 import { sleep } from "libs/utils";
-import { AirDropFreeMusicGiftSol } from "pages/AppMarketplace/NFTunes/AirDropFreeMusicGiftSol";
-import { AirDropFreeXPNft } from "pages/AppMarketplace/NFTunes/AirDropFreeXPNft";
+import { AirDropFreeMusicGiftSol } from "pages/BodySections/HomeSection/AirDropFreeMusicGiftSol";
+import { AirDropFreeXPNft } from "pages/BodySections/HomeSection/AirDropFreeXPNft";
 import { useNftsStore } from "store/nfts";
 import { GetNFMeModal } from "./GetNFMeModal";
 

@@ -7,7 +7,7 @@ import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping } from "libs/types";
 import { isMostLikelyMobile, sleep } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
-import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from "pages/AppMarketplace/NFTunes/shared/utils";
+import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
 
@@ -109,8 +109,6 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
     if (artistAlbumDataset && artistAlbumDataset.length > 0) {
       if (shownSolAppDataNfts.length > 0) {
         (async () => {
-          console.log("shownSolAppDataNfts", shownSolAppDataNfts);
-          console.log("artistAlbumDataset", artistAlbumDataset);
           let _allOwnedAlbums: any[] = [];
           let _allOwnedSigmaAlbums: any[] = [];
           const filteredArtists = artistAlbumDataset
@@ -229,7 +227,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
         </div>
 
         <div id="data-nfts" className="flex flex-col md:flex-row w-[100%] items-start">
-          <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-lg border border-primary/50 min-h-[350px] w-[100%]">
+          <div className="flex flex-col gap-4 p-2 items-start bg-background min-h-[350px] w-[100%]">
             <>
               <div className="flex flex-col justify-center w-[100%]">
                 {isLoadingSol ? (
