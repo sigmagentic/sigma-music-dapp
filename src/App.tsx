@@ -8,19 +8,19 @@ import { ThemeProvider } from "./contexts/ThemeProvider";
 import { StoreProvider } from "./store/StoreProvider";
 
 export const App = () => {
-  const [homeMode, setHomeMode] = useState<"home" | "artists" | "radio" | "myAlbums">("home");
+  const [homeMode, setHomeMode] = useState<"home" | "artists" | "radio" | "wallet">("home");
 
   return (
     <Router>
       <SolContextProvider>
         <StoreProvider>
           <ThemeProvider defaultTheme="dark" storageKey="explorer-ui-theme">
-            <Layout homeMode={homeMode} setHomeMode={(newHomeMode) => setHomeMode(newHomeMode as "home" | "artists" | "radio" | "myAlbums")}>
+            <Layout homeMode={homeMode} setHomeMode={(newHomeMode) => setHomeMode(newHomeMode as "home" | "artists" | "radio" | "wallet")}>
               <Routes>
                 <Route path={routeNames.login} element={<Login />} />
                 <Route
                   path={routeNames.home}
-                  element={<Home homeMode={homeMode} setHomeMode={(newHomeMode) => setHomeMode(newHomeMode as "home" | "artists" | "radio" | "myAlbums")} />}
+                  element={<Home homeMode={homeMode} setHomeMode={(newHomeMode) => setHomeMode(newHomeMode as "home" | "artists" | "radio" | "wallet")} />}
                 />
                 <Route path={routeNames.remix} element={<Remix />} />
                 <Route path="*" element={<PageNotFound />} />

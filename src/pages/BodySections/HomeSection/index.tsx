@@ -5,13 +5,9 @@ import { Loader } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 // import { IS_DEVNET } from "appsConfig";
-import megaphoneLight from "assets/img/nf-tunes/megaphone-light.png";
-import megaphone from "assets/img/nf-tunes/megaphone.png";
 import sigmaAgent from "assets/img/sigma-banner.webp";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
-import YouTubeEmbed from "components/YouTubeEmbed";
 import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
-import { useTheme } from "contexts/ThemeProvider";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, Track, RadioTrackData } from "libs/types";
@@ -31,8 +27,6 @@ import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
 
 export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
-  const { theme } = useTheme();
-  const currentTheme = theme !== "system" ? theme : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
@@ -51,7 +45,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   } | null>(null);
   const [userHasNoBitzDataNftYet, setUserHasNoBitzDataNftYet] = useState(false);
   const [musicPlayerTrackList, setMusicPlayerTrackList] = useState<Track[]>([]);
-  const { trackPlayIsQueued, albumPlayIsQueued } = useAudioPlayerStore();
+  const { albumPlayIsQueued } = useAudioPlayerStore();
   const navigate = useNavigate();
 
   // Cached Signature Store Items
@@ -73,7 +67,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   }>({ creatorIcon: undefined, creatorName: undefined, giveBitzToWho: "", giveBitzToCampaignId: "", isLikeMode: undefined });
 
   // this is a copy of the bitz balances bounties are getting (inside FeaturedArtistsAndAlbums.tsx) during the users ui session
-  // ... but it only get progressively loaded as the user moves between tabs to see the atrist and their albums (so its not a complete state)
+  // ... but it only get progressively loaded as the user moves between tabs to see the artist and their albums (so its not a complete state)
   const [bountyBitzSumGlobalMapping, setMusicBountyBitzSumGlobalMapping] = useState<any>({});
 
   const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
@@ -84,20 +78,18 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [radioTracksLoading, setRadioTracksLoading] = useState(true);
   const [launchRadioPlayer, setLaunchRadioPlayer] = useState(false);
   const [nfTunesRadioFirstTrackCachedBlob, setNfTunesRadioFirstTrackCachedBlob] = useState<string>("");
-  const [loadRadioPlayerIntoDockedMode, setLoadRadioPlayerIntoDockedMode] = useState(false);
+  const [loadRadioPlayerIntoDockedMode, setLoadRadioPlayerIntoDockedMode] = useState(false); // load the radio player into docked mode?
   const [loadIntoArtistTileView, setLoadIntoArtistTileView] = useState(false);
 
+  // Genres
   const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
 
   useEffect(() => {
     const isFeaturedArtistDeepLink = searchParams.get("artist-profile");
-    const isHlWorkflowDeepLink = searchParams.get("hl");
 
     if (isFeaturedArtistDeepLink) {
-      scrollToSection("artist-profile", 50);
-      setFeaturedArtistDeepLinkSlug(isFeaturedArtistDeepLink.trim());
-    } else if (isHlWorkflowDeepLink && isHlWorkflowDeepLink === "sigma") {
-      scrollToSection("artist-profile", 50);
+      // user reloaded into a artist deep link, all we need to do is set the home mode to artists, then the below home mode effect takes care of the rest
+      setHomeMode(`artists-${new Date().getTime()}`);
     }
 
     fetchAndUpdateRadioTracks();
@@ -111,6 +103,13 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
     if (homeMode.includes("artists")) {
       setLoadIntoArtistTileView(true);
+
+      const isFeaturedArtistDeepLink = searchParams.get("artist-profile");
+
+      if (isFeaturedArtistDeepLink) {
+        setFeaturedArtistDeepLinkSlug(isFeaturedArtistDeepLink.trim());
+        setLoadIntoArtistTileView(false);
+      }
     }
   }, [homeMode]);
 
@@ -430,9 +429,9 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
                   <div className="featuredBanners flex-1 mt-10 md:mt-0">
                     <FeaturedBanners
-                      onFeaturedArtistDeepLinkSlug={(slug: string) => {
+                      onFeaturedArtistDeepLinkSlug={async (slug: string) => {
                         setHomeMode(`artists-${new Date().getTime()}`);
-                        setFeaturedArtistDeepLinkSlug(slug);
+                        setSearchParams({ "artist-profile": slug });
                       }}
                     />
                   </div>
@@ -539,7 +538,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
           )}
 
           {/* Data NFT list shown here */}
-          {homeMode === "myAlbums" && (
+          {homeMode === "wallet" && (
             <>
               {publicKeySol && (
                 <div className="w-full mt-10">

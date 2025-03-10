@@ -11,7 +11,6 @@ import { Button } from "libComponents/Button";
 import { GiftBitzToArtistMeta } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
 import { sleep } from "libs/utils";
-import { scrollToSection } from "libs/utils/ui";
 import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
@@ -156,9 +155,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setArtistProfile(selDataItem);
 
     // if we don't do the userInteractedWithTabs, then even on page load, we go update the url with artist-profile which we don't want
-    if (selDataItem && selDataItem.slug && userInteractedWithTabs) {
+    if (selDataItem && selDataItem.slug && (userInteractedWithTabs || featuredArtistDeepLinkSlug)) {
       // update the deep link param
-      setSearchParams({ "artist-profile": selDataItem.slug });
+      const currentParams = Object.fromEntries(searchParams.entries());
+      setSearchParams({ ...currentParams, "artist-profile": selDataItem.slug });
     }
 
     // we clone selDataItem here so as to no accidentally mutate things
@@ -273,9 +273,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     // reset the featuredArtistDeepLinkSlug
     onFeaturedArtistDeepLinkSlug(undefined);
+    setLoadIntoArtistTileView(false);
   }
-
-  const userLoggedInWithWallet = publicKeySol;
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
@@ -314,7 +313,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             onFeaturedArtistDeepLinkSlug(artist.slug);
 
                             setUserInteractedWithTabs(true);
-                            scrollToSection("artist-profile");
+                            window.scrollTo({
+                              top: 0,
+                              behavior: "smooth",
+                            });
                           }
 
                           setInArtistProfileView(true);
@@ -371,7 +373,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           {!DISABLE_BITZ_FEATURES && (
                             <div className="powerUpWithBitz flex flex-col md:flex-row items-center mb-5">
                               <div className="relative">
-                                {userLoggedInWithWallet ? (
+                                {publicKeySol ? (
                                   <Button
                                     className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 mx-2 cursor-pointer rounded-none rounded-l-sm"
                                     disabled={!publicKeySol}
@@ -411,14 +413,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               </div>
 
                               <div
-                                className={`${userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "ml-0"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-2 md:mt-0 rounded-r md:min-w-[100px] flex items-center justify-center `}>
+                                className={`${publicKeySol && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "ml-0"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-2 md:mt-0 rounded-r md:min-w-[100px] flex items-center justify-center `}>
                                 {typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum === "undefined" ? (
                                   <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
                                 ) : (
                                   <div
                                     className="p-10 md:p-10"
                                     onClick={() => {
-                                      if (userLoggedInWithWallet) {
+                                      if (publicKeySol) {
                                         onSendBitzForMusicBounty({
                                           creatorIcon: artistProfile.img,
                                           creatorName: artistProfile.name,

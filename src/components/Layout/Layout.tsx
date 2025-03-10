@@ -89,7 +89,10 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                   {!isMenuCollapsed && <span className="hidden md:inline">Radio</span>}
                 </button>
                 <button
-                  onClick={() => setHomeMode(`artists-${new Date().getTime()}`)}
+                  onClick={() => {
+                    removeArtistProfileParamFromUrl();
+                    setHomeMode(`artists-${new Date().getTime()}`);
+                  }}
                   className={`
                     flex items-center flex-shrink-0
                     ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
@@ -106,9 +109,9 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                   <button
                     onClick={() => {
                       removeArtistProfileParamFromUrl();
-                      setHomeMode("myAlbums");
+                      setHomeMode("wallet");
                     }}
-                    disabled={homeMode === "myAlbums"}
+                    disabled={homeMode === "wallet"}
                     className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 

@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "libComponents/Button";
-// import { scrollToSection } from "libs/utils/ui";
 
 export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedArtistDeepLinkSlug: (slug: string) => void }) => {
   return (
@@ -26,7 +25,6 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
                 className="!text-black text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100"
                 onClick={() => {
                   onFeaturedArtistDeepLinkSlug("yfgp");
-                  // scrollToSection("artist-profile");
                 }}>
                 Collect & Listen
               </Button>
@@ -47,7 +45,6 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
                 className="!text-black text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100"
                 onClick={() => {
                   onFeaturedArtistDeepLinkSlug("masterloopz-tmf");
-                  // scrollToSection("artist-profile");
                 }}>
                 Collect & Listen
               </Button>
