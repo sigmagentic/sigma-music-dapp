@@ -309,8 +309,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             <div className="flex flex-col gap-4 p-2 items-start bg-background rounded-lg min-h-[350px] w-full">
               {artistAlbumDataLoading ? (
                 <div className="m-auto w-full">
-                  <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
-                    {[...Array(3)].map((_, index) => (
+                  <div className="w-full flex flex-col items-center h-[250px] md:h-[100%] md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px]">
+                    {[...Array(8)].map((_, index) => (
                       <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
                     ))}
                   </div>
@@ -324,17 +324,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               {/* all artists tiles */}
               {!inArtistProfileView && (
                 <div className="flex flex-col gap-4 p-2 items-start bg-background min-h-[350px] w-full">
-                  <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px] ">
+                  <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px] ">
                     {artistAlbumDataset.map((artist: any) => (
                       <div
                         key={artist.artistId}
-                        className={`flex w-[250px] h-[250px] md:w-[300px] md:h-[300px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
+                        className={`flex w-[250px] h-[250px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
                         onClick={() => {
                           if (artist.artistId !== selArtistId) {
                             // notify the home page, which then triggers an effect to setSelArtistId
                             onFeaturedArtistDeepLinkSlug(artist.slug);
 
                             setUserInteractedWithTabs(true);
+
                             window.scrollTo({
                               top: 0,
                               behavior: "smooth",
