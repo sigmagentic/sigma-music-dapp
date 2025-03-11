@@ -6,7 +6,8 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
-import { DISABLE_BITZ_FEATURES } from "config";
+import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
+import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
 import { GiftBitzToArtistMeta } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
@@ -15,6 +16,7 @@ import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
+import { getApiWeb2Apps } from "libs/utils/misc";
 
 type FeaturedArtistsAndAlbumsProps = {
   stopPreviewPlayingNow?: boolean;
@@ -55,6 +57,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setLoadIntoArtistTileView,
   } = props;
   const { publicKey: publicKeySol } = useWallet();
+  const addressSol = publicKeySol?.toBase58();
   const [previewTrackAudio] = useState(new Audio());
   const [isPreviewPlaying, setIsPreviewPlaying] = useState<boolean>(false);
   const [previewPlayingForAlbumId, setPreviewPlayingForAlbumId] = useState<string | undefined>();
@@ -72,6 +75,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const { solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
+  const [activeTab, setActiveTab] = useState("discography");
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -274,13 +278,30 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     // reset the featuredArtistDeepLinkSlug
     onFeaturedArtistDeepLinkSlug(undefined);
     setLoadIntoArtistTileView(false);
+    setActiveTab("discography");
   }
+
+  const xpCollectionIdToUse = !addressSol || solBitzNfts.length === 0 ? DEFAULT_BITZ_COLLECTION_SOL : solBitzNfts[0].grouping[0].group_value;
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
         <div className="text-2xl xl:text-3xl cursor-pointer mb-3 w-full">
-          <span className="">Artists</span>
+          <div className="flex flex-col md:flex-row justify-between w-full">
+            {inArtistProfileView ? (
+              <Button
+                className="!text-black text-xl px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
+                variant="outline"
+                onClick={handleBackToArtistTileView}>
+                <>
+                  <CircleArrowLeft />
+                  <span className="ml-2">Back to All Artists</span>
+                </>
+              </Button>
+            ) : (
+              <span className="text-center">Artists</span>
+            )}
+          </div>
         </div>
 
         <div id="artist-profile" className="flex flex-col md:flex-row w-[100%] items-start">
@@ -300,6 +321,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             </div>
           ) : (
             <div className="w-full">
+              {/* all artists tiles */}
               {!inArtistProfileView && (
                 <div className="flex flex-col gap-4 p-2 items-start bg-background min-h-[350px] w-full">
                   <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px] ">
@@ -338,35 +360,25 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                 </div>
               )}
 
+              {/* artist profile view */}
               {inArtistProfileView && (
                 <div className="flex flex-col gap-4 p-2 items-start bg-background">
                   {!artistProfile ? (
                     <div>Loading</div>
                   ) : (
-                    <>
-                      {/* back to all artists  */}
-                      <Button
-                        className="!text-black text-xl px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
-                        variant="outline"
-                        onClick={handleBackToArtistTileView}>
-                        <>
-                          <CircleArrowLeft />
-                          <span className="ml-2">Back to All Artists</span>
-                        </>
-                      </Button>
-
-                      <div className="artist-bio w-[300px] md:w-full flex flex-col md:flex-row">
-                        <div className="">
+                    <div className="flex flex-col md:flex-row gap-4 w-full bgx-red-500">
+                      <div className="artist-bio md:w-[700px] flex flex-col bgx-blue-500">
+                        <div className="img-container">
                           <div
-                            className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] md:w-[400px] flex-1 bg-no-repeat bg-cover rounded-lg"
+                            className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] flex-1 bg-no-repeat bg-cover rounded-lg"
                             style={{
                               "backgroundImage": `url(${artistProfile.img})`,
                             }}></div>
                         </div>
 
                         {/* artists details and power up */}
-                        <div className="p-5 pt-2 flex-1">
-                          <h2 className={`!text-xl !text-white lg:!text-3xl text-nowrap mb-5 text-center md:text-left`}>
+                        <div className="details-container p-5 pt-2 flex-1">
+                          <h2 className={`!text-xl !text-white lg:!text-3xl text-nowrap mb-5 text-center md:text-left mt-5`}>
                             {artistProfile.name.replaceAll("_", " ")}
                           </h2>
 
@@ -397,7 +409,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                       variant="outline">
                                       <>
                                         <WalletMinimal />
-                                        <span className="ml-2">Login to Power-Up Musician</span>
+                                        <span className="ml-2">Login to Power-Up</span>
                                       </>
                                     </Button>
                                   </Link>
@@ -429,7 +441,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                         });
                                       }
                                     }}>
-                                    <span className="font-bold text-sm">Total Power</span>
+                                    <span className="font-bold text-sm">Power</span>
                                     <span className="ml-1 mt-[10px] text-sm">{bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum}</span>
                                   </div>
                                 )}
@@ -492,29 +504,68 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         </div>
                       </div>
 
-                      <div className="artist-discography w-[300px] lg:w-full">
-                        <p className="mt-5 mb-5 text-xl font-bold text-center md:text-left">Discography</p>
+                      <div className="artist-tabs flex flex-col p-2 items-start bgx-green-600 w-full">
+                        {/* Tabs Navigation */}
+                        <div className="w-full border-b border-gray-600">
+                          <div className="flex space-x-8">
+                            <button
+                              onClick={() => setActiveTab("discography")}
+                              className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                ${
+                                  activeTab === "discography"
+                                    ? "border-orange-500 text-orange-500"
+                                    : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                }
+                              `}>
+                              Discography
+                            </button>
+                            <button
+                              onClick={() => setActiveTab("leaderboard")}
+                              className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                ${
+                                  activeTab === "leaderboard"
+                                    ? "border-orange-500 text-orange-500"
+                                    : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                }
+                              `}>
+                              Power-Up Leaderboard
+                            </button>
+                          </div>
+                        </div>
 
-                        <ArtistDiscography
-                          albums={artistProfile.albums}
-                          bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                          artistProfile={artistProfile}
-                          isPreviewPlaying={isPreviewPlaying}
-                          previewIsReadyToPlay={previewIsReadyToPlay}
-                          previewPlayingForAlbumId={previewPlayingForAlbumId}
-                          currentTime={currentTime}
-                          isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
-                          dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
-                          onSendBitzForMusicBounty={onSendBitzForMusicBounty}
-                          playPausePreview={playPausePreview}
-                          checkOwnershipOfAlbum={checkOwnershipOfAlbum}
-                          viewSolData={viewSolData}
-                          openActionFireLogic={openActionFireLogic}
-                          isMusicPlayerOpen={isMusicPlayerOpen}
-                          onCloseMusicPlayer={onCloseMusicPlayer}
-                        />
+                        {/* Tabs Content */}
+                        {activeTab === "discography" ? (
+                          <div className="artist-discography w-full">
+                            <ArtistDiscography
+                              albums={artistProfile.albums}
+                              bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                              artistProfile={artistProfile}
+                              isPreviewPlaying={isPreviewPlaying}
+                              previewIsReadyToPlay={previewIsReadyToPlay}
+                              previewPlayingForAlbumId={previewPlayingForAlbumId}
+                              currentTime={currentTime}
+                              isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
+                              dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
+                              onSendBitzForMusicBounty={onSendBitzForMusicBounty}
+                              playPausePreview={playPausePreview}
+                              checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                              viewSolData={viewSolData}
+                              openActionFireLogic={openActionFireLogic}
+                              isMusicPlayerOpen={isMusicPlayerOpen}
+                              onCloseMusicPlayer={onCloseMusicPlayer}
+                            />
+                          </div>
+                        ) : (
+                          <div className="artist-xp-leaderboard bg-background rounded-lg p-6 w-full">
+                            <ArtistXPLeaderboard
+                              bountyId={artistProfile.bountyId}
+                              creatorWallet={artistProfile.creatorWallet}
+                              xpCollectionIdToUse={xpCollectionIdToUse}
+                            />
+                          </div>
+                        )}
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               )}

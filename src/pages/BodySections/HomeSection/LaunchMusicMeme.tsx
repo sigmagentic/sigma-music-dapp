@@ -7,7 +7,7 @@ import { Loader } from "lucide-react";
 import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, logPaymentToAPI } from "libs/utils/misc";
+import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/misc";
 
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
 const MAX_TITLE_LENGTH = 20;
@@ -232,7 +232,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     setVerificationError("");
 
     try {
-      const response = await axios.get(`https://api.itheumcloud.com/itheumapi/check-invitation/${inviteCode}`);
+      const response = await axios.get(`${getApiWeb2Apps()}/itheumapi/check-invitation/${inviteCode}`);
       if (response.data.exists && !response.data.isUsed) {
         setIsVerified(true);
         toastSuccess("Invite code verified!", true);

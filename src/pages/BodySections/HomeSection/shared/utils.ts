@@ -2,6 +2,7 @@ import axios from "axios";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { GiftBitzToArtistMeta, Track } from "libs/types";
+import { getApiWeb2Apps } from "libs/utils/misc";
 import { fetchBitSumAndGiverCountsSol } from "pages/AppMarketplace/GetBitz/GetBitzSol/GiveBitzBase";
 
 // get and cache the artists and albums data locally
@@ -16,7 +17,7 @@ export async function getArtistsAlbumsData() {
       return _artistsAlbumsDataCachedOnWindow;
     } else {
       console.log(`getArtistsAlbumsData: [no-cache]`);
-      const getArtistsAlbumsAPI = `https://api.itheumcloud.com/app_nftunes/assets/json/albumsAndArtistsData.json`;
+      const getArtistsAlbumsAPI = `${getApiWeb2Apps()}/app_nftunes/assets/json/albumsAndArtistsData.json`;
       const dataRes = await axios.get(getArtistsAlbumsAPI);
       const dataset = dataRes.data;
       _artistsAlbumsDataCachedOnWindow = dataset;
@@ -381,7 +382,7 @@ export async function getRadioStreamsData() {
     //   },
     // ];
 
-    const getRadioStreamAPI = `https://api.itheumcloud.com/app_nftunes/assets/json/radioStreamData.json`;
+    const getRadioStreamAPI = `${getApiWeb2Apps()}/app_nftunes/assets/json/radioStreamData.json`;
 
     const tracksRes = await axios.get(getRadioStreamAPI);
     const tracksData = tracksRes.data.map((track: any) => ({
