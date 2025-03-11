@@ -580,7 +580,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
           {/* Calling Musicians Section */}
           {homeMode === "home" && (
             <div className="w-full mt-10">
-              <div id="join-sigma" className="flex flex-col md:flex-row gap-4 py-[40px] px-[20px] text-center rounded-t-lg">
+              <div id="join-sigma" className="flex flex-col md:flex-row 3xl:flex-col gap-4 py-[40px] px-[20px] text-center rounded-t-lg">
                 <div className="flex flex-col flex-1 text-left">
                   <span className="text-center md:text-left font-[Clash-Medium] text-2xl xl:text-5xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
                     Calling all Indie Musicians!
@@ -588,7 +588,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                   <span className="text-center md:text-left xl:text-2xl">Launch your music with Sigma Music.</span>
                 </div>
 
-                <div className="flex flex-col md:flex-row">
+                <div className="flex flex-col flex-1 md:flex-row">
                   <Link
                     to={`https://api.itheumcloud.com/app_nftunes/other/nf-tunes-bizdev-deck-V2.pdf`}
                     target="_blank"

@@ -6,6 +6,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
+import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
@@ -530,11 +531,22 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               `}>
                               Power-Up Leaderboard
                             </button>
+                            <button
+                              onClick={() => setActiveTab("innercircle")}
+                              className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                ${
+                                  activeTab === "innercircle"
+                                    ? "border-orange-500 text-orange-500"
+                                    : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                }
+                              `}>
+                              Inner Circle
+                            </button>
                           </div>
                         </div>
 
                         {/* Tabs Content */}
-                        {activeTab === "discography" ? (
+                        {activeTab === "discography" && (
                           <div className="artist-discography w-full">
                             <ArtistDiscography
                               albums={artistProfile.albums}
@@ -555,13 +567,21 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               onCloseMusicPlayer={onCloseMusicPlayer}
                             />
                           </div>
-                        ) : (
+                        )}
+
+                        {activeTab === "leaderboard" && (
                           <div className="artist-xp-leaderboard bg-background rounded-lg p-6 w-full">
                             <ArtistXPLeaderboard
                               bountyId={artistProfile.bountyId}
                               creatorWallet={artistProfile.creatorWallet}
                               xpCollectionIdToUse={xpCollectionIdToUse}
                             />
+                          </div>
+                        )}
+
+                        {activeTab === "innercircle" && (
+                          <div className="artist-innercircle w-full">
+                            <ArtistInnerCircle artistName={artistProfile.name.replaceAll("_", " ")} creatorWallet={artistProfile.creatorWallet} />
                           </div>
                         )}
                       </div>
