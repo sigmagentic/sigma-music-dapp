@@ -16,7 +16,6 @@ import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
-import { getApiWeb2Apps } from "libs/utils/misc";
 
 type FeaturedArtistsAndAlbumsProps = {
   stopPreviewPlayingNow?: boolean;
