@@ -274,7 +274,7 @@ const GiveBitzBase = () => {
 
       if (giveBitzGameResult) {
         if (giveBitzGameResult?.data?.statusCode && giveBitzGameResult?.data?.statusCode != 200) {
-          throw new Error("Error: Not possible to send power-up. Error code returned. Do you have enough BiTz to give?");
+          throw new Error("Error: Not possible to send power-up. Error code returned. Do you have enough XP to give?");
         } else {
           fetchMyGivenBitz();
           fetchGiverLeaderBoard();
@@ -292,14 +292,14 @@ const GiveBitzBase = () => {
   return (
     <div id="givebits" className="flex flex-col max-w-[100%] border border-[#fde047] p-[2rem] rounded-[1rem] mt-[3rem]">
       <div className="flex flex-col mb-8 items-center justify-center">
-        <h2 className="text-foreground text-4xl mb-2">Give Bitz</h2>
+        <h2 className="text-foreground text-4xl mb-2">Give XP</h2>
         <span className="text-base text-foreground/75 text-center ">Power-Up VERIFIED Data Creators and Data Bounties</span>
       </div>
 
       {addressSol && (
         <div className="my-rank-and-score md:flex md:justify-center border p-[.6rem] mb-[1rem] rounded-[1rem] text-center bg-[#fde047] bg-opacity-25">
           <div className="flex flex-col items-center p-[1rem] md:flex-row md:align-baseline md:pr-[2rem]">
-            <p className="flex items-end md:text-lg md:mr-[1rem]">Total BitZ You Have Given for Power-Ups</p>
+            <p className="flex items-end md:text-lg md:mr-[1rem]">Total XP You Have Given for Power-Ups</p>
             <p className="text-xl md:text-2xl dark:text-[#fde047] font-bold">
               {givenBitzSum === -2 ? `...` : <>{givenBitzSum === -1 ? "0" : `${givenBitzSum}`}</>}
             </p>
@@ -339,7 +339,7 @@ const GiveBitzBase = () => {
             </div>
           </div>
           <span className="text-base text-foreground/75 text-center ">
-            Power-Up Data Bounties (Ideas for new Data NFTs) with your BiTz XP, Climb Bounty Leaderboards and get bonus rewards if your Bounty is realized.
+            Power-Up Data Bounties (Ideas for new Data NFTs) with your XP, Climb Bounty Leaderboards and get bonus rewards if your Bounty is realized.
           </span>
         </div>
 

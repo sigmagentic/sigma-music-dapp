@@ -107,7 +107,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
 
       if (giveBitzGameResult) {
         if (giveBitzGameResult?.data?.statusCode && giveBitzGameResult?.data?.statusCode != 200) {
-          toastClosableError("Error: Not possible to send power-up. Error code returned. Do you have enough BiTz to give?");
+          toastClosableError("Error: Not possible to send power-up. Error code returned. Do you have enough XP to give?");
           setPoweringUpError(true);
         } else {
           // we can "locally" estimate and update the balance counts (no need to get it from the marshal as it will be synced when user reloads page or logs in/out or plays the get bitz game)
@@ -166,7 +166,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
           setGiftBitzWorkflow(false);
         }}
         closeOnOverlayClick={false}
-        title={!isLikeMode ? "Power-Up This Creator With BiTz" : "Like This Album With 5 BiTz"}
+        title={!isLikeMode ? "Power-Up This Creator With XP" : "Like This Album With 5 XP"}
         hasFilter={false}
         filterData={[]}
         modalClassName={""}
@@ -202,9 +202,9 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                     </span>{" "}
                     {showDetails && (
                       <div>
-                        Musicians with the most Bitz powering them will be featured more on Sigma Music and other social channels and they will get monthly
-                        badges that can earn them rewards (this supports the Musician) and in return, you can also earn monthly badges that can earn you
-                        rewards. Learn more about the rewards program{" "}
+                        Musicians with the most XP powering them will be featured more on Sigma Music and other social channels and they will get monthly badges
+                        that can earn them rewards (this supports the Musician) and in return, you can also earn monthly badges that can earn you rewards. Learn
+                        more about the rewards program{" "}
                         <a href="https://docs.itheum.io/product-docs/product/ai-data-workforce/badges" target="_blank" className="text-blue-500">
                           here
                         </a>
@@ -227,18 +227,18 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                 <>
                   {bitBalanceOnChain === -2 && (
                     <div className="mt-2">
-                      ⚠️ Do you get your free BiTz XP Data NFT yet? You will need this for this action. To get a free one, click on the button below.
+                      ⚠️ Do you get your free XP Data NFT yet? You will need this for this action. To get a free one, click on the button below.
                     </div>
                   )}
                   {bitBalanceOnChain > -1 && bitBalanceOnChain < minBitzValNeeded && (
-                    <div className="mt-2">⚠️ You don't have enough BiTz for this action. To play the BiTz game and get free XP, click on the button below.</div>
+                    <div className="mt-2">⚠️ You don't have enough XP for this action. To play the XP game and get free XP, click on the button below.</div>
                   )}
                 </>
               )}
               {(bitBalanceOnChain >= minBitzValNeeded || powerUpSuccessfullyDone) && (
                 <>
                   <div className="mt-2 text-lg">
-                    <div className="">Your BiTz Balance: {bitBalanceOnChain} BiTz</div>
+                    <div className="">Your XP Balance: {bitBalanceOnChain} XP</div>
                   </div>
 
                   {poweringUpError && (
@@ -315,8 +315,8 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                               {poweringUpInProgress
                                 ? "Sending, Please Wait..."
                                 : !isLikeMode
-                                  ? `Gift Creator ${bitzValToGift} BiTz`
-                                  : `Like with ${bitzValToGift} BiTz`}
+                                  ? `Gift Creator ${bitzValToGift} XP`
+                                  : `Like with ${bitzValToGift} XP`}
                             </span>
                           </Button>
                         </div>
@@ -328,7 +328,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                               className="!text-[#fde047] hover:underline ml-2 flex"
                               href="https://docs.itheum.io/product-docs/legal/ecosystem-tools-terms/bitz-xp/give-bitz"
                               target="blank">
-                              Give BiTz terms of use <ExternalLinkIcon width={16} className="ml-2" />
+                              Give XP terms of use <ExternalLinkIcon width={16} className="ml-2" />
                             </a>
                           </div>
                         </div>

@@ -775,7 +775,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 }}>
                 <div
                   className="p-5 md:p-0 flex items-center gap-2"
-                  title={"Like This Album With 5 BiTz"}
+                  title={"Like This Album With 5 XP"}
                   onClick={() => {
                     likeAlbumWithBiTz(trackList[currentTrackIndex]);
                   }}>

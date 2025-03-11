@@ -65,7 +65,7 @@ const GetBitzSol = (props: any) => {
   const [spinComplete, setSpinComplete] = useState(false);
   const [userClickedToPlay, setUserClickedToPlay] = useState(false);
   const [gameInProgress, setGameInProgress] = useState(false);
-  const tweetText = `url=https://ai-workforce.itheum.io/?text=${viewDataRes?.data.gamePlayResult.bitsWon > 0 ? "I just played the Get BiTz XP Game on %23itheum and won " + viewDataRes?.data.gamePlayResult.bitsWon + " BiTz points 🙌!%0A%0APlay now and get your own BiTz! %23GetBiTz %23DRiP %23Solana" : "Oh no, I got rugged getting BiTz points this time. Maybe you will have better luck?%0A%0ATry here to %23GetBiTz %23itheum %0A"}`;
+  const tweetText = `url=https://sigmamusic.fm/?text=${viewDataRes?.data.gamePlayResult.bitsWon > 0 ? "I just played the XP Game on Sigma Music and won " + viewDataRes?.data.gamePlayResult.bitsWon + " XP 🙌!%0A%0APlay now and get your own XP!" : "Oh no, I got rugged getting XP this time. Maybe you will have better luck?"}`;
 
   const handleSpinOver = async () => {
     setMustSpin(false);
@@ -428,7 +428,7 @@ const GetBitzSol = (props: any) => {
     if (address && !checkingIfHasGameDataNFT && !hasGameDataNFT) {
       return (
         <OverLay
-          label="Get Free BiTz Data NFT from Dashboard... "
+          label="Get Free XP Data NFT from Dashboard... "
           ActionComponent={
             <div
               onClick={() => {

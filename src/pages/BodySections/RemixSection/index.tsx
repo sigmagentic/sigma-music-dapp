@@ -526,7 +526,7 @@ const RemixSectionContent = () => {
                                   ) : (
                                     <div
                                       className="p-5 md:p-0 flex items-center gap-2"
-                                      title={addressSol ? "Like This Album With 5 BiTz" : "Login to Like This Album"}
+                                      title={addressSol ? "Like This Album With 5 XP" : "Login to Like This Album"}
                                       onClick={() => {
                                         if (addressSol) {
                                           handleSendBitzForMusicBounty({
@@ -600,7 +600,7 @@ const RemixSectionContent = () => {
                       ) : (
                         <div
                           className="p-5 md:p-0 flex items-center gap-2"
-                          title={addressSol ? "Like This Album With 5 BiTz" : "Login to Like This Album"}
+                          title={addressSol ? "Like This Album With 5 XP" : "Login to Like This Album"}
                           onClick={() => {
                             if (addressSol) {
                               handleSendBitzForMusicBounty({
