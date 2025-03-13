@@ -27,15 +27,52 @@ type FeaturedArtistsAndAlbumsProps = {
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
   loadIntoArtistTileView?: boolean;
+  isAllAlbumsMode?: boolean;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number) => void;
   onPlayHappened: () => void;
   checkOwnershipOfAlbum: (e: any) => any;
   onSendBitzForMusicBounty: (e: any) => any;
-  onFeaturedArtistDeepLinkSlug: (e: string | undefined) => any;
+  onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => any;
   onCloseMusicPlayer: () => void;
   setLoadIntoArtistTileView: (e: boolean) => void;
 };
+
+export interface Album {
+  albumId: string;
+  title: string;
+  desc: string;
+  img: string;
+  solNftName: string;
+  ctaPreviewStream: string;
+  bountyId: string;
+  isExplicit: string;
+  isPodcast: string;
+  isSpotlight: string;
+  isFeatured: string;
+}
+
+export interface Artist {
+  artistId: string;
+  name: string;
+  slug: string;
+  bio: string;
+  img: string;
+  bountyId: string;
+  dripLink: string;
+  xLink: string;
+  creatorWallet: string;
+  webLink: string;
+  ytLink: string;
+  otherLink1: string;
+  albums: Album[];
+}
+
+interface AlbumWithArtist extends Album {
+  artistId: string;
+  artistName: string;
+  artistSlug: string;
+}
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
   const {
@@ -51,6 +88,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     viewSolData,
     onPlayHappened,
     checkOwnershipOfAlbum,
+    isAllAlbumsMode,
     onSendBitzForMusicBounty,
     onFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
@@ -63,8 +101,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [previewPlayingForAlbumId, setPreviewPlayingForAlbumId] = useState<string | undefined>();
   const [previewIsReadyToPlay, setPreviewIsReadyToPlay] = useState(false);
   const [selArtistId, setSelArtistId] = useState<string | undefined>();
+  const [selAlbumId, setSelAlbumId] = useState<string | undefined>();
   const [userInteractedWithTabs, setUserInteractedWithTabs] = useState<boolean>(false);
-  const [artistProfile, setArtistProfile] = useState<any>(null);
+  const [artistProfile, setArtistProfile] = useState<Artist | null>(null);
   const [inArtistProfileView, setInArtistProfileView] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState("00:00");
   const [duration, setDuration] = useState("00:00");
@@ -73,7 +112,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [isFreeDropSampleWorkflow, setIsFreeDropSampleWorkflow] = useState(false);
   const [isSigmaWorkflow, setIsSigmaWorkflow] = useState(false);
   const { solBitzNfts } = useNftsStore();
-  const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
+  const [artistAlbumDataset, setArtistAlbumDataset] = useState<Artist[]>([]);
+  const [albumsDataset, setAlbumsDataset] = useState<AlbumWithArtist[]>([]);
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState("discography");
 
@@ -110,12 +150,22 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   }, 2500);
 
   useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
     const isHlWorkflowDeepLink = searchParams.get("hl");
+    const jumpToTab = searchParams.get("t");
 
     if (isHlWorkflowDeepLink === "sample") {
       setIsFreeDropSampleWorkflow(true);
     } else if (isHlWorkflowDeepLink === "sigma") {
       setIsSigmaWorkflow(true);
+    }
+
+    if (jumpToTab && jumpToTab === "ic") {
+      setActiveTab("innerCircle");
     }
 
     previewTrackAudio.addEventListener("ended", eventToAttachEnded);
@@ -125,9 +175,23 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     (async () => {
       sleep(5);
       const allArtistsAlbumsData = await getArtistsAlbumsData();
-      // const allArtistsAlbumsData = dataset;
+      let allAlbumsData: AlbumWithArtist[] = [];
+
+      allAlbumsData = allArtistsAlbumsData.flatMap((artist: Artist) =>
+        artist.albums.map(
+          (album: Album): AlbumWithArtist => ({
+            ...album,
+            artistId: artist.artistId,
+            artistName: artist.name,
+            artistSlug: artist.slug,
+          })
+        )
+      );
+
       sleep(5);
+
       setArtistAlbumDataset(allArtistsAlbumsData);
+      setAlbumsDataset(allAlbumsData);
       setArtistAlbumDataLoading(false);
     })();
 
@@ -148,43 +212,67 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   );
 
   useEffect(() => {
+    if (artistAlbumDataset.length === 0) {
+      return;
+    }
+
+    if (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== "") {
+      let artistIdInSlug = featuredArtistDeepLinkSlug;
+      let albumIdInSlug = undefined;
+
+      if (featuredArtistDeepLinkSlug.includes("~")) {
+        artistIdInSlug = featuredArtistDeepLinkSlug.split("~")[0];
+        albumIdInSlug = featuredArtistDeepLinkSlug.split("~")[1];
+      }
+
+      const findArtistBySlug = artistAlbumDataset.find((i) => i.slug === artistIdInSlug);
+
+      if (findArtistBySlug) {
+        setSelArtistId(findArtistBySlug.artistId);
+
+        if (albumIdInSlug) {
+          setSelAlbumId(albumIdInSlug);
+        }
+      }
+
+      setInArtistProfileView(true);
+    }
+  }, [featuredArtistDeepLinkSlug, artistAlbumDataset]);
+
+  useEffect(() => {
     if (artistAlbumDataset.length === 0 || !selArtistId) {
       return;
     }
 
     playPausePreview(); // with no params wil always go into the stop logic
 
-    const selDataItem = artistAlbumDataset.find((i) => i.artistId === selArtistId);
+    const selDataItem: Artist | undefined = artistAlbumDataset.find((i) => i.artistId === selArtistId);
 
+    if (!selDataItem) {
+      return;
+    }
+
+    console.log("selDataItem", selDataItem);
     setArtistProfile(selDataItem);
 
     // if we don't do the userInteractedWithTabs, then even on page load, we go update the url with artist-profile which we don't want
-    if (selDataItem && selDataItem.slug && (userInteractedWithTabs || featuredArtistDeepLinkSlug)) {
+    if (selDataItem && (userInteractedWithTabs || (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== ""))) {
       // update the deep link param
       const currentParams = Object.fromEntries(searchParams.entries());
-      setSearchParams({ ...currentParams, "artist-profile": selDataItem.slug });
+
+      if (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== "") {
+        currentParams["artist-profile"] = featuredArtistDeepLinkSlug;
+      } else {
+        currentParams["artist-profile"] = selDataItem.slug;
+      }
+
+      setSearchParams({ ...currentParams });
     }
 
     // we clone selDataItem here so as to no accidentally mutate things
     // we debounce this, so that - if the user is jumping tabs.. it wait until they stop at a tab for 2.5 S before running the complex logic
     debounced_fetchBitzPowerUpsAndLikesForSelectedArtist({ ...selDataItem });
-  }, [selArtistId, artistAlbumDataset]);
-
-  useEffect(() => {
-    if (artistAlbumDataset.length === 0) {
-      return;
-    }
-
-    if (featuredArtistDeepLinkSlug) {
-      const findArtistBySlug = artistAlbumDataset.find((i) => i.slug === featuredArtistDeepLinkSlug);
-
-      if (findArtistBySlug) {
-        setSelArtistId(findArtistBySlug.artistId);
-      }
-
-      setInArtistProfileView(true);
-    }
-  }, [featuredArtistDeepLinkSlug, artistAlbumDataset]);
+  }, [selArtistId, selAlbumId, artistAlbumDataset]);
 
   useEffect(() => {
     if (stopPreviewPlayingNow) {
@@ -276,9 +364,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setSearchParams(currentParams);
 
     // reset the featuredArtistDeepLinkSlug
-    onFeaturedArtistDeepLinkSlug(undefined);
+    onFeaturedArtistDeepLinkSlug("");
     setLoadIntoArtistTileView(false);
     setActiveTab("discography");
+    setSelAlbumId(undefined);
+    setSelArtistId(undefined);
   }
 
   const xpCollectionIdToUse = !addressSol || solBitzNfts.length === 0 ? DEFAULT_BITZ_COLLECTION_SOL : solBitzNfts[0].grouping[0].group_value;
@@ -295,11 +385,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                 onClick={handleBackToArtistTileView}>
                 <>
                   <CircleArrowLeft />
-                  <span className="ml-2">Back to All Artists</span>
+                  <span className="ml-2">Back to All {isAllAlbumsMode ? "Albums" : "Artists"}</span>
                 </>
               </Button>
             ) : (
-              <span className="text-center">Artists</span>
+              <span className="text-center">{isAllAlbumsMode ? "Albums" : "Artists"}</span>
             )}
           </div>
         </div>
@@ -321,43 +411,82 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             </div>
           ) : (
             <div className="w-full">
-              {/* all artists tiles */}
+              {/* all artists or albums tiles */}
               {!inArtistProfileView && (
                 <div className="flex flex-col gap-4 p-2 items-start bg-background min-h-[350px] w-full">
-                  <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px] ">
-                    {artistAlbumDataset.map((artist: any) => (
-                      <div
-                        key={artist.artistId}
-                        className={`flex w-[250px] h-[250px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
-                        onClick={() => {
-                          if (artist.artistId !== selArtistId) {
-                            // notify the home page, which then triggers an effect to setSelArtistId
-                            onFeaturedArtistDeepLinkSlug(artist.slug);
-
-                            setUserInteractedWithTabs(true);
-
-                            window.scrollTo({
-                              top: 0,
-                              behavior: "smooth",
-                            });
-                          }
-
-                          setInArtistProfileView(true);
-                          setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
-                        }}>
+                  {!isAllAlbumsMode && (
+                    <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px] ">
+                      {artistAlbumDataset.map((artist: any) => (
                         <div
-                          className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
-                          style={{
-                            "backgroundImage": `url(${artist.img})`,
-                            "backgroundPosition": getImagePosition(artist.img),
+                          key={artist.artistId}
+                          className={`flex w-[250px] h-[250px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
+                          onClick={() => {
+                            if (artist.artistId !== selArtistId) {
+                              // notify the home page, which then triggers an effect to setSelArtistId
+                              onFeaturedArtistDeepLinkSlug(artist.slug);
+
+                              setUserInteractedWithTabs(true);
+
+                              window.scrollTo({
+                                top: 0,
+                                behavior: "smooth",
+                              });
+                            }
+
+                            setInArtistProfileView(true);
+                            setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
                           }}>
-                          <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
-                            <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artist.name.replaceAll("_", " ")}</h2>
+                          <div
+                            className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
+                            style={{
+                              "backgroundImage": `url(${artist.img})`,
+                              "backgroundPosition": getImagePosition(artist.img),
+                            }}>
+                            <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
+                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artist.name.replaceAll("_", " ")}</h2>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {isAllAlbumsMode && (
+                    <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px] ">
+                      {albumsDataset.map((album: AlbumWithArtist) => (
+                        <div
+                          key={album.albumId}
+                          className={`flex w-[250px] h-[250px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
+                          onClick={() => {
+                            if (album.artistId !== selArtistId || album.albumId !== selAlbumId) {
+                              // notify the home page, which then triggers an effect to setSelArtistId
+                              onFeaturedArtistDeepLinkSlug(album.artistSlug, album.albumId);
+
+                              setUserInteractedWithTabs(true);
+
+                              window.scrollTo({
+                                top: 0,
+                                behavior: "smooth",
+                              });
+                            }
+
+                            setInArtistProfileView(true);
+                            setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
+                          }}>
+                          <div
+                            className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
+                            style={{
+                              "backgroundImage": `url(${album.img})`,
+                              "backgroundPosition": getImagePosition(album.img),
+                            }}>
+                            <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
+                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{album.title.replaceAll("_", " ")}</h2>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -532,10 +661,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               Power-Up Leaderboard
                             </button>
                             <button
-                              onClick={() => setActiveTab("innercircle")}
+                              onClick={() => setActiveTab("innerCircle")}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
-                                  activeTab === "innercircle"
+                                  activeTab === "innerCircle"
                                     ? "border-orange-500 text-orange-500"
                                     : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                 }
@@ -565,6 +694,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               openActionFireLogic={openActionFireLogic}
                               isMusicPlayerOpen={isMusicPlayerOpen}
                               onCloseMusicPlayer={onCloseMusicPlayer}
+                              highlightAlbumId={selAlbumId}
                             />
                           </div>
                         )}
@@ -579,9 +709,13 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           </div>
                         )}
 
-                        {activeTab === "innercircle" && (
+                        {activeTab === "innerCircle" && (
                           <div className="artist-innercircle w-full">
-                            <ArtistInnerCircle artistName={artistProfile.name.replaceAll("_", " ")} creatorWallet={artistProfile.creatorWallet} />
+                            <ArtistInnerCircle
+                              artistName={artistProfile.name.replaceAll("_", " ")}
+                              creatorWallet={artistProfile.creatorWallet}
+                              artistSlug={artistProfile.slug}
+                            />
                           </div>
                         )}
                       </div>

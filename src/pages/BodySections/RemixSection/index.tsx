@@ -9,12 +9,12 @@ import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON, SIGMA_MEME_FEATURE_
 import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping } from "libs/types";
 import { getApiWeb2Apps, logStatusChangeToAPI, sleep } from "libs/utils";
-import { LaunchMusicMeme } from "pages/BodySections/HomeSection/LaunchMusicMeme";
-import { LaunchToPumpFun } from "pages/BodySections/HomeSection/LaunchToPumpFun";
 import { SendBitzPowerUp } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { updateBountyBitzSumGlobalMappingWindow } from "pages/BodySections/HomeSection/shared/utils";
 import { useNftsStore } from "store/nfts";
+import { LaunchMusicMeme } from "./LaunchMusicMeme";
+import { LaunchToPumpFun } from "./LaunchToPumpFun";
 
 interface Version {
   bountyId: string;
@@ -445,7 +445,7 @@ const RemixSectionContent = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-yellow-500 hover:underline">
-                  {item.assetIdOrTokenName}
+                  {formatAddress(item.assetIdOrTokenName)}
                 </a>
               </p>
               {item.tweet && (
@@ -832,7 +832,7 @@ const RemixSectionContent = () => {
           {/* New */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-2xl font-semibold">Vote on New AI Music Meme Coins</h2>
+              <h2 className="!text-2xl font-semibold">Vote on New AI Music</h2>
               <button
                 onClick={() =>
                   toast(

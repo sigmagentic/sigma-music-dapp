@@ -186,14 +186,15 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         <h3 className="text-xl font-bold mb-4">Confirm Payment</h3>
         <div className="space-y-4">
           <p>
-            Amount to pay: {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD})
+            Amount to pay: {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD} USD)
           </p>
           <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
           <p>When you click "Proceed", you will be asked to sign a single transaction to send the payment for processing your music generation request.</p>
 
           {paymentStatus === "processing" ? (
-            <div className="text-center">
-              <p className="text-yellow-500">⚙️ Payment transfer in process... do not close this page</p>
+            <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
+              <Loader className="w-full text-center animate-spin hover:scale-105" />
+              <p className="text-yellow-500">Payment in process... do not close this page</p>
             </div>
           ) : paymentStatus === "confirmed" ? (
             <div className="text-center text-green-500">
@@ -425,7 +426,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
               <span className="text-cyan-400 font-bold">2.</span>
               Make a small SOL payment of{" "}
               <span className="text-orange-600 contents">
-                {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD})
+                {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD} USD)
               </span>{" "}
               to Sigma's wallet. This is used to pay for music AI LLM usage and tokenization of your music NFT
             </li>

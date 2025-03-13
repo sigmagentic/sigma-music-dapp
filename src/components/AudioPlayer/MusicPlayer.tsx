@@ -256,8 +256,31 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   useEffect(() => {
     if (loadIntoDockedMode && isFullScreen) {
       setIsFullScreen(false);
+
+      // fade down the track list (so user knows its there but it's not in the way)
+      setTimeout(() => {
+        if (displayTrackList && window.innerWidth >= 768) {
+          setDisplayTrackList(false);
+        }
+      }, 2000);
     }
   }, [loadIntoDockedMode]);
+
+  // Add useEffect to handle body scroll
+  useEffect(() => {
+    if (isFullScreen) {
+      // Disable main page scroll
+      document.body.style.overflow = "hidden";
+    } else {
+      // Re-enable main page scroll
+      document.body.style.overflow = "auto";
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isFullScreen]);
 
   const pauseMusicPlayer = () => {
     if (isPlaying) {
@@ -483,22 +506,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     }
   };
 
-  // Add useEffect to handle body scroll
-  useEffect(() => {
-    if (isFullScreen) {
-      // Disable main page scroll
-      document.body.style.overflow = "hidden";
-    } else {
-      // Re-enable main page scroll
-      document.body.style.overflow = "auto";
-    }
-
-    // Cleanup when component unmounts
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [isFullScreen]);
-
   // Add scroll handler for tracklist
   const handleTrackListScroll = (e: React.WheelEvent) => {
     e.stopPropagation();
@@ -529,6 +536,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       </div>
     );
   };
+
+  const isSmallScreen = window.innerWidth < 768;
 
   return (
     <div
@@ -652,7 +661,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           <div
             className={`player flex flex-col select-none ${
               isFullScreen
-                ? `h-full justify-center items-center ${displayTrackList ? "pr-[400px]" : ""}` // Add madding when tracklist is open
+                ? `h-full justify-center items-center ${displayTrackList ? "pr-[400px]" : ""}` // Add padding when tracklist is open
                 : "md:h-[200px] md:flex-row"
             } relative w-full border-t-[1px] border-foreground/10 animate-fade-in transition-all duration-300`}>
             <div className="">
@@ -685,7 +694,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               <img
                 src={trackList ? trackList[currentTrackIndex]?.cover_art_url : ""}
                 alt="Album Cover"
-                className={`select-none rounded-md border border-grey-900 transition-all duration-300 ${
+                className={`${isSmallScreen ? "hidden" : ""} select-none rounded-md border border-grey-900 transition-all duration-300 ${
                   isFullScreen ? "w-[400px] h-[400px]" : "w-[100px] h-[100px]"
                 } ${imgLoading ? "blur-sm" : "blur-none"}`}
                 onLoad={() => setImgLoading(false)}
@@ -693,7 +702,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                 }}
               />
-              <div className={`flex flex-col select-text mt-4 ${isFullScreen ? "text-center" : "ml-2 md:ml-0"}`}>
+              <div className={`${isSmallScreen ? "hidden" : ""} flex flex-col select-text mt-4 ${isFullScreen ? "text-center" : "ml-2 md:ml-0"}`}>
                 <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"}`}>{trackList[currentTrackIndex]?.title}</span>
                 <span className={`text-white ${isFullScreen ? "text-lg" : "text-sm"}`}>{trackList[currentTrackIndex]?.artist}</span>
                 <span className="text-xs text-muted-foreground">Track {currentTrackIndex + 1}</span>

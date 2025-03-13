@@ -22,6 +22,7 @@ import { useNftsStore } from "store/nfts";
 import { FeaturedArtistsAndAlbums } from "./FeaturedArtistsAndAlbums";
 import { FeaturedBanners } from "./FeaturedBanners";
 import { MyCollectedAlbums } from "./MyCollectedAlbums";
+import { RadioBgCanvas } from "./RadioBgCanvas";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
@@ -78,7 +79,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [radioTracksLoading, setRadioTracksLoading] = useState(true);
   const [launchRadioPlayer, setLaunchRadioPlayer] = useState(false);
   const [nfTunesRadioFirstTrackCachedBlob, setNfTunesRadioFirstTrackCachedBlob] = useState<string>("");
-  const [loadRadioPlayerIntoDockedMode, setLoadRadioPlayerIntoDockedMode] = useState(false); // load the radio player into docked mode?
+  const [loadRadioPlayerIntoDockedMode, setLoadRadioPlayerIntoDockedMode] = useState(true); // load the radio player into docked mode?
   const [loadIntoArtistTileView, setLoadIntoArtistTileView] = useState(false);
 
   // Genres
@@ -98,7 +99,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   useEffect(() => {
     if (homeMode === "radio" && !launchRadioPlayer) {
       setLaunchRadioPlayer(true);
-      // setLoadRadioPlayerIntoDockedMode(true);
+      setLoadRadioPlayerIntoDockedMode(true);
     }
 
     if (homeMode.includes("artists")) {
@@ -427,9 +428,9 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                     />
                   </div>
 
-                  <div className="featuredBanners flex-1 mt-10 md:mt-0">
+                  <div className="featuredBanners flex-1">
                     <FeaturedBanners
-                      onFeaturedArtistDeepLinkSlug={async (slug: string) => {
+                      onFeaturedArtistDeepLinkSlug={(slug: string) => {
                         setHomeMode(`artists-${new Date().getTime()}`);
                         setSearchParams({ "artist-profile": slug });
                       }}
@@ -437,7 +438,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                   </div>
                 </div>
 
-                <div className="flex flex-col w-full gap-4">
+                <div className="hidden flex flex-col w-full gap-4">
                   <div className="helloSigma flex-1">
                     <div className="text-2xl xl:text-3xl mb-3 w-full text-center bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
                       hi, i'm sigma, your AI music agent
@@ -494,14 +495,24 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
           )}
 
           {/* Artists and their Albums */}
-          {(homeMode.includes("artists") || homeMode === "radio") && (
+          {(homeMode.includes("artists") || homeMode === "albums") && (
             <>
               <div className="w-full mt-10">
                 <FeaturedArtistsAndAlbums
                   viewSolData={viewSolData}
                   stopPreviewPlayingNow={stopPreviewPlaying}
                   featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
-                  onFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
+                  onFeaturedArtistDeepLinkSlug={(artistSlug: string, albumId?: string) => {
+                    let slugToUse = artistSlug;
+
+                    if (albumId) {
+                      slugToUse = `${artistSlug}~${albumId}`;
+                    }
+
+                    console.log("slugToUse", slugToUse);
+
+                    setFeaturedArtistDeepLinkSlug(slugToUse);
+                  }}
                   onPlayHappened={() => {
                     // pause the preview tracks if playing
                     setStopPreviewPlaying(false);
@@ -532,6 +543,20 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                   isMusicPlayerOpen={launchMusicPlayer}
                   loadIntoArtistTileView={loadIntoArtistTileView}
                   setLoadIntoArtistTileView={setLoadIntoArtistTileView}
+                  isAllAlbumsMode={homeMode === "albums"}
+                />
+              </div>
+            </>
+          )}
+
+          {homeMode === "radio" && (
+            <>
+              <div className="w-full mt-10">
+                <RadioBgCanvas
+                  radioTracks={radioTracksSorted}
+                  radioTracksLoading={radioTracksLoading}
+                  launchRadioPlayer={launchRadioPlayer}
+                  setLaunchRadioPlayer={setLaunchRadioPlayer}
                 />
               </div>
             </>
@@ -588,12 +613,12 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                   <span className="text-center md:text-left xl:text-2xl">Launch your music with Sigma Music.</span>
                 </div>
 
-                <div className="flex flex-col flex-1 md:flex-row">
+                <div className="flex flex-col flex-1 md:flex-row justify-center items-center">
                   <Link
                     to={`https://api.itheumcloud.com/app_nftunes/other/nf-tunes-bizdev-deck-V2.pdf`}
                     target="_blank"
                     className="mt-10 md:mx-3 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg md:max-w-[50%] !text-black transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100">
-                    Why Sigma Music? <div className="text-sm">(Perks and Benefits)</div>
+                    Perks and Benefits
                   </Link>
                   <Link
                     to={`https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform`}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
@@ -13,12 +13,16 @@ import { isMostLikelyMobile } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { useAudioPlayerStore } from "store/audioPlayer";
+import { BuyAndMintAlbum } from "./BuyAndMintAlbum";
+import { Album, Artist } from "./FeaturedArtistsAndAlbums";
 import { getBestBuyCtaLink } from "./types/utils";
+import { fetchSolNfts } from "libs/sol/SolViewData";
+import { useNftsStore } from "store/nfts";
 
 type ArtistDiscographyProps = {
   albums: any[];
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
-  artistProfile: any;
+  artistProfile: Artist;
   isPreviewPlaying?: boolean;
   previewIsReadyToPlay?: boolean;
   previewPlayingForAlbumId?: any;
@@ -28,6 +32,7 @@ type ArtistDiscographyProps = {
   artist?: any;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
+  highlightAlbumId?: string;
   viewSolData: (e: number) => void;
   onSendBitzForMusicBounty: (e: any) => any;
   playPausePreview?: (e: any, f: any) => any;
@@ -51,6 +56,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     isFreeDropSampleWorkflow,
     dataNftPlayingOnMainPlayer,
     isMusicPlayerOpen,
+    highlightAlbumId,
     onSendBitzForMusicBounty,
     checkOwnershipOfAlbum,
     viewSolData,
@@ -61,9 +67,20 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   } = props;
   const { publicKey: publicKeySol } = useWallet();
   const [, setSearchParams] = useSearchParams();
+  const addressSol = publicKeySol?.toBase58();
+  const { updateSolNfts } = useNftsStore();
   const userLoggedInWithWallet = publicKeySol;
   const { updateAlbumPlayIsQueued, trackPlayIsQueued, albumPlayIsQueued } = useAudioPlayerStore();
   const [queueAlbumPlay, setQueueAlbumPlay] = useState(false);
+  const [highlightAlbum, setHighlightAlbum] = useState<Album | undefined>();
+  const [albumToBuyAndMint, setAlbumToBuyAndMint] = useState<Album | undefined>();
+
+  useEffect(() => {
+    if (highlightAlbumId) {
+      const album = albums.find((_album) => _album.albumId === highlightAlbumId);
+      setHighlightAlbum(album);
+    }
+  }, [highlightAlbumId]);
 
   function thisIsPlayingOnMainPlayer(album: any) {
     return dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName;
@@ -85,10 +102,25 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     }
   }
 
+  async function refreshPurchasedAlbums() {
+    const _allDataNfts = await fetchSolNfts(addressSol);
+
+    updateSolNfts(_allDataNfts);
+  }
+
+  // Reorder albums if highlightAlbumId is present
+  const orderedAlbums = React.useMemo(() => {
+    if (!highlightAlbumId) return albums;
+
+    return [...albums.filter((album) => album.albumId === highlightAlbumId), ...albums.filter((album) => album.albumId !== highlightAlbumId)];
+  }, [albums, highlightAlbumId]);
+
   return (
     <>
-      {albums.map((album: any, idx: number) => (
-        <div key={`${album.albumId}-${idx}`} className="album flex flex-col mb-3 p-2 md:p-5 border w-[100%]">
+      {orderedAlbums.map((album: any, idx: number) => (
+        <div
+          key={`${album.albumId}-${idx}`}
+          className={`album flex flex-col my-3 p-2 md:p-5 border w-[100%] ${highlightAlbumId === album.albumId ? "bg-yellow-500/10 border-yellow-500" : ""}`}>
           <div className="albumDetails flex flex-col md:flex-row">
             <div
               className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg m-auto"
@@ -272,6 +304,22 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 </div>
               )}
 
+              <div className="hidden">
+                <Button
+                  className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-green-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 md:mx-2 cursor-pointer"
+                  disabled={!addressSol}
+                  onClick={() => {
+                    setAlbumToBuyAndMint(album);
+                  }}>
+                  <>
+                    <ShoppingCart />
+                    <span className="ml-2">
+                      {checkOwnershipOfAlbum(album) > -1 ? "Buy More Album Copies Now" : `Buy Now ${addressSol ? "" : " (Login First)"}`}
+                    </span>
+                  </>
+                </Button>
+              </div>
+
               {album.ctaAirdrop && (
                 <div>
                   <Button
@@ -310,6 +358,22 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
           </div>
         </div>
       ))}
+
+      <>
+        {albumToBuyAndMint && (
+          <BuyAndMintAlbum
+            albumToBuyAndMint={albumToBuyAndMint}
+            artistProfile={artistProfile}
+            onCloseModal={(isMintingSuccess: boolean) => {
+              setAlbumToBuyAndMint(undefined);
+
+              if (isMintingSuccess) {
+                refreshPurchasedAlbums();
+              }
+            }}
+          />
+        )}
+      </>
     </>
   );
 };

@@ -29,7 +29,7 @@ export const RadioTeaser = (props: RadioTeaserProps) => {
   }, [radioTracks]);
 
   return (
-    <div className="select-none h-[200px] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/20 relative md:w-[100%] flex flex-col items-center justify-center rounded-lg mt-2 overflow-hidden">
+    <div className="select-none h-[200px] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/20 relative w-[100%] flex flex-col items-center justify-center rounded-lg mt-2 overflow-hidden">
       {radioTracksLoading || radioTracks.length === 0 ? (
         <>
           {radioTracksLoading ? (

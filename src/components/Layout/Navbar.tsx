@@ -77,8 +77,6 @@ export const Navbar = () => {
     }
   }, [solNFMeIdNfts]);
 
-  const appSubtitle = "Create Music with AI Agents. Collect Music NFTs. Support Musicians.";
-
   return (
     <>
       <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-20">
@@ -89,13 +87,12 @@ export const Navbar = () => {
               <span className="bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent text-sm -ml-1">Music</span>
             </div>
           </Link>
-          <span className="hidden md:block text-xs text-muted-foreground mt-1">{appSubtitle}</span>
         </div>
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
           <NavigationMenuList>
             {/* REMiX Button */}
-            {location.pathname !== routeNames.remix && location.pathname !== routeNames.login && (
+            {/* {location.pathname !== routeNames.remix && location.pathname !== routeNames.login && (
               <>
                 <Button
                   onClick={() => {
@@ -105,9 +102,9 @@ export const Navbar = () => {
                   <div>REMiX: Launch AI Music Meme Coins</div>
                 </Button>
               </>
-            )}
+            )} */}
 
-            {/* Bitz XP Button */}
+            {/* XP Button */}
             {!DISABLE_BITZ_FEATURES && isLoggedInSol && solBitzNfts.length > 0 && (
               <>
                 <NavigationMenuItem>
@@ -235,10 +232,6 @@ export const Navbar = () => {
             }}
           />
         )}
-      </div>
-
-      <div className="md:hidden flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem]">
-        <span className="text-xs text-muted-foreground mt-1 text-center">{appSubtitle}</span>
       </div>
 
       <AlertBanner />

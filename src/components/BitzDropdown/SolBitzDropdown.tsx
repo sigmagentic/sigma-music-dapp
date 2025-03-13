@@ -59,10 +59,9 @@ export const SolBitzDropdown = (props: any) => {
                       <FlaskRound className="w-7 h-7 fill-[#f97316]" />
                     </div>
                   </div>
-                  <p className="text-xl md:text-2xl text-center font-[Clash-Medium]">What is BiTz XP?</p>
+                  <p className="text-xl md:text-2xl text-center font-[Clash-Medium]">What is Sigma XP?</p>
                   <p className="text-xs md:text-sm font-[Satoshi-Regular] leading-relaxed py-4 text-center">
-                    BiTz are Sigma Music App XP. BiTz are free to collect every few hours. You use BiTz points to curate and like content in this app and to get
-                    rewarded in return for your contributions!
+                    Earn rewards by curating content with Sigma XP - collect them free every few hours!
                   </p>
                   <ClaimBitzButton cooldown={cooldown} handlePlayActionBtn={handlePlayActionBtn} />
                 </div>
@@ -94,7 +93,7 @@ export const ClaimBitzButton = (props: any) => {
       <span className="absolute hover:bg-[#fde047] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF03,#45d4ff_50%,#111111_50%)]" />
       <span className="inline-flex h-full hover:bg-gradient-to-tl from-background to-[#fde047] w-full cursor-pointer items-center justify-center rounded-full bg-background px-3 py-1 text-sm font-medium backdrop-blur-3xl">
         {cooldown === -2 ? (
-          <span className="blinkMe">Click to Get BiTz XP</span>
+          <span className="blinkMe">Click to Get Sigma XP</span>
         ) : cooldown > 0 ? (
           <Countdown
             date={cooldown}
@@ -107,7 +106,7 @@ export const ClaimBitzButton = (props: any) => {
                   <PopoverPrimitive.PopoverClose asChild>
                     <div className="flex flex-row justify-center items-center">
                       <Gift className="mx-2 text-[#fde047]" />
-                      <span className="text-[12px] md:text-sm"> Collect Your {`BiTz`} XP </span>
+                      <span className="text-[12px] md:text-sm"> Collect Your {`Sigma`} XP </span>
                     </div>
                   </PopoverPrimitive.PopoverClose>
                 );
@@ -128,7 +127,7 @@ export const ClaimBitzButton = (props: any) => {
           <PopoverPrimitive.PopoverClose asChild>
             <div className="flex flex-row justify-center items-center">
               <Gift className="mx-2 text-[#fde047]" />
-              <span className="text-[12px] md:text-sm"> Collect Your {`BiTz`} XP </span>
+              <span className="text-[12px] md:text-sm"> Collect Your {`Sigma`} XP </span>
             </div>
           </PopoverPrimitive.PopoverClose>
         )}

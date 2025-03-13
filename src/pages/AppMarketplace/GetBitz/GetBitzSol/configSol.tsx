@@ -11,7 +11,7 @@ export const faqs = [
           yourself an Itheum OG and love Data Ownership, then we absolutely think you are a pioneer and {`BiTz`} is the Itheum XP system for you!
         </p>
         <p className="mt-5">
-          You need to use Data NFT and Itheum Core Infrastructure to collect your {`BiTz`} XP, and this exact Web3 / Blockchain based product stack can be used
+          You need to use Data NFT and Itheum Core Infrastructure to collect your {`Sigma`} XP, and this exact Web3 / Blockchain based product stack can be used
           by you to empower you to take ownership of and tokenize your data. So, in essence, you are using Data Ownership + Data Tokenization technology and
           learning how you can take ownership of your data! Welcome Itheum Data Ownership OG!
         </p>

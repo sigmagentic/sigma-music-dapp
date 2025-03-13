@@ -3,7 +3,7 @@ import bs58 from "bs58";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { VersionedTransaction, Connection, Keypair, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
-import { ArrowUpRight, Info } from "lucide-react";
+import { ArrowUpRight, Info, Loader } from "lucide-react";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
@@ -326,14 +326,15 @@ export const LaunchToPumpFun = ({
         <h3 className="text-xl font-bold mb-4">Confirm Launch Payment</h3>
         <div className="space-y-4">
           <p>
-            Launch fee: {requiredSolAmount === 0 ? "FREE" : requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
+            Launch fee: {requiredSolAmount === 0 ? "FREE" : requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD} USD)
           </p>
           <p>Your wallet balance: {walletBalance !== null ? `${walletBalance.toFixed(4)} SOL` : "Loading..."}</p>
           <p>This payment will be sent to Sigma's service wallet to launch your Music NFT on Pump.fun</p>
 
           {paymentStatus === "processing" ? (
-            <div className="text-center">
-              <p className="text-yellow-500">⚙️ Payment transfer in process... do not close this page</p>
+            <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
+              <Loader className="w-full text-center animate-spin hover:scale-105" />
+              <p className="text-yellow-500">Payment in process... do not close this page</p>
             </div>
           ) : paymentStatus === "confirmed" ? (
             <div className="text-center text-green-500">
@@ -506,7 +507,7 @@ export const LaunchToPumpFun = ({
               <span className="text-cyan-400 font-bold">3.</span>
               To launch it on pump.fun, Make a small SOL payment of{" "}
               <span className="text-orange-600 contents">
-                {requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
+                {requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD} USD)
               </span>{" "}
               to Sigma's wallet.
             </li>
