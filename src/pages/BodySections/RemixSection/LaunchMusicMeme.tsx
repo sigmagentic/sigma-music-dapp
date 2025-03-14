@@ -93,34 +93,40 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
 
     setPaymentStatus("processing");
 
+    let signature = null;
+
     try {
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: new PublicKey(SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS),
-          lamports: requiredSolAmount * 1e9, // Convert SOL to lamports
-        })
-      );
+      if (requiredSolAmount > 0) {
+        const transaction = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: new PublicKey(SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS),
+            lamports: requiredSolAmount * 1e9, // Convert SOL to lamports
+          })
+        );
 
-      const latestBlockhash = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = latestBlockhash.blockhash;
-      transaction.feePayer = publicKey;
+        const latestBlockhash = await connection.getLatestBlockhash();
+        transaction.recentBlockhash = latestBlockhash.blockhash;
+        transaction.feePayer = publicKey;
 
-      const signature = await sendTransaction(transaction, connection, {
-        skipPreflight: false,
-        preflightCommitment: "confirmed",
-      });
+        signature = await sendTransaction(transaction, connection, {
+          skipPreflight: false,
+          preflightCommitment: "confirmed",
+        });
 
-      const strategy: TransactionConfirmationStrategy = {
-        signature: signature,
-        blockhash: latestBlockhash.blockhash,
-        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-      };
+        const strategy: TransactionConfirmationStrategy = {
+          signature: signature,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        };
 
-      await connection.confirmTransaction(strategy, "finalized" as Commitment);
+        await connection.confirmTransaction(strategy, "finalized" as Commitment);
 
-      // Update payment transaction hash
-      setPaymentTx(signature);
+        // Update payment transaction hash
+        setPaymentTx(signature);
+      } else {
+        signature = "FREE-gen-" + Date.now();
+      }
 
       // Log payment to web2 API (placeholder)
       await logPaymentToAPI({
