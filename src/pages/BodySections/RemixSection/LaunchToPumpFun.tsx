@@ -239,31 +239,36 @@ export const LaunchToPumpFun = ({
       // Generate a random keypair for the token
       const mintKeypair = Keypair.generate();
 
-      // Create metadata using new API endpoint
-      const metadataResponse = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/createPumpMeta`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tokenImg: base64ForApi,
-          tokenImgFormat: "base64",
-          tokenName,
-          tokenSymbol,
-          description,
-          twitter,
-          telegram,
-          website: `https://sigmamusic.fm/remix?album=${tokenId}`,
-        }),
-      });
+      try {
+        // Create metadata using new API endpoint
+        const metadataResponse = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/createPumpMeta`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tokenImg: base64ForApi,
+            tokenImgFormat: "base64",
+            tokenName,
+            tokenSymbol,
+            description,
+            twitter,
+            telegram,
+            website: `https://sigmamusic.fm/remix?album=${tokenId}`,
+          }),
+        });
 
-      const metadataResponseJSON = await metadataResponse.json();
+        const metadataResponseJSON = await metadataResponse.json();
 
-      if (metadataResponseJSON.error) {
-        throw new Error(metadataResponseJSON.error);
+        if (metadataResponseJSON.error) {
+          throw new Error(metadataResponseJSON.error);
+        }
+
+        console.log("metadataResponseJSON", metadataResponseJSON);
+      } catch (error) {
+        console.error("createPumpMeta error:", error);
+        toast.error("Error creating pump metadata");
       }
-
-      console.log("metadataResponseJSON", metadataResponseJSON);
 
       return;
 
