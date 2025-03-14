@@ -4,10 +4,11 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { VersionedTransaction, Connection, Keypair, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
 import { ArrowUpRight, Info, Loader } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI } from "libs/utils/misc";
+import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI, mergeImages } from "libs/utils/misc";
 
 export const LaunchToPumpFun = ({
   onCloseModal,
@@ -49,6 +50,9 @@ export const LaunchToPumpFun = ({
   const [pumpTokenId, setPumpTokenId] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+
+  const [base64ForApi, setBase64ForApi] = useState<string | null>(null);
+  const [base64ForPreview, setBase64ForPreview] = useState<string | null>(null);
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -113,6 +117,22 @@ export const LaunchToPumpFun = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchMergedImage = async () => {
+      if (!tokenImg) return;
+
+      // let's get the "merged image" with the play icon
+      const { base64ForApi: _base64ForApi, base64ForPreview: _base64ForPreview } = await mergeImages(
+        tokenImg,
+        "https://raw.githubusercontent.com/Itheum/data-assets/main/Misc/Random/play_overlay_icon.png"
+      );
+      setBase64ForApi(_base64ForApi);
+      setBase64ForPreview(_base64ForPreview);
+    };
+
+    fetchMergedImage();
+  }, [tokenImg]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -207,6 +227,7 @@ export const LaunchToPumpFun = ({
 
   // Separate the token launch logic from payment
   const handleTokenLaunch = async () => {
+    if (!base64ForApi || !base64ForPreview) return;
     setIsLoading(true);
 
     try {
@@ -225,7 +246,8 @@ export const LaunchToPumpFun = ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tokenImg,
+          tokenImg: base64ForApi,
+          tokenImgFormat: "base64",
           tokenName,
           tokenSymbol,
           description,
@@ -240,6 +262,10 @@ export const LaunchToPumpFun = ({
       if (metadataResponseJSON.error) {
         throw new Error(metadataResponseJSON.error);
       }
+
+      console.log("metadataResponseJSON", metadataResponseJSON);
+
+      return;
 
       // Get the create transaction
       const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
@@ -294,14 +320,18 @@ export const LaunchToPumpFun = ({
 
         setPumpTokenId(mintKeypair.publicKey.toBase58());
 
-        // here we also make a web2 API call to update the status of the launch to launched
-        await logStatusChangeToAPI({
-          launchId,
-          createdOn,
-          newStatus: "launched",
-          pumpTokenId: mintKeypair.publicKey.toBase58(),
-          nftId,
-        });
+        try {
+          // here we also make a web2 API call to update the status of the launch to launched
+          await logStatusChangeToAPI({
+            launchId,
+            createdOn,
+            newStatus: "launched",
+            pumpTokenId: mintKeypair.publicKey.toBase58(),
+            nftId,
+          });
+        } catch (error) {
+          toast.error("Token launched but error with status change to launched");
+        }
       } else {
         throw new Error(response.statusText);
       }
@@ -374,9 +404,7 @@ export const LaunchToPumpFun = ({
           </div>
 
           <div className="space-y-4">
-            <div>
-              <img src={tokenImg} alt={tokenName} className="w-32 h-32 rounded-lg object-cover mb-4" />
-            </div>
+            <div>{base64ForPreview && <img src={base64ForPreview} alt={tokenName} className="w-32 h-32 rounded-lg object-cover mb-4" />}</div>
 
             {(pumpTokenId && (
               <div>

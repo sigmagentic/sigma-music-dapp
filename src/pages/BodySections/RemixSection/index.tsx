@@ -41,7 +41,7 @@ interface Launch {
   prompt?: string; // the prompt that started it all
 }
 
-const VOTES_TO_GRADUATE = 30;
+const VOTES_TO_GRADUATE = 25;
 // const HOURS_TO_GRADUATE = 24;
 
 // Add this custom toast style near the top of the file after imports
@@ -772,15 +772,19 @@ const RemixSectionContent = () => {
       setCurrentTime("0:00");
 
       // Make the API call
-      logStatusChangeToAPI({
-        launchId,
-        createdOn,
-        newStatus: "graduated",
-        bountyId,
-      });
+      try {
+        logStatusChangeToAPI({
+          launchId,
+          createdOn,
+          newStatus: "graduated",
+          bountyId,
+        });
 
-      // Trigger a refresh of the graduated data
-      setShouldRefreshData(true);
+        // Trigger a refresh of the graduated data
+        setShouldRefreshData(true);
+      } catch (error) {
+        toast.error("Error with status change to graduated");
+      }
     }
 
     return tokenGraduated;

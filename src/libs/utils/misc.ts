@@ -188,3 +188,86 @@ export const filterRadioTracksByUserPreferences = (allRadioTracks: RadioTrackDat
 
   return _allRadioTracksSorted;
 };
+
+export async function mergeImages(
+  baseImageUrl: string,
+  overlayImageUrl: string
+): Promise<{
+  base64ForApi: string; // base64 without data:image/png;base64, prefix
+  base64ForPreview: string; // complete base64 with data:image/png;base64, prefix for <img> tags
+}> {
+  // Create new Image objects
+  const loadImage = async (
+    url: string
+  ): Promise<{
+    element: HTMLImageElement;
+    base64: string;
+  }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous"; // Enable CORS
+
+      // Create a canvas to get base64
+      const tempCanvas = document.createElement("canvas");
+      const tempCtx = tempCanvas.getContext("2d");
+
+      img.onload = () => {
+        if (tempCtx) {
+          tempCanvas.width = img.width;
+          tempCanvas.height = img.height;
+          tempCtx.drawImage(img, 0, 0);
+          const base64String = tempCanvas.toDataURL("image/png");
+          resolve({
+            element: img,
+            base64: base64String,
+          });
+        } else {
+          reject(new Error("Failed to get temporary canvas context"));
+        }
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
+
+  try {
+    // Load both images
+    const [baseImage, overlayImage] = await Promise.all([loadImage(baseImageUrl), loadImage(overlayImageUrl)]);
+
+    // Create canvas
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      throw new Error("Failed to get canvas context");
+    }
+
+    // Set canvas size to base image dimensions
+    canvas.width = baseImage.element.width;
+    canvas.height = baseImage.element.height;
+
+    // Draw base image
+    ctx.drawImage(baseImage.element, 0, 0);
+
+    // Calculate position to center the overlay image
+    const x = (canvas.width - overlayImage.element.width) / 2;
+    const y = (canvas.height - overlayImage.element.height) / 2;
+
+    // Draw overlay image in the center
+    ctx.drawImage(overlayImage.element, x, y);
+
+    // Get base64 of the merged result
+    const fullBase64 = canvas.toDataURL("image/png", 1.0); // Using max quality
+
+    // For API: Remove the data:image/png;base64, prefix
+    const base64ForApi = fullBase64.replace(/^data:image\/png;base64,/, "");
+
+    return {
+      base64ForApi: base64ForApi, // Use this when sending to API
+      base64ForPreview: fullBase64, // Use this for <img> tags
+    };
+  } catch (error) {
+    console.error("Error merging images:", error);
+    throw error;
+  }
+}
