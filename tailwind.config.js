@@ -128,6 +128,7 @@ module.exports = {
         "gradient": "gradient 10s linear infinite",
         "cube-down": "cube-down 1s ease-in-out infinite",
         "float": "float 6s ease-in-out infinite",
+        "pulse-random": "pulse-random 4s ease-in-out infinite",
         "fade-in": "fadeIn 0.5s ease-in-out",
         "slide-fade-in": "slideFadeIn 0.5s ease-out",
         "shake": "shake 0.8s cubic-bezier(.36,.07,.19,.97) 10",

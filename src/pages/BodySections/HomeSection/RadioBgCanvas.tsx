@@ -45,10 +45,10 @@ export const RadioBgCanvas = (props: RadioBgCanvasProps) => {
                 {shuffledTracks.map((radioTrack: Track) => (
                   <div
                     key={radioTrack.idx}
-                    className={`flex w-[150px] h-[150px] md:w-[150px] md:h-[150px] m-2 transition-transform duration-200 hover:scale-105 animate-pulse-random`}
+                    className={`flex w-[150px] h-[150px] md:w-[150px] md:h-[150px] m-2 animate-float`}
                     style={{
-                      animationDelay: `${Math.random() * 10}s`,
-                      animationDuration: `${8 + Math.random() * 4}s`,
+                      animationDelay: `${Math.floor(Math.random() * 5) + 1}s`,
+                      animationIterationCount: "infinite",
                     }}>
                     <div
                       className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg"

@@ -256,13 +256,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   useEffect(() => {
     if (loadIntoDockedMode && isFullScreen) {
       setIsFullScreen(false);
-
-      // fade down the track list (so user knows its there but it's not in the way)
-      setTimeout(() => {
-        if (displayTrackList && window.innerWidth >= 768) {
-          setDisplayTrackList(false);
-        }
-      }, 2000);
     }
   }, [loadIntoDockedMode]);
 

@@ -420,13 +420,20 @@ const RemixSectionContent = () => {
         }`}>
         <div className="flex flex-col">
           <div className="flex flex-col md:flex-row gap-4">
-            <img src={item.image} alt={item.title} className="w-full m-auto md:m-0 md:w-24 md:h-24 rounded-lg object-cover" />
+            <div className="relative md:w-24 md:h-24">
+              <img src={item.image} alt={item.title} className="w-full h-full m-auto md:m-0 rounded-lg object-cover" />
+              <img
+                src="https://raw.githubusercontent.com/Itheum/data-assets/main/Misc/Random/play_overlay_icon.png"
+                alt="play"
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 md:w-8 h-12 md:h-8 opacity-80 hover:opacity-100 transition-opacity"
+              />
+            </div>
             <div className="flex flex-col flex-grow">
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">{idx + 1}.</span>
-                <h3 className="text-lg font-semibold">{item.title}</h3>
+                <h3 className="!text-lg font-semibold">{item.title}</h3>
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-xs text-gray-400">
                 Based on music by{" "}
                 <a href={`/?artist-profile=${item.basedOn}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
                   {item.basedOn}
@@ -435,7 +442,7 @@ const RemixSectionContent = () => {
                 <a href={`https://solscan.io/account/${item.remixedBy}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
                   {formatAddress(item.remixedBy)}
                 </a>{" "}
-                on {new Date(item.createdOn * 1000).toLocaleDateString()}
+                on {new Date(item.createdOn).toLocaleDateString()}
               </p>
               <p className="text-xs text-gray-600">Launch Id: {item.launchId}</p>
               <p className="text-xs text-gray-600">
@@ -490,12 +497,12 @@ const RemixSectionContent = () => {
                             {currentPlayingId === `${item.launchId}-${idx2}` ? (
                               <>
                                 {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                                <span className="ml-2">{currentTime} - Stop Playing</span>
+                                <span className="ml-2">{currentTime} - Stop</span>
                               </>
                             ) : (
                               <>
                                 <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
-                                <span className="ml-2">Play Track</span>
+                                <span className="ml-2">Play</span>
                               </>
                             )}
                           </button>
@@ -565,12 +572,12 @@ const RemixSectionContent = () => {
                     {currentPlayingId === `graduated-${item.launchId}` ? (
                       <>
                         {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                        <span className="ml-2 text-xs md:text-sm">{currentTime} - Stop Playing</span>
+                        <span className="ml-2 text-xs md:text-sm">{currentTime} - Stop</span>
                       </>
                     ) : (
                       <>
                         <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
-                        <span className="ml-2">Play Track</span>
+                        <span className="ml-2">Play</span>
                       </>
                     )}
                   </button>
@@ -656,12 +663,12 @@ const RemixSectionContent = () => {
                     {currentPlayingId === `launched-${item.launchId}` ? (
                       <>
                         {isLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}
-                        <span className="ml-2">{currentTime} - Stop Playing</span>
+                        <span className="ml-2">{currentTime} - Stop</span>
                       </>
                     ) : (
                       <>
                         <Play className="w-4 h-4" style={{ animation: "playPulse 2s ease-in-out infinite" }} />
-                        <span className="ml-2">Play Track</span>
+                        <span className="ml-2">Play</span>
                       </>
                     )}
                   </button>

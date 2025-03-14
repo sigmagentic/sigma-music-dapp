@@ -11,12 +11,12 @@ export const Footer = () => {
         <div className="md:w-[50%] p-5">
           <div>
             <p className="mb-3 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-[1.5rem]">
-              Sigma Music (Beta)
+              Sigma Music FM (Beta)
             </p>
             <p className="text-xs md:text-sm">
-              Sigma Music is a revolutionary music platform powered by Blockchain, Itheum (a data NFT platform), and AI Agent technology. Musicians can launch
-              their music as Music Data NFTs and have Sigma AI serve as their music agent to amplify their reach. With Sigma Remix, users can remix opted-in
-              tracks, which are tokenized into music meme coins and launched on pump.fun, creating immediate liquidity and new fanbases.
+              Sigma Music is the first-of-its-kind music super app built around unique fan experiences, putting fans at the heart of the music journey. While
+              most platforms focus on artists, Sigma Music empowers fans to discover musicians early, engage deeply, and share in their success. Here, fans
+              don’t just listen—they shape the future of music.
             </p>
           </div>
           <div className="">

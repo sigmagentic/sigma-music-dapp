@@ -418,14 +418,21 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
             <div className="w-full mt-5">
               <div className="flex flex-col-reverse md:flex-row justify-center items-center xl:items-start w-[100%]">
                 <div className="flex flex-col w-full gap-4">
-                  <div className="radioTeaser flex flex-col mt-10 md:mt-0 flex-1">
-                    <div className="text-2xl xl:text-3xl">Listen for free</div>
-                    <RadioTeaser
-                      radioTracks={radioTracksSorted}
-                      radioTracksLoading={radioTracksLoading}
-                      launchRadioPlayer={launchRadioPlayer}
-                      setLaunchRadioPlayer={setLaunchRadioPlayer}
-                    />
+                  <div className="flex flex-col-reverse md:flex-row gap-4">
+                    <div className="radioTeaser flex flex-col md:mt-0 flex-1">
+                      <div className="text-2xl xl:text-3xl">Listen for free</div>
+                      <RadioTeaser
+                        radioTracks={radioTracksSorted}
+                        radioTracksLoading={radioTracksLoading}
+                        launchRadioPlayer={launchRadioPlayer}
+                        setLaunchRadioPlayer={setLaunchRadioPlayer}
+                      />
+                    </div>
+                    <div className="flex flex-col flex-1 text-left bgx-red-500 align-center justify-center p-5">
+                      <span className="text-center md:text-left font-[Clash-Medium] text-3xl xl:text-4xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text ">
+                        Sigma Music is a Music Super App built around Unique Fan Experiences
+                      </span>
+                    </div>
                   </div>
 
                   <div className="featuredBanners flex-1">
@@ -497,7 +504,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
           {/* Artists and their Albums */}
           {(homeMode.includes("artists") || homeMode === "albums") && (
             <>
-              <div className="w-full mt-10">
+              <div className="w-full mt-5">
                 <FeaturedArtistsAndAlbums
                   viewSolData={viewSolData}
                   stopPreviewPlayingNow={stopPreviewPlaying}
@@ -551,7 +558,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
           {homeMode === "radio" && (
             <>
-              <div className="w-full mt-10">
+              <div className="w-full mt-5">
                 <RadioBgCanvas
                   radioTracks={radioTracksSorted}
                   radioTracksLoading={radioTracksLoading}
@@ -566,7 +573,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
           {homeMode === "wallet" && (
             <>
               {publicKeySol && (
-                <div className="w-full mt-10">
+                <div className="w-full mt-5">
                   <MyCollectedAlbums
                     viewSolData={viewSolData}
                     isFetchingDataMarshal={isFetchingDataMarshal}
@@ -604,13 +611,15 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
           {/* Calling Musicians Section */}
           {homeMode === "home" && (
-            <div className="w-full mt-10">
+            <div className="w-full mt-5">
               <div id="join-sigma" className="flex flex-col md:flex-row 3xl:flex-col gap-4 py-[40px] px-[20px] text-center rounded-t-lg">
                 <div className="flex flex-col flex-1 text-left">
                   <span className="text-center md:text-left font-[Clash-Medium] text-2xl xl:text-5xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
-                    Calling all Indie Musicians!
+                    Calling all Musicians!
                   </span>
-                  <span className="text-center md:text-left xl:text-2xl">Launch your music with Sigma Music.</span>
+                  <span className="text-center md:text-left xl:text-2xl">
+                    Launch your music with Sigma Music. Create die-hard fans that share in your success.
+                  </span>
                 </div>
 
                 <div className="flex flex-col flex-1 md:flex-row justify-center items-center">

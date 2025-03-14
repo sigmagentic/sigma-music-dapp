@@ -239,6 +239,8 @@ export const LaunchToPumpFun = ({
       // Generate a random keypair for the token
       const mintKeypair = Keypair.generate();
 
+      let metadataResponseJSON = null;
+
       try {
         // Create metadata using new API endpoint
         const metadataResponse = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/createPumpMeta`, {
@@ -258,7 +260,7 @@ export const LaunchToPumpFun = ({
           }),
         });
 
-        const metadataResponseJSON = await metadataResponse.json();
+        metadataResponseJSON = await metadataResponse.json();
 
         if (metadataResponseJSON.error) {
           throw new Error(metadataResponseJSON.error);
@@ -270,7 +272,9 @@ export const LaunchToPumpFun = ({
         toast.error("Error creating pump metadata");
       }
 
-      return;
+      if (!metadataResponseJSON) {
+        throw new Error("No metadata response received");
+      }
 
       // Get the create transaction
       const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
