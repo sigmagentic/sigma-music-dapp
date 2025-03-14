@@ -420,7 +420,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                 <div className="flex flex-col w-full gap-4">
                   <div className="flex flex-col-reverse md:flex-row gap-4">
                     <div className="radioTeaser flex flex-col md:mt-0 flex-1">
-                      <div className="text-2xl xl:text-3xl">Listen for free</div>
                       <RadioTeaser
                         radioTracks={radioTracksSorted}
                         radioTracksLoading={radioTracksLoading}
@@ -429,7 +428,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                       />
                     </div>
                     <div className="flex flex-col flex-1 text-left bgx-red-500 align-center justify-center p-5">
-                      <span className="text-center md:text-left font-[Clash-Medium] text-3xl xl:text-4xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text ">
+                      <span className="text-center md:text-left font-[Clash-Medium] text-3xl xl:text-5xl bg-gradient-to-r from-yellow-200 via-orange-500 to-yellow-200 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
                         Sigma Music is a Music Super App built around Unique Fan Experiences
                       </span>
                     </div>

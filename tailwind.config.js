@@ -120,6 +120,30 @@ module.exports = {
           "0%, 100%": { transform: "translateY(0) translateX(-50%)" },
           "50%": { transform: "translateY(-20px) translateX(-50%)" },
         },
+        "text-gradient": {
+          "0%, 100%": {
+            "background-size": "200% 200%",
+            "background-position": "0% 50%",
+          },
+          "50%": {
+            "background-size": "200% 200%",
+            "background-position": "100% 50%",
+          },
+        },
+        "text-shimmer": {
+          "0%": {
+            transform: "translateY(0)",
+            filter: "brightness(1)",
+          },
+          "50%": {
+            transform: "translateY(-2px)",
+            filter: "brightness(1.2)",
+          },
+          "100%": {
+            transform: "translateY(0)",
+            filter: "brightness(1)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -133,6 +157,8 @@ module.exports = {
         "slide-fade-in": "slideFadeIn 0.5s ease-out",
         "shake": "shake 0.8s cubic-bezier(.36,.07,.19,.97) 10",
         "point": "pointer 2s ease-in-out infinite",
+        "text-gradient": "text-gradient 8s ease infinite",
+        "text-shimmer": "text-shimmer 4s ease-in-out infinite",
       },
     },
   },
