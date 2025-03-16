@@ -21,6 +21,7 @@ import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
 import { FeaturedArtistsAndAlbums } from "./FeaturedArtistsAndAlbums";
 import { FeaturedBanners } from "./FeaturedBanners";
+import { MiniGames } from "./MiniGames";
 import { MyCollectedAlbums } from "./MyCollectedAlbums";
 import { RadioBgCanvas } from "./RadioBgCanvas";
 import { RadioTeaser } from "./RadioTeaser";
@@ -82,6 +83,9 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [loadRadioPlayerIntoDockedMode, setLoadRadioPlayerIntoDockedMode] = useState(true); // load the radio player into docked mode?
   const [loadIntoArtistTileView, setLoadIntoArtistTileView] = useState(false);
 
+  // Mini Games
+  const [loadMiniGames, setLoadMiniGames] = useState(false);
+
   // Genres
   const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
 
@@ -112,6 +116,15 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
         setLoadIntoArtistTileView(false);
       }
     }
+
+    if (homeMode === "games") {
+      setLoadMiniGames(true);
+    }
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }, [homeMode]);
 
   useEffect(() => {
@@ -631,6 +644,12 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
             </div>
           )}
 
+          {loadMiniGames && (
+            <div className="w-full mt-10">
+              <MiniGames radioTracks={radioTracksSorted} appMusicPlayerIsPlaying={launchMusicPlayer || launchRadioPlayer} />
+            </div>
+          )}
+
           {/* The album player footer bar */}
           {launchMusicPlayer && (
             <div className="w-full fixed left-0 bottom-0 z-50">
@@ -642,8 +661,10 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                 bitzGiftingMeta={bitzGiftingMeta}
                 bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                 onPlayHappened={() => {
+                  // stop the preview playing
                   setStopPreviewPlaying(true);
 
+                  // stop the radio playing
                   if (launchRadioPlayer) {
                     setLaunchRadioPlayer(false);
                   }

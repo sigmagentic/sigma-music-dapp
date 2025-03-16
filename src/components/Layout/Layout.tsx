@@ -9,6 +9,7 @@ import {
   Square3Stack3DIcon,
   ChatBubbleOvalLeftEllipsisIcon,
   CursorArrowRippleIcon,
+  PuzzlePieceIcon,
 } from "@heroicons/react/24/outline";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Toaster } from "react-hot-toast";
@@ -164,6 +165,24 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                   <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
                   <span className="md:hidden">REMiX</span>
                   {!isMenuCollapsed && <span className="hidden md:inline">REMiX</span>}
+                </button>
+                <button
+                  onClick={() => {
+                    removeArtistProfileParamFromUrl();
+                    setHomeMode(`games`);
+                  }}
+                  disabled={homeMode === "games"}
+                  className={`
+                    flex items-center flex-shrink-0
+                    ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                    py-3 px-4 rounded-lg transition-colors text-lg 
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    hover:bg-orange-500
+                    hover:text-black
+                  `}>
+                  <PuzzlePieceIcon className="h-6 w-6 mr-1 md:mr-0" />
+                  <span className="md:hidden">Games</span>
+                  {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
                 </button>
                 {isLoggedIn && (
                   <button
