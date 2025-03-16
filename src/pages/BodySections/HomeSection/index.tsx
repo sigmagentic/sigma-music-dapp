@@ -117,10 +117,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
       }
     }
 
-    if (homeMode === "games") {
-      setLoadMiniGames(true);
-    }
-
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -652,7 +648,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
             </div>
           )}
 
-          {loadMiniGames && (
+          {homeMode === "games" && (
             <div className="w-full mt-10">
               <MiniGames radioTracks={radioTracksSorted} appMusicPlayerIsPlaying={launchMusicPlayer || launchRadioPlayer} />
             </div>
