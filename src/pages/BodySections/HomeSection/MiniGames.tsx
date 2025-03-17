@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Gift, Dice1, Music2, X, Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react";
+import { Gift, Dice1, Music2, X, Volume2, VolumeX, ChevronLeft, ChevronRight, Play, Pause, ArrowUp, ArrowDown, CheckCircle2, XCircle } from "lucide-react";
 import Countdown from "react-countdown";
 import { PlayBitzModal } from "components/PlayBitzModal/PlayBitzModal";
 import { DISABLE_BITZ_FEATURES } from "config";
@@ -145,9 +145,7 @@ const AudioPlayer: React.FC<{ tracks: Track[] }> = ({ tracks }) => {
         <div className="flex items-center space-x-4">
           <img src={currentTrack.cover_art_url} alt={currentTrack.title} className="w-10 h-10 rounded-md object-cover" />
           <div>
-            <p className="text-sm font-medium text-white">
-              Now Playing ({currentTrackIndex + 1}/{tracks.length}):
-            </p>
+            <p className="text-xs font-medium text-white">Now Playing:</p>
             <p className="text-xs text-gray-400">
               {currentTrack.title} by {currentTrack.artist}
             </p>
@@ -186,9 +184,9 @@ const MemoryGame: React.FC<{ onClose: () => void; tracks: Track[]; appMusicPlaye
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
   const [backgroundTracks, setBackgroundTracks] = useState<Track[]>([]);
-  const [bestScore, setBestScore] = useState(() => {
-    const saved = localStorage.getItem("sig-game-album-memory-game-best-score");
-    return saved ? parseInt(saved) : 999;
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => {
+    return parseInt(localStorage.getItem("memory-game-high-score") || "0");
   });
 
   // Add effect to prevent body scrolling when modal is open
@@ -261,10 +259,8 @@ const MemoryGame: React.FC<{ onClose: () => void; tracks: Track[]; appMusicPlaye
 
           // Check if game is complete
           if (matchedCards.every((card) => card.isMatched)) {
-            if (moves + 1 < bestScore) {
-              setBestScore(moves + 1);
-              localStorage.setItem("sig-game-album-memory-game-best-score", (moves + 1).toString());
-            }
+            const finalScore = moves + 1;
+            handleGameComplete(finalScore);
           }
         }, 500);
       } else {
@@ -280,6 +276,16 @@ const MemoryGame: React.FC<{ onClose: () => void; tracks: Track[]; appMusicPlaye
     }
   };
 
+  const handleGameComplete = (finalScore: number) => {
+    setScore(finalScore);
+
+    // Update high score if needed - lower is better
+    if (highScore === 0 || finalScore < highScore) {
+      setHighScore(finalScore);
+      localStorage.setItem("memory-game-high-score", finalScore.toString());
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[100]">
       <div className="bg-[#1A1A1A] rounded-xl p-6 max-w-lg w-full">
@@ -289,7 +295,7 @@ const MemoryGame: React.FC<{ onClose: () => void; tracks: Track[]; appMusicPlaye
           <div>
             <h2 className="text-xl font-bold">Music Album Memory</h2>
             <div className="text-sm text-gray-400 mt-1">
-              Moves: {moves} | Best: {bestScore === 999 ? "-" : bestScore}
+              Moves: {moves} | Best Score: {highScore > 0 ? highScore : "-"} moves
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-800 transition-colors">
@@ -345,6 +351,14 @@ const MemoryGame: React.FC<{ onClose: () => void; tracks: Track[]; appMusicPlaye
           </button>
           <div className="text-sm text-gray-400">{cards.every((card) => card.isMatched) ? "🎉 Complete!" : "Match the album covers"}</div>
         </div>
+
+        {cards.every((card) => card.isMatched) && (
+          <div className="mt-4 text-center">
+            <h3 className="text-xl font-bold">Game Complete!</h3>
+            <p className="text-lg mt-2">Your Score: {score} moves</p>
+            {highScore === 0 || score < highScore ? <p className="text-emerald-400 mt-1">New Best Score!</p> : null}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -358,9 +372,304 @@ const MemoryGameButton: React.FC<{ onClick: () => void; isLoggedIn: boolean }> =
       <span className="inline-flex h-full hover:bg-gradient-to-tl from-background to-[#fde047] w-full items-center justify-center rounded-full bg-background px-3 py-1 text-sm font-medium backdrop-blur-3xl">
         <div className="flex flex-row justify-center items-center">
           <Music2 className="mx-2 text-[#fde047]" />
-          <span className="text-[12px] md:text-sm">Play Album Memory</span>
+          <span className="text-[12px] md:text-sm">Play Game</span>
         </div>
       </span>
+    </div>
+  );
+};
+
+// Match Artist Game Button Component
+const MatchArtistButton: React.FC<{ onClick: () => void; isLoggedIn: boolean }> = ({ onClick, isLoggedIn }) => {
+  return (
+    <div className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px] cursor-pointer" onClick={onClick}>
+      <span className="absolute hover:bg-[#4ade80] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF03,#45d4ff_50%,#111111_50%)]" />
+      <span className="inline-flex h-full hover:bg-gradient-to-tl from-background to-[#4ade80] w-full items-center justify-center rounded-full bg-background px-3 py-1 text-sm font-medium backdrop-blur-3xl">
+        <div className="flex flex-row justify-center items-center">
+          <Music2 className="mx-2 text-[#4ade80]" />
+          <span className="text-[12px] md:text-sm">Play Game</span>
+        </div>
+      </span>
+    </div>
+  );
+};
+
+// Match Artist Game Component
+const MatchArtistGame: React.FC<{ onClose: () => void; tracks: Track[] }> = ({ onClose, tracks }) => {
+  const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
+  const [preloadedAudio, setPreloadedAudio] = useState<HTMLAudioElement[]>([]);
+  const [artistOrder, setArtistOrder] = useState<string[]>([]);
+  const [gameComplete, setGameComplete] = useState(false);
+  const [results, setResults] = useState<boolean[]>([]);
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => {
+    return parseInt(localStorage.getItem("sig-game-match-artist-high-score") || "0");
+  });
+  const [isLoading, setIsLoading] = useState<number | null>(null);
+
+  // Initialize game state
+  const initializeGame = () => {
+    // Stop any currently playing audio
+    if (currentlyPlaying !== null) {
+      preloadedAudio[currentlyPlaying]?.pause();
+      preloadedAudio[currentlyPlaying].currentTime = 0;
+    }
+
+    // Stop and cleanup all preloaded audio
+    preloadedAudio.forEach((audio) => {
+      audio.pause();
+      audio.src = "";
+    });
+
+    // Clear audio states
+    setCurrentlyPlaying(null);
+    setPreloadedAudio([]);
+
+    // Initialize new game
+    const shuffled = [...tracks].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, 4);
+    setSelectedTracks(selected);
+
+    // Create and shuffle the artist list
+    const artists = selected.map((track) => track.artist);
+    setArtistOrder([...artists].sort(() => Math.random() - 0.5));
+
+    // Preload new audio files
+    const audioElements = selected.map((track) => {
+      const audio = new Audio(track.stream);
+      audio.load();
+      return audio;
+    });
+
+    setPreloadedAudio(audioElements);
+    setGameComplete(false);
+    setResults([]);
+    setScore(0);
+  };
+
+  // Initialize on first load
+  useEffect(() => {
+    initializeGame();
+
+    // Cleanup function
+    return () => {
+      preloadedAudio.forEach((audio) => {
+        audio.pause();
+        audio.src = "";
+      });
+      setCurrentlyPlaying(null);
+    };
+  }, [tracks]);
+
+  // Handle audio playback
+  const handlePlayPause = (index: number) => {
+    // If this track is currently playing, stop it
+    if (currentlyPlaying === index) {
+      const audio = preloadedAudio[index];
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      setCurrentlyPlaying(null);
+      return;
+    }
+
+    // Stop any currently playing track
+    if (currentlyPlaying !== null) {
+      const currentAudio = preloadedAudio[currentlyPlaying];
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+    }
+
+    // Play the selected track
+    const audio = preloadedAudio[index];
+    if (audio) {
+      setIsLoading(index); // Set loading state for this button
+
+      const playTrack = () => {
+        const duration = audio.duration;
+        if (duration && isFinite(duration)) {
+          const middlePoint = Math.floor(duration / 2);
+          audio.currentTime = middlePoint;
+
+          const playPromise = audio.play();
+          if (playPromise) {
+            playPromise
+              .then(() => {
+                setIsLoading(null); // Clear loading state
+                setCurrentlyPlaying(index);
+                // Stop after 15 seconds
+                setTimeout(() => {
+                  audio.pause();
+                  audio.currentTime = 0;
+                  setCurrentlyPlaying(null);
+                }, 15000);
+              })
+              .catch((error) => {
+                console.error("Playback failed:", error);
+                setIsLoading(null); // Clear loading state on error
+              });
+          }
+        }
+      };
+
+      if (audio.readyState >= 2) {
+        // HAVE_CURRENT_DATA or better
+        playTrack();
+      } else {
+        audio.addEventListener("canplay", playTrack, { once: true });
+      }
+    }
+  };
+
+  // Move artist up or down
+  const moveArtist = (index: number, direction: "up" | "down") => {
+    const newOrder = [...artistOrder];
+    if (direction === "up" && index > 0) {
+      [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
+    } else if (direction === "down" && index < artistOrder.length - 1) {
+      [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+    }
+    setArtistOrder(newOrder);
+  };
+
+  // Submit answers
+  const handleSubmit = () => {
+    const newResults = selectedTracks.map((track, index) => track.artist.toLowerCase() === artistOrder[index].toLowerCase());
+    setResults(newResults);
+
+    const correctAnswers = newResults.filter((result) => result).length;
+    const finalScore = Math.floor((correctAnswers / 4) * 100); // Updated for 4 songs
+    setScore(finalScore);
+
+    if (finalScore > highScore) {
+      setHighScore(finalScore);
+      localStorage.setItem("sig-game-match-artist-high-score", finalScore.toString());
+    }
+
+    setGameComplete(true);
+  };
+
+  // Handle cleanup when closing
+  const handleClose = () => {
+    // Stop any currently playing audio
+    if (currentlyPlaying !== null) {
+      preloadedAudio[currentlyPlaying]?.pause();
+      preloadedAudio[currentlyPlaying].currentTime = 0;
+    }
+
+    // Stop and cleanup all preloaded audio
+    preloadedAudio.forEach((audio) => {
+      audio.pause();
+      audio.src = "";
+    });
+
+    // Clear states
+    setCurrentlyPlaying(null);
+    setPreloadedAudio([]);
+
+    // Call the original onClose
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#1A1A1A] rounded-xl p-6 max-w-3xl w-full">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-xl font-bold">Match Artist to Song</h2>
+            <div className="text-sm text-gray-400 mt-1">High Score: {highScore}</div>
+          </div>
+          <button onClick={handleClose} className="p-2 rounded-lg hover:bg-gray-800 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {/* Track List - Left side */}
+          <div className="space-y-3">
+            {selectedTracks.map((track, index) => (
+              <div key={index} className="flex flex-col gap-2">
+                <div className="flex items-center gap-3 p-3 bg-gray-800 rounded-lg h-[72px] md:w-[240px]">
+                  <img src={track.cover_art_url} alt="Album Art" className="w-12 h-12 rounded" />
+                  <button
+                    onClick={() => handlePlayPause(index)}
+                    className="p-2 rounded-full bg-emerald-600 hover:bg-emerald-700 relative"
+                    disabled={isLoading === index}>
+                    {isLoading === index ? (
+                      <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : currentlyPlaying === index ? (
+                      <Pause className="w-5 h-5" />
+                    ) : (
+                      <Play className="w-5 h-5" />
+                    )}
+                  </button>
+                  {gameComplete && (
+                    <div className="ml-auto">
+                      {results[index] ? <CheckCircle2 className="w-6 h-6 text-emerald-400" /> : <XCircle className="w-6 h-6 text-red-400" />}
+                    </div>
+                  )}
+                </div>
+                {gameComplete && (
+                  <div className="text-sm text-gray-400 px-3 md:w-[240px]">
+                    <span className="text-emerald-400">{track.title}</span> from {track.artist}'s <span className="text-yellow-400">{track.album}</span> album
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Artist List - Right side */}
+          <div className="space-y-3">
+            {" "}
+            {artistOrder.map((artist, index) => (
+              <div key={index} className="flex items-center gap-3 ">
+                {" "}
+                <div className="flex flex-col">
+                  <button
+                    onClick={() => moveArtist(index, "up")}
+                    disabled={index === 0 || gameComplete}
+                    className={`p-1 ${index === 0 || gameComplete ? "text-gray-600" : "hover:text-emerald-400"}`}>
+                    <ArrowUp className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => moveArtist(index, "down")}
+                    disabled={index === artistOrder.length - 1 || gameComplete}
+                    className={`p-1 ${index === artistOrder.length - 1 || gameComplete ? "text-gray-600" : "hover:text-emerald-400"}`}>
+                    <ArrowDown className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex-1 p-3 bg-gray-800 rounded-lg flex items-center h-[72px]">
+                  {" "}
+                  <span className="text-white font-medium">{artist}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-4 flex justify-center">
+          {" "}
+          {!gameComplete ? (
+            <button onClick={handleSubmit} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+              Submit Answers
+            </button>
+          ) : (
+            <button onClick={initializeGame} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+              Play Again
+            </button>
+          )}
+        </div>
+        {gameComplete && (
+          <div className="mt-4 text-center">
+            {" "}
+            <h3 className="text-xl font-bold">Game Complete!</h3>
+            <p className="text-lg mt-2">Your Score: {score}%</p>
+            {score > highScore && <p className="text-emerald-400 mt-1">New High Score!</p>}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -378,6 +687,7 @@ export const MiniGames = (props: MiniGamesProps) => {
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const [showMemoryModal, setShowMemoryModal] = useState<boolean>(false);
   const { connected: isLoggedInSol } = useWallet();
+  const [showMatchArtistModal, setShowMatchArtistModal] = useState<boolean>(false);
 
   // Define available mini games
   const games: MiniGame[] = [
@@ -421,6 +731,23 @@ export const MiniGames = (props: MiniGamesProps) => {
         />
       ),
     },
+    {
+      id: "match-artist",
+      name: "Match Artist to Song",
+      description: "Listen to song snippets and match them to their artists",
+      icon: <Music2 className="w-6 h-6 text-emerald-400" />,
+      isEnabled: true,
+      requiresNFT: false,
+      requiresLogin: false,
+      ActionButton: ({ onClick, isLoggedIn }) => (
+        <MatchArtistButton
+          onClick={() => {
+            setShowMatchArtistModal(true);
+          }}
+          isLoggedIn={isLoggedIn}
+        />
+      ),
+    },
   ];
 
   return (
@@ -446,6 +773,8 @@ export const MiniGames = (props: MiniGamesProps) => {
       )}
 
       {showMemoryModal && <MemoryGame onClose={() => setShowMemoryModal(false)} tracks={radioTracks} appMusicPlayerIsPlaying={appMusicPlayerIsPlaying} />}
+
+      {showMatchArtistModal && <MatchArtistGame onClose={() => setShowMatchArtistModal(false)} tracks={radioTracks} />}
     </>
   );
 };
