@@ -318,7 +318,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                           }}>
                           <>
                             <ShoppingCart />
-                            <span className="ml-2">Buy On External NFT Market</span>
+                            <span className="ml-2">Find On External NFT Market</span>
                           </>
                         </Button>
                       </div>
