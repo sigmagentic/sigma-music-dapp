@@ -702,7 +702,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                         {activeTab === "albumSales" && (
                           <div className="artist-album-sales w-full">
-                            <AlbumSales creatorWallet={artistProfile.creatorWallet} />
+                            <AlbumSales creatorPaymentsWallet={artistProfile.creatorPaymentsWallet} />
                           </div>
                         )}
 

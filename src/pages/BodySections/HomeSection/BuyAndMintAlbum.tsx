@@ -189,7 +189,7 @@ export const BuyAndMintAlbum = ({
         mintForSolAddr: publicKey?.toBase58(),
         paymentHash: paymentMadeTx,
         nftType: "album",
-        creatorWallet: artistProfile.creatorWallet,
+        creatorWallet: artistProfile.creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         albumId: albumToBuyAndMint.albumId,
       });
 

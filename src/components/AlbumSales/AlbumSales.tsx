@@ -8,10 +8,10 @@ interface AlbumSale {
 }
 
 interface AlbumSalesProps {
-  creatorWallet: string;
+  creatorPaymentsWallet: string;
 }
 
-export default function AlbumSales({ creatorWallet }: AlbumSalesProps) {
+export default function AlbumSales({ creatorPaymentsWallet }: AlbumSalesProps) {
   const [albumSales, setAlbumSales] = useState<AlbumSale[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { albumMasterLookup } = useAppStore();
@@ -20,7 +20,7 @@ export default function AlbumSales({ creatorWallet }: AlbumSalesProps) {
     const fetchAlbumSales = async () => {
       try {
         const response = await fetch(
-          `${getApiWeb2Apps()}/datadexapi/sigma/paymentsByCreatorSales?creatorWallet=${creatorWallet}&byCreatorSalesStatusFilter=success`
+          `${getApiWeb2Apps()}/datadexapi/sigma/paymentsByCreatorSales?creatorWallet=${creatorPaymentsWallet}&byCreatorSalesStatusFilter=success`
         );
         if (response.ok) {
           const data = await response.json();
@@ -34,7 +34,7 @@ export default function AlbumSales({ creatorWallet }: AlbumSalesProps) {
     };
 
     fetchAlbumSales();
-  }, [creatorWallet]);
+  }, [creatorPaymentsWallet]);
 
   return (
     <div className="w-full mt-5">
