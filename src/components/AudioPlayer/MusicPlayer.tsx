@@ -26,7 +26,7 @@ import DEFAULT_SONG_IMAGE from "assets/img/audio-player-image.png";
 import DEFAULT_SONG_LIGHT_IMAGE from "assets/img/audio-player-light-image.png";
 import { DISABLE_BITZ_FEATURES, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { BountyBitzSumMapping, Track } from "libs/types";
+import { BountyBitzSumMapping, MusicTrack } from "libs/types";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -34,7 +34,7 @@ import { useAudioPlayerStore } from "store/audioPlayer";
 let playerExplicitlyDockedByUser = false;
 
 type MusicPlayerProps = {
-  trackList: Track[];
+  trackList: MusicTrack[];
   dataNftToOpen?: DasApiAsset;
   firstSongBlobUrl?: string;
   pauseAsOtherAudioPlaying?: number;
@@ -123,7 +123,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [duration, setDuration] = useState("00:00");
   const [isLoaded, setIsLoaded] = useState(false);
   const { publicKey, signMessage } = useWallet();
-  const [songSource, setSongSource] = useState<{ [key: number]: string }>({}); // map to keep the already fetched trackList
+  const [songSource, setSongSource] = useState<{ [key: string]: string }>({}); // map to keep the already fetched trackList
   const settings = {
     infinite: isRadioPlayer ? true : false,
     speed: 1000,

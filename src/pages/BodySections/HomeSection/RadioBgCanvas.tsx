@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
-import { Track } from "libs/types";
+import { MusicTrack } from "libs/types";
 import { RadioTeaser } from "./RadioTeaser";
 
 type RadioBgCanvasProps = {
-  radioTracks: Track[];
+  radioTracks: MusicTrack[];
   radioTracksLoading: boolean;
   launchRadioPlayer: boolean;
   setLaunchRadioPlayer: (launchRadioPlayer: boolean) => void;
@@ -42,7 +42,7 @@ export const RadioBgCanvas = (props: RadioBgCanvasProps) => {
                 setLaunchRadioPlayer={setLaunchRadioPlayer}
               />
               <div className="track-boxes w-full flex-col items-center grid grid-rows-[150px] auto-rows-[150px] grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-[10px] ">
-                {shuffledTracks.map((radioTrack: Track) => (
+                {shuffledTracks.map((radioTrack: MusicTrack) => (
                   <div
                     key={radioTrack.idx}
                     className={`flex w-[150px] h-[150px] md:w-[150px] md:h-[150px] m-2 animate-float`}

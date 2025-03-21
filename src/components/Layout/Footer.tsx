@@ -6,7 +6,7 @@ export const Footer = () => {
   const appVersion = import.meta.env.VITE_APP_VERSION ? `v${import.meta.env.VITE_APP_VERSION}` : "version number unknown";
 
   return (
-    <footer className="mx-[1rem] md:mx-[1rem] h-auto mb-10 mt-10 border-t-2 opacity-70">
+    <footer className="mx-[1rem] md:mx-[1rem] h-auto mb-10 mt-10 border-t-2 opacity-70 md:p-10">
       <div className="flex flex-col md:flex-row">
         <div className="md:w-[50%] p-5">
           <div>
@@ -55,7 +55,7 @@ export const Footer = () => {
           </div>
         </div>
 
-        <div className="flex md:flex-col md:w-[50%] pl-5 h-auto border-l-2">
+        <div className="flex md:flex-col md:w-[50%] pl-5 h-auto items-end md:text-right">
           <div className="flex justify-between">
             <div className="py-5 md:flex-1">
               <p className="text-md mb-2 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-base">
@@ -63,31 +63,31 @@ export const Footer = () => {
               </p>
               <ul className="text-xs md:text-sm flex flex-col gap-1">
                 <li>
-                  {"> "}
                   <a href="https://x.com/SigmaXMusic" target="_blank" className="hover:underline">
                     Sigma AI Agent on X
                   </a>
+                  {" <"}
                 </li>
                 <li>
-                  {"> "}
                   <a href="https://t.me/SigmaXMusicOfficial" target="_blank" className="hover:underline">
                     Official Telegram Community
                   </a>
+                  {" <"}
                 </li>
                 <li>
-                  {"> "}
                   <a href="https://drip.haus/itheum" target="_blank" className="hover:underline">
                     Get Sigma Music NFTs on Drip Haus
                   </a>
+                  {" <"}
                 </li>
                 <li>
-                  {"> "}
                   <a
                     href="https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform"
                     target="_blank"
                     className="hover:underline">
                     Launch Your Music with Sigma Music
                   </a>
+                  {" <"}
                 </li>
               </ul>
             </div>

@@ -1,4 +1,4 @@
-import { RadioTrackData } from "libs/types";
+import { MusicTrack } from "libs/types";
 
 export const getApiDataMarshal = () => {
   // we can call this without chainID (e.g. solana mode or no login mode), and we get the API endpoint based on ENV
@@ -17,9 +17,9 @@ export const sleep = (sec: number) => {
   });
 };
 
-export const getApiWeb2Apps = () => {
+export const getApiWeb2Apps = (alwaysUseProd = false) => {
   // we can call this without chainID (e.g. solana mode or no login mode), and we get the API endpoint based on ENV
-  if (import.meta.env.VITE_ENV_NETWORK === "mainnet") {
+  if (import.meta.env.VITE_ENV_NETWORK === "mainnet" || alwaysUseProd) {
     return "https://api.itheumcloud.com";
   } else {
     return "https://api.itheumcloud-stg.com";
@@ -93,14 +93,46 @@ export const logPaymentToAPI = async (paymentData: any) => {
       body: JSON.stringify(paymentData),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
     }
 
-    const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error saving new launch:", error);
+    console.error("Error saving payment data:", error);
+    throw error;
+  }
+};
+
+export const mintAlbumNFTAfterPayment = async (mintData: any) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumNFTAfterPayment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(mintData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error minting NFT after payment:", error);
     throw error;
   }
 };
@@ -147,12 +179,16 @@ export const logStatusChangeToAPI = async ({
       body: JSON.stringify(payload),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
     }
 
-    const data = await response.json();
-    console.log(data);
     return data;
   } catch (error) {
     console.error("Error saving new launch:", error);
@@ -160,8 +196,8 @@ export const logStatusChangeToAPI = async ({
   }
 };
 
-export const filterRadioTracksByUserPreferences = (allRadioTracks: RadioTrackData[]) => {
-  const _allRadioTracksSorted = [...allRadioTracks]; // we clone it so we dont mutate the original list
+export const filterRadioTracksByUserPreferences = (allRadioTracks: MusicTrack[]) => {
+  const _allRadioTracksSorted: MusicTrack[] = [...allRadioTracks]; // we clone it so we dont mutate the original list
   // let now check if the user has some preferences for genres (initially we get this from session storage, later we get this from the NFMe ID)
   const savedGenres = sessionStorage.getItem("sig-pref-genres");
 
@@ -271,3 +307,56 @@ export async function mergeImages(
     throw error;
   }
 }
+
+interface CacheEntry_checkIfAlbumCanBeMinted {
+  data: boolean;
+  timestamp: number;
+}
+
+const cache_checkIfAlbumCanBeMinted: { [key: string]: CacheEntry_checkIfAlbumCanBeMinted } = {};
+const CACHE_DURATION_CHECK_IF_ALBUM_CAN_BE_MINTED = 1 * 60 * 1000; // 60 minutes in milliseconds
+
+export const checkIfAlbumCanBeMinted = async (albumId: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_checkIfAlbumCanBeMinted[albumId];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_CHECK_IF_ALBUM_CAN_BE_MINTED) {
+      console.log(`checkIfAlbumCanBeMinted: Using cached minting status for albumId: ${albumId}`);
+      return cacheEntry.data;
+    }
+
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumNFTCanBeMinted?albumId=${albumId}`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_checkIfAlbumCanBeMinted[albumId] = {
+        data: data.canBeMinted,
+        timestamp: now,
+      };
+
+      return data.canBeMinted;
+    } else {
+      // Update cache (with false as data)
+      cache_checkIfAlbumCanBeMinted[albumId] = {
+        data: false,
+        timestamp: now,
+      };
+
+      return false;
+    }
+  } catch (error) {
+    console.error("Error checking if album can be minted:", error);
+
+    // Update cache (with false as data)
+    cache_checkIfAlbumCanBeMinted[albumId] = {
+      data: false,
+      timestamp: now,
+    };
+
+    return false;
+  }
+};

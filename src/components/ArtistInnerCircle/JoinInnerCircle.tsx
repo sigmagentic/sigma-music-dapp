@@ -34,6 +34,7 @@ export const JoinInnerCircle = ({
   const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist-profile=${artistSlug}&t=ic`)}&text=${encodeURIComponent(
     `I just joined ${artistName}'s Inner Circle fan club on Sigma Music. Come and join me!`
   )}`;
+  const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -177,6 +178,7 @@ export const JoinInnerCircle = ({
     } catch (error) {
       console.error("Minting failed:", error);
       alert("Error: Minting seems to have failed");
+      setBackendErrorMessage((error as Error).message);
       setMintingStatus("idle");
     }
   };
@@ -277,6 +279,7 @@ export const JoinInnerCircle = ({
     setPaymentStatus("idle");
     setMintingStatus("idle");
     setPaymentTx("");
+    setBackendErrorMessage(null);
   }
 
   return (
@@ -322,10 +325,16 @@ export const JoinInnerCircle = ({
                 </div>
               )}
 
+              {backendErrorMessage && (
+                <div className="flex flex-col gap-4">
+                  <p className="bg-red-600 p-4 rounded-lg text-sm">⚠️ {backendErrorMessage}</p>
+                </div>
+              )}
+
               {mintingStatus === "failed" && (
                 <div className="flex flex-col gap-4">
                   <div className="text-center">
-                    <p className="bg-red-500 p-4 rounded-lg">
+                    <p className="bg-red-500 p-4 rounded-lg text-sm">
                       Error! Minting seems to have failed. We are looking into it. Please also wait a few minutes, return back to the artist profile and reload
                       the page to check if the Music NFT has been minted (as sometime blockchain can be congested). If it still doesn't show up, please DM us on
                       telegram:{" "}

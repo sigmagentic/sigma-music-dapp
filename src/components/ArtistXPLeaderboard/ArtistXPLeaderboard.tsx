@@ -135,54 +135,60 @@ export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bounty
   }
 
   return (
-    <div className="overflow-hidden rounded-lg">
-      <table className="min-w-full">
-        <thead className="bg-gray-800 text-white">
-          <tr>
-            <th className="px-6 py-3 text-left text-sm font-semibold">Rank</th>
-            <th className="px-6 py-3 text-left text-sm font-semibold">Wallet</th>
-            <th className="px-6 py-3 text-right text-sm font-semibold">
-              <div className="flex items-center justify-end space-x-1">
-                <SparklesIcon className="h-5 w-5 text-yellow-400" />
-                <span>Power</span>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-700">
-          {leaderboardData.map((entry) => (
-            <tr
-              key={entry.giverAddr}
-              className={`
+    <div className="w-full mt-5">
+      {!isLoading && leaderboardData.length === 0 && <div className="text-sm text-muted-foreground m-5">No power-ups yet</div>}
+
+      {leaderboardData.length > 0 && (
+        <div className="rounded-md border">
+          <table className="w-full">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Rank</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Wallet</th>
+                <th className="px-6 py-3 text-right text-sm font-semibold">
+                  <div className="flex items-center justify-end space-x-1">
+                    <SparklesIcon className="h-5 w-5 text-yellow-400" />
+                    <span>Power</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {leaderboardData.map((entry) => (
+                <tr
+                  key={entry.giverAddr}
+                  className={`
                 ${entry.rank === 1 ? "bg-yellow-500/10" : ""}
                 ${entry.rank === 2 ? "bg-gray-400/10" : ""}
                 ${entry.rank === 3 ? "bg-orange-700/10" : ""}
                 hover:bg-gray-700/20 transition-colors
               `}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  {entry.rank === 1 && <span className="text-2xl mr-2">🥇</span>}
-                  {entry.rank === 2 && <span className="text-2xl mr-2">🥈</span>}
-                  {entry.rank === 3 && <span className="text-2xl mr-2">🥉</span>}
-                  <span
-                    className={`
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      {entry.rank === 1 && <span className="text-2xl mr-2">🥇</span>}
+                      {entry.rank === 2 && <span className="text-2xl mr-2">🥈</span>}
+                      {entry.rank === 3 && <span className="text-2xl mr-2">🥉</span>}
+                      <span
+                        className={`
                     ${entry.rank && entry.rank <= 3 ? "font-bold" : ""}
                   `}>
-                    #{entry.rank}
-                  </span>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">{truncateAddress(entry.giverAddr)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex items-center justify-end space-x-1">
-                  <SparklesIcon className="h-4 w-4 text-yellow-400" />
-                  <span>{entry.bits.toLocaleString()}</span>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                        #{entry.rank}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">{truncateAddress(entry.giverAddr)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex items-center justify-end space-x-1">
+                      <SparklesIcon className="h-4 w-4 text-yellow-400" />
+                      <span>{entry.bits.toLocaleString()}</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

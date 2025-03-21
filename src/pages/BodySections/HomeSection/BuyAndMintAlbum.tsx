@@ -7,9 +7,11 @@ import axios from "axios";
 import { Loader } from "lucide-react";
 import { BUY_AND_MINT_ALBUM_PRICE_IN_USD, GENERATE_MUSIC_MEME_PRICE_IN_USD, INNER_CIRCLE_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
+import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
+import { Artist, Album } from "libs/types";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, sleep } from "libs/utils/misc";
-import { Album, Artist } from "./FeaturedArtistsAndAlbums";
+import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, mintAlbumNFTAfterPayment, sleep } from "libs/utils/misc";
+import { useAccountStore } from "store/account";
 
 export const BuyAndMintAlbum = ({
   onCloseModal,
@@ -21,7 +23,7 @@ export const BuyAndMintAlbum = ({
   albumToBuyAndMint: Album;
 }) => {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction, signMessage } = useWallet();
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
@@ -31,6 +33,16 @@ export const BuyAndMintAlbum = ({
   const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist-profile=${artistProfile.slug}`)}&text=${encodeURIComponent(
     `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on Sigma Music and I'm excited to stream it!`
   )}`;
+  const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
+
+  // S: Cached Signature Store Items
+  const solPreaccessNonce = useAccountStore((state: any) => state.solPreaccessNonce);
+  const solPreaccessSignature = useAccountStore((state: any) => state.solPreaccessSignature);
+  const solPreaccessTimestamp = useAccountStore((state: any) => state.solPreaccessTimestamp);
+  const updateSolPreaccessNonce = useAccountStore((state: any) => state.updateSolPreaccessNonce);
+  const updateSolPreaccessTimestamp = useAccountStore((state: any) => state.updateSolPreaccessTimestamp);
+  const updateSolSignedPreaccess = useAccountStore((state: any) => state.updateSolSignedPreaccess);
+  // E: Cached Signature Store Items
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -75,9 +87,22 @@ export const BuyAndMintAlbum = ({
   const handlePaymentConfirmation = async () => {
     if (!publicKey || !requiredSolAmount) return;
 
+    // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+    const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+      solPreaccessNonce,
+      solPreaccessSignature,
+      solPreaccessTimestamp,
+      signMessage,
+      publicKey,
+      updateSolPreaccessNonce,
+      updateSolSignedPreaccess,
+      updateSolPreaccessTimestamp,
+    });
+
     setPaymentStatus("processing");
 
     try {
+      /*
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
@@ -102,28 +127,35 @@ export const BuyAndMintAlbum = ({
       };
 
       await connection.confirmTransaction(strategy, "finalized" as Commitment);
+      */
+
+      const signature = "simulated-signature-" + Date.now();
 
       // Update payment transaction hash
       setPaymentTx(signature);
 
       // Log payment to web2 API
-      await logPaymentToAPI({
+      const _logPaymentToAPIResponse = await logPaymentToAPI({
         payer: publicKey.toBase58(),
         tx: signature,
-        task: "mintAlbum",
+        task: "buyAlbum",
         amount: requiredSolAmount.toString(),
         creatorWallet: artistProfile.creatorWallet,
         albumId: albumToBuyAndMint.albumId,
       });
 
+      if (_logPaymentToAPIResponse.error) {
+        throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
+      }
+
       toastSuccess("Payment Successful!", true);
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
-      handleMinting();
+      handleMinting({ paymentMadeTx: signature, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce });
     } catch (error) {
       console.error("Payment failed:", error);
-      alert("Payment failed. Please try again.");
+      alert("Payment failed. Please try again - " + (error as Error).message);
       setPaymentStatus("idle");
     }
   };
@@ -153,21 +185,27 @@ export const BuyAndMintAlbum = ({
     }
   };
 
-  const handleMinting = async () => {
+  const handleMinting = async ({ paymentMadeTx, solSignature, signatureNonce }: { paymentMadeTx: string; solSignature: string; signatureNonce: string }) => {
     setMintingStatus("processing");
 
     try {
-      // Mint the NFT
-      // await mintNFTAfterPaymentAPI({
-      //   payer: publicKey.toBase58(),
-      //   tx: signature,
-      //   nftType: "innerCircle",
-      //   creatorWallet: creatorWallet,
-      //   membershipId: membershipId,
-      //   creatorSlug: artistSlug,
-      // });
+      // Mint the music
+      const _mintAlbumNFTAfterPaymentResponse = await mintAlbumNFTAfterPayment({
+        solSignature,
+        signatureNonce,
+        mintForSolAddr: publicKey?.toBase58(),
+        paymentHash: paymentMadeTx,
+        nftType: "album",
+        creatorWallet: artistProfile.creatorWallet,
+        albumId: albumToBuyAndMint.albumId,
+        _skipPayment: "1",
+      });
 
-      // sleep fpr an extra 5 seconds after success to the RPC can update
+      if (_mintAlbumNFTAfterPaymentResponse.error) {
+        throw new Error(_mintAlbumNFTAfterPaymentResponse.errorMessage || "Minting failed");
+      }
+
+      // sleep fpr an extra 5 seconds after success to the RPC indexing can update
       await sleep(5);
 
       toastSuccess("Minting Successful!", true);
@@ -175,8 +213,9 @@ export const BuyAndMintAlbum = ({
       await showSuccessConfetti();
     } catch (error) {
       console.error("Minting failed:", error);
-      alert("Error: Minting seems to have failed");
-      setMintingStatus("idle");
+      alert("Error: Minting seems to have failed - " + (error as Error).message);
+      setBackendErrorMessage((error as Error).message);
+      setMintingStatus("failed");
     }
   };
 
@@ -262,7 +301,7 @@ export const BuyAndMintAlbum = ({
               <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
                 Cancel
               </Button>
-              <Button onClick={handlePaymentConfirmation_Simulate} className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
+              <Button onClick={handlePaymentConfirmation} className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
                 Proceed
               </Button>
             </div>
@@ -277,6 +316,7 @@ export const BuyAndMintAlbum = ({
     setPaymentStatus("idle");
     setMintingStatus("idle");
     setPaymentTx("");
+    setBackendErrorMessage(null);
   }
 
   return (
@@ -296,17 +336,16 @@ export const BuyAndMintAlbum = ({
           </button>
         )}
 
-        {/* Left Column - Form */}
         {mintingStatus !== "confirmed" && (
           <div>
-            <div className="mb-6">
+            <div className="mb-2">
               <h2 className={` ${paymentStatus === "idle" ? "!text-3xl" : "!text-2xl"} text-center font-bold`}>
                 {paymentStatus === "idle" ? "Buy & Mint Album" : "Minting Album..."}
               </h2>
             </div>
 
             <div className="space-y-4">
-              <div className="flex flex-col items-center p-6  shadow-xl">
+              <div className="flex flex-col items-center p-6 shadow-xl">
                 <div className="relative group mb-6">
                   <img
                     src={albumToBuyAndMint.img}
@@ -339,10 +378,16 @@ export const BuyAndMintAlbum = ({
                 </div>
               )}
 
+              {backendErrorMessage && (
+                <div className="flex flex-col gap-4">
+                  <p className="bg-red-600 p-4 rounded-lg text-sm">⚠️ {backendErrorMessage}</p>
+                </div>
+              )}
+
               {mintingStatus === "failed" && (
                 <div className="flex flex-col gap-4">
                   <div className="text-center">
-                    <p className="bg-red-500 p-4 rounded-lg">
+                    <p className="bg-red-500 p-4 rounded-lg text-sm">
                       Error! Minting seems to have failed. We are looking into it. Please also wait a few minutes, return back to the artist profile and reload
                       the page to check if the Music NFT has been minted (as sometime blockchain can be congested). If it still doesn't show up, please DM us on
                       telegram:{" "}
@@ -377,11 +422,10 @@ export const BuyAndMintAlbum = ({
 
         {mintingStatus === "confirmed" && (
           <div>
-            <div className="mb-6"></div>
-
             <div className="space-y-4 flex flex-col items-center">
               <h2 className={`!text-2xl text-center font-bold`}>
-                Success! You can now stream {albumToBuyAndMint.title} by <span className="text-gray-400">{artistProfile.name}</span>!
+                Success! You can now stream <span className="text-orange-400">{albumToBuyAndMint.title}</span> by{" "}
+                <span className="text-orange-400">{artistProfile.name}</span>!
               </h2>
 
               <Button

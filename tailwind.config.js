@@ -144,6 +144,10 @@ module.exports = {
             filter: "brightness(1)",
           },
         },
+        "border-rotate": {
+          "0%": { transform: "rotate(0deg) scale(10)" },
+          "100%": { transform: "rotate(-360deg) scale(10)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -159,6 +163,7 @@ module.exports = {
         "point": "pointer 2s ease-in-out infinite",
         "text-gradient": "text-gradient 8s ease infinite",
         "text-shimmer": "text-shimmer 4s ease-in-out infinite",
+        "border-rotate": "border-rotate 4s linear infinite",
       },
     },
   },

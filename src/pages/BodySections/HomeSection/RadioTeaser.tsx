@@ -3,11 +3,11 @@ import { motion } from "framer-motion";
 import { AnimatePresence } from "framer-motion";
 import { Loader, Music2, CircleStop, Hourglass } from "lucide-react";
 import { Button } from "libComponents/Button";
-import { Track } from "libs/types";
+import { MusicTrack } from "libs/types";
 import { useAudioPlayerStore } from "store/audioPlayer";
 
 type RadioTeaserProps = {
-  radioTracks: Track[];
+  radioTracks: MusicTrack[];
   radioTracksLoading: boolean;
   launchRadioPlayer: boolean;
   setLaunchRadioPlayer: (launchRadioPlayer: boolean) => void;

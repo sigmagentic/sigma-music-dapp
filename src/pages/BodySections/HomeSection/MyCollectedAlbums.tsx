@@ -111,6 +111,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
         (async () => {
           let _allOwnedAlbums: any[] = [];
           let _allOwnedSigmaAlbums: any[] = [];
+
           const filteredArtists = artistAlbumDataset
             .map((artist) => {
               // Filter the albums array for each artist
@@ -167,7 +168,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                     desc: metadata.description || "AI Generated Music",
                     bountyId: "sigma_bounty",
                     albumId: "sigma_album",
-                    isSigmaAlbum: true,
+                    isSigmaRemixAlbum: true,
                   };
                 } catch (error) {
                   console.error("Error fetching metadata for NFT:", error);
@@ -180,7 +181,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                     desc: "AI Generated Music",
                     bountyId: "",
                     albumId: nft.content.metadata.name.replaceAll(" ", "_"),
-                    isSigmaAlbum: true,
+                    isSigmaRemixAlbum: true,
                   };
                 }
               })
@@ -253,10 +254,9 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                             <div key={index} className="w-[100%]">
                               <ArtistDiscography
                                 inCollectedAlbumsView={true}
-                                artist={artist}
                                 albums={artist.albums}
-                                bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                                 artistProfile={artist}
+                                bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                                 checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                                 openActionFireLogic={openActionFireLogic}
                                 setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
@@ -350,10 +350,9 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                               <div key={index} className="w-[100%]">
                                 <ArtistDiscography
                                   inCollectedAlbumsView={true}
-                                  artist={artist}
                                   albums={artist.albums}
-                                  bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                                   artistProfile={artist}
+                                  bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                                   checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                                   openActionFireLogic={openActionFireLogic}
                                   setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}

@@ -638,7 +638,7 @@ const RemixSectionContent = () => {
                         tokenImg: item.image,
                         tokenName: item.title,
                         tokenSymbol: generateTokenSymbol(item.title),
-                        tokenDesc: `Official AI Music Meme Coin to access the launch of ${item.title} of Sigma Music. Owning this token grants you fractionalized ownership of the music track forever.`,
+                        tokenDesc: `Official AI Music Meme Coin to access the launch of ${item.title} on Sigma Music. Owning this token grants you fractionalized ownership of the music track forever.`,
                         tokenId: item.assetIdOrTokenName.replaceAll(" ", "_"),
                         tweet: item.tweet || "",
                       });

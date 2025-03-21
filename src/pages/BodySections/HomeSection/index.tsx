@@ -10,7 +10,7 @@ import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
 import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { BlobDataType, ExtendedViewDataReturnType, Track, RadioTrackData } from "libs/types";
+import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
 import { filterRadioTracksByUserPreferences } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
@@ -46,7 +46,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
     creatorWallet: string;
   } | null>(null);
   const [userHasNoBitzDataNftYet, setUserHasNoBitzDataNftYet] = useState(false);
-  const [musicPlayerTrackList, setMusicPlayerTrackList] = useState<Track[]>([]);
+  const [musicPlayerTrackList, setMusicPlayerTrackList] = useState<MusicTrack[]>([]);
   const { albumPlayIsQueued } = useAudioPlayerStore();
   const navigate = useNavigate();
 
@@ -75,8 +75,8 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
 
   // Radio Player state
-  const [radioTracksSorted, setRadioTracksSorted] = useState<Track[]>([]);
-  const [radioTracksOriginal, setRadioTracksOriginal] = useState<Track[]>([]);
+  const [radioTracksSorted, setRadioTracksSorted] = useState<MusicTrack[]>([]);
+  const [radioTracksOriginal, setRadioTracksOriginal] = useState<MusicTrack[]>([]);
   const [radioTracksLoading, setRadioTracksLoading] = useState(true);
   const [launchRadioPlayer, setLaunchRadioPlayer] = useState(false);
   const [nfTunesRadioFirstTrackCachedBlob, setNfTunesRadioFirstTrackCachedBlob] = useState<string>("");
@@ -176,7 +176,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
         setNfTunesRadioFirstTrackCachedBlob("");
 
         // we always reorder the master list of radio tracks (not the already sorted previous list)
-        const _radioTracksSorted: RadioTrackData[] = await reorderRadioTracksAndCacheFirstTrackBlob(radioTracksOriginal);
+        const _radioTracksSorted: MusicTrack[] = await reorderRadioTracksAndCacheFirstTrackBlob(radioTracksOriginal);
         setRadioTracksSorted(_radioTracksSorted);
         setRadioTracksLoading(false);
         updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(false);
@@ -195,12 +195,12 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
       setRadioTracksSorted([]);
       setNfTunesRadioFirstTrackCachedBlob("");
 
-      const allRadioTracks = (await getRadioStreamsData()) as RadioTrackData[];
+      const allRadioTracks = (await getRadioStreamsData()) as MusicTrack[];
       setRadioTracksOriginal([...allRadioTracks]); // this is the master list of radio tracks as we got from the server
 
       // Extract and normalize unique categories
       const uniqueGenres = new Set<string>();
-      allRadioTracks.forEach((track: RadioTrackData) => {
+      allRadioTracks.forEach((track: MusicTrack) => {
         if (track.category) {
           // Split by comma and trim each category
           const categories = track.category.split(",").map((cat: string) => cat.trim().toLowerCase());
@@ -211,7 +211,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
       // Convert Set to array and update store for available radio stream genres
       updateRadioGenres(Array.from(uniqueGenres));
 
-      const _radioTracksSorted: RadioTrackData[] = await reorderRadioTracksAndCacheFirstTrackBlob(allRadioTracks);
+      const _radioTracksSorted: MusicTrack[] = await reorderRadioTracksAndCacheFirstTrackBlob(allRadioTracks);
 
       setRadioTracksSorted(_radioTracksSorted);
 
@@ -223,8 +223,8 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
     }
   }
 
-  async function reorderRadioTracksAndCacheFirstTrackBlob(allRadioTracks: RadioTrackData[]) {
-    const _radioTracksSorted = filterRadioTracksByUserPreferences(allRadioTracks);
+  async function reorderRadioTracksAndCacheFirstTrackBlob(allRadioTracks: MusicTrack[]) {
+    const _radioTracksSorted: MusicTrack[] = filterRadioTracksByUserPreferences(allRadioTracks);
 
     // cache the first track blob
     const blobUrl = await getNFTuneFirstTrackBlobData(_radioTracksSorted[0]);
@@ -523,8 +523,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                     if (albumId) {
                       slugToUse = `${artistSlug}~${albumId}`;
                     }
-
-                    console.log("slugToUse", slugToUse);
 
                     setFeaturedArtistDeepLinkSlug(slugToUse);
                   }}

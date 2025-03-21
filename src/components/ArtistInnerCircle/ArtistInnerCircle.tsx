@@ -165,46 +165,46 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
         //   },
         // };
 
-        // const data = {
-        //   base: {
-        //     id: "base",
-        //     priceUSD: 10,
-        //     term: "lifetime" as const,
-        //     perks: [
-        //       {
-        //         name: "Free Highest Rarity Tier Album Airdrop",
-        //         type: "virtual" as const,
-        //         description: "Each time I drop a new Music Album NFT, you get the highest rarity tier for free",
-        //         terms: "",
-        //         howToClaim:
-        //           "Hold the inner circle fan membership NFT and you'll automatically receive the highest rarity tier for free each time the artist releases a new Music Album NFT",
-        //       },
-        //       {
-        //         name: "10 Min Meet and Greet at My Performances",
-        //         type: "physical" as const,
-        //         description: "If I perform at an event, you can use your NFT to meet me",
-        //         terms: "Note that this only applies to performances that have a meet and greet planned (which are most events with paid tickets)",
-        //         howToClaim: "Hold the inner circle fan membership NFT and show it to the artist's crew at the event",
-        //       },
-        //       {
-        //         name: "20 Min Voice Call",
-        //         type: "virtual" as const,
-        //         description: "I'll give you a 20-minute voice call to chat",
-        //         terms: "Can be redeemed once a month per user who holds this tier",
-        //         howToClaim: "Hold the inner circle fan membership NFT, DM me on X and we can arrange a time to chat",
-        //       },
-        //       {
-        //         name: "10 Min Video Call",
-        //         type: "virtual" as const,
-        //         description: "I'll give you a 10-minute video call to chat",
-        //         terms: "Can be redeemed once a month per user who holds this tier",
-        //         howToClaim: "Hold the inner circle fan membership NFT, DM me on X and we can arrange a time to chat",
-        //       },
-        //     ],
-        //   },
-        // };
+        const data = {
+          base: {
+            id: "base",
+            priceUSD: 10,
+            term: "lifetime" as const,
+            perks: [
+              {
+                name: "Free Highest Rarity Tier Album Airdrop",
+                type: "virtual" as const,
+                description: "Each time I drop a new Music Album NFT, you get the highest rarity tier for free",
+                terms: "",
+                howToClaim:
+                  "Hold the inner circle fan membership NFT and you'll automatically receive the highest rarity tier for free each time the artist releases a new Music Album NFT",
+              },
+              {
+                name: "10 Min Meet and Greet at My Performances",
+                type: "physical" as const,
+                description: "If I perform at an event, you can use your NFT to meet me",
+                terms: "Note that this only applies to performances that have a meet and greet planned (which are most events with paid tickets)",
+                howToClaim: "Hold the inner circle fan membership NFT and show it to the artist's crew at the event",
+              },
+              {
+                name: "20 Min Voice Call",
+                type: "virtual" as const,
+                description: "I'll give you a 20-minute voice call to chat",
+                terms: "Can be redeemed once a month per user who holds this tier",
+                howToClaim: "Hold the inner circle fan membership NFT, DM me on X and we can arrange a time to chat",
+              },
+              {
+                name: "10 Min Video Call",
+                type: "virtual" as const,
+                description: "I'll give you a 10-minute video call to chat",
+                terms: "Can be redeemed once a month per user who holds this tier",
+                howToClaim: "Hold the inner circle fan membership NFT, DM me on X and we can arrange a time to chat",
+              },
+            ],
+          },
+        };
 
-        const data = {};
+        // const data = {};
 
         setArtistMembershipOptions(data);
         setIsLoading(false);

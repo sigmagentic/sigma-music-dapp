@@ -6,15 +6,18 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
+import AlbumSales from "components/AlbumSales/AlbumSales";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { Button } from "libComponents/Button";
 import { GiftBitzToArtistMeta } from "libs/types";
+import { Artist, Album, AlbumWithArtist } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
 import { sleep } from "libs/utils";
 import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
+import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
 
@@ -37,42 +40,6 @@ type FeaturedArtistsAndAlbumsProps = {
   onCloseMusicPlayer: () => void;
   setLoadIntoArtistTileView: (e: boolean) => void;
 };
-
-export interface Album {
-  albumId: string;
-  title: string;
-  desc: string;
-  img: string;
-  solNftName: string;
-  ctaPreviewStream: string;
-  bountyId: string;
-  isExplicit: string;
-  isPodcast: string;
-  isSpotlight: string;
-  isFeatured: string;
-}
-
-export interface Artist {
-  artistId: string;
-  name: string;
-  slug: string;
-  bio: string;
-  img: string;
-  bountyId: string;
-  dripLink: string;
-  xLink: string;
-  creatorWallet: string;
-  webLink: string;
-  ytLink: string;
-  otherLink1: string;
-  albums: Album[];
-}
-
-interface AlbumWithArtist extends Album {
-  artistId: string;
-  artistName: string;
-  artistSlug: string;
-}
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
   const {
@@ -116,6 +83,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [albumsDataset, setAlbumsDataset] = useState<AlbumWithArtist[]>([]);
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState("discography");
+  const { updateAlbumMasterLookup } = useAppStore();
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -193,6 +161,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setArtistAlbumDataset(allArtistsAlbumsData);
       setAlbumsDataset(allAlbumsData);
       setArtistAlbumDataLoading(false);
+
+      // update the album master lookup
+      updateAlbumMasterLookup(
+        allAlbumsData.reduce(
+          (acc, album) => {
+            acc[album.albumId] = album;
+            return acc;
+          },
+          {} as Record<string, AlbumWithArtist>
+        )
+      );
     })();
 
     return () => {
@@ -252,7 +231,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       return;
     }
 
-    console.log("selDataItem", selDataItem);
     setArtistProfile(selDataItem);
 
     // if we don't do the userInteractedWithTabs, then even on page load, we go update the url with artist-profile which we don't want
@@ -400,7 +378,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               {artistAlbumDataLoading ? (
                 <div className="m-auto w-full">
                   <div className="w-full flex flex-col items-center h-[250px] md:h-[100%] md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px]">
-                    {[...Array(8)].map((_, index) => (
+                    {[...Array(10)].map((_, index) => (
                       <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
                     ))}
                   </div>
@@ -422,19 +400,20 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           className={`flex w-[250px] h-[250px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
                           onClick={() => {
                             if (artist.artistId !== selArtistId) {
+                              setArtistProfile(null); // reset the artist profile (so previous selected artist clears, the next line -  onFeaturedArtistDeepLinkSlug(artist.slug) - triggers a cascading effect to select the new artist)
+
                               // notify the home page, which then triggers an effect to setSelArtistId
                               onFeaturedArtistDeepLinkSlug(artist.slug);
 
-                              setUserInteractedWithTabs(true);
+                              // setUserInteractedWithTabs(true);
+                              // setInArtistProfileView(true);
+                              // setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
                               window.scrollTo({
                                 top: 0,
                                 behavior: "smooth",
                               });
                             }
-
-                            setInArtistProfileView(true);
-                            setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
                           }}>
                           <div
                             className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
@@ -459,19 +438,20 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           className={`flex w-[250px] h-[250px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
                           onClick={() => {
                             if (album.artistId !== selArtistId || album.albumId !== selAlbumId) {
+                              setArtistProfile(null); // reset the artist profile (so previous selected artist clears, the next line -  onFeaturedArtistDeepLinkSlug(artist.slug) - triggers a cascading effect to select the new artist)
+
                               // notify the home page, which then triggers an effect to setSelArtistId
                               onFeaturedArtistDeepLinkSlug(album.artistSlug, album.albumId);
 
-                              setUserInteractedWithTabs(true);
+                              // setUserInteractedWithTabs(true);
+                              // setInArtistProfileView(true);
+                              // setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
                               window.scrollTo({
                                 top: 0,
                                 behavior: "smooth",
                               });
                             }
-
-                            setInArtistProfileView(true);
-                            setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
                           }}>
                           <div
                             className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
@@ -661,6 +641,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               Power-Up Leaderboard
                             </button>
                             <button
+                              onClick={() => setActiveTab("albumSales")}
+                              className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                ${
+                                  activeTab === "albumSales"
+                                    ? "border-orange-500 text-orange-500"
+                                    : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                }
+                              `}>
+                              Album Sales
+                            </button>
+                            <button
                               onClick={() => setActiveTab("innerCircle")}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
@@ -679,8 +670,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           <div className="artist-discography w-full">
                             <ArtistDiscography
                               albums={artistProfile.albums}
-                              bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                               artistProfile={artistProfile}
+                              bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                               isPreviewPlaying={isPreviewPlaying}
                               previewIsReadyToPlay={previewIsReadyToPlay}
                               previewPlayingForAlbumId={previewPlayingForAlbumId}
@@ -700,12 +691,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         )}
 
                         {activeTab === "leaderboard" && (
-                          <div className="artist-xp-leaderboard bg-background rounded-lg p-6 w-full">
+                          <div className="artist-xp-leaderboard w-full">
                             <ArtistXPLeaderboard
                               bountyId={artistProfile.bountyId}
                               creatorWallet={artistProfile.creatorWallet}
                               xpCollectionIdToUse={xpCollectionIdToUse}
                             />
+                          </div>
+                        )}
+
+                        {activeTab === "albumSales" && (
+                          <div className="artist-album-sales w-full">
+                            <AlbumSales creatorWallet={artistProfile.creatorWallet} />
                           </div>
                         )}
 

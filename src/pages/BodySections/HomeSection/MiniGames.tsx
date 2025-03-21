@@ -4,7 +4,7 @@ import { Gift, Dice1, Music2, X, Volume2, VolumeX, ChevronLeft, ChevronRight, Pl
 import Countdown from "react-countdown";
 import { PlayBitzModal } from "components/PlayBitzModal/PlayBitzModal";
 import { DISABLE_BITZ_FEATURES } from "config";
-import { Track } from "libs/types";
+import { MusicTrack } from "libs/types";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
 
@@ -110,7 +110,7 @@ interface Card {
 }
 
 // Add AudioPlayer Component
-const AudioPlayer: React.FC<{ tracks: Track[] }> = ({ tracks }) => {
+const AudioPlayer: React.FC<{ tracks: MusicTrack[] }> = ({ tracks }) => {
   const [volume, setVolume] = useState(0.5);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -179,11 +179,15 @@ const AudioPlayer: React.FC<{ tracks: Track[] }> = ({ tracks }) => {
   );
 };
 
-const MemoryGame: React.FC<{ onClose: () => void; tracks: Track[]; appMusicPlayerIsPlaying: boolean }> = ({ onClose, tracks, appMusicPlayerIsPlaying }) => {
+const MemoryGame: React.FC<{ onClose: () => void; tracks: MusicTrack[]; appMusicPlayerIsPlaying: boolean }> = ({
+  onClose,
+  tracks,
+  appMusicPlayerIsPlaying,
+}) => {
   const [cards, setCards] = useState<Card[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
-  const [backgroundTracks, setBackgroundTracks] = useState<Track[]>([]);
+  const [backgroundTracks, setBackgroundTracks] = useState<MusicTrack[]>([]);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(() => {
     return parseInt(localStorage.getItem("memory-game-high-score") || "0");
@@ -395,8 +399,8 @@ const MatchArtistButton: React.FC<{ onClick: () => void; isLoggedIn: boolean }> 
 };
 
 // Match Artist Game Component
-const MatchArtistGame: React.FC<{ onClose: () => void; tracks: Track[] }> = ({ onClose, tracks }) => {
-  const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
+const MatchArtistGame: React.FC<{ onClose: () => void; tracks: MusicTrack[] }> = ({ onClose, tracks }) => {
+  const [selectedTracks, setSelectedTracks] = useState<MusicTrack[]>([]);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
   const [preloadedAudio, setPreloadedAudio] = useState<HTMLAudioElement[]>([]);
   const [artistOrder, setArtistOrder] = useState<string[]>([]);
@@ -675,7 +679,7 @@ const MatchArtistGame: React.FC<{ onClose: () => void; tracks: Track[] }> = ({ o
 };
 
 interface MiniGamesProps {
-  radioTracks: Track[];
+  radioTracks: MusicTrack[];
   appMusicPlayerIsPlaying: boolean;
 }
 
