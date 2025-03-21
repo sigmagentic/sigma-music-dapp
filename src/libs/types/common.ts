@@ -63,6 +63,7 @@ export interface Artist {
   ytLink: string;
   otherLink1: string;
   isArtistFeatured: string;
+  creatorPaymentsWallet: string;
   albums: Album[];
 }
 

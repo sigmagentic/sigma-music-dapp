@@ -131,7 +131,7 @@ export const BuyAndMintAlbum = ({
         tx: signature,
         task: "buyAlbum",
         amount: requiredSolAmount.toString(),
-        creatorWallet: artistProfile.creatorWallet,
+        creatorWallet: artistProfile.creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         albumId: albumToBuyAndMint.albumId,
       });
 
@@ -311,6 +311,8 @@ export const BuyAndMintAlbum = ({
     setMintingStatus("idle");
     setBackendErrorMessage(null);
   }
+
+  console.log("artistProfile", artistProfile);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
