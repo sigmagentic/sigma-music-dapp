@@ -165,6 +165,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
         //   },
         // };
 
+        /*
         const data = {
           base: {
             id: "base",
@@ -203,8 +204,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
             ],
           },
         };
+        */
 
-        // const data = {};
+        const data = {};
 
         setArtistMembershipOptions(data);
         setIsLoading(false);
