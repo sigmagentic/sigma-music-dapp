@@ -3,14 +3,13 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { confetti } from "@tsparticles/confetti";
-import axios from "axios";
 import { Loader } from "lucide-react";
 import { BUY_AND_MINT_ALBUM_PRICE_IN_USD, GENERATE_MUSIC_MEME_PRICE_IN_USD, INNER_CIRCLE_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { Artist, Album } from "libs/types";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, mintAlbumNFTAfterPayment, sleep } from "libs/utils/misc";
+import { fetchSolPrice, logPaymentToAPI, mintAlbumNFTAfterPayment, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 
 export const BuyAndMintAlbum = ({
@@ -29,7 +28,6 @@ export const BuyAndMintAlbum = ({
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
-  const [paymentTx, setPaymentTx] = useState<string>("");
   const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist-profile=${artistProfile.slug}`)}&text=${encodeURIComponent(
     `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on Sigma Music and I'm excited to stream it!`
   )}`;
@@ -102,7 +100,6 @@ export const BuyAndMintAlbum = ({
     setPaymentStatus("processing");
 
     try {
-      /*
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
@@ -127,12 +124,6 @@ export const BuyAndMintAlbum = ({
       };
 
       await connection.confirmTransaction(strategy, "finalized" as Commitment);
-      */
-
-      const signature = "simulated-signature-" + Date.now();
-
-      // Update payment transaction hash
-      setPaymentTx(signature);
 
       // Log payment to web2 API
       const _logPaymentToAPIResponse = await logPaymentToAPI({
@@ -160,6 +151,7 @@ export const BuyAndMintAlbum = ({
     }
   };
 
+  /*
   const handlePaymentConfirmation_Simulate = async () => {
     if (!publicKey || !requiredSolAmount) return;
 
@@ -184,6 +176,7 @@ export const BuyAndMintAlbum = ({
       setPaymentStatus("idle");
     }
   };
+  */
 
   const handleMinting = async ({ paymentMadeTx, solSignature, signatureNonce }: { paymentMadeTx: string; solSignature: string; signatureNonce: string }) => {
     setMintingStatus("processing");
@@ -198,15 +191,14 @@ export const BuyAndMintAlbum = ({
         nftType: "album",
         creatorWallet: artistProfile.creatorWallet,
         albumId: albumToBuyAndMint.albumId,
-        _skipPayment: "1",
       });
 
       if (_mintAlbumNFTAfterPaymentResponse.error) {
         throw new Error(_mintAlbumNFTAfterPaymentResponse.errorMessage || "Minting failed");
       }
 
-      // sleep fpr an extra 5 seconds after success to the RPC indexing can update
-      await sleep(5);
+      // sleep for an extra 10 seconds after success to the RPC indexing can update
+      await sleep(10);
 
       toastSuccess("Minting Successful!", true);
       setMintingStatus("confirmed");
@@ -219,6 +211,7 @@ export const BuyAndMintAlbum = ({
     }
   };
 
+  /*
   const handleMinting_Simulate = async () => {
     setMintingStatus("processing");
 
@@ -243,6 +236,7 @@ export const BuyAndMintAlbum = ({
       setMintingStatus("failed");
     }
   };
+  */
 
   const handlePaymentAndMint = async () => {
     if (!publicKey?.toBase58()) {
@@ -315,7 +309,6 @@ export const BuyAndMintAlbum = ({
     setShowPaymentConfirmation(false);
     setPaymentStatus("idle");
     setMintingStatus("idle");
-    setPaymentTx("");
     setBackendErrorMessage(null);
   }
 

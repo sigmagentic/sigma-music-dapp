@@ -325,13 +325,15 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     )}
 
                     {album._canBeMinted && !inCollectedAlbumsView && (
-                      <div className="relative group cursor-pointer overflow-hidden rounded-lg p-[1.5px]">
+                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "cursor-not-allowed" : "cursor-pointer"}`}>
                         {/* Animated border background */}
                         <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
 
                         {/* Button content */}
                         <Button
-                          className="relative z-10 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 cursor-pointer"
+                          className={`relative z-10 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100 ${
+                            !addressSol ? "cursor-not-allowed" : "cursor-pointer"
+                          }`}
                           disabled={!addressSol}
                           onClick={() => {
                             setAlbumToBuyAndMint(album);
@@ -339,7 +341,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                           <>
                             <ShoppingCart />
                             <span className="ml-2">
-                              {checkOwnershipOfAlbum(album) > -1 ? "Buy More Album Copies Now" : `Buy Now ${addressSol ? "" : " (Login First)"}`}
+                              {checkOwnershipOfAlbum(album) > -1 ? "Buy More Album Copies Now" : `Buy Now ${addressSol ? "" : " (Login Above First)"}`}
                             </span>
                           </>
                         </Button>

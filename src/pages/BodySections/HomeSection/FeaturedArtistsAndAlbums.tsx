@@ -384,7 +384,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                   </div>
                 </div>
               ) : (
-                <div className="m-auto min-h-6">⚠️ Popular artist section is unavailable</div>
+                <div className="m-auto min-h-6">⚠️ Artist section is unavailable. We are working on it!</div>
               )}
             </div>
           ) : (
