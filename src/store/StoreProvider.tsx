@@ -33,7 +33,6 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
         updateSolNfts([]);
       } else {
         const _allDataNfts = await fetchSolNfts(addressSol);
-        console.log("allDataNfts", _allDataNfts);
 
         updateSolNfts(_allDataNfts);
       }

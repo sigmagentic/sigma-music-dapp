@@ -17,6 +17,7 @@ import {
   CircleX,
   Maximize2,
   Minimize2,
+  Zap,
 } from "lucide-react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -35,6 +36,7 @@ let playerExplicitlyDockedByUser = false;
 
 type MusicPlayerProps = {
   trackList: MusicTrack[];
+  trackListFromDb: boolean;
   dataNftToOpen?: DasApiAsset;
   firstSongBlobUrl?: string;
   pauseAsOtherAudioPlaying?: number;
@@ -101,6 +103,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const {
     dataNftToOpen,
     trackList,
+    trackListFromDb,
     firstSongBlobUrl,
     bitzGiftingMeta,
     bountyBitzSumGlobalMapping,
@@ -165,12 +168,12 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
   useEffect(() => {
     if (trackList && trackList.length > 0 && firstSongBlobUrl && firstSongBlobUrl !== "") {
-      if (firstSongBlobUrl) {
-        setSongSource((prevState) => ({
-          ...prevState, // keep all other key-value pairs
-          [trackList[0].idx]: firstSongBlobUrl, // update the value of the first index
-        }));
-      }
+      // if (firstSongBlobUrl) {
+      //   setSongSource((prevState) => ({
+      //     ...prevState, // keep all other key-value pairs
+      //     [trackList[0].idx]: firstSongBlobUrl, // update the value of the first index
+      //   }));
+      // }
 
       musicPlayerAudio.addEventListener("ended", function () {
         setCurrentTrackIndex((prevCurrentTrackIndex) => (prevCurrentTrackIndex < trackList.length - 1 ? prevCurrentTrackIndex + 1 : 0));
@@ -209,22 +212,19 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       };
     }
 
-    // if the user swapped to new album...
-    if (trackList && trackList.length === 0) {
-      // hide the track list as it will be empty
-      if (displayTrackList) {
-        setDisplayTrackList(false);
-      }
-    } else {
-      if (!displayTrackList && window.innerWidth >= 768) {
-        setDisplayTrackList(true);
-      }
-    }
+    // // if the user swapped to new album...
+    // if (trackList && trackList.length === 0) {
+    //   // hide the track list as it will be empty
+    //   if (displayTrackList) {
+    //     console.log("---> displayTrackList HIDE");
+    //     setDisplayTrackList(false);
+    //   }
+    // } else {
+    //   if (!displayTrackList && window.innerWidth >= 768) {
+    //     setDisplayTrackList(true);
+    //   }
+    // }
   }, [trackList, firstSongBlobUrl]);
-
-  useEffect(() => {
-    updateProgress();
-  }, [musicPlayerAudio.src]);
 
   useEffect(() => {
     if (firstSongBlobUrl && trackList && trackList.length > 0) {
@@ -237,6 +237,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       updateTrackPlayIsQueued(true);
     }
   }, [trackList, firstSongBlobUrl]);
+
+  useEffect(() => {
+    updateProgress();
+  }, [musicPlayerAudio.src]);
 
   useEffect(() => {
     musicPlayerAudio.pause();
@@ -292,7 +296,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     return `${formattedMinutes}:${formattedSeconds}`;
   };
 
-  // fetch song from Marshal
+  // fetch song via Marshal or HTTP
   const fetchMarshalForSong = async (index: number) => {
     if (songSource[index] === undefined) {
       try {
@@ -354,6 +358,9 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             }));
           }
         } else {
+          /*
+            if we come here, that means we are either in radio mode or in DB loaded album mode (not NFT based steaming)
+          */
           let errMsg = null;
           let blobUrl = "";
 
@@ -365,8 +372,14 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             if (!trackInRadioList) {
               errMsg = "Track not found";
             } else {
-              const blob = await fetch(trackInRadioList.stream!).then((r) => r.blob());
-              blobUrl = URL.createObjectURL(blob);
+              const songSourceUrl = trackInRadioList.stream || trackInRadioList.file || "hidden";
+
+              if (songSourceUrl === "hidden") {
+                blobUrl = "hidden";
+              } else {
+                const blob = await fetch(songSourceUrl).then((r) => r.blob());
+                blobUrl = URL.createObjectURL(blob);
+              }
             }
           } catch (error: any) {
             errMsg = error.toString();
@@ -592,15 +605,36 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                     <ChevronDown className="w-6 h-6" />
                   </button>
                 )}
-                <h4 className="flex justify-center select-none font-semibold text-foreground mb-3 !text-xl">{`Tracklist ${trackList.length} songs`}</h4>
+                <h4 className="flex justify-center select-none font-semibold text-foreground !text-xl">{`Track List ${trackList.length} songs`}</h4>
+
+                {trackListFromDb && (
+                  <div className="flex justify-center items-center gap-2">
+                    <div className="flex items-center gap-2 text-yellow-400">
+                      <div className="flex items-center gap-1">
+                        <Zap className="w-4 h-4" />
+                        <span className="text-[10px]">This album supports fast streaming</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {isFullScreen ? (
                   // Vertical track list for full screen
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-4 mt-2">
                     {trackList.map((song: any, index: number) => (
                       <div
                         key={index}
-                        onClick={() => setCurrentTrackIndex(index)}
-                        className="select-none flex flex-row items-center justify-start p-4 rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 cursor-pointer">
+                        onClick={() => {
+                          if (!publicKey && song.bonus === 1) {
+                            // if user is not logged in and this is a bonus track via the DB, then we don't allow them to play it
+                            // ... if they are logged in and are seeing this bonus track then they own the album so let them jump to it
+                            return;
+                          }
+                          setCurrentTrackIndex(index);
+                        }}
+                        className={`select-none flex flex-row items-center justify-start p-4 rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 
+                          ${!publicKey && song.bonus === 1 ? "cursor-not-allowed" : "cursor-pointer"}
+                          ${song?.bonus === 1 ? "bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20" : ""}`}>
                         <img
                           src={song.cover_art_url}
                           alt="Album Cover"
@@ -612,6 +646,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                         <div className="ml-4 flex flex-col">
                           <h6 className="!text-lg !text-muted-foreground">{song.title}</h6>
                           <p className="text-md text-white">{song.artist}</p>
+                          <div className="flex flex-row gap-2">
+                            {song.bonus === 1 && <p className="text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black">Bonus Track</p>}
+                            {currentTrackIndex === index && <p className="text-[10px] border border-yellow-500 text-white rounded-md p-1 w-fit">Playing</p>}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -621,12 +659,19 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   <Slider {...settings}>
                     {trackList.map((song: any, index: number) => {
                       return (
-                        <div key={index} className="flex items-center justify-center">
+                        <div key={index} className="flex items-center justify-center mt-2">
                           <div
                             onClick={() => {
+                              if (!publicKey && song.bonus === 1) {
+                                // if user is not logged in and this is a bonus track via the DB, then we don't allow them to play it
+                                // ... if they are logged in and are seeing this bonus track then they own the album so let them jump to it
+                                return;
+                              }
                               setCurrentTrackIndex(index);
                             }}
-                            className="mx-5 select-none flex flex-row items-center justify-start rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 cursor-pointer">
+                            className={`select-none mr-2 flex flex-row items-center justify-start rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 
+                              ${!publicKey && song.bonus === 1 ? "cursor-not-allowed" : "cursor-pointer"}
+                              ${song?.bonus === 1 ? "bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20" : ""}`}>
                             <div className="">
                               <img
                                 src={song.cover_art_url}
@@ -640,6 +685,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                             <div className="xl:w-[60%] flex flex-col justify-center text-center">
                               <h6 className="!text-sm !text-muted-foreground truncate md:text-left">{song.title}</h6>
                               <p className="text-sm text-white truncate md:text-left">{song.artist}</p>
+                              <div className="flex flex-row gap-2">
+                                {song.bonus === 1 && <p className="text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black">Bonus Track</p>}
+                                {currentTrackIndex === index && <p className="text-[10px] border border-yellow-500 text-white rounded-md p-1 w-fit">Playing</p>}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -771,21 +820,31 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             {/* like album */}
             {!DISABLE_BITZ_FEATURES && bitzGiftingMeta && (
               <div
-                className={`absolute right-2 ${isFullScreen && displayTrackList ? "md:right-[410px]" : "md:right-[50px]"} z-10 top-4 text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center cursor-pointer`}
+                className={`absolute right-2 ${isFullScreen && displayTrackList ? "md:right-[410px]" : "md:right-[50px]"} z-10 top-4 text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center ${publicKey ? "cursor-pointer" : ""}`}
                 onClick={() => {
-                  likeAlbumWithBiTz(trackList[currentTrackIndex]);
+                  if (publicKey) {
+                    likeAlbumWithBiTz(trackList[currentTrackIndex]);
+                  }
                 }}>
                 <div
                   className="p-5 md:p-0 flex items-center gap-2"
                   title={"Like This Album With 5 XP"}
                   onClick={() => {
-                    likeAlbumWithBiTz(trackList[currentTrackIndex]);
+                    if (publicKey) {
+                      likeAlbumWithBiTz(trackList[currentTrackIndex]);
+                    }
                   }}>
                   {bitzGiftingMeta ? bountyBitzSumGlobalMapping[bitzGiftingMeta.giveBitzToCampaignId]?.bitsSum : 0}
 
                   <Heart className="w-4 h-4" />
                 </div>
               </div>
+            )}
+            {trackList[currentTrackIndex].bonus === 1 && (
+              <p
+                className={`${isFullScreen && displayTrackList ? "md:right-[410px]" : "right-[10px] md:right-[50px]"} z-10 bottom-4 text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black absolute`}>
+                Bonus Track
+              </p>
             )}
           </div>
         </>

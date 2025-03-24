@@ -312,8 +312,6 @@ export const BuyAndMintAlbum = ({
     setBackendErrorMessage(null);
   }
 
-  console.log("artistProfile", artistProfile);
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       {showPaymentConfirmation && <PaymentConfirmationPopup />}

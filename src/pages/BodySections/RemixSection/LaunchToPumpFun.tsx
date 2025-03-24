@@ -265,8 +265,6 @@ export const LaunchToPumpFun = ({
         if (metadataResponseJSON.error) {
           throw new Error(metadataResponseJSON.error);
         }
-
-        console.log("metadataResponseJSON", metadataResponseJSON);
       } catch (error) {
         console.error("createPumpMeta error:", error);
         toast.error("Error creating pump metadata");
@@ -324,8 +322,6 @@ export const LaunchToPumpFun = ({
         };
 
         await connection.confirmTransaction(strategy, "finalized" as Commitment);
-
-        // console.log("Transaction: https://solscan.io/tx/" + signature);
 
         setPumpTokenId(mintKeypair.publicKey.toBase58());
 

@@ -309,7 +309,7 @@ export async function mergeImages(
 }
 
 interface CacheEntry_checkIfAlbumCanBeMinted {
-  data: boolean;
+  data: boolean | [];
   timestamp: number;
 }
 
@@ -358,5 +358,56 @@ export const checkIfAlbumCanBeMinted = async (albumId: string) => {
     };
 
     return false;
+  }
+};
+
+const cache_albumTracks: { [key: string]: CacheEntry_checkIfAlbumCanBeMinted } = {};
+const CACHE_DURATION_ALBUM_TRACKS = 1 * 60 * 1000; // 60 minutes in milliseconds
+
+export const getAlbumTracksFromDb = async (artistId: string, albumId: string, userOwnsAlbum?: boolean) => {
+  const now = Date.now();
+
+  const bonus = userOwnsAlbum ? 1 : 0;
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_albumTracks[`${artistId}-${albumId}-bonus_${bonus}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_ALBUM_TRACKS) {
+      console.log(`getAlbumTracks: Getting tracks for artistId: ${artistId} and albumId: ${albumId} from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/musicTracks/${artistId}?albumId=${albumId}&bonus=${userOwnsAlbum ? 1 : 0}`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_albumTracks[`${artistId}-${albumId}-bonus_${bonus}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_albumTracks[`${artistId}-${albumId}-bonus_${bonus}`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("Error checking if album can be minted:", error);
+
+    // Update cache (with [] as data)
+    cache_albumTracks[`${artistId}-${albumId}-bonus_${bonus}`] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
   }
 };

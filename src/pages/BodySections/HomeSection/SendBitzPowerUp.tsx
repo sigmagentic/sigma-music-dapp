@@ -230,9 +230,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                       ⚠️ Do you get your free XP Data NFT yet? You will need this for this action. To get a free one, click on the button below.
                     </div>
                   )}
-                  {bitBalanceOnChain > -1 && bitBalanceOnChain < minBitzValNeeded && (
-                    <div className="mt-2">⚠️ You don't have enough XP for this action. To play the XP game and get free XP, click on the button below.</div>
-                  )}
+                  {bitBalanceOnChain > -1 && bitBalanceOnChain < minBitzValNeeded && <div className="mt-2">⚠️ You don't have enough XP for this action.</div>}
                 </>
               )}
               {(bitBalanceOnChain >= minBitzValNeeded || powerUpSuccessfullyDone) && (

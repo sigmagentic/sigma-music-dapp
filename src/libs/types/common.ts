@@ -22,7 +22,9 @@ export interface MusicTrack {
   album: string;
   cover_art_url: string;
   title: string;
-  stream: string;
+  stream?: string; // this is the stream url for the track (Radio load only)
+  file?: string; // this is the file url for the track (DB load only)
+  bonus?: number; // 0 or 1 indicated if the track is a bonus track (DB load only)
   ctaBuy: string;
   dripSet: string;
   creatorWallet: string;

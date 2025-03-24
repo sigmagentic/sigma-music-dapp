@@ -11,7 +11,7 @@ import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
-import { filterRadioTracksByUserPreferences } from "libs/utils/misc";
+import { filterRadioTracksByUserPreferences, getAlbumTracksFromDb } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { routeNames } from "routes";
@@ -47,6 +47,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   } | null>(null);
   const [userHasNoBitzDataNftYet, setUserHasNoBitzDataNftYet] = useState(false);
   const [musicPlayerTrackList, setMusicPlayerTrackList] = useState<MusicTrack[]>([]);
+  const [musicPlayerTrackListFromDb, setMusicPlayerTrackListFromDb] = useState<boolean>(false);
   const { albumPlayIsQueued } = useAudioPlayerStore();
   const navigate = useNavigate();
 
@@ -82,9 +83,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [nfTunesRadioFirstTrackCachedBlob, setNfTunesRadioFirstTrackCachedBlob] = useState<string>("");
   const [loadRadioPlayerIntoDockedMode, setLoadRadioPlayerIntoDockedMode] = useState(true); // load the radio player into docked mode?
   const [loadIntoArtistTileView, setLoadIntoArtistTileView] = useState(false);
-
-  // Mini Games
-  const [loadMiniGames, setLoadMiniGames] = useState(false);
 
   // Genres
   const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
@@ -233,93 +231,116 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
     return _radioTracksSorted;
   }
 
-  async function viewSolData(index: number) {
+  async function viewSolData(index: number, playAlbumNowParams?: any, userOwnsAlbum?: boolean) {
     try {
-      if (!(index >= 0 && index < shownSolAppDataNfts.length)) {
-        toastClosableError("You music data nft catalog has not loaded");
-        return;
-      }
-
+      // if (!(index >= 0 && index < shownSolAppDataNfts.length)) {
+      //   toastClosableError("You music data nft catalog has not loaded");
+      //   return;
+      // }
       setIsFetchingDataMarshal(true);
       resetAudioPlayerState();
 
-      const dataNft = shownSolAppDataNfts[index];
+      let _musicPlayerTrackListFromDb = false;
 
-      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
-        solPreaccessNonce,
-        solPreaccessSignature,
-        solPreaccessTimestamp,
-        signMessage,
-        publicKey: publicKeySol,
-        updateSolPreaccessNonce,
-        updateSolSignedPreaccess,
-        updateSolPreaccessTimestamp,
-      });
+      let albumTracksFromDb = await getAlbumTracksFromDb(playAlbumNowParams.artistId, playAlbumNowParams.albumId, userOwnsAlbum);
+      albumTracksFromDb = albumTracksFromDb.map((track: any) => ({
+        ...track,
+        artist: playAlbumNowParams.artistName,
+        album: playAlbumNowParams.albumName,
+      }));
 
-      const viewDataArgs = {
-        headers: {
-          "dmf-custom-sol-collection-id": dataNft.grouping[0].group_value,
-        },
-        fwdHeaderKeys: ["dmf-custom-sol-collection-id"],
-      };
+      console.log("---> albumTracks from DB", albumTracksFromDb);
 
-      if (!publicKeySol) throw new Error("Missing data for viewData");
-      setCurrentDataNftIndex(index);
+      // load the track list via the DB (@TODO: if the userOwnsAlbum, then we should have someway in the music player to capture the play stats as the marshal wont do be doing it)
+      if (albumTracksFromDb.length > 0) {
+        _musicPlayerTrackListFromDb = true;
 
-      // start the request for the first song
-      const firstSongResPromise = viewDataViaMarshalSol(
-        dataNft.id,
-        usedPreAccessNonce,
-        usedPreAccessSignature,
-        publicKeySol,
-        viewDataArgs.fwdHeaderKeys,
-        viewDataArgs.headers,
-        true,
-        1,
-        MARSHAL_CACHE_DURATION_SECONDS
-      );
+        setMusicPlayerTrackList(albumTracksFromDb);
+        setFirstSongBlobUrl(albumTracksFromDb[0].file);
+        setIsFetchingDataMarshal(false);
+        setMusicPlayerTrackListFromDb(true);
+      }
 
-      // start the request for the manifest file from marshal
-      const res = await viewDataViaMarshalSol(
-        dataNft.id,
-        usedPreAccessNonce,
-        usedPreAccessSignature,
-        publicKeySol,
-        viewDataArgs.fwdHeaderKeys,
-        viewDataArgs.headers,
-        false,
-        undefined,
-        MARSHAL_CACHE_DURATION_SECONDS
-      );
+      // Load the track list via the Data Marshal and Data NFT path (i.e. full web3 path)
+      if (!_musicPlayerTrackListFromDb) {
+        if (!publicKeySol) throw new Error("Not logged in to stream music via Data NFT");
 
-      let blobDataType = BlobDataType.TEXT;
+        const dataNft = shownSolAppDataNfts[index];
 
-      if (res.ok) {
-        const contentType = res.headers.get("content-type") ?? "";
+        const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+          solPreaccessNonce,
+          solPreaccessSignature,
+          solPreaccessTimestamp,
+          signMessage,
+          publicKey: publicKeySol,
+          updateSolPreaccessNonce,
+          updateSolSignedPreaccess,
+          updateSolPreaccessTimestamp,
+        });
 
-        if (contentType.search("application/json") >= 0) {
-          const data = await res.json();
-          const viewDataPayload: ExtendedViewDataReturnType = {
-            data,
-            contentType,
-            blobDataType,
-          };
+        const viewDataArgs = {
+          headers: {
+            "dmf-custom-sol-collection-id": dataNft.grouping[0].group_value,
+          },
+          fwdHeaderKeys: ["dmf-custom-sol-collection-id"],
+        };
 
-          // this is the data that feeds the player with the album data
-          setDataMarshalResponse(data);
-          setMusicPlayerTrackList(data.data);
-          setViewDataRes(viewDataPayload);
+        // start the request for the first song
+        const firstSongResPromise = viewDataViaMarshalSol(
+          dataNft.id,
+          usedPreAccessNonce,
+          usedPreAccessSignature,
+          publicKeySol,
+          viewDataArgs.fwdHeaderKeys,
+          viewDataArgs.headers,
+          true,
+          1,
+          MARSHAL_CACHE_DURATION_SECONDS
+        );
 
-          setIsFetchingDataMarshal(false);
+        // start the request for the manifest file from marshal (i.e. play list)
+        const res = await viewDataViaMarshalSol(
+          dataNft.id,
+          usedPreAccessNonce,
+          usedPreAccessSignature,
+          publicKeySol,
+          viewDataArgs.fwdHeaderKeys,
+          viewDataArgs.headers,
+          false,
+          undefined,
+          MARSHAL_CACHE_DURATION_SECONDS
+        );
 
-          // await the first song response and set the firstSongBlobUrl state (so that first song plays faster)
-          const firstSongRes = await firstSongResPromise;
-          const blobUrl = URL.createObjectURL(await firstSongRes.blob());
-          setFirstSongBlobUrl(blobUrl);
+        let blobDataType = BlobDataType.TEXT;
+
+        if (res.ok) {
+          const contentType = res.headers.get("content-type") ?? "";
+
+          if (contentType.search("application/json") >= 0) {
+            const data = await res.json();
+            const viewDataPayload: ExtendedViewDataReturnType = {
+              data,
+              contentType,
+              blobDataType,
+            };
+
+            // await the first song response and set the firstSongBlobUrl state (so that first song plays faster)
+            const firstSongRes = await firstSongResPromise;
+            const blobUrl = URL.createObjectURL(await firstSongRes.blob());
+
+            // this is the data that feeds the player with the album data
+            setCurrentDataNftIndex(index);
+            setDataMarshalResponse(data);
+            setMusicPlayerTrackList(data.data);
+            setViewDataRes(viewDataPayload);
+            setIsFetchingDataMarshal(false);
+            setFirstSongBlobUrl(blobUrl);
+            setMusicPlayerTrackListFromDb(false);
+          }
+        } else {
+          console.error(res.status + " " + res.statusText);
+          toastClosableError(res.status + " " + res.statusText);
         }
-      } else {
-        console.error(res.status + " " + res.statusText);
-        toastClosableError(res.status + " " + res.statusText);
       }
     } catch (err) {
       console.error(err);
@@ -409,6 +430,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
     setDataMarshalResponse({ "data_stream": {}, "data": [] });
     setCurrentDataNftIndex(-1);
     setMusicPlayerTrackList([]);
+    setMusicPlayerTrackListFromDb(false);
     setLaunchMusicPlayer(false);
     // clear this -- its used to carry a like content via bits session to the player so we can collect likes inside it
     setBitzGiftingMeta(null);
@@ -658,6 +680,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
               <MusicPlayer
                 dataNftToOpen={shownSolAppDataNfts[currentDataNftIndex]}
                 trackList={musicPlayerTrackList}
+                trackListFromDb={musicPlayerTrackListFromDb}
                 firstSongBlobUrl={firstSongBlobUrl}
                 onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                 bitzGiftingMeta={bitzGiftingMeta}
@@ -682,6 +705,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
             <div className="w-full fixed left-0 bottom-0 z-40">
               <MusicPlayer
                 trackList={radioTracksSorted}
+                trackListFromDb={false}
                 isRadioPlayer={true}
                 firstSongBlobUrl={nfTunesRadioFirstTrackCachedBlob}
                 onSendBitzForMusicBounty={handleSendBitzForMusicBounty}

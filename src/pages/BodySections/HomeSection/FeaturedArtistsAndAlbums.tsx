@@ -32,7 +32,7 @@ type FeaturedArtistsAndAlbumsProps = {
   loadIntoArtistTileView?: boolean;
   isAllAlbumsMode?: boolean;
   openActionFireLogic: (e: any) => any;
-  viewSolData: (e: number) => void;
+  viewSolData: (e: number, f?: any) => void;
   onPlayHappened: () => void;
   checkOwnershipOfAlbum: (e: any) => any;
   onSendBitzForMusicBounty: (e: any) => any;
