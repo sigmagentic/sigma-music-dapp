@@ -350,12 +350,12 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   }
 
   function checkOwnershipOfAlbum(album: any) {
-    // Check cache first
-    const now = Date.now();
-    const cached = ownershipCheckCache[album.albumId];
-    if (cached && now - cached.timestamp < CACHE_DURATION_OWNERSHIP_CHECK) {
-      return cached.value;
-    }
+    // // Check cache first
+    // const now = Date.now();
+    // const cached = ownershipCheckCache[album.albumId];
+    // if (cached && now - cached.timestamp < CACHE_DURATION_OWNERSHIP_CHECK) {
+    //   return cached.value;
+    // }
 
     let albumInOwnershipListIndex = -1; // note -1 means we don't own it
 
@@ -393,11 +393,11 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
       }
     }
 
-    // Store result in cache
-    ownershipCheckCache[album.albumId] = {
-      value: albumInOwnershipListIndex,
-      timestamp: now,
-    };
+    // // Store result in cache
+    // ownershipCheckCache[album.albumId] = {
+    //   value: albumInOwnershipListIndex,
+    //   timestamp: now,
+    // };
 
     return albumInOwnershipListIndex;
   }
