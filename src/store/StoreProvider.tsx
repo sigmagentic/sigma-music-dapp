@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useEffect, useState } from "react";
+import React, { PropsWithChildren, useEffect } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { IS_DEVNET } from "appsConfig";
@@ -27,6 +27,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       updateIsLoadingSol(true);
 
       // the user might have just logged in or swapped wallets via phantom, so we force refresh the signature session so it's accurate
+      // Note that this is the where the 1st time the signature session is cached (i.e. sign message after login)
       await cacheSolSignatureSession();
 
       if (!addressSol) {
@@ -143,7 +144,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   }
 
   async function cacheSolSignatureSession() {
-    const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+    await getOrCacheAccessNonceAndSignature({
       solPreaccessNonce,
       solPreaccessSignature,
       solPreaccessTimestamp,

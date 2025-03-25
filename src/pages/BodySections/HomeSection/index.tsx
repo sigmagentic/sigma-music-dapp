@@ -2,19 +2,13 @@ import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
-import { FaXTwitter } from "react-icons/fa6";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-// import { IS_DEVNET } from "appsConfig";
-import sigmaAgent from "assets/img/sigma-banner.webp";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
 import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
-import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
 import { filterRadioTracksByUserPreferences, getAlbumTracksFromDb } from "libs/utils/misc";
-import { scrollToSection } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
-import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -27,6 +21,16 @@ import { RadioBgCanvas } from "./RadioBgCanvas";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+
+// Cache the ownership check results for 1 min as this method gets called a lot in bursts
+const ownershipCheckCache: {
+  [key: string]: {
+    value: number;
+    timestamp: number;
+  };
+} = {};
+
+const CACHE_DURATION_OWNERSHIP_CHECK = 60000; // 1 minute in milliseconds
 
 export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
@@ -233,10 +237,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
   async function viewSolData(index: number, playAlbumNowParams?: any, userOwnsAlbum?: boolean) {
     try {
-      // if (!(index >= 0 && index < shownSolAppDataNfts.length)) {
-      //   toastClosableError("You music data nft catalog has not loaded");
-      //   return;
-      // }
       setIsFetchingDataMarshal(true);
       resetAudioPlayerState();
 
@@ -350,20 +350,14 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   }
 
   function checkOwnershipOfAlbum(album: any) {
-    // console.log("---- checkOwnershipOfAlbum album", album);
-    let albumInOwnershipListIndex = -1; // note -1 means we don't own it
+    // Check cache first
+    const now = Date.now();
+    const cached = ownershipCheckCache[album.albumId];
+    if (cached && now - cached.timestamp < CACHE_DURATION_OWNERSHIP_CHECK) {
+      return cached.value;
+    }
 
-    // if (IS_DEVNET) {
-    //   // devnet logic remains unchanged
-    //   if (
-    //     album?.solNftName &&
-    //     ownedSolDataNftNameAndIndexMap &&
-    //     album.solNftName === "MUSG7 - Galactic Gravity" &&
-    //     ownedSolDataNftNameAndIndexMap["MUSGDEV1"] !== "undefined"
-    //   ) {
-    //     albumInOwnershipListIndex = ownedSolDataNftNameAndIndexMap["MUSGDEV1 : Common"];
-    //   }
-    // } else if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
+    let albumInOwnershipListIndex = -1; // note -1 means we don't own it
 
     if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
       /* mark the albumInOwnershipListIndex as of the highest rarity album
@@ -398,6 +392,12 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
         albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}common`];
       }
     }
+
+    // Store result in cache
+    ownershipCheckCache[album.albumId] = {
+      value: albumInOwnershipListIndex,
+      timestamp: now,
+    };
 
     return albumInOwnershipListIndex;
   }
@@ -472,59 +472,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                         setSearchParams({ "artist-profile": slug });
                       }}
                     />
-                  </div>
-                </div>
-
-                <div className="hidden flex flex-col w-full gap-4">
-                  <div className="helloSigma flex-1">
-                    <div className="text-2xl xl:text-3xl mb-3 w-full text-center bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
-                      hi, i'm sigma, your AI music agent
-                    </div>
-
-                    <a href="https://x.com/SigmaXMusic" target="_blank">
-                      <div className="text-sm text-center mb-5">
-                        Click to interact with me on <FaXTwitter className="inline-block text-xl" />
-                      </div>
-                      <div className="flex flex-col md:flex-row gap-2 justify-center items-center cursor-pointer">
-                        <div
-                          className="border-[0.5px] border-neutral-500/90 h-[400px] bg-no-repeat bg-cover rounded-lg animate-float bg-bottom xl:bg-top w-full md:w-[90%]"
-                          style={{
-                            "backgroundImage": `url(${sigmaAgent})`,
-                            "backgroundBlendMode": "darken",
-                            "backgroundColor": "#fcc73d",
-                          }}></div>
-                      </div>
-                    </a>
-                  </div>
-                  <div className="coCreateWithSigma flex-1 flex flex-col justify-center items-center text-center rounded-lg">
-                    <div className="text-2xl xl:text-3xl bg-gradient-to-r from-yellow-300 to-orange-500 inline-block text-transparent bg-clip-text mt-4">
-                      Create with Sigma
-                    </div>
-                    <div>Bringing humans and music AI agents together to create music.</div>
-
-                    <div className="flex flex-col gap-4 mt-4">
-                      <div>
-                        <Button
-                          onClick={() => {
-                            navigate(routeNames.remix);
-                          }}
-                          className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%]  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg w-[500px]">
-                          <div>Launch AI Music Meme Coins with REMiX</div>
-                        </Button>
-                        <div className="text-sm mt-2">For Everyone</div>
-                      </div>
-
-                      <div>
-                        <Button
-                          className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%]  transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg w-[500px]"
-                          onClick={() => {
-                            scrollToSection("join-nf-tunes");
-                          }}>
-                          <div>Launch Your Music with Sigma</div>
-                        </Button>
-                        <div className="text-sm mt-2">For Indie Musicians</div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>

@@ -270,29 +270,40 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 </div>
               )}
 
-              {(publicKeySol || ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId)) && (
-                <>
-                  <div className="relative group">
-                    <Button
-                      disabled={
-                        (isPreviewPlaying && !previewIsReadyToPlay) ||
-                        thisIsPlayingOnMainPlayer(album) ||
-                        queueAlbumPlay ||
-                        trackPlayIsQueued ||
-                        albumPlayIsQueued
-                      }
-                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 cursor-pointer"
-                      onClick={() => {
-                        // if the user is jumping between multiple albums, the audio player was getting into some weird state
-                        // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
-                        // @TODO: we can improve UX by using some global store state to toggle "queuing" of music when tracks are loading, or are in some
-                        // transition state and prevent users from click spamming play buttons during this time
-                        if (isMusicPlayerOpen) {
-                          setQueueAlbumPlay(true);
-                          updateAlbumPlayIsQueued(true);
-                          onCloseMusicPlayer();
+              {ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId) ||
+                (publicKeySol && checkOwnershipOfAlbum(album) > -1 && (
+                  <>
+                    <div className="relative group">
+                      <Button
+                        disabled={
+                          (isPreviewPlaying && !previewIsReadyToPlay) ||
+                          thisIsPlayingOnMainPlayer(album) ||
+                          queueAlbumPlay ||
+                          trackPlayIsQueued ||
+                          albumPlayIsQueued
+                        }
+                        className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 cursor-pointer"
+                        onClick={() => {
+                          // if the user is jumping between multiple albums, the audio player was getting into some weird state
+                          // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
+                          // @TODO: we can improve UX by using some global store state to toggle "queuing" of music when tracks are loading, or are in some
+                          // transition state and prevent users from click spamming play buttons during this time
+                          if (isMusicPlayerOpen) {
+                            setQueueAlbumPlay(true);
+                            updateAlbumPlayIsQueued(true);
+                            onCloseMusicPlayer();
 
-                          setTimeout(() => {
+                            setTimeout(() => {
+                              handlePlayAlbum(album, {
+                                artistId: artistProfile.artistId,
+                                albumId: album.albumId,
+                                artistName: artistProfile.name,
+                                albumName: album.title,
+                              });
+                              setQueueAlbumPlay(false);
+                              updateAlbumPlayIsQueued(false);
+                            }, 5000);
+                          } else {
                             handlePlayAlbum(album, {
                               artistId: artistProfile.artistId,
                               albumId: album.albumId,
@@ -301,43 +312,33 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                             });
                             setQueueAlbumPlay(false);
                             updateAlbumPlayIsQueued(false);
-                          }, 5000);
-                        } else {
-                          handlePlayAlbum(album, {
-                            artistId: artistProfile.artistId,
-                            albumId: album.albumId,
-                            artistName: artistProfile.name,
-                            albumName: album.title,
-                          });
-                          setQueueAlbumPlay(false);
-                          updateAlbumPlayIsQueued(false);
-                        }
-                      }}>
-                      <>
-                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <Music2 />}
-                        <span className="ml-2">
-                          {thisIsPlayingOnMainPlayer(album)
-                            ? "Playing..."
-                            : queueAlbumPlay
-                              ? "Queued"
-                              : checkOwnershipOfAlbum(album) > -1
-                                ? "Play Premium Album"
-                                : "Play Free Album"}
-                        </span>
-                      </>
-                    </Button>
+                          }
+                        }}>
+                        <>
+                          {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <Music2 />}
+                          <span className="ml-2">
+                            {thisIsPlayingOnMainPlayer(album)
+                              ? "Playing..."
+                              : queueAlbumPlay
+                                ? "Queued"
+                                : checkOwnershipOfAlbum(album) > -1
+                                  ? "Play Premium Album"
+                                  : "Play Free Album"}
+                          </span>
+                        </>
+                      </Button>
 
-                    {/* Tooltip */}
-                    <div
-                      className="
+                      {/* Tooltip */}
+                      <div
+                        className="
                     absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 
                     opacity-0 group-hover:opacity-100 
                     transition-opacity duration-200 delay-1000 
                     pointer-events-none 
                     w-full md:w-auto
                   ">
-                      <div
-                        className="
+                        <div
+                          className="
                       relative 
                       bg-black/90 
                       text-white text-sm 
@@ -347,90 +348,43 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       before:absolute before:inset-0 before:rounded-lg before:border before:border-emerald-400/50 
                       after:absolute after:inset-0 after:rounded-lg after:border after:border-yellow-400/50
                     ">
-                        <div
-                          className="
+                          <div
+                            className="
                         max-w-[200px] md:max-w-none 
                         break-words md:whitespace-nowrap 
                         text-center
                       ">
-                          {thisIsPlayingOnMainPlayer(album)
-                            ? "This album is currently playing"
-                            : queueAlbumPlay
-                              ? "Album will start playing in 5 seconds"
-                              : checkOwnershipOfAlbum(album) > -1
-                                ? "Play your premium album with bonus tracks"
-                                : "Listen for free, or purchase this album to unlock premium bonus tracks"}
-                        </div>
-                        <div
-                          className="
+                            {thisIsPlayingOnMainPlayer(album)
+                              ? "This album is currently playing"
+                              : queueAlbumPlay
+                                ? "Album will start playing in 5 seconds"
+                                : checkOwnershipOfAlbum(album) > -1
+                                  ? "Play your premium album with bonus tracks"
+                                  : "Listen for free, or purchase this album to unlock premium bonus tracks"}
+                          </div>
+                          <div
+                            className="
                         absolute top-full left-1/2 
                         transform -translate-x-1/2 
                         border-4 border-transparent border-t-black/90
                       "></div>
-                      </div>
-                    </div>
-
-                    {isFreeDropSampleWorkflow && (
-                      <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
-                        <div className="m-auto mb-[2px] bg-white dark:bg-slate-800 p-2 w-10 h-10 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center">
-                          <FontAwesomeIcon icon={faHandPointer} />
                         </div>
-                        <span className="text-center">Click To Play</span>
                       </div>
-                    )}
-                  </div>
-                </>
-              )}
+
+                      {isFreeDropSampleWorkflow && (
+                        <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
+                          <div className="m-auto mb-[2px] bg-white dark:bg-slate-800 p-2 w-10 h-10 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center">
+                            <FontAwesomeIcon icon={faHandPointer} />
+                          </div>
+                          <span className="text-center">Click To Play</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ))}
 
               <>
-                {checkOwnershipOfAlbum(album) > -1 ? (
-                  <div className="relative">
-                    {/* <Button
-                      disabled={
-                        (isPreviewPlaying && !previewIsReadyToPlay) ||
-                        thisIsPlayingOnMainPlayer(album) ||
-                        queueAlbumPlay ||
-                        trackPlayIsQueued ||
-                        albumPlayIsQueued
-                      }
-                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 cursor-pointer"
-                      onClick={() => {
-                        // if the user is jumping between multiple albums, the audio player was getting into some weird state
-                        // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
-                        // @TODO: we can improve UX by using some global store state to toggle "queuing" of music when tracks are loading, or are in some
-                        // transition state and prevent users from click spamming play buttons during this time
-                        if (isMusicPlayerOpen) {
-                          setQueueAlbumPlay(true);
-                          updateAlbumPlayIsQueued(true);
-                          onCloseMusicPlayer();
-
-                          setTimeout(() => {
-                            handlePlayAlbum(album);
-                            setQueueAlbumPlay(false);
-                            updateAlbumPlayIsQueued(false);
-                          }, 5000);
-                        } else {
-                          handlePlayAlbum(album);
-                          setQueueAlbumPlay(false);
-                          updateAlbumPlayIsQueued(false);
-                        }
-                      }}>
-                      <>
-                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <Music2 />}
-                        <span className="ml-2">{thisIsPlayingOnMainPlayer(album) ? "Playing..." : queueAlbumPlay ? "Queued" : "Play Album"}</span>
-                      </>
-                    </Button>
-
-                    {isFreeDropSampleWorkflow && (
-                      <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
-                        <div className="m-auto mb-[2px] bg-white dark:bg-slate-800 p-2 w-10 h-10 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center">
-                          <FontAwesomeIcon icon={faHandPointer} />
-                        </div>
-                        <span className="text-center">Click To Play</span>
-                      </div>
-                    )} */}
-                  </div>
-                ) : (
+                {checkOwnershipOfAlbum(album) < 0 && (
                   <>
                     {getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }) && (
                       <div>
