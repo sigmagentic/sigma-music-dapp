@@ -22,16 +22,6 @@ import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
 
-// Cache the ownership check results for 1 min as this method gets called a lot in bursts
-const ownershipCheckCache: {
-  [key: string]: {
-    value: number;
-    timestamp: number;
-  };
-} = {};
-
-const CACHE_DURATION_OWNERSHIP_CHECK = 2000; // 2 seconds in milliseconds
-
 export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
@@ -350,13 +340,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   }
 
   function checkOwnershipOfAlbum(album: any) {
-    // // Check cache first
-    // const now = Date.now();
-    // const cached = ownershipCheckCache[album.albumId];
-    // if (cached && now - cached.timestamp < CACHE_DURATION_OWNERSHIP_CHECK) {
-    //   return cached.value;
-    // }
-
     let albumInOwnershipListIndex = -1; // note -1 means we don't own it
 
     if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
@@ -392,12 +375,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
         albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}common`];
       }
     }
-
-    // // Store result in cache
-    // ownershipCheckCache[album.albumId] = {
-    //   value: albumInOwnershipListIndex,
-    //   timestamp: now,
-    // };
 
     return albumInOwnershipListIndex;
   }
