@@ -30,7 +30,7 @@ const ownershipCheckCache: {
   };
 } = {};
 
-const CACHE_DURATION_OWNERSHIP_CHECK = 60000; // 1 minute in milliseconds
+const CACHE_DURATION_OWNERSHIP_CHECK = 10000; // 10 seconds in milliseconds
 
 export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
