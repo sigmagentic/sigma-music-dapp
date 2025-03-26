@@ -115,6 +115,81 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
         //     term: "lifetime" as const,
         //     perks: [
         //       {
+        //         name: "20% Discount on All Music NFTs",
+        //         type: "physical" as const,
+        //         description: "Each time I drop a new Music NFT, you get a 20% discount on it",
+        //         terms: "",
+        //       },
+        //       {
+        //         name: "20% Discount on All Merchandise",
+        //         type: "physical" as const,
+        //         description: "Get 20% off all merchandise on my store",
+        //         terms: "",
+        //       },
+
+        //       {
+        //         name: "Monthly Video Group Call with all Fans",
+        //         type: "physical" as const,
+        //         description: "I'll give you a 10-minute video call to chat",
+        //         terms: "Can be redeemed once a month per user who holds this tier",
+        //         howToClaim: "Hold the inner circle fan membership NFT, DM me on X and we can arrange a time to chat",
+        //       },
+        //     ],
+        //   },
+        //   premium: {
+        //     id: "premium",
+        //     priceUSD: 100,
+        //     term: "annual" as const,
+        //     perks: [
+        //       {
+        //         name: "Everything in the Base Tier",
+        //         type: "physical" as const,
+        //         description: "Access to everything in the base tier",
+        //         terms: "",
+        //       },
+        //       {
+        //         name: "10 Min Meet and Greet at My Performances",
+        //         type: "physical" as const,
+        //         description: "If I perform at an event, you can use your NFT to meet me",
+        //         terms: "Note that this only applies to performances that have a meet and greet planned (which are most events with paid tickets)",
+        //         howToClaim:
+        //           "Hold the inner circle fan membership NFT and you'll automatically receive the highest rarity tier for free each time the artist releases a new Music Album NFT",
+        //       },
+        //       {
+        //         name: "25% Revenue Share on All Music NFTs Sales",
+        //         type: "physical" as const,
+        //         description: "Help promote my music and share in the revenue from all sales",
+        //         terms: "",
+        //       },
+        //       {
+        //         name: "Access to VIP Lounge at My Performances",
+        //         type: "physical" as const,
+        //         description: "If I perform at an event, you can use your NFT to chill at my VIP lounge",
+        //         terms: "Note that this only applies to performances that have a VIP lounge planned",
+        //       },
+        //       {
+        //         name: "Personalized Video Message",
+        //         type: "physical" as const,
+        //         description: "I'll record a personalized video message for you",
+        //         terms: "",
+        //       },
+        //       {
+        //         name: "20 Min Voice Call",
+        //         type: "physical" as const,
+        //         description: "I'll give you a 20-minute voice call to chat",
+        //         terms: "Can be redeemed once a month per user who holds this tier",
+        //       },
+        //     ],
+        //   },
+        // };
+
+        // const data = {
+        //   base: {
+        //     id: "base",
+        //     priceUSD: 10,
+        //     term: "lifetime" as const,
+        //     perks: [
+        //       {
         //         name: "Free Highest Rarity Tier Album Airdrop",
         //         type: "virtual" as const,
         //         description: "Each time I drop a new Music Album NFT, you get the highest rarity tier for free",
