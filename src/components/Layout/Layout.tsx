@@ -15,6 +15,7 @@ import { Toaster } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
+import { AlertBanner } from "./AlertBanner";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
 
@@ -46,6 +47,8 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
       <div className="header h-[100px] bg-[#0a0a0a]">
         <Navbar />
       </div>
+
+      <AlertBanner />
 
       <div className="body flex flex-col md:flex-row">
         <div

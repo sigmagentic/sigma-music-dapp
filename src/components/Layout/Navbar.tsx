@@ -236,8 +236,6 @@ export const Navbar = () => {
         )}
       </div>
 
-      <AlertBanner />
-
       {publicKeySol && walletType !== "web3auth" && (
         <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem]">
           <DataNftAirdropsBannerCTA
