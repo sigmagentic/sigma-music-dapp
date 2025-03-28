@@ -43,7 +43,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
 
   return (
     <div className="flex flex-col flex-auto min-h-[100dvh]">
-      <div className="header h-[100px] bg-[#030303]">
+      <div className="header h-[100px] bg-[#0a0a0a]">
         <Navbar />
       </div>
 
@@ -221,7 +221,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
         </div>
       </div>
 
-      <div className="footer bg-[#030303]">
+      <div className="footer bg-[#0a0a0a]">
         <Footer />
       </div>
 
