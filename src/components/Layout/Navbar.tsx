@@ -17,7 +17,6 @@ import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libCompo
 import { sleep } from "libs/utils";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
-import { AlertBanner } from "./AlertBanner";
 import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { GetNFMeModal } from "../GetNFMeModal";
 import { NFMePreferencesModal } from "../NFMePreferencesModal";
