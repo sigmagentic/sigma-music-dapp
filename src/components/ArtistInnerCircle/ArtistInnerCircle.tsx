@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { SparklesIcon, ComputerDesktopIcon, UserGroupIcon } from "@heroicons/react/24/solid";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { INNER_CIRCLE_PRICE_IN_USD } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { fetchSolPrice, getApiWeb2Apps } from "libs/utils/misc";
 import { JoinInnerCircle } from "./JoinInnerCircle";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 interface Perk {
   name: string;

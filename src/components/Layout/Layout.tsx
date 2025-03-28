@@ -11,13 +11,12 @@ import {
   CursorArrowRippleIcon,
   PuzzlePieceIcon,
 } from "@heroicons/react/24/outline";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { Toaster } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 export const Layout = ({ children, homeMode, setHomeMode }: { children: React.ReactNode; homeMode: string; setHomeMode: (homeMode: string) => void }) => {
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
@@ -44,7 +43,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
 
   return (
     <div className="flex flex-col flex-auto min-h-[100dvh]">
-      <div className="header">
+      <div className="header h-[100px] bg-[#030303]">
         <Navbar />
       </div>
 
@@ -222,7 +221,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
         </div>
       </div>
 
-      <div className="footer">
+      <div className="footer bg-[#030303]">
         <Footer />
       </div>
 

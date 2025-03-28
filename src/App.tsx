@@ -4,9 +4,9 @@ import { Layout } from "components";
 import { SolContextProvider } from "contexts/sol/SolContextProvider";
 import { PageNotFound, Login, Home, Remix } from "pages";
 import { routeNames } from "routes";
+import { Web3AuthProvider } from "./contexts/sol/Web3AuthProvider";
 import { ThemeProvider } from "./contexts/ThemeProvider";
 import { StoreProvider } from "./store/StoreProvider";
-import { Web3AuthProvider } from "./contexts/sol/Web3AuthProvider";
 
 export const App = () => {
   const [homeMode, setHomeMode] = useState<"home" | "artists" | "radio" | "wallet">("home");

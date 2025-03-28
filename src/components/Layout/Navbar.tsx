@@ -7,6 +7,7 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Menu, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import sigmaLogo from "assets/img/sigma-header-logo.png";
 import { SolBitzDropdown } from "components/BitzDropdown/SolBitzDropdown";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -78,12 +79,11 @@ export const Navbar = () => {
 
   return (
     <>
-      <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-20">
+      <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-full">
         <div className="flex flex-col items-left text-xl">
           <Link className="flex flex-row items-center" to={routeNames.home}>
             <div className="flex flex-row leading-none">
-              <span className="text-black dark:!text-white text-3xl">Sigma&nbsp;</span>
-              <span className="bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent text-sm -ml-1">Music</span>
+              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[230px]" />
             </div>
           </Link>
         </div>
