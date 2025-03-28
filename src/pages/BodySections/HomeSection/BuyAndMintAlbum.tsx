@@ -11,6 +11,7 @@ import { Artist, Album } from "libs/types";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, logPaymentToAPI, mintAlbumNFTAfterPayment, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 export const BuyAndMintAlbum = ({
   onCloseModal,
@@ -22,7 +23,8 @@ export const BuyAndMintAlbum = ({
   albumToBuyAndMint: Album;
 }) => {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction, signMessage } = useWallet();
+  const { sendTransaction, signMessage } = useWallet();
+  const { publicKey } = useSolanaWallet();
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);

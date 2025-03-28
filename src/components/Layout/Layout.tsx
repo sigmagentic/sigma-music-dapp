@@ -17,11 +17,12 @@ import { useSearchParams } from "react-router-dom";
 import { routeNames } from "routes";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 export const Layout = ({ children, homeMode, setHomeMode }: { children: React.ReactNode; homeMode: string; setHomeMode: (homeMode: string) => void }) => {
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const { publicKey: publicKeySol } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
 
   useEffect(() => {
     const timer = setTimeout(() => {

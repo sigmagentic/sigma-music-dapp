@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { Gift, Dice1, Music2, X, Volume2, VolumeX, ChevronLeft, ChevronRight, Play, Pause, ArrowUp, ArrowDown, CheckCircle2, XCircle } from "lucide-react";
 import Countdown from "react-countdown";
 import { PlayBitzModal } from "components/PlayBitzModal/PlayBitzModal";
 import { DISABLE_BITZ_FEATURES } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { MusicTrack } from "libs/types";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
@@ -685,12 +685,10 @@ interface MiniGamesProps {
 
 export const MiniGames = (props: MiniGamesProps) => {
   const { radioTracks, appMusicPlayerIsPlaying } = props;
-  const { publicKey: publicKeySol } = useWallet();
-  const addressSol = publicKeySol?.toBase58();
+  const { isConnected: isLoggedInSol } = useSolanaWallet();
   const { solBitzNfts } = useNftsStore();
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const [showMemoryModal, setShowMemoryModal] = useState<boolean>(false);
-  const { connected: isLoggedInSol } = useWallet();
   const [showMatchArtistModal, setShowMatchArtistModal] = useState<boolean>(false);
 
   // Define available mini games

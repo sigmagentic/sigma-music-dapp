@@ -31,6 +31,7 @@ import { BountyBitzSumMapping, MusicTrack } from "libs/types";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 let playerExplicitlyDockedByUser = false;
 
@@ -125,7 +126,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState("00:00");
   const [isLoaded, setIsLoaded] = useState(false);
-  const { publicKey, signMessage } = useWallet();
+  const { signMessage } = useWallet();
+  const { publicKey } = useSolanaWallet();
   const [songSource, setSongSource] = useState<{ [key: string]: string }>({}); // map to keep the already fetched trackList
   const settings = {
     infinite: isRadioPlayer ? true : false,

@@ -9,6 +9,7 @@ import { GENERATE_MUSIC_MEME_PRICE_IN_USD, INNER_CIRCLE_PRICE_IN_USD, SIGMA_SERV
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, sleep } from "libs/utils/misc";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 export const JoinInnerCircle = ({
   onCloseModal,
@@ -24,7 +25,8 @@ export const JoinInnerCircle = ({
   membershipId: string;
 }) => {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { sendTransaction } = useWallet();
+  const { publicKey } = useSolanaWallet();
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);

@@ -20,6 +20,7 @@ import { routeNames } from "routes";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type FeaturedArtistsAndAlbumsProps = {
   stopPreviewPlayingNow?: boolean;
@@ -61,7 +62,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     onCloseMusicPlayer,
     setLoadIntoArtistTileView,
   } = props;
-  const { publicKey: publicKeySol } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [previewTrackAudio] = useState(new Audio());
   const [isPreviewPlaying, setIsPreviewPlaying] = useState<boolean>(false);
@@ -660,7 +661,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                     : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                 }
                               `}>
-                              Inner Circle
+                              Inner Circle Fan Membership
                             </button>
                           </div>
                         </div>

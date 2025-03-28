@@ -18,6 +18,7 @@ import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
 import { BuyAndMintAlbum } from "./BuyAndMintAlbum";
 import { getBestBuyCtaLink } from "./types/utils";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type ArtistDiscographyProps = {
   albums: Album[];
@@ -63,7 +64,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     setFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
   } = props;
-  const { publicKey: publicKeySol } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
   const [, setSearchParams] = useSearchParams();
   const addressSol = publicKeySol?.toBase58();
   const { updateSolNfts } = useNftsStore();

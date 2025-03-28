@@ -15,6 +15,7 @@ import { updateBountyBitzSumGlobalMappingWindow } from "pages/BodySections/HomeS
 import { useNftsStore } from "store/nfts";
 import { LaunchMusicMeme } from "./LaunchMusicMeme";
 import { LaunchToPumpFun } from "./LaunchToPumpFun";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 interface Version {
   bountyId: string;
@@ -132,7 +133,7 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
 };
 
 const RemixSectionContent = () => {
-  const { publicKey: publicKeySol } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);

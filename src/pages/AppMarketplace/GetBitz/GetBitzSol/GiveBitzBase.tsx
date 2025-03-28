@@ -14,9 +14,11 @@ import { getDataBounties } from "./configSol";
 import PowerUpBounty from "../common/GiveBitz/PowerUpBounty";
 import { GiveBitzDataBounty, LeaderBoardItemType } from "../common/interfaces";
 import LeaderBoardTable from "../common/LeaderBoardTable";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 const GiveBitzBase = () => {
-  const { publicKey: publicKeySol, signMessage } = useWallet();
+  const { signMessage } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const { solBitzNfts } = useNftsStore();
   const givenBitzSum = useSolBitzStore((state: any) => state.givenBitzSum);

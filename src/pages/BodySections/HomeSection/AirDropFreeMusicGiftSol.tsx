@@ -12,6 +12,7 @@ import { sleep } from "libs/utils";
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type AirDropFreeMusicGiftSolSolProps = {
   onCloseModal: any;
@@ -19,7 +20,8 @@ type AirDropFreeMusicGiftSolSolProps = {
 
 export const AirDropFreeMusicGiftSol = (props: AirDropFreeMusicGiftSolSolProps) => {
   const { onCloseModal } = props;
-  const { publicKey: publicKeySol, signMessage } = useWallet();
+  const { signMessage } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
   const { updateSolNfts } = useNftsStore();
   const [getAirdropWorkflow, setGetAirdropWorkflow] = useState<boolean>(false);
   const [freeMintMusicGiftLoading, setFreeMintMusicGiftLoading] = useState<boolean>(false);

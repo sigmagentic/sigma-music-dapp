@@ -4,6 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { INNER_CIRCLE_PRICE_IN_USD } from "config";
 import { fetchSolPrice, getApiWeb2Apps } from "libs/utils/misc";
 import { JoinInnerCircle } from "./JoinInnerCircle";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 interface Perk {
   name: string;
@@ -69,7 +70,7 @@ const getPerkTypeColor = (type: "virtual" | "physical" | "virtual") => {
 };
 
 export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName, creatorWallet, artistSlug }) => {
-  const { publicKey: publicKeySol } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [isLoading, setIsLoading] = useState(true);
   const [artistsMembershipOptions, setArtistMembershipOptions] = useState<MembershipData>({});

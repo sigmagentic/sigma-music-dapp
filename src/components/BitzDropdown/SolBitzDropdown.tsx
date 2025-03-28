@@ -1,9 +1,9 @@
 import React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { FlaskRound, Gift } from "lucide-react";
 import Countdown from "react-countdown";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { Popover, PopoverContent, PopoverTrigger } from "libComponents/Popover";
 import { useNftsStore } from "store/nfts";
@@ -13,7 +13,7 @@ export const SolBitzDropdown = (props: any) => {
   const { skipNavBarPopOverOption, showOnlyClaimBitzButton, handlePlayActionBtn } = props;
   const cooldown = useSolBitzStore((state: any) => state.cooldown);
   const solBitzBalance = useSolBitzStore((state: any) => state.bitzBalance);
-  const { connected: isLoggedInSol } = useWallet();
+  const { isConnected: isLoggedInSol } = useSolanaWallet();
 
   return (
     <div className={`${!skipNavBarPopOverOption ? "border border-yellow-500 rounded-sm justify-center cursor-pointer" : ""}`}>

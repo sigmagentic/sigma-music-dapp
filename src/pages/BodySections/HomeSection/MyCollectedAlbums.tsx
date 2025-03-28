@@ -78,16 +78,8 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   useEffect(() => {
     if (allOwnedAlbums.length > 0) {
       // only scroll direct to focus on my collected albums of the user just came from login
-      const isDirectFromLogin = searchParams.get("fromLogin");
       const isDirectFromFreeMusicGift = searchParams.get("fromFreeMusicGift");
       const isHlWorkflowDeepLink = searchParams.get("hl");
-
-      if (isDirectFromLogin) {
-        const currentParams = Object.fromEntries(searchParams.entries());
-        delete currentParams["fromLogin"];
-        setSearchParams(currentParams);
-        // scrollToSection("myCollectedAlbums");
-      }
 
       if (isDirectFromFreeMusicGift) {
         const currentParams = Object.fromEntries(searchParams.entries());

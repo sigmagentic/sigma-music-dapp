@@ -3,15 +3,20 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { IS_DEVNET } from "appsConfig";
 import { DISABLE_BITZ_FEATURES } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { computeRemainingCooldown } from "libs/utils/functions";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
 import { useNftsStore } from "./nfts";
+import bs58 from "bs58";
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
-  const { publicKey: publicKeySol, signMessage } = useWallet();
+  const { signMessage } = useWallet();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
 
   // ACCOUNT Store
   const { updateBitzBalance, updateCooldown, updateGivenBitzSum, updateCollectedBitzSum, updateBonusBitzSum, updateBonusTries } = useSolBitzStore();
@@ -127,6 +132,19 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     })();
   }, [publicKeySol, solBitzNfts, solPreaccessNonce, solPreaccessSignature]);
 
+  // In your component or hook where you need to sign messages
+  // const signMessageViaWeb3Auth = async (message: Uint8Array) => {
+  //   // Convert Uint8Array to base58 string for Web3Auth
+  //   const messageString = bs58.encode(message);
+
+  //   let signedMessage = await web3auth?.provider?.request({
+  //     method: "solanaSignMessage",
+  //     params: ["test message"],
+  //   });
+
+  //   return signedMessage;
+  // };
+
   function resetBitzValsToZeroSOL() {
     updateBitzBalance(-1);
     updateGivenBitzSum(-1);
@@ -148,7 +166,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       solPreaccessNonce,
       solPreaccessSignature,
       solPreaccessTimestamp,
-      signMessage,
+      signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
       publicKey: publicKeySol,
       updateSolPreaccessNonce,
       updateSolSignedPreaccess,

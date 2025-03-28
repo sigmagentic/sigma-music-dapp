@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import axios from "axios";
 import { Loader } from "lucide-react";
@@ -8,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AuthRedirectWrapper } from "components";
 import { SOL_ENV_ENUM } from "config";
 import { getApiWeb2Apps } from "libs/utils";
+import { useSolanaWallet } from "../../contexts/sol/useSolanaWallet";
 
 /* 
 we use global vars here so we can maintain this state across routing back and forth to this unlock page
@@ -25,9 +25,9 @@ const loggingInMsgs = ["Logging you in", "Taking you to Web3", "Plugging you in"
 const LoginPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { publicKey: publicKeySol } = useWallet();
-  const addressSol = publicKeySol?.toBase58();
   const [userAccountLoggingIn, setIsUserAccountLoggingIn] = useState<boolean>(false);
+  const { publicKey, isConnected, connect, disconnect } = useSolanaWallet();
+  const address = publicKey?.toBase58();
 
   useEffect(() => {
     window.scrollTo({
@@ -37,7 +37,9 @@ const LoginPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!addressSol) {
+    let addressSolToUse = address;
+
+    if (!addressSolToUse) {
       window.ITH_SOL_WALLET_CONNECTED = false;
     } else {
       if (!window.ITH_SOL_WALLET_CONNECTED) {
@@ -46,12 +48,13 @@ const LoginPage = () => {
         // the user came to the unlock page without a solana connection and then connected a wallet,
         // ... i.e a non-logged in user, just logged in using SOL
         const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
-        logUserLoggedInInUserAccounts(addressSol, chainId);
+
+        logUserLoggedInInUserAccounts(addressSolToUse, chainId);
       }
 
       window.ITH_SOL_WALLET_CONNECTED = true;
     }
-  }, [addressSol]);
+  }, [address]);
 
   const logUserLoggedInInUserAccounts = async (addr: string, chainId: string) => {
     try {
@@ -77,15 +80,6 @@ const LoginPage = () => {
 
           isTriggerFreeGift = "g=1";
         }
-        // else if (userLoggedInCallData?.existingUserAccountLastLoginUpdated) {
-        // let userMessage = "";
-        // userMessage = "Welcome Back Sigma Music OG!";
-        // toast.success(userMessage, {
-        //   position: "bottom-center",
-        //   duration: 6000,
-        //   icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
-        // });
-        // }
 
         // where can we send them back?
         let fromWhere = location.state?.from || "/";
@@ -104,12 +98,12 @@ const LoginPage = () => {
           fromWhere = `${fromWhere}${isTriggerFreeGift}`;
         }
 
-        // login was a success, so we take them back to where they were if possible
-        if (fromWhere.includes("?")) {
-          fromWhere = `${fromWhere}&fromLogin=1`;
-        } else {
-          fromWhere = `${fromWhere}?fromLogin=1`;
-        }
+        // // login was a success, so we take them back to where they were if possible
+        // if (fromWhere.includes("?")) {
+        //   fromWhere = `${fromWhere}&fromLogin=1`;
+        // } else {
+        //   fromWhere = `${fromWhere}?fromLogin=1`;
+        // }
 
         navigate(fromWhere);
       }
@@ -136,22 +130,25 @@ const LoginPage = () => {
               <h4 className="mb-4 font-weight-bold">Log into Sigma Music</h4>
 
               <div className="flex flex-col gap-4 px-3 items-center">
-                <WalletMultiButton className="w-full !m-0">Login Options</WalletMultiButton>
+                <WalletMultiButton className="w-full !m-0">Login With Solana</WalletMultiButton>
               </div>
 
-              <div className="mt-10 text-sm">
-                <span className="opacity-50">Don't have an account?</span> <br />
-                You just need any free solana wallet to login. Not sure which? we recommend{" "}
-                <a className="text-orange-500" href="https://phantom.app/" target="_blank" rel="noreferrer">
-                  Phantom
-                </a>
-                <span className="hidden">
-                  You get a{" "}
-                  <span className="ext-md mb-2 bg-clip-text bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 text-transparent font-bold text-base">
-                    Free Music NFT
-                  </span>{" "}
-                  as a joining gift.
-                </span>
+              <div className="">
+                {isConnected ? (
+                  <>
+                    <button className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold" onClick={disconnect}>
+                      Disconnect
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold"
+                    onClick={() => {
+                      connect({ useWeb3AuthConnect: true });
+                    }}>
+                    Login With Email
+                  </button>
+                )}
               </div>
             </div>
           )}

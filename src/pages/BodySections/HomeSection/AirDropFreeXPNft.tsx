@@ -12,6 +12,7 @@ import { sleep } from "libs/utils";
 // import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type AirDropFreeXPNftProps = {
   onCloseModal: any;
@@ -20,7 +21,8 @@ type AirDropFreeXPNftProps = {
 
 export const AirDropFreeXPNft = (props: AirDropFreeXPNftProps) => {
   const { onCloseModal, onRemoteTriggerOfBiTzPlayModel } = props;
-  const { publicKey: publicKeySol, signMessage } = useWallet();
+  const { signMessage } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
   const { updateSolNfts } = useNftsStore();
   const [getAirdropWorkflow, setGetAirdropWorkflow] = useState<boolean>(false);
   const [freeMintBitzXpLoading, setFreeMintBitzXpLoading] = useState<boolean>(false);

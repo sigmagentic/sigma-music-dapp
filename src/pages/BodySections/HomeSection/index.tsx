@@ -21,6 +21,7 @@ import { RadioBgCanvas } from "./RadioBgCanvas";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
@@ -33,7 +34,9 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [featuredArtistDeepLinkSlug, setFeaturedArtistDeepLinkSlug] = useState<string | undefined>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
-  const { publicKey: publicKeySol, signMessage } = useWallet();
+  const { signMessage } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
+
   const [bitzGiftingMeta, setBitzGiftingMeta] = useState<{
     giveBitzToCampaignId: string;
     bountyBitzSum: number;

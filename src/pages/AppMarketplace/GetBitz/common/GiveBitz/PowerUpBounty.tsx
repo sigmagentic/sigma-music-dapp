@@ -7,13 +7,14 @@ import stampFinalized from "assets/img/getbitz/givebitz/stampFinalized.png";
 import { cn } from "libs/utils";
 import GiveBitzLowerCard from "./GiveBitzLowerCard";
 import { PowerUpBountyProps } from "../interfaces";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 const PowerUpBounty = (props: PowerUpBountyProps) => {
   const { bounty, sendPowerUp, fetchGivenBitsForGetter, fetchGetterLeaderBoard, isSendingPowerUp, setIsSendingPowerUp } = props;
   const { bountySubmitter, bountyId, title, summary, readMoreLink, submittedOnTs, fillPerks, giverCounts, receivedBitzSum, finalizedDataNftIdentifier } =
     bounty;
-  const { publicKey } = useWallet();
-  const solAddress = publicKey?.toBase58() ?? "";
+  const { publicKey: publicKeySol } = useSolanaWallet();
+  const solAddress = publicKeySol?.toBase58() ?? "";
 
   return (
     <div className="power-up-tile border min-w-[260px] max-w-[360px] relative rounded-3xl">

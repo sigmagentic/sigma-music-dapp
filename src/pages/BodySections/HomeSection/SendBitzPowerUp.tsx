@@ -11,6 +11,7 @@ import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type SendBitzPowerUpProps = {
   giveBitzForMusicBountyConfig: {
@@ -26,7 +27,8 @@ type SendBitzPowerUpProps = {
 export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { giveBitzForMusicBountyConfig, onCloseModal } = props;
   const { creatorIcon, creatorName, giveBitzToWho, giveBitzToCampaignId, isLikeMode } = giveBitzForMusicBountyConfig;
-  const { publicKey: publicKeySol, signMessage } = useWallet();
+  const { signMessage } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
   const [giftBitzWorkflow, setGiftBitzWorkflow] = useState<boolean>(false);
   const [bitzValToGift, setBitzValToGift] = useState<number>(0);
   const [minBitzValNeeded, setMinBitzValNeeded] = useState<number>(1);

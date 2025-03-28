@@ -8,7 +8,7 @@ import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS 
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/misc";
-
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
 const MAX_TITLE_LENGTH = 20;
 
@@ -32,7 +32,8 @@ const MUSIC_STYLE_OPTIONS = [
 
 export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) => {
   const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { sendTransaction } = useWallet();
+  const { publicKey } = useSolanaWallet();
   const [songTitle, setSongTitle] = useState("");
   const [musicStyle, setMusicStyle] = useState("D&B");
   const [promptGenerated, setPromptGenerated] = useState(false);

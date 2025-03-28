@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { X } from "lucide-react";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { checkIfFreeDataNftGiftMinted } from "libs/sol/SolViewData";
 import { sleep } from "libs/utils";
@@ -17,7 +17,7 @@ export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
   const ALERT_IGNORE_HOURS_MS = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
 
   const { onRemoteTriggerOfBiTzPlayModel } = props;
-  const { publicKey: publicKeySol } = useWallet();
+  const { publicKey: publicKeySol } = useSolanaWallet();
   const [freeDropCheckLoading, setFreeDropCheckLoading] = useState<boolean>(false);
   const [freeBitzClaimed, setFreeBitzClaimed] = useState<boolean>(false);
   const [freeNfMeIdClaimed, setFreeNfMeIdClaimed] = useState<boolean>(false);

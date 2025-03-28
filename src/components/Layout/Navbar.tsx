@@ -4,12 +4,12 @@ declare const window: {
 
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Menu, User } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { SolBitzDropdown } from "components/BitzDropdown/SolBitzDropdown";
 import { DISABLE_BITZ_FEATURES } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuSeparator, DropdownMenuTrigger } from "libComponents/DropdownMenu";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libComponents/NavigationMenu";
@@ -33,7 +33,7 @@ interface NFMeIdContent {
 }
 
 export const Navbar = () => {
-  const { publicKey: publicKeySol, connected } = useWallet();
+  const { publicKey: publicKeySol, walletType, disconnect, isConnected } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const isLoggedInSol = !!addressSol;
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
@@ -41,7 +41,6 @@ export const Navbar = () => {
   const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
   const location = useLocation();
   const { solBitzNfts, solNFMeIdNfts } = useNftsStore();
-  const navigate = useNavigate();
   const [nfMeIdImageUrl, setNfMeIdImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,12 +53,12 @@ export const Navbar = () => {
           window.ITH_SOL_WALLET_CONNECTED = false;
           window.location = window.location.href.split("?")[0];
         }, 200);
-      } else if (connected && !window.ITH_SOL_WALLET_CONNECTED) {
+      } else if (isConnected && !window.ITH_SOL_WALLET_CONNECTED) {
         // connected user reloaded page
         window.ITH_SOL_WALLET_CONNECTED = true;
       }
     }
-  }, [addressSol, connected, location]);
+  }, [addressSol, isConnected, location]);
 
   useEffect(() => {
     if (solNFMeIdNfts.length > 0) {
@@ -91,19 +90,6 @@ export const Navbar = () => {
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
           <NavigationMenuList>
-            {/* REMiX Button */}
-            {/* {location.pathname !== routeNames.remix && location.pathname !== routeNames.login && (
-              <>
-                <Button
-                  onClick={() => {
-                    navigate(routeNames.remix);
-                  }}
-                  className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-lg text-center p-2 md:p-3 h-[49px] rounded-lg">
-                  <div>REMiX: Launch AI Music Meme Coins</div>
-                </Button>
-              </>
-            )} */}
-
             {/* XP Button */}
             {!DISABLE_BITZ_FEATURES && isLoggedInSol && solBitzNfts.length > 0 && (
               <>
@@ -118,7 +104,7 @@ export const Navbar = () => {
               </>
             )}
 
-            {isLoggedInSol && (
+            {isLoggedInSol && walletType !== "web3auth" && (
               <>
                 <NavigationMenuItem>
                   {/* NFMe ID Profile Image */}
@@ -163,7 +149,23 @@ export const Navbar = () => {
                 ) : (
                   <>
                     {/* Web3 Wallet Account Button */}
-                    <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
+                    {walletType === "web3auth" ? (
+                      <button
+                        className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold"
+                        onClick={() => {
+                          const confirmed = window.confirm("Are you sure you want to logout?");
+                          if (confirmed) {
+                            disconnect();
+                          }
+                        }}>
+                        Logout{" "}
+                        <span className="text-xs">
+                          {publicKeySol?.toBase58().slice(0, 4)}... {publicKeySol?.toBase58().slice(-4)}
+                        </span>
+                      </button>
+                    ) : (
+                      <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
+                    )}
                   </>
                 )}
               </NavigationMenuItem>
@@ -213,7 +215,7 @@ export const Navbar = () => {
                       <Button
                         className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-lg"
                         variant="outline">
-                        Manage Login
+                        Account
                       </Button>
                     </Link>
                   </div>
@@ -236,7 +238,7 @@ export const Navbar = () => {
 
       <AlertBanner />
 
-      {publicKeySol && (
+      {publicKeySol && walletType !== "web3auth" && (
         <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem]">
           <DataNftAirdropsBannerCTA
             onRemoteTriggerOfBiTzPlayModel={(open: boolean) => {

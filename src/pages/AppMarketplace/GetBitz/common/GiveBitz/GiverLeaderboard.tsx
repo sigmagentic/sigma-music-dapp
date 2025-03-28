@@ -3,13 +3,14 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
 import { GiverLeaderboardProps, LeaderBoardItemType } from "../interfaces";
 import LeaderBoardTable from "../LeaderBoardTable";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 const GiverLeaderboard: React.FC<GiverLeaderboardProps> = (props) => {
   const { bountySubmitter, bountyId, fetchGetterLeaderBoard, showUserPosition } = props;
   const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
   const [giverLeaderBoardIsLoading, setGiverLeaderBoardIsLoading] = useState<boolean>(false);
-  const { publicKey } = useWallet();
-  const solAddress = publicKey?.toBase58() ?? "";
+  const { publicKey: publicKeySol } = useSolanaWallet();
+  const solAddress = publicKeySol?.toBase58() ?? "";
   const [getterLeaderBoard, setGetterLeaderBoard] = useState<LeaderBoardItemType[]>([]);
 
   async function loadBaseData() {

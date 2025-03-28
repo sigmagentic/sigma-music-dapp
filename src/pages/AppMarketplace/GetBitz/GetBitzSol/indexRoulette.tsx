@@ -16,7 +16,7 @@ import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import "../common/GetBitz.css";
 import useSolBitzStore from "store/solBitz";
-
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 const rouletteData = [
   { option: "Rugged", bitz: "0", style: { backgroundColor: "#FF0000", textColor: "white" } }, // red
   { option: "2", bitz: "2", style: { backgroundColor: "#000000", textColor: "white" } }, // black
@@ -36,7 +36,8 @@ const rouletteData = [
 
 const GetBitzSol = (props: any) => {
   const { modalMode, onIsDataMarshalFetching, onHideBitzModel } = props;
-  const { publicKey: userPublicKey, signMessage } = useWallet();
+  const { signMessage } = useWallet();
+  const { publicKey: userPublicKey } = useSolanaWallet();
   const address = userPublicKey?.toBase58();
   const [checkingIfHasGameDataNFT, setCheckingIfHasGameDataNFT] = useState<boolean>(true);
   const [hasGameDataNFT, setHasGameDataNFT] = useState<boolean>(false);

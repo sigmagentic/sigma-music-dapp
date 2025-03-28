@@ -9,6 +9,7 @@ import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYME
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI, mergeImages } from "libs/utils/misc";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 export const LaunchToPumpFun = ({
   onCloseModal,
@@ -33,7 +34,8 @@ export const LaunchToPumpFun = ({
   tokenId: string;
   twitterUrl?: string;
 }) => {
-  const { publicKey, wallet, sendTransaction } = useWallet();
+  const { wallet, sendTransaction } = useWallet();
+  const { publicKey } = useSolanaWallet();
   const { connection } = useConnection();
   const [description, setDescription] = useState(tokenDesc);
   const [twitter, setTwitter] = useState("https://x.com/SigmaXMusic");
