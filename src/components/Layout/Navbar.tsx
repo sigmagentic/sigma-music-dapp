@@ -82,7 +82,7 @@ export const Navbar = () => {
         <div className="flex flex-col items-left text-xl">
           <Link className="flex flex-row items-center" to={routeNames.home}>
             <div className="flex flex-row leading-none">
-              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[230px]" />
+              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[230px] mt-[10px]" />
             </div>
           </Link>
         </div>
