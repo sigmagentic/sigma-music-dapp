@@ -44,7 +44,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
 
   return (
     <div className="flex flex-col flex-auto min-h-[100dvh]">
-      <div className="header h-[100px] bg-[#0a0a0a]">
+      <div className="header bg-[#0a0a0a]">
         <Navbar />
       </div>
 
