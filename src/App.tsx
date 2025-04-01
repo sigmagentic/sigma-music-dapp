@@ -10,8 +10,8 @@ import { StoreProvider } from "./store/StoreProvider";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripeCheckoutForm from "./contexts/StripeCheckoutForm";
-
-const stripePromise = loadStripe("your-publishable-key-here");
+import { getApiWeb2Apps } from "libs/utils/misc";
+const stripePromise = loadStripe("pk_test_51R8eAICGV8oT8ge4mqzlo1nBtHr9Rl9ZaTkEGzcpEf43O8NHXe6h9DA7m1VuKFKy5rpilIoFUjawTMKp7PdDGJYn008VNxfKvj");
 
 export const App = () => {
   const [homeMode, setHomeMode] = useState<"home" | "artists" | "radio" | "wallet">("home");
@@ -19,7 +19,7 @@ export const App = () => {
 
   useEffect(() => {
     // Fetch payment intent clientSecret from your backend
-    fetch("/api/create-payment-intent", { method: "POST" })
+    fetch(`${getApiWeb2Apps()}/sigma/paymentCreateIntent`, { method: "POST" })
       .then((res) => res.json())
       .then((data) => setClientSecret(data.clientSecret));
   }, []);

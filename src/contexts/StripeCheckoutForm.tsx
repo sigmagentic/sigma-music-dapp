@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { StripeCardElement } from "@stripe/stripe-js";
+import { getApiWeb2Apps } from "libs/utils/misc";
+
 const CheckoutForm = ({ clientSecret }: { clientSecret: string }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -21,7 +23,22 @@ const CheckoutForm = ({ clientSecret }: { clientSecret: string }) => {
     if (error) {
       setError(error.message || "An unknown error occurred");
     } else if (paymentIntent.status === "succeeded") {
-      alert("Payment successful! 🎉"); // Replace with NFT minting logic
+      const paymentIntentId = paymentIntent.id;
+
+      // ✅ Send to backend for verification
+      const response = await fetch(`${getApiWeb2Apps()}/sigma/paymentVerifyPayment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentIntentId }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert("Payment verified! Minting NFT... 🚀");
+        // Call your minting API here
+      } else {
+        alert("Payment verification failed! ❌");
+      }
     }
 
     setLoading(false);
