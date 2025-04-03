@@ -18,6 +18,7 @@ import { FeaturedArtistsAndAlbums } from "./FeaturedArtistsAndAlbums";
 import { FeaturedBanners } from "./FeaturedBanners";
 import { MiniGames } from "./MiniGames";
 import { MyCollectedAlbums } from "./MyCollectedAlbums";
+import { MyProfile } from "./MyProfile";
 import { RadioBgCanvas } from "./RadioBgCanvas";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
@@ -610,6 +611,12 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
           {homeMode === "games" && (
             <div className="w-full mt-10">
               <MiniGames radioTracks={radioTracksSorted} appMusicPlayerIsPlaying={launchMusicPlayer || launchRadioPlayer} />
+            </div>
+          )}
+
+          {homeMode === "profile" && (
+            <div className="w-full mt-10">
+              <MyProfile />
             </div>
           )}
 

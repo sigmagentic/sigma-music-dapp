@@ -39,6 +39,7 @@ export const Navbar = () => {
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const [showNfMeIdModal, setShowNfMeIdModal] = useState<boolean>(false);
   const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState<boolean>(false);
   const location = useLocation();
   const { solBitzNfts, solNFMeIdNfts } = useNftsStore();
   const [nfMeIdImageUrl, setNfMeIdImageUrl] = useState<string | null>(null);
@@ -151,12 +152,7 @@ export const Navbar = () => {
                     {walletType === "web3auth" ? (
                       <button
                         className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold"
-                        onClick={() => {
-                          const confirmed = window.confirm("Are you sure you want to logout?");
-                          if (confirmed) {
-                            disconnect();
-                          }
-                        }}>
+                        onClick={() => setShowLogoutConfirmation(true)}>
                         Logout{" "}
                         <span className="text-xs">
                           {publicKeySol?.toBase58().slice(0, 4)}... {publicKeySol?.toBase58().slice(-4)}
@@ -250,6 +246,31 @@ export const Navbar = () => {
 
       {/* NFMe Preferences Modal */}
       <NFMePreferencesModal isOpen={showNfMePreferencesModal} onClose={() => setShowNfMePreferencesModal(false)} />
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">Confirm Logout</h3>
+            <div className="space-y-4">
+              <p>Are you sure you want to logout?</p>
+              <div className="flex gap-4">
+                <Button onClick={() => setShowLogoutConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowLogoutConfirmation(false);
+                    disconnect();
+                  }}
+                  className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
+                  Logout
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

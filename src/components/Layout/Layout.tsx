@@ -10,6 +10,7 @@ import {
   ChatBubbleOvalLeftEllipsisIcon,
   CursorArrowRippleIcon,
   PuzzlePieceIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
 import { Toaster } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
@@ -214,26 +215,48 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                   </button>
                 </Tooltip>
                 {isLoggedIn && (
-                  <Tooltip text="Your Music NFT Collection">
-                    <button
-                      onClick={() => {
-                        removeArtistProfileParamFromUrl();
-                        setHomeMode("wallet");
-                      }}
-                      disabled={homeMode === "wallet"}
-                      className={`
-                        flex items-center flex-shrink-0
-                        ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                        py-3 px-4 rounded-lg transition-colors text-lg 
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        hover:bg-orange-500
-                        hover:text-black
-                      `}>
-                      <WalletIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Collect</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">Collect</span>}
-                    </button>
-                  </Tooltip>
+                  <>
+                    <Tooltip text="Your Music NFT Collection">
+                      <button
+                        onClick={() => {
+                          removeArtistProfileParamFromUrl();
+                          setHomeMode("wallet");
+                        }}
+                        disabled={homeMode === "wallet"}
+                        className={`
+                          flex items-center flex-shrink-0
+                          ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                          py-3 px-4 rounded-lg transition-colors text-lg 
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                          hover:bg-orange-500
+                          hover:text-black
+                        `}>
+                        <WalletIcon className="h-6 w-6 mr-1 md:mr-0" />
+                        <span className="md:hidden">Collect</span>
+                        {!isMenuCollapsed && <span className="hidden md:inline">Collect</span>}
+                      </button>
+                    </Tooltip>
+                    <Tooltip text="Your Profile">
+                      <button
+                        onClick={() => {
+                          removeArtistProfileParamFromUrl();
+                          setHomeMode("profile");
+                        }}
+                        disabled={homeMode === "profile"}
+                        className={`
+                          flex items-center flex-shrink-0
+                          ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                          py-3 px-4 rounded-lg transition-colors text-lg 
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                          hover:bg-orange-500
+                          hover:text-black
+                        `}>
+                        <UserIcon className="h-6 w-6 mr-1 md:mr-0" />
+                        <span className="md:hidden">Profile</span>
+                        {!isMenuCollapsed && <span className="hidden md:inline">Profile</span>}
+                      </button>
+                    </Tooltip>
+                  </>
                 )}
               </div>
             </div>

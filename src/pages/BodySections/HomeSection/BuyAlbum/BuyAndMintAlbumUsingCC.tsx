@@ -168,8 +168,8 @@ export const BuyAndMintAlbumUsingCC = ({
 
             <div className="flex flex-col gap-2 text-sm">
               <p>
-                <span className="font-bold text-yellow-400">What are you buying?</span> immediate access to stream the premium music album (with bonus tracks)
-                and an exclusive copy of the album as an NFT collectible.
+                <span className="font-bold text-yellow-400">What are you buying?</span> Access to stream the premium music album with all hidden bonus tracks
+                unlocked and an exclusive copy of the album as an NFT collectible.
               </p>
               <p>
                 <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Proceed", you agree to these{" "}

@@ -9,6 +9,18 @@ interface Web3AuthContextType {
   isLoading: boolean;
   isConnected: boolean;
   publicKey: PublicKey | null;
+  userInfo: {
+    email: string | null;
+    name: string | null;
+    profileImage: string | null;
+    verifier: string | null;
+    verifierId: string | null;
+    typeOfLogin: string | null;
+    dappShare: string | null;
+    idToken: string | null;
+    oAuthIdToken: string | null;
+    oAuthAccessToken: string | null;
+  };
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   signMessageViaWeb3Auth: (message: Uint8Array) => Promise<Uint8Array>;
@@ -19,6 +31,18 @@ const Web3AuthContext = createContext<Web3AuthContextType>({
   isLoading: true,
   isConnected: false,
   publicKey: null,
+  userInfo: {
+    email: null,
+    name: null,
+    profileImage: null,
+    verifier: null,
+    verifierId: null,
+    typeOfLogin: null,
+    dappShare: null,
+    idToken: null,
+    oAuthIdToken: null,
+    oAuthAccessToken: null,
+  },
   connect: async () => {},
   disconnect: async () => {},
   signMessageViaWeb3Auth: async () => new Uint8Array(),
@@ -42,6 +66,18 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [publicKey, setPublicKey] = useState<PublicKey | null>(null);
+  const [userInfo, setUserInfo] = useState<Web3AuthContextType["userInfo"]>({
+    email: null,
+    name: null,
+    profileImage: null,
+    verifier: null,
+    verifierId: null,
+    typeOfLogin: null,
+    dappShare: null,
+    idToken: null,
+    oAuthIdToken: null,
+    oAuthAccessToken: null,
+  });
 
   useEffect(() => {
     const init = async () => {
@@ -77,6 +113,23 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               setPublicKey(new PublicKey(publicKeyBytes as string));
               setIsConnected(true);
             }
+
+            // Get all user info
+            const userInfo = await web3authInstance.getUserInfo();
+            if (userInfo) {
+              setUserInfo({
+                email: userInfo.email || null,
+                name: userInfo.name || null,
+                profileImage: userInfo.profileImage || null,
+                verifier: userInfo.verifier || null,
+                verifierId: userInfo.verifierId || null,
+                typeOfLogin: userInfo.typeOfLogin || null,
+                dappShare: userInfo.dappShare || null,
+                idToken: userInfo.idToken || null,
+                oAuthIdToken: userInfo.oAuthIdToken || null,
+                oAuthAccessToken: userInfo.oAuthAccessToken || null,
+              });
+            }
           }
         }
 
@@ -107,6 +160,23 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setPublicKey(new PublicKey(publicKeyBytes as string));
       }
 
+      // Get all user info
+      const userInfo = await web3auth.getUserInfo();
+      if (userInfo) {
+        setUserInfo({
+          email: userInfo.email || null,
+          name: userInfo.name || null,
+          profileImage: userInfo.profileImage || null,
+          verifier: userInfo.verifier || null,
+          verifierId: userInfo.verifierId || null,
+          typeOfLogin: userInfo.typeOfLogin || null,
+          dappShare: userInfo.dappShare || null,
+          idToken: userInfo.idToken || null,
+          oAuthIdToken: userInfo.oAuthIdToken || null,
+          oAuthAccessToken: userInfo.oAuthAccessToken || null,
+        });
+      }
+
       setIsConnected(true);
     } catch (error) {
       console.error("Error connecting to Web3Auth:", error);
@@ -122,6 +192,18 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       await web3auth.logout();
       setIsConnected(false);
       setPublicKey(null);
+      setUserInfo({
+        email: null,
+        name: null,
+        profileImage: null,
+        verifier: null,
+        verifierId: null,
+        typeOfLogin: null,
+        dappShare: null,
+        idToken: null,
+        oAuthIdToken: null,
+        oAuthAccessToken: null,
+      });
     } catch (error) {
       console.error("Error disconnecting from Web3Auth:", error);
     }
@@ -143,6 +225,7 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         isLoading,
         isConnected,
         publicKey,
+        userInfo,
         connect,
         disconnect,
         signMessageViaWeb3Auth,
