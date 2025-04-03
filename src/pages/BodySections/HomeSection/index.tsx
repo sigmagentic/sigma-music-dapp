@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
 import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
 import { filterRadioTracksByUserPreferences, getAlbumTracksFromDb } from "libs/utils/misc";
@@ -21,7 +22,6 @@ import { RadioBgCanvas } from "./RadioBgCanvas";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
@@ -46,7 +46,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [musicPlayerTrackList, setMusicPlayerTrackList] = useState<MusicTrack[]>([]);
   const [musicPlayerTrackListFromDb, setMusicPlayerTrackListFromDb] = useState<boolean>(false);
   const { albumPlayIsQueued } = useAudioPlayerStore();
-  const navigate = useNavigate();
+  const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -79,13 +79,13 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [launchRadioPlayer, setLaunchRadioPlayer] = useState(false);
   const [nfTunesRadioFirstTrackCachedBlob, setNfTunesRadioFirstTrackCachedBlob] = useState<string>("");
   const [loadRadioPlayerIntoDockedMode, setLoadRadioPlayerIntoDockedMode] = useState(true); // load the radio player into docked mode?
-  const [loadIntoArtistTileView, setLoadIntoArtistTileView] = useState(false);
+  const [loadIntoTileView, setLoadIntoTileView] = useState(false);
 
   // Genres
   const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
 
   useEffect(() => {
-    const isFeaturedArtistDeepLink = searchParams.get("artist-profile");
+    const isFeaturedArtistDeepLink = searchParams.get("artist");
 
     if (isFeaturedArtistDeepLink) {
       // user reloaded into a artist deep link, all we need to do is set the home mode to artists, then the below home mode effect takes care of the rest
@@ -102,14 +102,18 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
     }
 
     if (homeMode.includes("artists")) {
-      setLoadIntoArtistTileView(true);
+      setLoadIntoTileView(true);
 
-      const isFeaturedArtistDeepLink = searchParams.get("artist-profile");
+      const isFeaturedArtistDeepLink = searchParams.get("artist");
 
       if (isFeaturedArtistDeepLink) {
         setFeaturedArtistDeepLinkSlug(isFeaturedArtistDeepLink.trim());
-        setLoadIntoArtistTileView(false);
+        setLoadIntoTileView(false);
       }
+    }
+
+    if (homeMode.includes("albums")) {
+      setLoadIntoTileView(true);
     }
 
     window.scrollTo({
@@ -232,6 +236,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
     try {
       setIsFetchingDataMarshal(true);
       resetAudioPlayerState();
+      setViewSolDataHasError(false);
 
       let _musicPlayerTrackListFromDb = false;
 
@@ -332,13 +337,18 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
           }
         } else {
           console.error(res.status + " " + res.statusText);
-          toastClosableError(res.status + " " + res.statusText);
+          toastClosableError("On-chain data loading failed, error: " + res.status + " " + res.statusText);
+          setIsFetchingDataMarshal(false);
+          setViewSolDataHasError(true);
+          return { error: true };
         }
       }
     } catch (err) {
       console.error(err);
-      toastClosableError((err as Error).message);
+      toastClosableError("Generic error via on-chain data loading, error: " + (err as Error).message);
       setIsFetchingDataMarshal(false);
+      setViewSolDataHasError(true);
+      return { error: true };
     }
   }
 
@@ -449,7 +459,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                     <FeaturedBanners
                       onFeaturedArtistDeepLinkSlug={(slug: string) => {
                         setHomeMode(`artists-${new Date().getTime()}`);
-                        setSearchParams({ "artist-profile": slug });
+                        setSearchParams({ "artist": slug });
                       }}
                     />
                   </div>
@@ -459,7 +469,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
           )}
 
           {/* Artists and their Albums */}
-          {(homeMode.includes("artists") || homeMode === "albums") && (
+          {(homeMode.includes("artists") || homeMode.includes("albums")) && (
             <>
               <div className="w-full mt-5">
                 <FeaturedArtistsAndAlbums
@@ -503,14 +513,15 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                   dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
                   onCloseMusicPlayer={resetAudioPlayerState}
                   isMusicPlayerOpen={launchMusicPlayer}
-                  loadIntoArtistTileView={loadIntoArtistTileView}
-                  setLoadIntoArtistTileView={setLoadIntoArtistTileView}
-                  isAllAlbumsMode={homeMode === "albums"}
+                  loadIntoTileView={loadIntoTileView}
+                  setLoadIntoTileView={setLoadIntoTileView}
+                  isAllAlbumsMode={homeMode.includes("albums")}
                 />
               </div>
             </>
           )}
 
+          {/* Radio */}
           {homeMode === "radio" && (
             <>
               <div className="w-full mt-5">
@@ -524,7 +535,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
             </>
           )}
 
-          {/* Data NFT list shown here */}
+          {/* Ny Collected Music Data NFTs */}
           {homeMode === "wallet" && (
             <>
               {publicKeySol && (
@@ -558,13 +569,14 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                     dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
                     onCloseMusicPlayer={resetAudioPlayerState}
                     isMusicPlayerOpen={launchMusicPlayer}
+                    setHomeMode={setHomeMode}
                   />
                 </div>
               )}
             </>
           )}
 
-          {/* Calling Musicians Section */}
+          {/* Musican Onboarding Section */}
           {homeMode === "home" && (
             <div className="w-full mt-5">
               <div id="join-sigma" className="flex flex-col md:flex-row 3xl:flex-col gap-4 py-[40px] px-[20px] text-center rounded-t-lg">
@@ -623,6 +635,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                 }}
                 onCloseMusicPlayer={resetAudioPlayerState}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
+                viewSolDataHasError={viewSolDataHasError}
               />
             </div>
           )}

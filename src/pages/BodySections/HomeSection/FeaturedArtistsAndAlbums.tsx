@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
@@ -10,6 +9,7 @@ import AlbumSales from "components/AlbumSales/AlbumSales";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { GiftBitzToArtistMeta } from "libs/types";
 import { Artist, Album, AlbumWithArtist } from "libs/types";
@@ -20,7 +20,6 @@ import { routeNames } from "routes";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type FeaturedArtistsAndAlbumsProps = {
   stopPreviewPlayingNow?: boolean;
@@ -30,7 +29,7 @@ type FeaturedArtistsAndAlbumsProps = {
   userHasNoBitzDataNftYet: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
-  loadIntoArtistTileView?: boolean;
+  loadIntoTileView?: boolean;
   isAllAlbumsMode?: boolean;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number, f?: any) => void;
@@ -39,7 +38,7 @@ type FeaturedArtistsAndAlbumsProps = {
   onSendBitzForMusicBounty: (e: any) => any;
   onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => any;
   onCloseMusicPlayer: () => void;
-  setLoadIntoArtistTileView: (e: boolean) => void;
+  setLoadIntoTileView: (e: boolean) => void;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
@@ -51,16 +50,16 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     userHasNoBitzDataNftYet,
     dataNftPlayingOnMainPlayer,
     isMusicPlayerOpen,
-    loadIntoArtistTileView,
+    loadIntoTileView,
+    isAllAlbumsMode,
     openActionFireLogic,
     viewSolData,
     onPlayHappened,
     checkOwnershipOfAlbum,
-    isAllAlbumsMode,
     onSendBitzForMusicBounty,
     onFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
-    setLoadIntoArtistTileView,
+    setLoadIntoTileView,
   } = props;
   const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
@@ -234,15 +233,15 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     setArtistProfile(selDataItem);
 
-    // if we don't do the userInteractedWithTabs, then even on page load, we go update the url with artist-profile which we don't want
+    // if we don't do the userInteractedWithTabs, then even on page load, we go update the url with artist which we don't want
     if (selDataItem && (userInteractedWithTabs || (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== ""))) {
       // update the deep link param
       const currentParams = Object.fromEntries(searchParams.entries());
 
       if (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== "") {
-        currentParams["artist-profile"] = featuredArtistDeepLinkSlug;
+        currentParams["artist"] = featuredArtistDeepLinkSlug;
       } else {
-        currentParams["artist-profile"] = selDataItem.slug;
+        currentParams["artist"] = selDataItem.slug;
       }
 
       setSearchParams({ ...currentParams });
@@ -260,10 +259,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   }, [stopPreviewPlayingNow]);
 
   useEffect(() => {
-    if (loadIntoArtistTileView && inArtistProfileView) {
+    if (loadIntoTileView && inArtistProfileView) {
       handleBackToArtistTileView();
     }
-  }, [loadIntoArtistTileView]);
+  }, [loadIntoTileView]);
 
   async function playPausePreview(previewStreamUrl?: string, albumId?: string) {
     if (previewStreamUrl && albumId && (!isPreviewPlaying || previewPlayingForAlbumId !== albumId)) {
@@ -337,14 +336,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     setInArtistProfileView(false);
 
-    // remove the artist-profile param from the url
+    // remove the artist param from the url
     const currentParams = Object.fromEntries(searchParams.entries());
-    delete currentParams["artist-profile"];
+    delete currentParams["artist"];
     setSearchParams(currentParams);
 
     // reset the featuredArtistDeepLinkSlug
     onFeaturedArtistDeepLinkSlug("");
-    setLoadIntoArtistTileView(false);
+    setLoadIntoTileView(false);
     setActiveTab("discography");
     setSelAlbumId(undefined);
     setSelArtistId(undefined);
@@ -406,9 +405,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               // notify the home page, which then triggers an effect to setSelArtistId
                               onFeaturedArtistDeepLinkSlug(artist.slug);
 
-                              // setUserInteractedWithTabs(true);
+                              setUserInteractedWithTabs(true);
                               // setInArtistProfileView(true);
-                              // setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
+                              setLoadIntoTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
                               window.scrollTo({
                                 top: 0,
@@ -423,7 +422,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               "backgroundPosition": getImagePosition(artist.img),
                             }}>
                             <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
-                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artist.name.replaceAll("_", " ")}</h2>
+                              <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
+                                {artist.name.replaceAll("_", " ")}
+                              </h2>
                             </div>
                           </div>
                         </div>
@@ -444,9 +445,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               // notify the home page, which then triggers an effect to setSelArtistId
                               onFeaturedArtistDeepLinkSlug(album.artistSlug, album.albumId);
 
-                              // setUserInteractedWithTabs(true);
+                              setUserInteractedWithTabs(true);
                               // setInArtistProfileView(true);
-                              // setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
+                              setLoadIntoTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
                               window.scrollTo({
                                 top: 0,
@@ -461,7 +462,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               "backgroundPosition": getImagePosition(album.img),
                             }}>
                             <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
-                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{album.title.replaceAll("_", " ")}</h2>
+                              <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
+                                {album.title.replaceAll("_", " ")}
+                              </h2>
                             </div>
                           </div>
                         </div>
@@ -679,14 +682,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               currentTime={currentTime}
                               isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
                               dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
+                              isMusicPlayerOpen={isMusicPlayerOpen}
+                              highlightAlbumId={selAlbumId}
                               onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                               playPausePreview={playPausePreview}
                               checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                               viewSolData={viewSolData}
                               openActionFireLogic={openActionFireLogic}
-                              isMusicPlayerOpen={isMusicPlayerOpen}
                               onCloseMusicPlayer={onCloseMusicPlayer}
-                              highlightAlbumId={selAlbumId}
                             />
                           </div>
                         )}

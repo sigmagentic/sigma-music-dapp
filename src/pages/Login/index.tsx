@@ -129,20 +129,22 @@ const LoginPage = () => {
             <div className="p-10">
               <h4 className="mb-4 font-weight-bold">Log into Sigma Music</h4>
 
-              <div className="flex flex-col gap-4 px-3 items-center">
+              <div className="flex flex-col px-3 items-center">
+                <span className="text-sm text-muted-foreground mb-2">For web3 native users with a solana wallet:</span>
                 <WalletMultiButton className="w-full !m-0">Login With Solana</WalletMultiButton>
               </div>
 
-              <div className="">
+              <div className="flex flex-col px-3 items-center mt-5">
+                <span className="text-sm text-muted-foreground mb-2">For everyone:</span>
                 {isConnected ? (
                   <>
-                    <button className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold" onClick={disconnect}>
+                    <button className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold" onClick={disconnect}>
                       Disconnect
                     </button>
                   </>
                 ) : (
                   <button
-                    className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold"
+                    className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold"
                     onClick={() => {
                       connect({ useWeb3AuthConnect: true });
                     }}>
@@ -150,6 +152,18 @@ const LoginPage = () => {
                   </button>
                 )}
               </div>
+
+              <p className="text-sm text-muted-foreground mt-8">
+                By "Logging in", you agree to these{" "}
+                <a className="underline" href="https://sigmamusic.fm/legal/terms-of-use" target="_blank" rel="noopener noreferrer">
+                  Terms of Use
+                </a>{" "}
+                and{" "}
+                <a className="underline" href="https://sigmamusic.fm/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
+                  Privacy Policy
+                </a>
+                .
+              </p>
             </div>
           )}
         </div>

@@ -436,7 +436,7 @@ const RemixSectionContent = () => {
               </div>
               <p className="text-xs text-gray-400">
                 Based on music by{" "}
-                <a href={`/?artist-profile=${item.basedOn}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                <a href={`/?artist=${item.basedOn}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
                   {item.basedOn}
                 </a>
                 , remixed by{" "}

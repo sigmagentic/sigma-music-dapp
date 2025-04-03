@@ -5,8 +5,8 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
   return (
     <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-2xl xl:text-3xl cursor-pointer w-full">
-          <span className="">Featured Albums Releases</span>
+        <div className="text-xl xl:text-2xl cursor-pointer w-full">
+          <span className="">Featured Album Releases</span>
         </div>
 
         <div className="flex flex-col md:flex-row justify-center items-center w-full gap-4">
@@ -74,7 +74,7 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
       </div>
 
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-2xl xl:text-3xl cursor-pointer w-full">
+        <div className="text-xl xl:text-2xl cursor-pointer w-full">
           <span className="">Featured Artists</span>
         </div>
 

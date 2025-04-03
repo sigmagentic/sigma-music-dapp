@@ -33,7 +33,7 @@ export const JoinInnerCircle = ({
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
   const [paymentTx, setPaymentTx] = useState<string>("");
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist-profile=${artistSlug}&t=ic`)}&text=${encodeURIComponent(
+  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist=${artistSlug}&t=ic`)}&text=${encodeURIComponent(
     `I just joined ${artistName}'s Inner Circle fan club on Sigma Music. Come and join me!`
   )}`;
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
@@ -118,6 +118,7 @@ export const JoinInnerCircle = ({
         tx: signature,
         task: "ic",
         amount: requiredSolAmount.toString(),
+        type: "sol",
         creatorWallet: creatorWallet,
         membershipId: membershipId,
         creatorSlug: artistSlug,
