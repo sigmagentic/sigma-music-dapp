@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { confetti } from "@tsparticles/confetti";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { BUY_AND_MINT_ALBUM_PRICE_IN_USD } from "config";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
+import { fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { getApiWeb2Apps, logPaymentToAPI, mintAlbumNFTAfterPayment, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
+import { useNftsStore } from "store/nfts";
 
 export const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -20,6 +22,7 @@ export const PaymentSuccess = () => {
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading"); // the overall status of the process
   const [error, setError] = useState<string | null>(null); // the error message if the process fails
+  const { updateSolNfts } = useNftsStore();
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -136,10 +139,14 @@ export const PaymentSuccess = () => {
             throw e;
           }
 
-          setMintingStatus("confirmed");
+          // sleep for an extra 20 seconds after success to the RPC indexing can update
+          await sleep(20);
 
-          // sleep for an extra 15 seconds after success to the RPC indexing can update
-          await sleep(15);
+          // update the NFT store now as we have a new NFT
+          const _allDataNfts: DasApiAsset[] = await fetchSolNfts(buyerSolAddress!);
+          updateSolNfts(_allDataNfts);
+
+          setMintingStatus("confirmed");
 
           setStatus("success"); // everything was a success
           await showSuccessConfetti();
@@ -235,7 +242,7 @@ export const PaymentSuccess = () => {
                 {mintingStatus === "processing" && (
                   <>
                     <span>Minting Music NFT on the blockchain...</span>
-                    <span className="text-gray-300 text-xs">This may take a few minutes.</span>
+                    <span className="text-gray-300 text-xs"> (This may take a few minutes.)</span>
                   </>
                 )}
               </p>

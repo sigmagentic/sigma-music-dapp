@@ -10,7 +10,7 @@ type RadioTeaserProps = {
   radioTracks: MusicTrack[];
   radioTracksLoading: boolean;
   launchRadioPlayer: boolean;
-  loadAsScreenSaver: boolean;
+  loadAsScreenSaver?: boolean;
   setLaunchRadioPlayer: (launchRadioPlayer: boolean) => void;
 };
 
