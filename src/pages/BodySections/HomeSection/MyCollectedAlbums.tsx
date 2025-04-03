@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { LibraryBig } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { DISABLE_BITZ_FEATURES } from "config";
-import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping } from "libs/types";
-import { isMostLikelyMobile, sleep } from "libs/utils/misc";
+import { sleep } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import { useNftsStore } from "store/nfts";
@@ -31,6 +29,7 @@ type MyCollectedAlbumsProps = {
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number) => void;
   onCloseMusicPlayer: () => void;
+  setHomeMode: (e: any) => any;
 };
 
 export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
@@ -47,6 +46,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
     setFeaturedArtistDeepLinkSlug,
     viewSolData,
     onCloseMusicPlayer,
+    setHomeMode,
   } = props;
   const { isLoadingSol, solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
@@ -249,15 +249,16 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                                 albums={artist.albums}
                                 artistProfile={artist}
                                 bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                                dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
+                                onSendBitzForMusicBounty={onSendBitzForMusicBounty}
+                                isMusicPlayerOpen={isMusicPlayerOpen}
+                                isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
+                                setHomeMode={setHomeMode}
                                 checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                                 openActionFireLogic={openActionFireLogic}
                                 setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
-                                dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
-                                onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                                 viewSolData={viewSolData}
-                                isMusicPlayerOpen={isMusicPlayerOpen}
                                 onCloseMusicPlayer={onCloseMusicPlayer}
-                                isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
                               />
                             </div>
                           );
@@ -281,7 +282,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                         <span
                           className="text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
                           onClick={() => {
-                            scrollToSection("artist-profile");
+                            setHomeMode(`artists-${new Date().getTime()}`);
                           }}>
                           exploring artists and albums
                         </span>
@@ -291,7 +292,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                 )}
               </div>
 
-              {myCollectedArtistsAlbums.length === 0 && (
+              {/* {myCollectedArtistsAlbums.length === 0 && (
                 <Button
                   className="text-lg mb-2 cursor-pointer"
                   variant="outline"
@@ -303,7 +304,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                     <span className="ml-2">{isMostLikelyMobile() ? "View All Artists" : "View All Artists & Collect More Albums"}</span>
                   </>
                 </Button>
-              )}
+              )} */}
             </>
           </div>
         </div>
@@ -386,7 +387,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                   )}
                 </div>
 
-                {myCollectedArtistsAlbums.length === 0 && (
+                {/* {myCollectedArtistsAlbums.length === 0 && (
                   <Button
                     className="text-lg mb-2 cursor-pointer"
                     variant="outline"
@@ -398,7 +399,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                       <span className="ml-2">{isMostLikelyMobile() ? "View All Artists" : "View All Artists & Collect More Albums"}</span>
                     </>
                   </Button>
-                )}
+                )} */}
               </>
             </div>
           </div>

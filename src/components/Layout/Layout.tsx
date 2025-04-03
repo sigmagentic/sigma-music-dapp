@@ -15,26 +15,31 @@ import { Toaster } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
+import { useAppStore } from "store/app";
 import { AlertBanner } from "./AlertBanner";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
 
+const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => {
+  return (
+    <div className="relative group">
+      {children}
+      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+        {text}
+      </div>
+    </div>
+  );
+};
+
 export const Layout = ({ children, homeMode, setHomeMode }: { children: React.ReactNode; homeMode: string; setHomeMode: (homeMode: string) => void }) => {
-  const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
+  const [isMenuCollapsed, setIsMenuCollapsed] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const { publicKey: publicKeySol } = useSolanaWallet();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsMenuCollapsed(true);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const paymentInProgress = useAppStore((state) => state.paymentInProgress);
 
   const removeArtistProfileParamFromUrl = () => {
     const currentParams = Object.fromEntries(searchParams.entries());
-    delete currentParams["artist-profile"];
+    delete currentParams["artist"];
     setSearchParams(currentParams);
   };
 
@@ -44,7 +49,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
 
   return (
     <div className="flex flex-col flex-auto min-h-[100dvh]">
-      <div className="header bg-[#0a0a0a]">
+      <div className={`header bg-[#0a0a0a] ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""}`}>
         <Navbar />
       </div>
 
@@ -53,7 +58,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
       <div className="body flex flex-col md:flex-row">
         <div
           className={`side-panel-menu md:min-h-[80dvh] md:p-4 text-white transition-all duration-300 relative w-full ${isMenuCollapsed ? "md:w-20" : "md:w-52"} ${isLoginRoute || isRemixRoute ? "hidden" : ""}`}>
-          <nav className="flex flex-row md:flex-col md:space-y-6">
+          <nav className={`flex flex-row md:flex-col md:space-y-6 ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""}`}>
             <div className={`menu-section hidden md:flex ${isMenuCollapsed ? "" : "md:justify-center"} `}>
               <button
                 onClick={() => setIsMenuCollapsed(!isMenuCollapsed)}
@@ -74,134 +79,13 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                 md:space-y-2 
                 ${!isMenuCollapsed ? "md:ml-4" : ""}
               `}>
-                <button
-                  onClick={() => {
-                    removeArtistProfileParamFromUrl();
-                    setHomeMode("home");
-                  }}
-                  disabled={homeMode === "home"}
-                  className={`
-                    flex items-center flex-shrink-0
-                    ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                    py-3 px-4 rounded-lg transition-colors text-lg 
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    hover:bg-orange-500
-                    hover:text-black
-                  `}>
-                  <HomeIcon className="h-6 w-6 mr-1 md:mr-0" />
-                  <span className="md:hidden">Home</span>
-                  {!isMenuCollapsed && <span className="hidden md:inline">Home</span>}
-                </button>
-                <button
-                  onClick={() => {
-                    removeArtistProfileParamFromUrl();
-                    setHomeMode("radio");
-                  }}
-                  disabled={homeMode === "radio"}
-                  className={`
-                    flex items-center flex-shrink-0
-                    ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                    py-3 px-4 rounded-lg transition-colors text-lg 
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    hover:bg-orange-500
-                    hover:text-black
-                  `}>
-                  <RadioIcon className="h-6 w-6 mr-1 md:mr-0" />
-                  <span className="md:hidden">Radio</span>
-                  {!isMenuCollapsed && <span className="hidden md:inline">Radio</span>}
-                </button>
-                <button
-                  onClick={() => {
-                    removeArtistProfileParamFromUrl();
-                    setHomeMode(`artists-${new Date().getTime()}`);
-                  }}
-                  className={`
-                    flex items-center flex-shrink-0
-                    ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                    py-3 px-4 rounded-lg transition-colors text-lg 
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    hover:bg-orange-500
-                    hover:text-black
-                  `}>
-                  <UserGroupIcon className="h-6 w-6 mr-1 md:mr-0" />
-                  <span className="md:hidden">Artists</span>
-                  {!isMenuCollapsed && <span className="hidden md:inline">Artists</span>}
-                </button>
-                <button
-                  onClick={() => {
-                    removeArtistProfileParamFromUrl();
-                    setHomeMode(`albums`);
-                  }}
-                  disabled={homeMode === "albums"}
-                  className={`
-                    flex items-center flex-shrink-0
-                    ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                    py-3 px-4 rounded-lg transition-colors text-lg 
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    hover:bg-orange-500
-                    hover:text-black
-                  `}>
-                  <Square3Stack3DIcon className="h-6 w-6 mr-1 md:mr-0" />
-                  <span className="md:hidden">Albums</span>
-                  {!isMenuCollapsed && <span className="hidden md:inline">Albums</span>}
-                </button>
-                <button
-                  onClick={() => {
-                    window.open("https://x.com/sigmaXMusic", "_blank");
-                  }}
-                  className={`
-                    flex items-center flex-shrink-0
-                    ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                    py-3 px-4 rounded-lg transition-colors text-lg 
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    hover:bg-orange-500
-                    hover:text-black
-                  `}>
-                  <ChatBubbleOvalLeftEllipsisIcon className="h-6 w-6 mr-1 md:mr-0" />
-                  <span className="md:hidden">AI Agent</span>
-                  {!isMenuCollapsed && <span className="hidden md:inline">Agent</span>}
-                </button>
-                <button
-                  onClick={() => {
-                    window.open(routeNames.remix, "_blank");
-                  }}
-                  className={`
-                    flex items-center flex-shrink-0
-                    ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                    py-3 px-4 rounded-lg transition-colors text-lg 
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    hover:bg-orange-500
-                    hover:text-black
-                  `}>
-                  <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
-                  <span className="md:hidden">REMiX</span>
-                  {!isMenuCollapsed && <span className="hidden md:inline">REMiX</span>}
-                </button>
-                <button
-                  onClick={() => {
-                    removeArtistProfileParamFromUrl();
-                    setHomeMode(`games`);
-                  }}
-                  disabled={homeMode === "games"}
-                  className={`
-                    flex items-center flex-shrink-0
-                    ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                    py-3 px-4 rounded-lg transition-colors text-lg 
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    hover:bg-orange-500
-                    hover:text-black
-                  `}>
-                  <PuzzlePieceIcon className="h-6 w-6 mr-1 md:mr-0" />
-                  <span className="md:hidden">Games</span>
-                  {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
-                </button>
-                {isLoggedIn && (
+                <Tooltip text="Home">
                   <button
                     onClick={() => {
                       removeArtistProfileParamFromUrl();
-                      setHomeMode("wallet");
+                      setHomeMode("home");
                     }}
-                    disabled={homeMode === "wallet"}
+                    disabled={homeMode === "home"}
                     className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
@@ -210,10 +94,146 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:bg-orange-500
                       hover:text-black
                     `}>
-                    <WalletIcon className="h-6 w-6 mr-1 md:mr-0" />
-                    <span className="md:hidden">Collect</span>
-                    {!isMenuCollapsed && <span className="hidden md:inline">Collect</span>}
+                    <HomeIcon className="h-6 w-6 mr-1 md:mr-0" />
+                    <span className="md:hidden">Home</span>
+                    {!isMenuCollapsed && <span className="hidden md:inline">Home</span>}
                   </button>
+                </Tooltip>
+                <Tooltip text="Radio">
+                  <button
+                    onClick={() => {
+                      removeArtistProfileParamFromUrl();
+                      setHomeMode("radio");
+                    }}
+                    disabled={homeMode === "radio"}
+                    className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:bg-orange-500
+                      hover:text-black
+                    `}>
+                    <RadioIcon className="h-6 w-6 mr-1 md:mr-0" />
+                    <span className="md:hidden">Radio</span>
+                    {!isMenuCollapsed && <span className="hidden md:inline">Radio</span>}
+                  </button>
+                </Tooltip>
+                <Tooltip text="Artists">
+                  <button
+                    onClick={() => {
+                      removeArtistProfileParamFromUrl();
+                      setHomeMode(`artists-${new Date().getTime()}`);
+                    }}
+                    className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:bg-orange-500
+                      hover:text-black
+                    `}>
+                    <UserGroupIcon className="h-6 w-6 mr-1 md:mr-0" />
+                    <span className="md:hidden">Artists</span>
+                    {!isMenuCollapsed && <span className="hidden md:inline">Artists</span>}
+                  </button>
+                </Tooltip>
+                <Tooltip text="Albums">
+                  <button
+                    onClick={() => {
+                      removeArtistProfileParamFromUrl();
+                      setHomeMode(`albums-${new Date().getTime()}`);
+                    }}
+                    className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:bg-orange-500
+                      hover:text-black
+                    `}>
+                    <Square3Stack3DIcon className="h-6 w-6 mr-1 md:mr-0" />
+                    <span className="md:hidden">Albums</span>
+                    {!isMenuCollapsed && <span className="hidden md:inline">Albums</span>}
+                  </button>
+                </Tooltip>
+                <Tooltip text="Sigma: AI Music Agent">
+                  <button
+                    onClick={() => {
+                      window.open("https://x.com/sigmaXMusic", "_blank");
+                    }}
+                    className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:bg-orange-500
+                      hover:text-black
+                    `}>
+                    <ChatBubbleOvalLeftEllipsisIcon className="h-6 w-6 mr-1 md:mr-0" />
+                    <span className="md:hidden">AI Agent</span>
+                    {!isMenuCollapsed && <span className="hidden md:inline">Agent</span>}
+                  </button>
+                </Tooltip>
+                <Tooltip text="REMiX">
+                  <button
+                    onClick={() => {
+                      window.open(routeNames.remix, "_blank");
+                    }}
+                    className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:bg-orange-500
+                      hover:text-black
+                    `}>
+                    <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
+                    <span className="md:hidden">REMiX</span>
+                    {!isMenuCollapsed && <span className="hidden md:inline">REMiX</span>}
+                  </button>
+                </Tooltip>
+                <Tooltip text="Play Music Mini-Games">
+                  <button
+                    onClick={() => {
+                      removeArtistProfileParamFromUrl();
+                      setHomeMode(`games`);
+                    }}
+                    disabled={homeMode === "games"}
+                    className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:bg-orange-500
+                      hover:text-black
+                    `}>
+                    <PuzzlePieceIcon className="h-6 w-6 mr-1 md:mr-0" />
+                    <span className="md:hidden">Games</span>
+                    {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
+                  </button>
+                </Tooltip>
+                {isLoggedIn && (
+                  <Tooltip text="Your Music NFT Collection">
+                    <button
+                      onClick={() => {
+                        removeArtistProfileParamFromUrl();
+                        setHomeMode("wallet");
+                      }}
+                      disabled={homeMode === "wallet"}
+                      className={`
+                        flex items-center flex-shrink-0
+                        ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                        py-3 px-4 rounded-lg transition-colors text-lg 
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                        hover:bg-orange-500
+                        hover:text-black
+                      `}>
+                      <WalletIcon className="h-6 w-6 mr-1 md:mr-0" />
+                      <span className="md:hidden">Collect</span>
+                      {!isMenuCollapsed && <span className="hidden md:inline">Collect</span>}
+                    </button>
+                  </Tooltip>
                 )}
               </div>
             </div>

@@ -26,12 +26,12 @@ import "./AudioPlayer.css";
 import DEFAULT_SONG_IMAGE from "assets/img/audio-player-image.png";
 import DEFAULT_SONG_LIGHT_IMAGE from "assets/img/audio-player-light-image.png";
 import { DISABLE_BITZ_FEATURES, MARSHAL_CACHE_DURATION_SECONDS } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BountyBitzSumMapping, MusicTrack } from "libs/types";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 let playerExplicitlyDockedByUser = false;
 
@@ -49,6 +49,7 @@ type MusicPlayerProps = {
   isRadioPlayer?: boolean;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   loadIntoDockedMode?: boolean;
+  viewSolDataHasError?: boolean;
   onSendBitzForMusicBounty: (e: any) => any;
   onCloseMusicPlayer: () => void;
   onPlayHappened: () => void;
@@ -77,8 +78,8 @@ const SCREEN_STYLES = {
       text: "text-center text-foreground text-lg mt-6",
     },
     skeleton: {
-      title: "h-8 w-64 mb-4",
-      artist: "h-6 w-48",
+      title: "h-8 w-64 mb-4 ml-auto mr-auto",
+      artist: "h-6 w-48 ml-auto mr-auto",
     },
   },
   normal: {
@@ -94,8 +95,8 @@ const SCREEN_STYLES = {
       text: "text-center text-foreground text-xs mt-3",
     },
     skeleton: {
-      title: "h-5 w-32 mb-2",
-      artist: "h-5 w-24",
+      title: "h-5 w-32 mb-2 ml-auto mr-auto",
+      artist: "h-5 w-24 ml-auto mr-auto",
     },
   },
 };
@@ -111,6 +112,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     pauseAsOtherAudioPlaying,
     isRadioPlayer,
     loadIntoDockedMode,
+    viewSolDataHasError,
     onSendBitzForMusicBounty,
     onCloseMusicPlayer,
     onPlayHappened,
@@ -170,13 +172,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
   useEffect(() => {
     if (trackList && trackList.length > 0 && firstSongBlobUrl && firstSongBlobUrl !== "") {
-      // if (firstSongBlobUrl) {
-      //   setSongSource((prevState) => ({
-      //     ...prevState, // keep all other key-value pairs
-      //     [trackList[0].idx]: firstSongBlobUrl, // update the value of the first index
-      //   }));
-      // }
-
       musicPlayerAudio.addEventListener("ended", function () {
         setCurrentTrackIndex((prevCurrentTrackIndex) => (prevCurrentTrackIndex < trackList.length - 1 ? prevCurrentTrackIndex + 1 : 0));
       });
@@ -481,7 +476,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     if (songSource[index]) {
       // if we previously fetched the song and it was an error, show again the exact error.
       if (songSource[index].includes("Error:")) {
-        toastClosableError(songSource[index]);
+        toastClosableError(`Track loading failed, error: ${songSource[index]}`);
       } else if (songSource[index] === "Fetching") {
         return false;
       } else if (!(songSource[index] === "Fetching")) {
@@ -519,6 +514,15 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     e.stopPropagation();
   };
 
+  const resetStateOnClosePlayer = () => {
+    musicPlayerAudio.pause();
+    musicPlayerAudio.src = "";
+    setIsPlaying(false);
+    setIsLoaded(false);
+    setIsFullScreen(false);
+    onCloseMusicPlayer();
+  };
+
   // Component render section
   const LoaderSection = () => {
     const styles = isFullScreen ? SCREEN_STYLES.full : SCREEN_STYLES.normal;
@@ -527,6 +531,18 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       <div className={styles.loader.container}>
         <Loader className={styles.loader.icon} />
         <p className={styles.loader.text}>hold tight, streaming music from the blockchain</p>
+
+        {/* only show close button if the view sol data failed durign track load */}
+        {viewSolDataHasError && (
+          <button
+            className={`closePlayer select-none absolute top-0 ${isFullScreen ? "left-[10px] top-[10px]" : "top-0 left-0"} flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
+            onClick={() => {
+              updateTrackPlayIsQueued(false);
+              resetStateOnClosePlayer();
+            }}>
+            <CircleX className="w-6 h-6" />
+          </button>
+        )}
       </div>
     );
   };
@@ -724,12 +740,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               <button
                 className={`closePlayer select-none absolute top-0 ${isFullScreen ? "left-[10px] top-[10px]" : "top-0 left-0"} flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
                 onClick={() => {
-                  musicPlayerAudio.pause();
-                  musicPlayerAudio.src = "";
-                  setIsPlaying(false);
-                  setIsLoaded(false);
-                  setIsFullScreen(false);
-                  onCloseMusicPlayer();
+                  resetStateOnClosePlayer();
                 }}>
                 <CircleX className="w-6 h-6" />
               </button>

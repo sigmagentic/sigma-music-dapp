@@ -5,15 +5,15 @@ import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmat
 import { confetti } from "@tsparticles/confetti";
 import { Loader } from "lucide-react";
 import { BUY_AND_MINT_ALBUM_PRICE_IN_USD, GENERATE_MUSIC_MEME_PRICE_IN_USD, INNER_CIRCLE_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { Artist, Album } from "libs/types";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, logPaymentToAPI, mintAlbumNFTAfterPayment, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
-export const BuyAndMintAlbum = ({
+export const BuyAndMintAlbumUsingSOL = ({
   onCloseModal,
   artistProfile,
   albumToBuyAndMint,
@@ -30,7 +30,7 @@ export const BuyAndMintAlbum = ({
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist-profile=${artistProfile.slug}`)}&text=${encodeURIComponent(
+  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist=${artistProfile.slug}`)}&text=${encodeURIComponent(
     `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on Sigma Music and I'm excited to stream it!`
   )}`;
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
@@ -132,6 +132,7 @@ export const BuyAndMintAlbum = ({
         payer: publicKey.toBase58(),
         tx: signature,
         task: "buyAlbum",
+        type: "sol",
         amount: requiredSolAmount.toString(),
         creatorWallet: artistProfile.creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         albumId: albumToBuyAndMint.albumId,

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Web3Auth } from "@web3auth/modal";
-import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from "@web3auth/base";
-import { SolanaPrivateKeyProvider, SolanaWallet } from "@web3auth/solana-provider";
 import { PublicKey } from "@solana/web3.js";
+import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from "@web3auth/base";
+import { Web3Auth } from "@web3auth/modal";
+import { SolanaPrivateKeyProvider, SolanaWallet } from "@web3auth/solana-provider";
 
 interface Web3AuthContextType {
   web3auth: Web3Auth | null;

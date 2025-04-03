@@ -8,6 +8,7 @@ import Countdown from "react-countdown";
 import { Wheel } from "react-custom-roulette";
 import { LuMousePointerClick } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature, viewDataViaMarshalSol } from "libs/sol/SolViewData";
 import { cn, sleep } from "libs/utils";
@@ -16,7 +17,7 @@ import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import "../common/GetBitz.css";
 import useSolBitzStore from "store/solBitz";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+
 const rouletteData = [
   { option: "Rugged", bitz: "0", style: { backgroundColor: "#FF0000", textColor: "white" } }, // red
   { option: "2", bitz: "2", style: { backgroundColor: "#000000", textColor: "white" } }, // black

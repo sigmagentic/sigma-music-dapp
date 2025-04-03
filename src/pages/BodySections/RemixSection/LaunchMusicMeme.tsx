@@ -5,10 +5,11 @@ import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmat
 import axios from "axios";
 import { Loader } from "lucide-react";
 import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/misc";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
 const MAX_TITLE_LENGTH = 20;
 
@@ -134,6 +135,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         payer: publicKey.toBase58(),
         tx: signature,
         task: "gen",
+        type: "sol",
         amount: requiredSolAmount.toString(),
         prompt: getTweetUrl(true, signature),
         inviteCodeUsed: inviteCode,
@@ -280,7 +282,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
                   return (
                     <a
                       key={index}
-                      href={`/?artist-profile=${style.artistBlob}`}
+                      href={`/?artist=${style.artistBlob}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-400 hover:text-blue-300">

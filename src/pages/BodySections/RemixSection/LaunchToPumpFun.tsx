@@ -212,6 +212,7 @@ export const LaunchToPumpFun = ({
         payer: publicKey.toBase58(),
         tx: signature,
         task: "pump",
+        type: "sol",
         amount: requiredSolAmount.toString(),
       });
 

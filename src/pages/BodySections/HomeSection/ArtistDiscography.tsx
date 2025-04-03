@@ -2,23 +2,22 @@ import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { Gift, Heart, Loader, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
 import { DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { fetchSolNfts } from "libs/sol/SolViewData";
 import { BountyBitzSumMapping } from "libs/types";
 import { Artist, Album } from "libs/types";
 import { checkIfAlbumCanBeMinted, isMostLikelyMobile } from "libs/utils/misc";
-import { scrollToSection } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
-import { BuyAndMintAlbum } from "./BuyAndMintAlbum";
+import { BuyAndMintAlbumUsingCC } from "./BuyAlbum/BuyAndMintAlbumUsingCC";
+import { BuyAndMintAlbumUsingSOL } from "./BuyAlbum/BuyAndMintAlbumUsingSOL";
 import { getBestBuyCtaLink } from "./types/utils";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type ArtistDiscographyProps = {
   albums: Album[];
@@ -33,6 +32,7 @@ type ArtistDiscographyProps = {
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
   highlightAlbumId?: string;
+  setHomeMode?: (e: any) => any;
   viewSolData: (e: number, f?: any, g?: boolean) => void;
   onSendBitzForMusicBounty: (e: any) => any;
   playPausePreview?: (e: any, f: any) => any;
@@ -56,6 +56,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     dataNftPlayingOnMainPlayer,
     isMusicPlayerOpen,
     highlightAlbumId,
+    setHomeMode,
     viewSolData,
     onSendBitzForMusicBounty,
     playPausePreview,
@@ -64,7 +65,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     setFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
   } = props;
-  const { publicKey: publicKeySol } = useSolanaWallet();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const [, setSearchParams] = useSearchParams();
   const addressSol = publicKeySol?.toBase58();
   const { updateSolNfts } = useNftsStore();
@@ -164,14 +165,15 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 <h3 className="!text-xl mb-2 flex items-baseline">
                   {!inCollectedAlbumsView && <span className="text-3xl mr-1 opacity-50">{`${idx + 1}. `}</span>}
                   <span>
-                    {album.title} <span className="text-sm text-gray-500">{album.albumId}</span>
+                    {album.title}
                     {inCollectedAlbumsView ? (
                       <>
-                        <span className="text-sm">by</span> <span className="font-bold">{artistProfile.name.replaceAll("_", " ")}</span>
+                        <span className="text-sm"> by</span> <span className="font-bold">{artistProfile.name.replaceAll("_", " ")}</span>
                       </>
                     ) : (
                       ""
                     )}
+                    <span className="text-sm text-gray-500 ml-2">id: {album.albumId}</span>
                   </span>
                   {album.isExplicit && album.isExplicit === "1" && (
                     <img className="max-h-[20px] ml-[10px] dark:bg-white" src={ratingR} alt="Warning: Explicit Content" title="Warning: Explicit Content" />
@@ -443,17 +445,14 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   </div>
                 )}
 
-                {inCollectedAlbumsView && artistProfile && !album.isSigmaRemixAlbum && (
+                {inCollectedAlbumsView && artistProfile && !album.isSigmaRemixAlbum && setFeaturedArtistDeepLinkSlug && setHomeMode && (
                   <div>
                     <Button
                       className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 md:mx-2 cursor-pointer"
                       onClick={() => {
-                        if (setFeaturedArtistDeepLinkSlug) {
-                          setFeaturedArtistDeepLinkSlug(artistProfile.slug);
-                        }
-
-                        setSearchParams({ "artist-profile": artistProfile.slug });
-                        scrollToSection("artist-profile");
+                        setFeaturedArtistDeepLinkSlug(artistProfile.slug);
+                        setSearchParams({ "artist": artistProfile.slug });
+                        setHomeMode(`artists-${new Date().getTime()}`);
                       }}>
                       <>
                         <Disc3 />
@@ -468,19 +467,28 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         ))}
 
       <>
-        {albumToBuyAndMint && (
-          <BuyAndMintAlbum
-            albumToBuyAndMint={albumToBuyAndMint}
-            artistProfile={artistProfile}
-            onCloseModal={(isMintingSuccess: boolean) => {
-              setAlbumToBuyAndMint(undefined);
+        {albumToBuyAndMint &&
+          (walletType === "phantom" ? (
+            <BuyAndMintAlbumUsingSOL
+              albumToBuyAndMint={albumToBuyAndMint}
+              artistProfile={artistProfile}
+              onCloseModal={(isMintingSuccess: boolean) => {
+                setAlbumToBuyAndMint(undefined);
 
-              if (isMintingSuccess) {
-                refreshPurchasedAlbums();
-              }
-            }}
-          />
-        )}
+                if (isMintingSuccess) {
+                  refreshPurchasedAlbums();
+                }
+              }}
+            />
+          ) : (
+            <BuyAndMintAlbumUsingCC
+              albumToBuyAndMint={albumToBuyAndMint}
+              artistProfile={artistProfile}
+              onCloseModal={() => {
+                setAlbumToBuyAndMint(undefined);
+              }}
+            />
+          ))}
       </>
     </>
   );
