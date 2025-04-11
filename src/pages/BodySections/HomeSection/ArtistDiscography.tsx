@@ -144,8 +144,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   return (
     <>
       {albumsWithCanBeMintedFlags.length === 0 && (
-        <div className="text-center text-2xl p-5">
-          <Loader className="animate-spin" />
+        <div className="h-[100px] flex items-center justify-center">
+          <Loader className="animate-spin" size={30} />
         </div>
       )}
 

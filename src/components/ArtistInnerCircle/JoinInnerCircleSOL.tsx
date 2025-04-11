@@ -3,40 +3,52 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { confetti } from "@tsparticles/confetti";
-import axios from "axios";
 import { Loader } from "lucide-react";
-import { GENERATE_MUSIC_MEME_PRICE_IN_USD, INNER_CIRCLE_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
-import { Button } from "libComponents/Button";
-import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, sleep } from "libs/utils/misc";
+import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { Button } from "libComponents/Button";
+import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
+import { toastSuccess } from "libs/utils";
+import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPayment, sleep } from "libs/utils/misc";
+import { useAccountStore } from "store/account";
+import { tierData } from "./tierData";
 
-export const JoinInnerCircle = ({
+export const JoinInnerCircleSOL = ({
   onCloseModal,
   artistName,
   artistSlug,
-  creatorWallet,
+  creatorPaymentsWallet,
   membershipId,
+  creatorFanMembershipAvailability,
 }: {
   onCloseModal: (isMintingSuccess: boolean) => void;
   artistName: string;
   artistSlug: string;
-  creatorWallet: string;
+  creatorPaymentsWallet: string;
   membershipId: string;
+  creatorFanMembershipAvailability: Record<string, string>;
 }) => {
   const { connection } = useConnection();
-  const { sendTransaction } = useWallet();
-  const { publicKey } = useSolanaWallet();
+  const { sendTransaction, signMessage } = useWallet();
+  const { publicKey, walletType } = useSolanaWallet();
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
-  const [paymentTx, setPaymentTx] = useState<string>("");
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist=${artistSlug}&t=ic`)}&text=${encodeURIComponent(
-    `I just joined ${artistName}'s Inner Circle fan club on Sigma Music. Come and join me!`
+  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist=${artistSlug}&t=fan`)}&text=${encodeURIComponent(
+    `I just joined ${artistName}'s exclusive Inner Circle fan club on Sigma Music. Come and join me!`
   )}`;
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
+
+  // S: Cached Signature Store Items
+  const solPreaccessNonce = useAccountStore((state: any) => state.solPreaccessNonce);
+  const solPreaccessSignature = useAccountStore((state: any) => state.solPreaccessSignature);
+  const solPreaccessTimestamp = useAccountStore((state: any) => state.solPreaccessTimestamp);
+  const updateSolPreaccessNonce = useAccountStore((state: any) => state.updateSolPreaccessNonce);
+  const updateSolPreaccessTimestamp = useAccountStore((state: any) => state.updateSolPreaccessTimestamp);
+  const updateSolSignedPreaccess = useAccountStore((state: any) => state.updateSolSignedPreaccess);
+  // E: Cached Signature Store Items
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -54,7 +66,7 @@ export const JoinInnerCircle = ({
         const { currentSolPrice } = await fetchSolPrice();
 
         // Calculate required SOL amount based on USD price
-        const solAmount = GENERATE_MUSIC_MEME_PRICE_IN_USD / currentSolPrice;
+        const solAmount = tierData[membershipId].priceUSD / currentSolPrice;
         setRequiredSolAmount(Number(solAmount.toFixed(4))); // Round to 4 decimal places
       } catch (error) {
         console.error("Failed to fetch SOL price:", error);
@@ -62,7 +74,7 @@ export const JoinInnerCircle = ({
     };
 
     fetchPrice();
-  }, []);
+  }, [membershipId]);
 
   // Add effect to fetch wallet balance
   useEffect(() => {
@@ -80,6 +92,18 @@ export const JoinInnerCircle = ({
 
   const handlePaymentConfirmation = async () => {
     if (!publicKey || !requiredSolAmount) return;
+
+    // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+    const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+      solPreaccessNonce,
+      solPreaccessSignature,
+      solPreaccessTimestamp,
+      signMessage,
+      publicKey,
+      updateSolPreaccessNonce,
+      updateSolSignedPreaccess,
+      updateSolPreaccessTimestamp,
+    });
 
     setPaymentStatus("processing");
 
@@ -109,29 +133,29 @@ export const JoinInnerCircle = ({
 
       await connection.confirmTransaction(strategy, "finalized" as Commitment);
 
-      // Update payment transaction hash
-      setPaymentTx(signature);
-
       // Log payment to web2 API
-      await logPaymentToAPI({
+      const _logPaymentToAPIResponse = await logPaymentToAPI({
         payer: publicKey.toBase58(),
         tx: signature,
-        task: "ic",
-        amount: requiredSolAmount.toString(),
+        task: "joinFanClub",
         type: "sol",
-        creatorWallet: creatorWallet,
+        amount: requiredSolAmount.toString(),
+        creatorWallet: creatorPaymentsWallet,
         membershipId: membershipId,
-        creatorSlug: artistSlug,
       });
+
+      if (_logPaymentToAPIResponse.error) {
+        throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
+      }
 
       toastSuccess("Payment Successful!", true);
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
-      handleMinting();
+      handleMinting({ paymentMadeTx: signature, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce });
     } catch (error) {
       console.error("Payment failed:", error);
-      alert("Payment failed. Please try again.");
+      alert("Payment failed. Please try again - " + (error as Error).message);
       setPaymentStatus("idle");
     }
   };
@@ -145,7 +169,7 @@ export const JoinInnerCircle = ({
       await sleep(3);
 
       // Update payment transaction hash
-      setPaymentTx("simulated-signature");
+      // setPaymentTx("simulated-signature");
 
       // Log payment to web2 API
 
@@ -157,23 +181,31 @@ export const JoinInnerCircle = ({
     } catch (error) {
       console.error("Payment failed:", error);
       alert("Payment failed. Please try again.");
-      setPaymentStatus("idle");
+      setMintingStatus("failed");
     }
   };
 
-  const handleMinting = async () => {
+  const handleMinting = async ({ paymentMadeTx, solSignature, signatureNonce }: { paymentMadeTx: string; solSignature: string; signatureNonce: string }) => {
     setMintingStatus("processing");
 
     try {
       // Mint the NFT
-      // await mintNFTAfterPaymentAPI({
-      //   payer: publicKey.toBase58(),
-      //   tx: signature,
-      //   nftType: "innerCircle",
-      //   creatorWallet: creatorWallet,
-      //   membershipId: membershipId,
-      //   creatorSlug: artistSlug,
-      // });
+      const _mintNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPayment({
+        solSignature,
+        signatureNonce,
+        mintForSolAddr: publicKey?.toBase58(),
+        paymentHash: paymentMadeTx,
+        nftType: "fan",
+        creatorWallet: creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
+        membershipId: membershipId,
+      });
+
+      if (_mintNFTAfterPaymentResponse.error) {
+        throw new Error(_mintNFTAfterPaymentResponse.errorMessage || "Minting failed");
+      }
+
+      // sleep for an extra 10 seconds after success to the RPC indexing can update
+      await sleep(10);
 
       toastSuccess("Minting Successful!", true);
       setMintingStatus("confirmed");
@@ -182,7 +214,7 @@ export const JoinInnerCircle = ({
       console.error("Minting failed:", error);
       alert("Error: Minting seems to have failed");
       setBackendErrorMessage((error as Error).message);
-      setMintingStatus("idle");
+      setMintingStatus("failed");
     }
   };
 
@@ -194,8 +226,8 @@ export const JoinInnerCircle = ({
       // await mintNFTAfterPaymentAPI({
       //   payer: publicKey.toBase58(),
       //   tx: signature,
-      //   nftType: "innerCircle",
-      //   creatorWallet: creatorWallet,
+      //   nftType: "fan",
+      //   creatorWallet: creatorPaymentsWallet,
       //   membershipId: membershipId,
       //   creatorSlug: artistSlug,
       // });
@@ -246,12 +278,12 @@ export const JoinInnerCircle = ({
 
   // Payment confirmation popup
   const PaymentConfirmationPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
         <div className="space-y-4">
           <p>
-            Amount to pay: {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD} USD)
+            Amount to pay: {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.priceUSD} USD)
           </p>
           <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
 
@@ -267,7 +299,7 @@ export const JoinInnerCircle = ({
               <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
                 Cancel
               </Button>
-              <Button onClick={handlePaymentConfirmation_Simulate} className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
+              <Button onClick={handlePaymentConfirmation} className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
                 Proceed
               </Button>
             </div>
@@ -281,9 +313,10 @@ export const JoinInnerCircle = ({
     setShowPaymentConfirmation(false);
     setPaymentStatus("idle");
     setMintingStatus("idle");
-    setPaymentTx("");
     setBackendErrorMessage(null);
   }
+
+  const tokenImg = creatorFanMembershipAvailability[membershipId];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
@@ -306,19 +339,20 @@ export const JoinInnerCircle = ({
         {/* Left Column - Form */}
         {mintingStatus !== "confirmed" && (
           <div>
-            <div className="mb-6">
+            <div className="mb-2">
               <h2 className={` ${paymentStatus === "idle" ? "!text-3xl" : "!text-2xl"} text-center font-bold`}>
                 {paymentStatus === "idle" ? "Join Inner Circle" : "Minting Inner Circle Membership..."}
               </h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="text-center text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+              {tierData[membershipId]?.label.toUpperCase()} Tier @ {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.priceUSD} USD)
+              {tierData[membershipId]?.term === "annual" ? " per year" : ""}
+            </div>
+
+            <div className="space-y-2">
               <div className="flex justify-center items-center w-full mb-6">
-                <img
-                  src="https://2ontozcbnet7nrgklxiuzrexflmpqbwhqhgogqixmxamlsyaurjq.arweave.net/05s3ZEFpJ_bEyl3RTMSXKtj4BseBzONBF2XAxcsApFM?ext=gif"
-                  alt="Inner Circle NFT"
-                  className="w-32 h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-cover rounded-lg"
-                />
+                <img src={tokenImg || ""} alt="Inner Circle NFT" className="w-32 h-32 md:w-72 md:h-72 object-cover rounded-lg" />
               </div>
 
               {mintingStatus === "processing" && (
@@ -359,9 +393,9 @@ export const JoinInnerCircle = ({
 
               {paymentStatus === "idle" && (
                 <>
-                  <div className={`flex flex-col gap-4`}>
+                  <div className="flex flex-col gap-4 text-center">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Your Wallet Address (for receiving the music NFT)</label>
+                      <label className="block text-sm font-medium mb-2">Your Wallet Address (for receiving the Membership NFT)</label>
                       <p className="text-sm">
                         <a
                           href={`https://solscan.io/account/${publicKey?.toBase58()}`}
@@ -371,7 +405,7 @@ export const JoinInnerCircle = ({
                           {publicKey?.toBase58() || "..."}
                         </a>
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">Make sure payment ALSO comes from this wallet as Sigma will verify this.</p>
+                      <p className="text-xs text-gray-400 mt-1">Make sure payment ALSO comes from this wallet as we will verify this.</p>
                     </div>
                   </div>
 
@@ -425,16 +459,16 @@ export const JoinInnerCircle = ({
         {paymentStatus === "idle" && (
           <div className="bg-cyan-900 bg-opacity-20 rounded-lg flex flex-col gap-2 p-8">
             <p className="text-xl font-bold mb-4">How it works?</p>
-            <p className="text-sm mb-4">
+            <p className="text-md mb-4">
               The inner circle fan membership is powered by NFT technology to ensure that it's fraud proof (no one can fake a membership) and it's shareable and
               tradable (i.e. you can give it to your friends or sell it).
             </p>
             <ul className="space-y-3 list-none">
               <li className="flex gap-2">
                 <span className="text-cyan-400 font-bold">1.</span>
-                Make a small SOL payment of{" "}
+                Make a SOL payment of{" "}
                 <span className="text-orange-600 contents">
-                  {requiredSolAmount ?? "..."} SOL (${INNER_CIRCLE_PRICE_IN_USD} USD)
+                  {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.priceUSD} USD)
                 </span>{" "}
                 to Sigma's wallet. This is used to pay for the membership tokenization
               </li>

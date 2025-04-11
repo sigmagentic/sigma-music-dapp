@@ -3,6 +3,8 @@ import { PublicKey } from "@solana/web3.js";
 import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { Web3Auth } from "@web3auth/modal";
 import { SolanaPrivateKeyProvider, SolanaWallet } from "@web3auth/solana-provider";
+import { useLocation } from "react-router-dom";
+import { routeNames } from "routes";
 
 interface Web3AuthContextType {
   web3auth: Web3Auth | null;
@@ -66,6 +68,7 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [publicKey, setPublicKey] = useState<PublicKey | null>(null);
+  const location = useLocation();
   const [userInfo, setUserInfo] = useState<Web3AuthContextType["userInfo"]>({
     email: null,
     name: null,
@@ -99,13 +102,18 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             modalZIndex: "2147483647",
             loginGridCol: 3,
             mode: "dark",
+            primaryButton: "emailLogin",
+            theme: {
+              primary: "#ffffff", // Primary button color
+            },
           },
         });
 
         await web3authInstance.initModal();
         setWeb3auth(web3authInstance);
 
-        if (web3authInstance.connected) {
+        // Only auto-connect if we're not on the login page
+        if (web3authInstance.connected && location.pathname !== routeNames.login) {
           const provider = web3authInstance.provider;
           if (provider) {
             const publicKeyBytes = await provider.request({ method: "solanaPublicKey" });
@@ -115,8 +123,8 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             }
 
             // Get all user info
-            const userInfo = await web3authInstance.getUserInfo();
-            if (userInfo) {
+            const _userInfo = await web3authInstance.getUserInfo();
+            if (_userInfo) {
               setUserInfo({
                 email: userInfo.email || null,
                 name: userInfo.name || null,
@@ -141,7 +149,7 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
 
     init();
-  }, []);
+  }, [location.pathname]);
 
   const connect = async () => {
     if (!web3auth) {

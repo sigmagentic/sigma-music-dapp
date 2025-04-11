@@ -10,7 +10,7 @@ import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { Artist, Album } from "libs/types";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, logPaymentToAPI, mintAlbumNFTAfterPayment, sleep } from "libs/utils/misc";
+import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPayment, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 
 export const BuyAndMintAlbumUsingSOL = ({
@@ -186,7 +186,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
     try {
       // Mint the music
-      const _mintAlbumNFTAfterPaymentResponse = await mintAlbumNFTAfterPayment({
+      const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPayment({
         solSignature,
         signatureNonce,
         mintForSolAddr: publicKey?.toBase58(),
@@ -223,8 +223,8 @@ export const BuyAndMintAlbumUsingSOL = ({
       // await mintNFTAfterPaymentAPI({
       //   payer: publicKey.toBase58(),
       //   tx: signature,
-      //   nftType: "innerCircle",
-      //   creatorWallet: creatorWallet,
+      //   nftType: "fan",
+      //   creatorWallet: artistProfile.creatorPaymentsWallet,
       //   membershipId: membershipId,
       //   creatorSlug: artistSlug,
       // });
@@ -277,7 +277,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
   // Payment confirmation popup
   const PaymentConfirmationPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
         <div className="space-y-4">

@@ -17,7 +17,7 @@ import { useNftsStore } from "store/nfts";
 import { FeaturedArtistsAndAlbums } from "./FeaturedArtistsAndAlbums";
 import { FeaturedBanners } from "./FeaturedBanners";
 import { MiniGames } from "./MiniGames";
-import { MyCollectedAlbums } from "./MyCollectedAlbums";
+import { MyCollectedNFTs } from "./MyCollectedNFTs";
 import { MyProfile } from "./MyProfile";
 import { RadioBgCanvas } from "./RadioBgCanvas";
 import { RadioTeaser } from "./RadioTeaser";
@@ -89,6 +89,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
     const isFeaturedArtistDeepLink = searchParams.get("artist");
 
     if (isFeaturedArtistDeepLink) {
+      console.log("HOME MODE +++++++ B ", homeMode);
       // user reloaded into a artist deep link, all we need to do is set the home mode to artists, then the below home mode effect takes care of the rest
       setHomeMode(`artists-${new Date().getTime()}`);
     }
@@ -97,6 +98,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   }, []);
 
   useEffect(() => {
+    console.log("HOME MODE +++++++ A ", homeMode);
     if (homeMode === "radio" && !launchRadioPlayer) {
       setLaunchRadioPlayer(true);
       setLoadRadioPlayerIntoDockedMode(true);
@@ -125,6 +127,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
   useEffect(() => {
     if (launchRadioPlayer) {
+      console.log("HOME MODE +++++++ C ", homeMode);
       setHomeMode("radio");
     }
   }, [launchRadioPlayer]);
@@ -133,7 +136,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
     if (publicKeySol && solNfts.length > 0) {
       setShownSolAppDataNfts(
         solNfts.filter((nft: DasApiAsset) => {
-          if (nft.content.metadata.name.includes("MUS") || nft.content.metadata.name.includes("POD")) {
+          if (nft.content.metadata.name.includes("MUS") || nft.content.metadata.name.includes("POD") || nft.content.metadata.name.includes("FAN")) {
             return true;
           } else {
             return false;
@@ -459,6 +462,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                   <div className="featuredBanners flex-1">
                     <FeaturedBanners
                       onFeaturedArtistDeepLinkSlug={(slug: string) => {
+                        console.log("HOME MODE +++++++ D ", `artists-${new Date().getTime()}`);
                         setHomeMode(`artists-${new Date().getTime()}`);
                         setSearchParams({ "artist": slug });
                       }}
@@ -541,7 +545,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
             <>
               {publicKeySol && (
                 <div className="w-full mt-5">
-                  <MyCollectedAlbums
+                  <MyCollectedNFTs
                     viewSolData={viewSolData}
                     isFetchingDataMarshal={isFetchingDataMarshal}
                     viewDataRes={viewDataRes}
@@ -579,7 +583,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
           {/* Musican Onboarding Section */}
           {homeMode === "home" && (
-            <div className="w-full mt-5">
+            <div className="w-full mt-5 hidden">
               <div id="join-sigma" className="flex flex-col md:flex-row 3xl:flex-col gap-4 py-[40px] px-[20px] text-center rounded-t-lg">
                 <div className="flex flex-col flex-1 text-left">
                   <span className="text-center md:text-left font-[Clash-Medium] text-2xl xl:text-5xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">

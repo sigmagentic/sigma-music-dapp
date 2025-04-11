@@ -30,6 +30,7 @@ const LoginPage = () => {
   const address = publicKey?.toBase58();
 
   useEffect(() => {
+    console.log("LOGIN +++++++ A");
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -37,6 +38,7 @@ const LoginPage = () => {
   }, []);
 
   useEffect(() => {
+    console.log("LOGIN +++++++ B ", address);
     let addressSolToUse = address;
 
     if (!addressSolToUse) {
@@ -81,8 +83,15 @@ const LoginPage = () => {
           isTriggerFreeGift = "g=1";
         }
 
-        // where can we send them back?
-        let fromWhere = location.state?.from || "/";
+        // Get the redirect path from query parameter
+        const searchParams = new URLSearchParams(location.search);
+        let fromWhere = searchParams.get("from") || "/";
+
+        // Clear the from parameter from the URL
+        searchParams.delete("from");
+        const newSearch = searchParams.toString();
+        const newUrl = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+        window.history.replaceState({}, "", newUrl);
 
         if (fromWhere.includes("?")) {
           if (isTriggerFreeGift !== "") {
@@ -98,13 +107,7 @@ const LoginPage = () => {
           fromWhere = `${fromWhere}${isTriggerFreeGift}`;
         }
 
-        // // login was a success, so we take them back to where they were if possible
-        // if (fromWhere.includes("?")) {
-        //   fromWhere = `${fromWhere}&fromLogin=1`;
-        // } else {
-        //   fromWhere = `${fromWhere}?fromLogin=1`;
-        // }
-
+        console.log("LOGIN +++++++ C ", fromWhere);
         navigate(fromWhere);
       }
     } catch (e) {
@@ -119,7 +122,7 @@ const LoginPage = () => {
   return (
     <div className="flex flex-auto">
       <div className="m-auto" data-testid="unlockPage">
-        <div className="rounded-2xl my-4 text-center dark:bg-[#0a0a0a] bg-slate-100 drop-shadow-2xl w-[300px] md:w-[500px]">
+        <div className="rounded-2xl my-4 text-center dark:bg-[#0a0a0a] bg-slate-100 drop-shadow-2xl w-[300px] md:w-[390px]">
           {userAccountLoggingIn ? (
             <div className="p-20 flex flex-col items-center mb-[300px] mt-[200px]">
               <Loader className="animate-spin" />
@@ -129,28 +132,27 @@ const LoginPage = () => {
             <div className="p-10">
               <h4 className="mb-4 font-weight-bold">Log into Sigma Music</h4>
 
-              <div className="flex flex-col px-3 items-center">
-                <span className="text-sm text-muted-foreground mb-2">For web3 native users with a solana wallet:</span>
-                <WalletMultiButton className="w-full !m-0">Login With Solana</WalletMultiButton>
-              </div>
-
               <div className="flex flex-col px-3 items-center mt-5">
-                <span className="text-sm text-muted-foreground mb-2">For everyone:</span>
                 {isConnected ? (
                   <>
-                    <button className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold" onClick={disconnect}>
+                    <button className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[200px] h-[50px] font-bold" onClick={disconnect}>
                       Disconnect
                     </button>
                   </>
                 ) : (
                   <button
-                    className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold"
+                    className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[200px] h-[50px] font-bold"
                     onClick={() => {
                       connect({ useWeb3AuthConnect: true });
                     }}>
                     Login With Email
                   </button>
                 )}
+              </div>
+
+              <div className="flex flex-col px-3 items-center mt-5">
+                <span className="text-sm text-muted-foreground mb-2">For web3 native users with a solana wallet:</span>
+                <WalletMultiButton className="w-full !m-0">Login With Solana</WalletMultiButton>
               </div>
 
               <p className="text-sm text-muted-foreground mt-8">

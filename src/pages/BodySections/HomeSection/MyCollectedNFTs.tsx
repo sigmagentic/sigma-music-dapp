@@ -9,7 +9,7 @@ import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
 
-type MyCollectedAlbumsProps = {
+type MyCollectedNFTsProps = {
   isFetchingDataMarshal: boolean;
   viewDataRes: any;
   currentDataNftIndex: any;
@@ -32,7 +32,7 @@ type MyCollectedAlbumsProps = {
   setHomeMode: (e: any) => any;
 };
 
-export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
+export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   const {
     shownSolAppDataNfts,
     onSendBitzForMusicBounty,
@@ -53,6 +53,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
   const [myCollectedArtistsAlbums, setMyCollectedArtistsAlbums] = useState<any[]>([]);
   const [allOwnedAlbums, setAllOwnedAlbums] = useState<any[]>([]);
   const [allOwnedSigmaAlbums, setAllOwnedSigmaAlbums] = useState<any[]>([]);
+  const [allOwnedFanMemberships, setAllOwnedFanMemberships] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [isFreeDropSampleWorkflow, setIsFreeDropSampleWorkflow] = useState(false);
 
@@ -144,10 +145,52 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
             return !_allOwnedAlbums.some((album) => album.solNftName.split(/[-\s]/)[0].toLowerCase() === nftPrefix.toLowerCase());
           });
 
-          if (unmatchedNfts.length > 0) {
+          // Filter out fan membership NFTs
+          const fanMembershipNfts = unmatchedNfts.filter((nft: DasApiAsset) => nft.content.metadata.name.includes("FAN"));
+          const remainingUnmatchedNfts = unmatchedNfts.filter((nft: DasApiAsset) => !nft.content.metadata.name.includes("FAN"));
+
+          // Process fan membership NFTs
+          if (fanMembershipNfts.length > 0) {
+            const fanMembershipsWithMetadata = await Promise.all(
+              fanMembershipNfts.map(async (nft: DasApiAsset) => {
+                try {
+                  const response = await fetch(nft.content.json_uri);
+                  const metadata = await response.json();
+
+                  return {
+                    solNftName: nft.content.metadata.name,
+                    creatorWallet: nft.ownership.owner,
+                    img: metadata.image || "https://placeholder.com/300x300",
+                    title: metadata.name || nft.content.metadata.name,
+                    desc: metadata.description || "Fan Membership",
+                    bountyId: "fan_membership",
+                    albumId: "fan_membership",
+                    isFanMembership: true,
+                  };
+                } catch (error) {
+                  console.error("Error fetching metadata for fan NFT:", error);
+                  return {
+                    solNftName: nft.content.metadata.name,
+                    creatorWallet: nft.ownership.owner,
+                    img: "https://placeholder.com/300x300",
+                    title: nft.content.metadata.name,
+                    desc: "Fan Membership",
+                    bountyId: "",
+                    albumId: nft.content.metadata.name.replaceAll(" ", "_"),
+                    isFanMembership: true,
+                  };
+                }
+              })
+            );
+            setAllOwnedFanMemberships(fanMembershipsWithMetadata);
+          }
+
+          console.log("remaining unmatched NFTs", remainingUnmatchedNfts);
+
+          if (remainingUnmatchedNfts.length > 0) {
             // Now await is allowed since we're in an async function
             const albumsWithMetadata = await Promise.all(
-              unmatchedNfts.map(async (nft: DasApiAsset) => {
+              remainingUnmatchedNfts.map(async (nft: DasApiAsset) => {
                 try {
                   const response = await fetch(nft.content.json_uri);
                   const metadata = await response.json();
@@ -214,13 +257,13 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
 
   return (
     <div id="myCollectedAlbums" className="flex flex-col justify-center items-center w-full">
-      <div className="flex flex-col mb-16 xl:mb-32 justify-center w-[100%] items-center xl:items-start">
+      <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
         <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
-          <span className="m-auto md:m-0">My collected Artist albums</span>
+          <span className="m-auto md:m-0">Artist albums</span>
         </div>
 
-        <div id="data-nfts" className="flex flex-col md:flex-row w-[100%] items-start">
-          <div className="flex flex-col gap-4 p-2 items-start bg-background min-h-[350px] w-[100%]">
+        <div className="flex flex-col md:flex-row w-[100%] items-start">
+          <div className="flex flex-col gap-4 items-start bg-background min-h-[350px] w-[100%]">
             <>
               <div className="flex flex-col justify-center w-[100%]">
                 {isLoadingSol ? (
@@ -235,7 +278,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                   <>
                     {myCollectedArtistsAlbums.length > 0 ? (
                       <>
-                        <div className="my-2 font-bold text-2xl mb-5">
+                        <div className="font-bold text-2xl mb-5">
                           You have collected{" "}
                           <span className="text-2xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
                             {allOwnedAlbums.length} {allOwnedAlbums.length > 1 ? `albums` : `album`}
@@ -291,33 +334,19 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                   </>
                 )}
               </div>
-
-              {/* {myCollectedArtistsAlbums.length === 0 && (
-                <Button
-                  className="text-lg mb-2 cursor-pointer"
-                  variant="outline"
-                  onClick={() => {
-                    scrollToSection("artist-profile");
-                  }}>
-                  <>
-                    <LibraryBig />
-                    <span className="ml-2">{isMostLikelyMobile() ? "View All Artists" : "View All Artists & Collect More Albums"}</span>
-                  </>
-                </Button>
-              )} */}
             </>
           </div>
         </div>
       </div>
 
       {allOwnedSigmaAlbums.length > 0 && (
-        <div className="flex flex-col mb-16 xl:mb-32 justify-center w-[100%] items-center xl:items-start">
+        <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
           <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
-            <span className="m-auto md:m-0">My collected Sigma AI albums</span>
+            <span className="m-auto md:m-0">Sigma AI Albums</span>
           </div>
 
-          <div id="sigma-data-nfts" className="flex flex-col md:flex-row w-[100%] items-start">
-            <div className="flex flex-col gap-4 p-2 md:p-8 items-start bg-background rounded-lg border border-primary/50 min-h-[350px] w-[100%]">
+          <div className="flex flex-col md:flex-row w-[100%] items-start">
+            <div className="flex flex-col gap-4 items-start bg-background min-h-[350px] w-[100%]">
               <>
                 <div className="flex flex-col justify-center w-[100%]">
                   {isLoadingSol ? (
@@ -332,7 +361,7 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                     <>
                       {allOwnedSigmaAlbums.length > 0 ? (
                         <>
-                          <div className="my-2 font-bold text-2xl mb-5">
+                          <div className="font-bold text-2xl mb-5">
                             You have collected{" "}
                             <span className="text-2xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
                               {allOwnedSigmaAlbums.length} {allOwnedSigmaAlbums.length > 1 ? `albums` : `album`}
@@ -401,6 +430,47 @@ export const MyCollectedAlbums = (props: MyCollectedAlbumsProps) => {
                   </Button>
                 )} */}
               </>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {allOwnedFanMemberships.length > 0 && (
+        <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
+          <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
+            <span className="m-auto md:m-0">Fan Memberships</span>
+          </div>
+
+          <div className="flex flex-col md:flex-row w-[100%] items-start">
+            <div className="flex flex-col gap-4 items-start bg-background min-h-[350px] w-[100%]">
+              <div className="flex flex-col justify-center w-[100%]">
+                {isLoadingSol ? (
+                  <div className="m-auto w-full">
+                    <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
+                      {[...Array(3)].map((_, index) => (
+                        <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="my-2 font-bold text-2xl mb-5 ">
+                      You have{" "}
+                      <span className="text-2xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+                        {allOwnedFanMemberships.length} {allOwnedFanMemberships.length > 1 ? `fan memberships` : `fan membership`}
+                      </span>
+                    </div>
+                    <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border">
+                      {allOwnedFanMemberships.map((membership: any, index: number) => (
+                        <div key={index} className="flex flex-col items-center p-4 rounded-lg">
+                          <img src={membership.img} alt={membership.title} className="h-48 w-48 object-cover rounded-lg mb-4" />
+                          <h3 className="text-xl font-bold mb-2">{membership.title}</h3>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

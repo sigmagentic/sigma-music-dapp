@@ -5,7 +5,7 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
-import AlbumSales from "components/AlbumSales/AlbumSales";
+import ArtistSales from "components/ArtistSales/ArtistSales";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
@@ -132,8 +132,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setIsSigmaWorkflow(true);
     }
 
-    if (jumpToTab && jumpToTab === "ic") {
-      setActiveTab("innerCircle");
+    if (jumpToTab && jumpToTab === "fan") {
+      setActiveTab("fan");
     }
 
     previewTrackAudio.addEventListener("ended", eventToAttachEnded);
@@ -186,6 +186,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     () => () => {
       // on unmount we have to stp playing as for some reason the play continues always otherwise
       playPausePreview(); // with no params wil always go into the stop logic
+
+      // remove the artist param from the url
+      const currentParams = Object.fromEntries(searchParams.entries());
+      delete currentParams["artist"];
+      delete currentParams["t"];
+      setSearchParams(currentParams);
     },
     []
   );
@@ -339,6 +345,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     // remove the artist param from the url
     const currentParams = Object.fromEntries(searchParams.entries());
     delete currentParams["artist"];
+    delete currentParams["t"];
     setSearchParams(currentParams);
 
     // reset the featuredArtistDeepLinkSlug
@@ -623,7 +630,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         <div className="w-full border-b border-gray-600">
                           <div className="flex space-x-8">
                             <button
-                              onClick={() => setActiveTab("discography")}
+                              onClick={() => {
+                                setActiveTab("discography");
+                                const currentParams = Object.fromEntries(searchParams.entries());
+                                delete currentParams["t"];
+                                setSearchParams(currentParams);
+                              }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
                                   activeTab === "discography"
@@ -634,7 +646,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               Discography
                             </button>
                             <button
-                              onClick={() => setActiveTab("leaderboard")}
+                              onClick={() => {
+                                setActiveTab("leaderboard");
+                                const currentParams = Object.fromEntries(searchParams.entries());
+                                delete currentParams["t"];
+                                setSearchParams(currentParams);
+                              }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
                                   activeTab === "leaderboard"
@@ -645,21 +662,31 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               Power-Up Leaderboard
                             </button>
                             <button
-                              onClick={() => setActiveTab("albumSales")}
+                              onClick={() => {
+                                setActiveTab("artistSales");
+                                const currentParams = Object.fromEntries(searchParams.entries());
+                                delete currentParams["t"];
+                                setSearchParams(currentParams);
+                              }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
-                                  activeTab === "albumSales"
+                                  activeTab === "artistSales"
                                     ? "border-orange-500 text-orange-500"
                                     : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                 }
                               `}>
-                              Album Sales
+                              Artist Sales
                             </button>
                             <button
-                              onClick={() => setActiveTab("innerCircle")}
+                              onClick={() => {
+                                setActiveTab("fan");
+                                const currentParams = Object.fromEntries(searchParams.entries());
+                                currentParams["t"] = "fan";
+                                setSearchParams(currentParams);
+                              }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
-                                  activeTab === "innerCircle"
+                                  activeTab === "fan"
                                     ? "border-orange-500 text-orange-500"
                                     : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                 }
@@ -704,18 +731,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           </div>
                         )}
 
-                        {activeTab === "albumSales" && (
+                        {activeTab === "artistSales" && (
                           <div className="artist-album-sales w-full">
-                            <AlbumSales creatorPaymentsWallet={artistProfile.creatorPaymentsWallet} />
+                            <ArtistSales creatorPaymentsWallet={artistProfile.creatorPaymentsWallet} />
                           </div>
                         )}
 
-                        {activeTab === "innerCircle" && (
-                          <div className="artist-innercircle w-full">
+                        {activeTab === "fan" && (
+                          <div className="artist-fan w-full">
                             <ArtistInnerCircle
                               artistName={artistProfile.name.replaceAll("_", " ")}
-                              creatorWallet={artistProfile.creatorWallet}
                               artistSlug={artistProfile.slug}
+                              creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
                             />
                           </div>
                         )}

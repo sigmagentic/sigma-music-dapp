@@ -1,6 +1,7 @@
 import React, { PropsWithChildren, useEffect } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
+import bs58 from "bs58";
 import { IS_DEVNET } from "appsConfig";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -10,7 +11,6 @@ import { computeRemainingCooldown } from "libs/utils/functions";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
 import { useNftsStore } from "./nfts";
-import bs58 from "bs58";
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
   const { signMessage } = useWallet();

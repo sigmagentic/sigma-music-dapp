@@ -264,10 +264,25 @@ h6 {
   visibility: visible;
 }
 
+/* S: Web3 Auth Overrides */
 .wallet-adapter-button-trigger {
   background-color: transparent !important;
-  border: solid 1px #fcaf32 !important;
+  border: solid 1px #ffffff !important;
+  width: 200px !important;
+  height: 50px !important;
+  margin: auto !important;
+  display: block !important;
+  font-family: Satoshi-Medium !important;
 }
+
+.w3a-modal__inner,
+.w3a-modal__inner--active,
+.w3a--p-6,
+.w3a--pt-7 {
+  background-color: #0a0a0a !important;
+}
+
+/* E: Web3 Auth Overrides */
 
 @keyframes gradient {
   0% {
