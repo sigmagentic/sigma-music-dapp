@@ -444,7 +444,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
             <img src={selectedTokenImg} alt="Membership Token" className="w-full h-auto rounded-lg" />
             <button
               onClick={() => setSelectedTokenImg(null)}
-              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
+              className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
               Close
             </button>
           </div>
