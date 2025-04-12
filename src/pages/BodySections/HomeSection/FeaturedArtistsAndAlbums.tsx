@@ -5,8 +5,8 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
-import ArtistSales from "components/ArtistSales/ArtistSales";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
+import ArtistSales from "components/ArtistSales/ArtistSales";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -14,7 +14,7 @@ import { Button } from "libComponents/Button";
 import { GiftBitzToArtistMeta } from "libs/types";
 import { Artist, Album, AlbumWithArtist } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
-import { sleep } from "libs/utils";
+import { sleep, scrollToTopOnMainContentArea } from "libs/utils";
 import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
@@ -118,10 +118,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   }, 2500);
 
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    scrollToTopOnMainContentArea();
 
     const isHlWorkflowDeepLink = searchParams.get("hl");
     const jumpToTab = searchParams.get("t");
@@ -326,14 +323,19 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     return `${formattedMinutes}:${formattedSeconds}`;
   };
 
-  function getImagePosition(imageUrl: string): string {
+  function getImagePositionMeta(imageUrl: string, metaKey: string): string {
     try {
       const url = new URL(imageUrl);
-      const pos = url.searchParams.get("pos");
-      return pos || "left";
+      const pos = url.searchParams.get(metaKey);
+
+      if (metaKey === "pcolor") {
+        return `#${pos}` || "intial";
+      } else {
+        return pos || "intial";
+      }
     } catch {
       // Return default if URL is invalid
-      return "left";
+      return "intial";
     }
   }
 
@@ -416,17 +418,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               // setInArtistProfileView(true);
                               setLoadIntoTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
-                              window.scrollTo({
-                                top: 0,
-                                behavior: "smooth",
-                              });
+                              scrollToTopOnMainContentArea();
                             }
                           }}>
                           <div
                             className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
                             style={{
                               "backgroundImage": `url(${artist.img})`,
-                              "backgroundPosition": getImagePosition(artist.img),
+                              "backgroundPosition": getImagePositionMeta(artist.img, "tpos"),
                             }}>
                             <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
                               <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
@@ -456,17 +455,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               // setInArtistProfileView(true);
                               setLoadIntoTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
-                              window.scrollTo({
-                                top: 0,
-                                behavior: "smooth",
-                              });
+                              scrollToTopOnMainContentArea();
                             }
                           }}>
                           <div
                             className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
                             style={{
                               "backgroundImage": `url(${album.img})`,
-                              "backgroundPosition": getImagePosition(album.img),
+                              "backgroundPosition": getImagePositionMeta(album.img, "tpos"),
                             }}>
                             <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
                               <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
@@ -494,6 +490,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] flex-1 bg-no-repeat bg-cover rounded-lg"
                             style={{
                               "backgroundImage": `url(${artistProfile.img})`,
+                              "backgroundPosition": getImagePositionMeta(artistProfile.img, "ppos"),
+                              "backgroundColor": getImagePositionMeta(artistProfile.img, "pcolor"),
+                              "backgroundSize": getImagePositionMeta(artistProfile.img, "psize"),
                             }}></div>
                         </div>
 

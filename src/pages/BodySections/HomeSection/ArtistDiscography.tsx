@@ -143,9 +143,19 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
   return (
     <>
-      {albumsWithCanBeMintedFlags.length === 0 && (
+      {albums.length === 0 && (
+        <div className="max-w-4xl mx-auto md:m-[initial] p-6 flex flex-col">
+          <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
+            No Playable Content Yet
+          </h2>
+        </div>
+      )}
+
+      {albums.length > 0 && albumsWithCanBeMintedFlags.length === 0 && (
         <div className="h-[100px] flex items-center justify-center">
-          <Loader className="animate-spin" size={30} />
+          <>
+            <Loader className="animate-spin" size={30} />
+          </>
         </div>
       )}
 

@@ -128,11 +128,17 @@ export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bounty
   }
 
   return (
-    <div className="w-full mt-5">
-      {leaderboardData.length === 0 && <div className="text-sm text-muted-foreground h-[100px] flex items-center justify-center">No power-ups yet</div>}
+    <>
+      {leaderboardData.length === 0 && (
+        <div className="max-w-4xl mx-auto md:m-[initial] p-6 flex flex-col">
+          <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
+            No Power-Ups Yet
+          </h2>
+        </div>
+      )}
 
       {leaderboardData.length > 0 && (
-        <div className="rounded-md border">
+        <div className="rounded-md border mt-5">
           <table className="w-full">
             <thead className="bg-gray-800 text-white">
               <tr>
@@ -182,6 +188,6 @@ export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bounty
           </table>
         </div>
       )}
-    </div>
+    </>
   );
 };

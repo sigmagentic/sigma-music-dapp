@@ -40,10 +40,16 @@ export default function ArtistSales({ creatorPaymentsWallet }: ArtistSalesProps)
           <Loader className="animate-spin" size={30} />
         </div>
       ) : (
-        <div className="w-full mt-5">
-          {artistSales.length === 0 && <div className="text-sm text-muted-foreground h-[100px] flex items-center justify-center">No sales yet</div>}
+        <>
+          {artistSales.length === 0 && (
+            <div className="max-w-4xl mx-auto md:m-[initial] p-6 flex flex-col">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
+                No Sales Yet
+              </h2>
+            </div>
+          )}
           {artistSales.length > 0 && (
-            <div className="rounded-md border">
+            <div className="rounded-md border mt-5">
               <table className="w-full">
                 <thead className="bg-muted/50">
                   <tr>
@@ -73,7 +79,7 @@ export default function ArtistSales({ creatorPaymentsWallet }: ArtistSalesProps)
               </table>
             </div>
           )}
-        </div>
+        </>
       )}
     </>
   );

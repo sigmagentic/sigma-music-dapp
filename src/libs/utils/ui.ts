@@ -77,3 +77,13 @@ export function timeSince(unixTimestamp: number): string {
 
   return `${count} ${unit}`;
 }
+
+export const scrollToTopOnMainContentArea = () => {
+  const mainContent = document.querySelector(".main-content");
+  if (mainContent) {
+    mainContent.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+};
