@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Route, Routes, BrowserRouter as Router } from "react-router-dom";
 import { Layout } from "components";
 import { SolContextProvider } from "contexts/sol/SolContextProvider";
@@ -10,10 +10,6 @@ import { StoreProvider } from "./store/StoreProvider";
 
 export const App = () => {
   const [homeMode, setHomeMode] = useState<string>("home");
-
-  useEffect(() => {
-    console.log("APP MODE +++++++ A ", routeNames);
-  }, [routeNames]);
 
   return (
     <Router>

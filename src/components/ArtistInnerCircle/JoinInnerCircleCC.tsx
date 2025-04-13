@@ -24,7 +24,7 @@ export const JoinInnerCircleCC = ({
   artistSlug: string;
   creatorPaymentsWallet: string;
   membershipId: string;
-  creatorFanMembershipAvailability: Record<string, string>;
+  creatorFanMembershipAvailability: Record<string, any>;
 }) => {
   const { publicKey } = useSolanaWallet();
   const [showStripePaymentPopup, setShowStripePaymentPopup] = useState(false);
@@ -51,7 +51,7 @@ export const JoinInnerCircleCC = ({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        amountToPay: tierData[membershipId].priceUSD.toString(),
+        amountToPay: tierData[membershipId].defaultPriceUSD.toString(),
         creatorAndMembershipTierId: `fan-${creatorPaymentsWallet.trim().toLowerCase()}-${membershipId}`,
         buyerSolAddress: publicKey.toBase58(),
       }),
@@ -96,7 +96,7 @@ export const JoinInnerCircleCC = ({
                 </button>
                 <h3 className="text-xl font-bold mb-4">Secure Payment via Stripe</h3>
                 <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                  $ {tierData[membershipId].priceUSD} USD
+                  $ {tierData[membershipId].defaultPriceUSD} USD
                 </span>
                 <div className="mt-2">
                   <StripeCheckoutFormFanMembership
@@ -105,7 +105,7 @@ export const JoinInnerCircleCC = ({
                       artistName,
                       membershipId,
                       tokenImg,
-                      membershipPriceUSD: tierData[membershipId].priceUSD,
+                      membershipPriceUSD: tierData[membershipId].defaultPriceUSD,
                       membershipLabel: tierData[membershipId].label,
                       creatorPaymentsWallet,
                     }}
@@ -133,7 +133,7 @@ export const JoinInnerCircleCC = ({
 
   let isCCPaymentsDisabled = !ENABLE_CC_PAYMENTS || ENABLE_CC_PAYMENTS !== "1" || !STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "";
 
-  const tokenImg = creatorFanMembershipAvailability[membershipId];
+  const tokenImg = creatorFanMembershipAvailability[membershipId]?.tokenImg;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
@@ -171,7 +171,7 @@ export const JoinInnerCircleCC = ({
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                      $ {tierData[membershipId].priceUSD} USD
+                      $ {tierData[membershipId].defaultPriceUSD} USD
                     </span>
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export const JoinInnerCircleCC = ({
 
             {isCCPaymentsDisabled && (
               <div className="flex gap-4 bg-red-600 p-4 rounded-lg text-sm">
-                <p className="text-white">CC payments are not enabled for this environment. Please try again later.</p>
+                <p className="text-white">CC payments are currently disabled. Please try again later.</p>
               </div>
             )}
 

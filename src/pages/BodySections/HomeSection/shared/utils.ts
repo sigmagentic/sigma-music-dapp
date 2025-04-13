@@ -26,6 +26,7 @@ export async function getArtistsAlbumsData() {
       if (!IS_LIVE_DEMO_MODE) {
         dataset = dataset.filter((artist: any) => !artist.name.includes("(DEMO)"));
       } else {
+        // First process the demo items and mark them
         dataset = dataset.map((artist: any) => {
           if (artist.name.includes("(DEMO)")) {
             return {
@@ -36,6 +37,13 @@ export async function getArtistsAlbumsData() {
           } else {
             return artist;
           }
+        });
+
+        // Then sort to move demo items to the top
+        dataset.sort((a: any, b: any) => {
+          if (a.isDemo && !b.isDemo) return -1;
+          if (!a.isDemo && b.isDemo) return 1;
+          return 0;
         });
       }
 

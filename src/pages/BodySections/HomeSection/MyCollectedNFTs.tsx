@@ -185,8 +185,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             setAllOwnedFanMemberships(fanMembershipsWithMetadata);
           }
 
-          console.log("remaining unmatched NFTs", remainingUnmatchedNfts);
-
           if (remainingUnmatchedNfts.length > 0) {
             // Now await is allowed since we're in an async function
             const albumsWithMetadata = await Promise.all(

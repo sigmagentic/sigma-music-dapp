@@ -523,16 +523,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                     </>
                                   </Button>
                                 ) : (
-                                  <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
-                                    <Button
-                                      className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 rounded-none rounded-l-sm"
-                                      variant="outline">
-                                      <>
-                                        <WalletMinimal />
-                                        <span className="ml-2">Login to Power-Up</span>
-                                      </>
-                                    </Button>
-                                  </Link>
+                                  <Button
+                                    className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 rounded-none rounded-l-sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
+                                    }}>
+                                    <>
+                                      <WalletMinimal />
+                                      <span className="ml-2">Login to Power-Up</span>
+                                    </>
+                                  </Button>
                                 )}
                                 {isSigmaWorkflow && (
                                   <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">

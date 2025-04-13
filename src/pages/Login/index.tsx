@@ -30,7 +30,6 @@ const LoginPage = () => {
   const address = publicKey?.toBase58();
 
   useEffect(() => {
-    console.log("LOGIN +++++++ A");
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -38,7 +37,6 @@ const LoginPage = () => {
   }, []);
 
   useEffect(() => {
-    console.log("LOGIN +++++++ B ", address);
     let addressSolToUse = address;
 
     if (!addressSolToUse) {
@@ -107,7 +105,6 @@ const LoginPage = () => {
           fromWhere = `${fromWhere}${isTriggerFreeGift}`;
         }
 
-        console.log("LOGIN +++++++ C ", fromWhere);
         navigate(fromWhere);
       }
     } catch (e) {
@@ -150,7 +147,7 @@ const LoginPage = () => {
                 )}
               </div>
 
-              <div className="flex flex-col px-3 items-center mt-5">
+              <div className="phantom-login-button flex flex-col px-3 items-center mt-5">
                 <span className="text-sm text-muted-foreground mb-2">For web3 native users with a solana wallet:</span>
                 <WalletMultiButton className="w-full !m-0">Login With Solana</WalletMultiButton>
               </div>

@@ -443,7 +443,7 @@ export const fetchCreatorFanMembershipAvailability = async (creatorPaymentsWalle
     const cacheEntry = cache_creatorFanMembershipAvailability[creatorPaymentsWallet];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
       console.log(`fetchCreatorFanMembershipAvailability: Getting fan membership availability for creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`);
-      return cacheEntry.data as Record<string, string>;
+      return cacheEntry.data as Record<string, any>;
     }
 
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintInnerCircleNFTCanBeMinted?creatorWallet=${creatorPaymentsWallet}`);
@@ -458,10 +458,13 @@ export const fetchCreatorFanMembershipAvailability = async (creatorPaymentsWalle
       // Transform the data into the desired format
       const transformedData = Object.entries(data.mintableItems).reduce(
         (acc, [, value]: [string, any]) => {
-          acc[value.membershipId] = value.tokenImg;
+          acc[value.membershipId] = {
+            tokenImg: value.tokenImg,
+            perkIdsOffered: value.perkIdsOffered,
+          };
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, { tokenImg: string; perkIdsOffered: string[] }>
       );
 
       // Update cache
@@ -470,8 +473,10 @@ export const fetchCreatorFanMembershipAvailability = async (creatorPaymentsWalle
         timestamp: now,
       };
 
-      return transformedData as Record<string, string>;
+      return transformedData as Record<string, any>;
     }
+
+    return {} as Record<string, any>;
   } catch (error) {
     console.error("Error fetching membership data:", error);
 
@@ -480,7 +485,7 @@ export const fetchCreatorFanMembershipAvailability = async (creatorPaymentsWalle
       timestamp: now,
     };
 
-    return {} as Record<string, string>;
+    return {} as Record<string, any>;
   }
 };
 

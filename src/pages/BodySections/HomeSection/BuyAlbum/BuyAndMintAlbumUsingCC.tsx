@@ -183,7 +183,7 @@ export const BuyAndMintAlbumUsingCC = ({
 
             {isCCPaymentsDisabled && (
               <div className="flex gap-4 bg-red-600 p-4 rounded-lg text-sm">
-                <p className="text-white">CC payments are not enabled for this environment. Please try again later.</p>
+                <p className="text-white">CC payments are currently disabled. Please try again later.</p>
               </div>
             )}
 

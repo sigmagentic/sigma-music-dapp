@@ -4,7 +4,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { confetti } from "@tsparticles/confetti";
 import { Loader } from "lucide-react";
-import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
+import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -26,7 +26,7 @@ export const JoinInnerCircleSOL = ({
   artistSlug: string;
   creatorPaymentsWallet: string;
   membershipId: string;
-  creatorFanMembershipAvailability: Record<string, string>;
+  creatorFanMembershipAvailability: Record<string, any>;
 }) => {
   const { connection } = useConnection();
   const { sendTransaction, signMessage } = useWallet();
@@ -66,7 +66,7 @@ export const JoinInnerCircleSOL = ({
         const { currentSolPrice } = await fetchSolPrice();
 
         // Calculate required SOL amount based on USD price
-        const solAmount = tierData[membershipId].priceUSD / currentSolPrice;
+        const solAmount = tierData[membershipId].defaultPriceUSD / currentSolPrice;
         setRequiredSolAmount(Number(solAmount.toFixed(4))); // Round to 4 decimal places
       } catch (error) {
         console.error("Failed to fetch SOL price:", error);
@@ -283,7 +283,7 @@ export const JoinInnerCircleSOL = ({
         <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
         <div className="space-y-4">
           <p>
-            Amount to pay: {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.priceUSD} USD)
+            Amount to pay: {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD} USD)
           </p>
           <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
 
@@ -316,7 +316,8 @@ export const JoinInnerCircleSOL = ({
     setBackendErrorMessage(null);
   }
 
-  const tokenImg = creatorFanMembershipAvailability[membershipId];
+  const tokenImg = creatorFanMembershipAvailability[membershipId]?.tokenImg || null;
+  const isSolPaymentsDisabled = !ENABLE_SOL_PAYMENTS || ENABLE_SOL_PAYMENTS !== "1";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
@@ -346,7 +347,7 @@ export const JoinInnerCircleSOL = ({
             </div>
 
             <div className="text-center text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              {tierData[membershipId]?.label.toUpperCase()} Tier @ {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.priceUSD} USD)
+              {tierData[membershipId]?.label.toUpperCase()} Tier @ {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD} USD)
               {tierData[membershipId]?.term === "annual" ? " per year" : ""}
             </div>
 
@@ -409,9 +410,16 @@ export const JoinInnerCircleSOL = ({
                     </div>
                   </div>
 
+                  {isSolPaymentsDisabled && (
+                    <div className="flex gap-4 bg-red-600 p-4 rounded-lg text-sm">
+                      <p className="text-white">SOL payments are currently disabled. Please try again later.</p>
+                    </div>
+                  )}
+
                   <Button
                     onClick={handlePaymentAndMint}
-                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
+                    disabled={isSolPaymentsDisabled}>
                     Make Payment and Mint NFT
                   </Button>
                 </>
@@ -468,7 +476,7 @@ export const JoinInnerCircleSOL = ({
                 <span className="text-cyan-400 font-bold">1.</span>
                 Make a SOL payment of{" "}
                 <span className="text-orange-600 contents">
-                  {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.priceUSD} USD)
+                  {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD} USD)
                 </span>{" "}
                 to Sigma's wallet. This is used to pay for the membership tokenization
               </li>

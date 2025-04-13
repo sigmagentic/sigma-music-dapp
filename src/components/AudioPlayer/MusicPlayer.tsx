@@ -27,6 +27,7 @@ import DEFAULT_SONG_IMAGE from "assets/img/audio-player-image.png";
 import DEFAULT_SONG_LIGHT_IMAGE from "assets/img/audio-player-light-image.png";
 import { DISABLE_BITZ_FEATURES, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BountyBitzSumMapping, MusicTrack } from "libs/types";
 import { toastClosableError } from "libs/utils/uiShared";
@@ -123,6 +124,11 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [currentTime, setCurrentTime] = useState("00:00");
   const [displayTrackList, setDisplayTrackList] = useState(window.innerWidth >= 768);
   const [musicPlayerAudio] = useState(new Audio());
+  const [musicPlayerVideo] = useState(() => {
+    const video = document.createElement("video");
+    video.preload = "auto";
+    return video;
+  });
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [progress, setProgress] = useState(0);
@@ -165,62 +171,61 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   };
   const [imgLoading, setImgLoading] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(!playerExplicitlyDockedByUser && window.innerWidth >= 768);
+  const [showBonusTrackModal, setShowBonusTrackModal] = useState(false);
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
 
+  // Add helper to determine current media type
+  const isCurrentTrackVideo = () => {
+    return trackList[currentTrackIndex]?.category?.toLowerCase() === "video";
+  };
+
+  // Add helper to get current media element
+  const getCurrentMediaElement = () => {
+    return isCurrentTrackVideo() ? musicPlayerVideo : musicPlayerAudio;
+  };
+
   useEffect(() => {
     if (trackList && trackList.length > 0 && firstSongBlobUrl && firstSongBlobUrl !== "") {
-      musicPlayerAudio.addEventListener("ended", function () {
+      const mediaElement = getCurrentMediaElement();
+
+      const handleEnded = () => {
         setCurrentTrackIndex((prevCurrentTrackIndex) => (prevCurrentTrackIndex < trackList.length - 1 ? prevCurrentTrackIndex + 1 : 0));
-      });
+      };
 
-      musicPlayerAudio.addEventListener("timeupdate", updateProgress);
-
-      musicPlayerAudio.addEventListener("canplaythrough", function () {
-        // Audio is ready to be played
+      const handleCanPlayThrough = () => {
         setIsLoaded(true);
         updateProgress();
-        // play the song
-        if (musicPlayerAudio.currentTime == 0) {
+        if (mediaElement.currentTime === 0) {
           togglePlay();
         }
-      });
+      };
 
-      // here we queue all the songs in the trackList by advanced fetching them from Marshal
+      // Add event listeners to current media element
+      mediaElement.addEventListener("ended", handleEnded);
+      mediaElement.addEventListener("timeupdate", updateProgress);
+      mediaElement.addEventListener("canplaythrough", handleCanPlayThrough);
+
+      // Queue all songs in trackList
       if (trackList && trackList.length > 0) {
         trackList.forEach((song: any) => {
-          // const trackIdx = parseInt(song.idx, 10);
-          if (trackList[0].idx === song.idx) return; // the first song in the playlist will be cached by the firstSongBlobUrl
-
+          if (trackList[0].idx === song.idx) return;
           fetchMarshalForSong(song.idx);
         });
-
         updateProgress();
       }
 
       return () => {
+        // Clean up both audio and video elements
         musicPlayerAudio.pause();
-        musicPlayerAudio.removeEventListener("timeupdate", updateProgress);
-        musicPlayerAudio.removeEventListener("canplaythrough", function () {
-          setIsLoaded(false);
-        });
+        musicPlayerVideo.pause();
+        mediaElement.removeEventListener("timeupdate", updateProgress);
+        mediaElement.removeEventListener("ended", handleEnded);
+        mediaElement.removeEventListener("canplaythrough", handleCanPlayThrough);
       };
     }
-
-    // // if the user swapped to new album...
-    // if (trackList && trackList.length === 0) {
-    //   // hide the track list as it will be empty
-    //   if (displayTrackList) {
-    //     console.log("---> displayTrackList HIDE");
-    //     setDisplayTrackList(false);
-    //   }
-    // } else {
-    //   if (!displayTrackList && window.innerWidth >= 768) {
-    //     setDisplayTrackList(true);
-    //   }
-    // }
   }, [trackList, firstSongBlobUrl]);
 
   useEffect(() => {
@@ -237,11 +242,11 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
   useEffect(() => {
     updateProgress();
-  }, [musicPlayerAudio.src]);
+  }, [getCurrentMediaElement().src]);
 
   useEffect(() => {
-    musicPlayerAudio.pause();
-    musicPlayerAudio.src = "";
+    getCurrentMediaElement().pause();
+    getCurrentMediaElement().src = "";
     setIsPlaying(false);
     setIsLoaded(false);
     handleChangeSong();
@@ -278,7 +283,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
   const pauseMusicPlayer = () => {
     if (isPlaying) {
-      musicPlayerAudio.pause();
+      getCurrentMediaElement().pause();
       setIsPlaying(false);
     }
   };
@@ -408,26 +413,27 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   };
 
   const updateProgress = () => {
-    setCurrentTime(musicPlayerAudio.currentTime ? formatTime(musicPlayerAudio.currentTime) : "00:00");
-    setDuration(musicPlayerAudio.duration ? formatTime(musicPlayerAudio.duration) : "00:00");
-    let _percentage = (musicPlayerAudio.currentTime / musicPlayerAudio.duration) * 100;
+    const mediaElement = getCurrentMediaElement();
+    setCurrentTime(mediaElement.currentTime ? formatTime(mediaElement.currentTime) : "00:00");
+    setDuration(mediaElement.duration ? formatTime(mediaElement.duration) : "00:00");
+    let _percentage = (mediaElement.currentTime / mediaElement.duration) * 100;
     if (isNaN(_percentage)) _percentage = 0;
     setProgress(_percentage);
   };
 
   const togglePlay = () => {
+    const mediaElement = getCurrentMediaElement();
     if (isPlaying) {
-      if (!musicPlayerAudio.paused) {
-        musicPlayerAudio.pause();
+      if (!mediaElement.paused) {
+        mediaElement.pause();
       }
     } else {
       onPlayHappened();
 
-      if (musicPlayerAudio.readyState >= 2) {
-        // Audio is loaded, play it.
-        musicPlayerAudio.play();
+      if (mediaElement.readyState >= 2) {
+        mediaElement.play();
       } else {
-        toastClosableError("Audio not ready yet. Waiting for loading to complete...");
+        toastClosableError("Media not ready yet. Waiting for loading to complete...");
         return;
       }
     }
@@ -435,7 +441,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   };
 
   const handleVolumeChange = (newVolume: number) => {
-    musicPlayerAudio.volume = newVolume;
+    const mediaElement = getCurrentMediaElement();
+    mediaElement.volume = newVolume;
     setVolume(newVolume);
   };
 
@@ -458,32 +465,43 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   };
 
   const repeatTrack = () => {
-    musicPlayerAudio.currentTime = 0;
-    if (isPlaying) musicPlayerAudio.play();
+    getCurrentMediaElement().currentTime = 0;
+    if (isPlaying) getCurrentMediaElement().play();
   };
 
   const handleProgressChange = (newProgress: number) => {
-    if (!musicPlayerAudio.duration) return;
-    const newTime = (newProgress / 100) * musicPlayerAudio.duration;
-    musicPlayerAudio.currentTime = newTime;
-    setCurrentTime(formatTime(musicPlayerAudio.currentTime));
+    const mediaElement = getCurrentMediaElement();
+    if (!mediaElement.duration) return;
+    const newTime = (newProgress / 100) * mediaElement.duration;
+    mediaElement.currentTime = newTime;
+    setCurrentTime(formatTime(mediaElement.currentTime));
     setProgress(newProgress);
   };
 
   const handleChangeSong = () => {
     const index = trackList[currentTrackIndex]?.idx;
+    const mediaElement = getCurrentMediaElement();
 
     if (songSource[index]) {
-      // if we previously fetched the song and it was an error, show again the exact error.
       if (songSource[index].includes("Error:")) {
         toastClosableError(`Track loading failed, error: ${songSource[index]}`);
       } else if (songSource[index] === "Fetching") {
         return false;
+      } else if (songSource[index] === "hidden") {
+        setShowBonusTrackModal(true);
+        return false;
       } else if (!(songSource[index] === "Fetching")) {
-        musicPlayerAudio.src = songSource[index];
-        musicPlayerAudio.load();
+        // Pause and reset both elements
+        musicPlayerAudio.pause();
+        musicPlayerVideo.pause();
+        musicPlayerAudio.src = "";
+        musicPlayerVideo.src = "";
+
+        // Set source on appropriate element
+        mediaElement.src = songSource[index];
+        mediaElement.load();
         updateProgress();
-        musicPlayerAudio.currentTime = 0;
+        mediaElement.currentTime = 0;
       } else {
         return false;
       }
@@ -515,8 +533,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   };
 
   const resetStateOnClosePlayer = () => {
-    musicPlayerAudio.pause();
-    musicPlayerAudio.src = "";
+    getCurrentMediaElement().pause();
+    getCurrentMediaElement().src = "";
     setIsPlaying(false);
     setIsLoaded(false);
     setIsFullScreen(false);
@@ -745,18 +763,37 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 <CircleX className="w-6 h-6" />
               </button>
             </div>
-            <div className={`songInfo px-10 flex flex-col items-center ${isFullScreen ? "mb-8 pt-3" : "md:w-[500px] pt-2 md:pt-10 pb-4 flex-row"}`}>
-              <img
-                src={trackList ? trackList[currentTrackIndex]?.cover_art_url : ""}
-                alt="Album Cover"
-                className={`${isSmallScreen ? "hidden" : ""} select-none rounded-md border border-grey-900 transition-all duration-300 ${
-                  isFullScreen ? "w-[400px] h-[400px]" : "w-[100px] h-[100px]"
-                } ${imgLoading ? "blur-sm" : "blur-none"}`}
-                onLoad={() => setImgLoading(false)}
-                onError={({ currentTarget }) => {
-                  currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
-                }}
-              />
+            <div
+              className={`songInfo px-10 flex flex-col items-center ${isFullScreen ? "mb-8 pt-3" : "md:w-[500px] pt-2 md:pt-10 pb-4 flex-row"}`}
+              style={{ minHeight: isCurrentTrackVideo() ? (isFullScreen ? "400px" : "100px") : "auto" }}>
+              {isCurrentTrackVideo() ? (
+                <video
+                  ref={(node) => {
+                    if (node) {
+                      Object.assign(musicPlayerVideo, node);
+                    }
+                  }}
+                  className={`${isSmallScreen ? "hidden" : ""} select-none rounded-md border border-grey-900 transition-all duration-300 ${
+                    isFullScreen ? "w-[400px] h-[400px]" : "w-[100px] h-[100px]"
+                  }`}
+                  playsInline
+                  preload="auto"
+                  style={{ objectFit: "contain", backgroundColor: "black" }}
+                  onError={(e) => console.error("Video error:", e)}
+                />
+              ) : (
+                <img
+                  src={trackList ? trackList[currentTrackIndex]?.cover_art_url : ""}
+                  alt="Album Cover"
+                  className={`${isSmallScreen ? "hidden" : ""} select-none rounded-md border border-grey-900 transition-all duration-300 ${
+                    isFullScreen ? "w-[400px] h-[400px]" : "w-[100px] h-[100px]"
+                  } ${imgLoading ? "blur-sm" : "blur-none"}`}
+                  onLoad={() => setImgLoading(false)}
+                  onError={({ currentTarget }) => {
+                    currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
+                  }}
+                />
+              )}
               <div className={`${isSmallScreen ? "hidden" : ""} flex flex-col select-text mt-4 ${isFullScreen ? "text-center" : "ml-2 md:ml-0"}`}>
                 <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"}`}>{trackList[currentTrackIndex]?.title}</span>
                 <span className={`text-white ${isFullScreen ? "text-lg" : "text-sm"}`}>{trackList[currentTrackIndex]?.artist}</span>
@@ -774,7 +811,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-900/0 border border-grey-300 shadow-xl flex items-center justify-center">
                   <button onClick={togglePlay} className="focus:outline-none" disabled={!isLoaded}>
                     {!isLoaded ? (
-                      <Loader className="w-full text-center animate-spin hover:scale-105" />
+                      <Loader className="w-full text-center animate-spin" />
                     ) : isPlaying ? (
                       <Pause className="w-full text-center hover:scale-105" />
                     ) : (
@@ -861,6 +898,57 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             )}
           </div>
         </>
+      )}
+
+      {/* Bonus Track Modal */}
+      {showBonusTrackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 max-w-xl">
+            {/* Close button */}
+            <button
+              onClick={() => setShowBonusTrackModal(false)}
+              className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
+              ✕
+            </button>
+
+            <div className="space-y-4">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">Bonus Track Locked</h2>
+                <p className="text-muted-foreground">This track is a bonus track that requires purchasing the premium version of the album.</p>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm">
+                <p>
+                  <span className="font-bold text-yellow-400">What are you missing?</span> Access to exclusive bonus tracks and premium content from this album.
+                </p>
+                <p>
+                  <span className="font-bold text-yellow-400">How to unlock:</span> Purchase the premium version of the album from the artist's profile page.
+                </p>
+              </div>
+
+              <div className="flex gap-4">
+                <Button
+                  onClick={() => {
+                    setShowBonusTrackModal(false);
+                    handleNextButton();
+                  }}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700">
+                  Close and Move to Next Track
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (isFullScreen) {
+                      setIsFullScreen(false);
+                    }
+                    setShowBonusTrackModal(false);
+                  }}
+                  className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
+                  Buy Album from Artist Profile
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

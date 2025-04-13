@@ -98,7 +98,9 @@ export const Navbar = () => {
                         Logout
                       </button>
                     ) : (
-                      <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
+                      <div className="phantom-manage-account-button">
+                        <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
+                      </div>
                     )}
                   </>
                 )}

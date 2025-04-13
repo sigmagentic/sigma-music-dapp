@@ -77,6 +77,7 @@ export interface AlbumWithArtist extends Album {
 
 // inner circle types
 export interface Perk {
+  pid: string;
   name: string;
   type: "physical" | "virtual";
   description: string;
@@ -99,7 +100,7 @@ export interface MyFanMembershipType {
 export interface MembershipType {
   id: string;
   label: string;
-  priceUSD: number;
+  defaultPriceUSD: number;
   term: "lifetime" | "annual" | "monthly";
   perks: Perk[];
 }

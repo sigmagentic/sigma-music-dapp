@@ -264,8 +264,7 @@ h6 {
   visibility: visible;
 }
 
-/* S: Web3 Auth Overrides */
-.wallet-adapter-button-trigger {
+.phantom-login-button .wallet-adapter-button-trigger {
   background-color: transparent !important;
   border: solid 1px #ffffff !important;
   width: 200px !important;
@@ -275,6 +274,14 @@ h6 {
   font-family: Satoshi-Medium !important;
 }
 
+.phantom-manage-account-button .wallet-adapter-button-trigger {
+  font-family: Satoshi-Medium !important;
+  background-color: transparent !important;
+  border: solid 1px #ebb305 !important;
+  color: #ebb305 !important;
+}
+
+/* S: Web3 Auth Overrides */
 .w3a-modal__inner,
 .w3a-modal__inner--active,
 .w3a--p-6,

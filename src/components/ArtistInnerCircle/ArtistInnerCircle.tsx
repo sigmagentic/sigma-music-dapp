@@ -7,7 +7,7 @@ import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
 import { fetchCreatorFanMembershipAvailability, fetchMyFanMembershipsForArtist, fetchSolPrice, getApiWeb2Apps } from "libs/utils/misc";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
 import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
-import { tierData } from "./tierData";
+import { tierData, perksData } from "./tierData";
 
 const getPerkTypeIcon = (type: "virtual" | "physical" | "virtual") => {
   switch (type) {
@@ -52,7 +52,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
   const addressSol = publicKeySol?.toBase58();
   const [isLoading, setIsLoading] = useState(true);
   const [artistsMembershipOptions, setArtistMembershipOptions] = useState<MembershipData | null>(null);
-  const [creatorFanMembershipAvailability, setCreatorFanMembershipAvailability] = useState<Record<string, string> | null>(null);
+  const [creatorFanMembershipAvailability, setCreatorFanMembershipAvailability] = useState<Record<string, any> | null>(null);
   const [selectedArtistMembership, setSelectedArtistMembership] = useState<string>("t1");
   const [myActiveFanMembershipsForArtist, setMyActiveFanMembershipsForArtist] = useState<MyFanMembershipType[] | null>(null);
   const [selectedPerk, setSelectedPerk] = useState<Perk | null>(null);
@@ -61,14 +61,13 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
   const [selectedTokenImg, setSelectedTokenImg] = useState<string | null>(null);
 
   useEffect(() => {
-    // if (!walletType || !creatorPaymentsWallet) {
     if (!creatorPaymentsWallet) {
       return;
     }
 
     const fetchAllData = async () => {
-      const hasCreatorFanMembershipAvailability = await checkAndloadCreatorFanMembershipAvailability();
-      await fetchMembershipData(hasCreatorFanMembershipAvailability);
+      const fanMembershipAvailabilityData = await checkAndloadCreatorFanMembershipAvailability();
+      await fetchMembershipData(fanMembershipAvailabilityData);
 
       if (walletType === "phantom") {
         fetchPriceInSol();
@@ -79,10 +78,6 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
   }, [walletType, creatorPaymentsWallet]);
 
   useEffect(() => {
-    console.log("artistsMembershipOptions ", artistsMembershipOptions);
-    console.log("creatorFanMembershipAvailability ", creatorFanMembershipAvailability);
-    console.log("myActiveFanMembershipsForArtist ", myActiveFanMembershipsForArtist);
-    console.log("requiredSolAmount ", requiredSolAmount);
     if (!addressSol) {
       if (artistsMembershipOptions && creatorFanMembershipAvailability) {
         setIsLoading(false);
@@ -139,7 +134,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
         const membershipType = match ? `t${match[1]}` : "-2";
 
         // Get the token image URL from creatorFanMembershipAvailability
-        const tokenImg = creatorFanMembershipAvailability?.[membershipType] || null;
+        const tokenImg = creatorFanMembershipAvailability?.[membershipType]?.tokenImg || null;
 
         // Get the membership label from artistsMembershipOptions
         const membershipLabel = artistsMembershipOptions?.[membershipType]?.label || undefined;
@@ -177,26 +172,50 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
 
   const checkAndloadCreatorFanMembershipAvailability = async () => {
     try {
-      const data = await fetchCreatorFanMembershipAvailability(creatorPaymentsWallet);
+      const data: Record<string, any> = await fetchCreatorFanMembershipAvailability(creatorPaymentsWallet);
+
       if (data && Object.keys(data).length > 0) {
         setCreatorFanMembershipAvailability(data);
-        return true;
+        return data;
       } else {
         setCreatorFanMembershipAvailability({});
-        return false;
+        return null;
       }
     } catch (error) {
       console.error("Error fetching membership data:", error);
       setCreatorFanMembershipAvailability({});
-      return false;
+      return null;
     }
   };
 
-  const fetchMembershipData = async (hasCreatorFanMembershipAvailability: boolean) => {
+  const fetchMembershipData = async (fanMembershipAvailabilityData: Record<string, { tokenImg: string; perkIdsOffered: string[] }> | null) => {
     try {
-      if (hasCreatorFanMembershipAvailability) {
-        // ideally this will come from the API but for now all the artists benefit tiers are the same
-        setArtistMembershipOptions(tierData);
+      if (fanMembershipAvailabilityData) {
+        // Create a deep copy of tierData to avoid mutating the original
+        const extendedTierData = JSON.parse(JSON.stringify(tierData));
+
+        // If fanMembershipAvailabilityData has mintableItems, extend the tiers with perks
+        Object.entries(fanMembershipAvailabilityData).forEach(([key, item]) => {
+          const membershipId = key;
+          const perkIds = item.perkIdsOffered || [];
+
+          // Find the corresponding perks from perksData
+          const perks = perkIds.map((perkId: string) => perksData.find((perk) => perk.pid === perkId)).filter(Boolean); // Remove any undefined values
+
+          // Update the tier with the perks
+          if (extendedTierData[membershipId]) {
+            extendedTierData[membershipId].perks = perks;
+          }
+        });
+
+        // Remove tiers that don't have any perks
+        Object.keys(extendedTierData).forEach((key) => {
+          if (!extendedTierData[key].perks || extendedTierData[key].perks.length === 0) {
+            delete extendedTierData[key];
+          }
+        });
+
+        setArtistMembershipOptions(extendedTierData);
       } else {
         setArtistMembershipOptions({}); // null means we are still loading, so we set it to {} to show there is no membership options
       }
@@ -326,7 +345,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                   ${selectedArtistMembership === type ? "border-yellow-500 bg-yellow-500/10" : "border-gray-700 hover:border-gray-600"}
                 `}>
                   <h3 className="text-xl font-semibold mb-2 capitalize">{data.label}</h3>
-                  <div className="text-2xl font-bold mb-2">{formatPrice(data.priceUSD)} USD</div>
+                  <div className="text-2xl font-bold mb-2">{formatPrice(data.defaultPriceUSD)} USD</div>
                   <div className="text-sm text-gray-400">{formatTerm(data.term)}</div>
                 </div>
               ))}
@@ -355,8 +374,8 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                       {perk.terms && (
                         <div className="relative group">
                           <SparklesIcon className="h-6 w-6 text-gray-500" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                            {perk.terms}
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-[120px] p-2 bg-gray-800 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                            Click for terms
                           </div>
                         </div>
                       )}
@@ -370,7 +389,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
           // Single membership type view
           <div className="space-y-8">
             <div className="p-6 rounded-lg border-2 cursor-pointer transition-all border-yellow-500 bg-yellow-500/10 text-center">
-              <div className="text-3xl font-bold mb-2">{formatPrice(artistsMembershipOptions?.t1.priceUSD || 0)} USD</div>
+              <div className="text-3xl font-bold mb-2">{formatPrice(artistsMembershipOptions?.t1.defaultPriceUSD || 0)} USD</div>
               <div className="text-gray-400">{formatTerm(artistsMembershipOptions?.t1.term || "")}</div>
             </div>
 
@@ -397,8 +416,8 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                       {perk.terms && (
                         <div className="relative group">
                           <SparklesIcon className="h-6 w-6 text-gray-500" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                            {perk.terms}
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-[120px] p-2 bg-gray-800 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                            Click for terms
                           </div>
                         </div>
                       )}

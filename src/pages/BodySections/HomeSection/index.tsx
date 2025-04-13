@@ -89,7 +89,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
     const isFeaturedArtistDeepLink = searchParams.get("artist");
 
     if (isFeaturedArtistDeepLink) {
-      console.log("HOME MODE +++++++ B ", homeMode);
       // user reloaded into a artist deep link, all we need to do is set the home mode to artists, then the below home mode effect takes care of the rest
       setHomeMode(`artists-${new Date().getTime()}`);
     }
@@ -98,7 +97,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   }, []);
 
   useEffect(() => {
-    console.log("HOME MODE +++++++ A ", homeMode);
     if (homeMode === "radio" && !launchRadioPlayer) {
       setLaunchRadioPlayer(true);
       setLoadRadioPlayerIntoDockedMode(true);
@@ -127,7 +125,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
   useEffect(() => {
     if (launchRadioPlayer) {
-      console.log("HOME MODE +++++++ C ", homeMode);
       setHomeMode("radio");
     }
   }, [launchRadioPlayer]);
@@ -454,7 +451,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                     </div>
                     <div className="flex flex-col flex-1 text-left bgx-red-500 align-center justify-center p-5">
                       <span className="text-center md:text-left font-[Clash-Medium] text-3xl xl:text-5xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
-                        Sigma Music is a Music Super App built around Unique Fan Experiences
+                        Your Music Super App for Unique and Exclusive Fan Experiences
                       </span>
                     </div>
                   </div>
@@ -462,7 +459,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                   <div className="featuredBanners flex-1">
                     <FeaturedBanners
                       onFeaturedArtistDeepLinkSlug={(slug: string) => {
-                        console.log("HOME MODE +++++++ D ", `artists-${new Date().getTime()}`);
                         setHomeMode(`artists-${new Date().getTime()}`);
                         setSearchParams({ "artist": slug });
                       }}
