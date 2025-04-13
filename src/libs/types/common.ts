@@ -74,3 +74,37 @@ export interface AlbumWithArtist extends Album {
   artistName: string;
   artistSlug: string;
 }
+
+// inner circle types
+export interface Perk {
+  pid: string;
+  name: string;
+  type: "physical" | "virtual";
+  description: string;
+  terms?: string;
+  howToClaim?: string;
+}
+
+export interface MyFanMembershipType {
+  paymentHash: string;
+  creatorWallet: string;
+  createdOnTS: number;
+  normalizedAddr: string;
+  mintTemplate: string;
+  membershipId?: string;
+  membershipLabel?: string;
+  tokenImg?: string | null;
+  expiresInDays?: number;
+}
+
+export interface MembershipType {
+  id: string;
+  label: string;
+  defaultPriceUSD: number;
+  term: "lifetime" | "annual" | "monthly";
+  perks: Perk[];
+}
+
+export interface MembershipData {
+  [key: string]: MembershipType;
+}

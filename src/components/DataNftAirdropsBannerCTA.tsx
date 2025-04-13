@@ -95,7 +95,7 @@ export function DataNftAirdropsBannerCTA(props: DataNftAirdropsBannerCTAProps) {
   return (
     <>
       {!freeDropCheckLoading && shouldShowBanner && (
-        <div className="py-2 px-4 md:px-0 m-5 border rounded-lg bg-[#fa882157] w-[100%] relative">
+        <div className="hidden py-2 px-4 md:px-0 m-5 border rounded-lg bg-[#fa882157] w-[100%] relative">
           <div className="flex flex-col md:flex-col items-center">
             <div className="flex flex-col justify-center p-2">
               <p className="dark:text-white text-2xl text-center">Hello Human, You Have some Free App NFTs to Claim!</p>

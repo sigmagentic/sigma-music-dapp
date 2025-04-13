@@ -1,5 +1,13 @@
 import { MusicTrack } from "libs/types";
 
+interface CacheEntry_DataWithTimestamp {
+  data: boolean | [] | Record<string, any> | number;
+  timestamp: number;
+}
+
+const CACHE_DURATION_2_MIN = 2 * 60 * 1000; // 2 minutes in milliseconds
+const CACHE_DURATION_60_MIN = 1 * 60 * 1000; // 60 minutes in milliseconds
+
 export const getApiDataMarshal = () => {
   // we can call this without chainID (e.g. solana mode or no login mode), and we get the API endpoint based on ENV
   if (import.meta.env.VITE_ENV_NETWORK === "mainnet") {
@@ -71,14 +79,34 @@ export const gtagGo = (category: string, action: any, label?: any, value?: any) 
   }
 };
 
+const solPriceCache: CacheEntry_DataWithTimestamp = {
+  data: -1,
+  timestamp: 0,
+};
+
 export const fetchSolPrice = async () => {
+  const now = Date.now();
+
+  // Check if we have a valid cache entry
+  if (solPriceCache.timestamp && now - solPriceCache.timestamp < CACHE_DURATION_2_MIN) {
+    console.log(`fetchSolPrice: Using cached SOL price`);
+    return { currentSolPrice: solPriceCache.data };
+  }
+
   try {
     const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
     const data = await response.json();
     const currentSolPrice = data.solana.usd;
+
+    // Update cache
+    solPriceCache.data = currentSolPrice;
+    solPriceCache.timestamp = now;
+
     return { currentSolPrice };
   } catch (error) {
-    console.error("Failed to fetch SOL price:", error);
+    console.error("fetchSolPrice: Failed to fetch SOL price:", error);
+    solPriceCache.data = -2; // means error
+    solPriceCache.timestamp = now;
     throw new Error("Failed to fetch SOL price");
   }
 };
@@ -110,9 +138,9 @@ export const logPaymentToAPI = async (paymentData: any) => {
   }
 };
 
-export const mintAlbumNFTAfterPayment = async (mintData: any) => {
+export const mintAlbumOrFanNFTAfterPayment = async (mintData: any) => {
   try {
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumNFTAfterPayment`, {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumOrFanNFTAfterPayment`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -308,13 +336,7 @@ export async function mergeImages(
   }
 }
 
-interface CacheEntry_checkIfAlbumCanBeMinted {
-  data: boolean | [];
-  timestamp: number;
-}
-
-const cache_checkIfAlbumCanBeMinted: { [key: string]: CacheEntry_checkIfAlbumCanBeMinted } = {};
-const CACHE_DURATION_CHECK_IF_ALBUM_CAN_BE_MINTED = 1 * 60 * 1000; // 60 minutes in milliseconds
+const cache_checkIfAlbumCanBeMinted: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
 export const checkIfAlbumCanBeMinted = async (albumId: string) => {
   const now = Date.now();
@@ -322,7 +344,7 @@ export const checkIfAlbumCanBeMinted = async (albumId: string) => {
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_checkIfAlbumCanBeMinted[albumId];
-    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_CHECK_IF_ALBUM_CAN_BE_MINTED) {
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
       console.log(`checkIfAlbumCanBeMinted: Using cached minting status for albumId: ${albumId}`);
       return cacheEntry.data;
     }
@@ -361,8 +383,7 @@ export const checkIfAlbumCanBeMinted = async (albumId: string) => {
   }
 };
 
-const cache_albumTracks: { [key: string]: CacheEntry_checkIfAlbumCanBeMinted } = {};
-const CACHE_DURATION_ALBUM_TRACKS = 1 * 60 * 1000; // 60 minutes in milliseconds
+const cache_albumTracks: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
 export const getAlbumTracksFromDb = async (artistId: string, albumId: string, userOwnsAlbum?: boolean) => {
   const now = Date.now();
@@ -372,7 +393,7 @@ export const getAlbumTracksFromDb = async (artistId: string, albumId: string, us
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_albumTracks[`${artistId}-${albumId}-bonus_${bonus}`];
-    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_ALBUM_TRACKS) {
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
       console.log(`getAlbumTracks: Getting tracks for artistId: ${artistId} and albumId: ${albumId} from cache`);
       return cacheEntry.data;
     }
@@ -404,6 +425,164 @@ export const getAlbumTracksFromDb = async (artistId: string, albumId: string, us
 
     // Update cache (with [] as data)
     cache_albumTracks[`${artistId}-${albumId}-bonus_${bonus}`] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
+const cache_creatorFanMembershipAvailability: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchCreatorFanMembershipAvailability = async (creatorPaymentsWallet: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_creatorFanMembershipAvailability[creatorPaymentsWallet];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
+      console.log(`fetchCreatorFanMembershipAvailability: Getting fan membership availability for creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`);
+      return cacheEntry.data as Record<string, any>;
+    }
+
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintInnerCircleNFTCanBeMinted?creatorWallet=${creatorPaymentsWallet}`);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch if creator has fan memberships");
+    }
+
+    const data = await response.json();
+
+    if (data.canBeMinted) {
+      // Transform the data into the desired format
+      const transformedData = Object.entries(data.mintableItems).reduce(
+        (acc, [, value]: [string, any]) => {
+          acc[value.membershipId] = {
+            tokenImg: value.tokenImg,
+            perkIdsOffered: value.perkIdsOffered,
+          };
+          return acc;
+        },
+        {} as Record<string, { tokenImg: string; perkIdsOffered: string[] }>
+      );
+
+      // Update cache
+      cache_creatorFanMembershipAvailability[creatorPaymentsWallet] = {
+        data: transformedData,
+        timestamp: now,
+      };
+
+      return transformedData as Record<string, any>;
+    }
+
+    return {} as Record<string, any>;
+  } catch (error) {
+    console.error("Error fetching membership data:", error);
+
+    cache_creatorFanMembershipAvailability[creatorPaymentsWallet] = {
+      data: {},
+      timestamp: now,
+    };
+
+    return {} as Record<string, any>;
+  }
+};
+
+const cache_myFanMembershipsForThisArtist: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchMyFanMembershipsForArtist = async (addressSol: string, creatorPaymentsWallet: string, bypassCacheAsNewDataAdded = false) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN && !bypassCacheAsNewDataAdded) {
+      console.log(
+        `fetchMyFanMembershipsForArtist: Getting fan memberships for addressSol: ${addressSol} and creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`
+      );
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(
+      `${getApiWeb2Apps()}/datadexapi/sigma/getUserMintLogs?forSolAddr=${addressSol}&mintTemplateSearchString=fan-${creatorPaymentsWallet.trim().toLowerCase()}`
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchMyFanMembershipsForArtist: Error fetching fan memberships:", error);
+
+    // Update cache (with [] as data)
+    cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
+const cache_artistSales: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchArtistSales = async (creatorPaymentsWallet: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_artistSales[`${creatorPaymentsWallet}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
+      console.log(`fetchArtistSales: Getting artist sales for creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(
+      `${getApiWeb2Apps()}/datadexapi/sigma/paymentsByCreatorSales?creatorWallet=${creatorPaymentsWallet}&byCreatorSalesStatusFilter=success`
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_artistSales[`${creatorPaymentsWallet}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_artistSales[`${creatorPaymentsWallet}`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchArtistSales: Error fetching artist sales:", error);
+
+    // Update cache (with [] as data)
+    cache_artistSales[`${creatorPaymentsWallet}`] = {
       data: [],
       timestamp: now,
     };

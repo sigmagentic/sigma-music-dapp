@@ -1,4 +1,5 @@
 import axios from "axios";
+import { IS_LIVE_DEMO_MODE } from "appsConfig";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { GiftBitzToArtistMeta, MusicTrack } from "libs/types";
@@ -19,7 +20,33 @@ export async function getArtistsAlbumsData() {
       console.log(`getArtistsAlbumsData: [no-cache]`);
       const getArtistsAlbumsAPI = `${getApiWeb2Apps(true)}/app_nftunes/assets/json/albumsAndArtistsData.json`;
       const dataRes = await axios.get(getArtistsAlbumsAPI);
-      const dataset = dataRes.data;
+      let dataset = dataRes.data;
+
+      // if we are in live demo mode, we need to filter the dataset to only include the live demo artists
+      if (!IS_LIVE_DEMO_MODE) {
+        dataset = dataset.filter((artist: any) => !artist.name.includes("(DEMO)"));
+      } else {
+        // First process the demo items and mark them
+        dataset = dataset.map((artist: any) => {
+          if (artist.name.includes("(DEMO)")) {
+            return {
+              ...artist,
+              name: artist.name.replace("(DEMO)", "").trim(),
+              isDemo: 1,
+            };
+          } else {
+            return artist;
+          }
+        });
+
+        // Then sort to move demo items to the top
+        dataset.sort((a: any, b: any) => {
+          if (a.isDemo && !b.isDemo) return -1;
+          if (!a.isDemo && b.isDemo) return 1;
+          return 0;
+        });
+      }
+
       _artistsAlbumsDataCachedOnWindow = dataset;
       _artistsAlbumsDataCachedOn = Date.now();
 

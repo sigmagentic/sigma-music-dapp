@@ -2,25 +2,24 @@ import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
-import AlbumSales from "components/AlbumSales/AlbumSales";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
+import ArtistSales from "components/ArtistSales/ArtistSales";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { GiftBitzToArtistMeta } from "libs/types";
 import { Artist, Album, AlbumWithArtist } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
-import { sleep } from "libs/utils";
+import { sleep, scrollToTopOnMainContentArea } from "libs/utils";
 import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type FeaturedArtistsAndAlbumsProps = {
   stopPreviewPlayingNow?: boolean;
@@ -30,7 +29,7 @@ type FeaturedArtistsAndAlbumsProps = {
   userHasNoBitzDataNftYet: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
-  loadIntoArtistTileView?: boolean;
+  loadIntoTileView?: boolean;
   isAllAlbumsMode?: boolean;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number, f?: any) => void;
@@ -39,7 +38,7 @@ type FeaturedArtistsAndAlbumsProps = {
   onSendBitzForMusicBounty: (e: any) => any;
   onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => any;
   onCloseMusicPlayer: () => void;
-  setLoadIntoArtistTileView: (e: boolean) => void;
+  setLoadIntoTileView: (e: boolean) => void;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
@@ -51,16 +50,16 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     userHasNoBitzDataNftYet,
     dataNftPlayingOnMainPlayer,
     isMusicPlayerOpen,
-    loadIntoArtistTileView,
+    loadIntoTileView,
+    isAllAlbumsMode,
     openActionFireLogic,
     viewSolData,
     onPlayHappened,
     checkOwnershipOfAlbum,
-    isAllAlbumsMode,
     onSendBitzForMusicBounty,
     onFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
-    setLoadIntoArtistTileView,
+    setLoadIntoTileView,
   } = props;
   const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
@@ -119,10 +118,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   }, 2500);
 
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    scrollToTopOnMainContentArea();
 
     const isHlWorkflowDeepLink = searchParams.get("hl");
     const jumpToTab = searchParams.get("t");
@@ -133,8 +129,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setIsSigmaWorkflow(true);
     }
 
-    if (jumpToTab && jumpToTab === "ic") {
-      setActiveTab("innerCircle");
+    if (jumpToTab && jumpToTab === "fan") {
+      setActiveTab("fan");
     }
 
     previewTrackAudio.addEventListener("ended", eventToAttachEnded);
@@ -187,6 +183,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     () => () => {
       // on unmount we have to stp playing as for some reason the play continues always otherwise
       playPausePreview(); // with no params wil always go into the stop logic
+
+      // remove the artist param from the url
+      const currentParams = Object.fromEntries(searchParams.entries());
+      delete currentParams["artist"];
+      delete currentParams["t"];
+      setSearchParams(currentParams);
     },
     []
   );
@@ -234,15 +236,15 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     setArtistProfile(selDataItem);
 
-    // if we don't do the userInteractedWithTabs, then even on page load, we go update the url with artist-profile which we don't want
+    // if we don't do the userInteractedWithTabs, then even on page load, we go update the url with artist which we don't want
     if (selDataItem && (userInteractedWithTabs || (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== ""))) {
       // update the deep link param
       const currentParams = Object.fromEntries(searchParams.entries());
 
       if (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== "") {
-        currentParams["artist-profile"] = featuredArtistDeepLinkSlug;
+        currentParams["artist"] = featuredArtistDeepLinkSlug;
       } else {
-        currentParams["artist-profile"] = selDataItem.slug;
+        currentParams["artist"] = selDataItem.slug;
       }
 
       setSearchParams({ ...currentParams });
@@ -260,10 +262,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   }, [stopPreviewPlayingNow]);
 
   useEffect(() => {
-    if (loadIntoArtistTileView && inArtistProfileView) {
+    if (loadIntoTileView && inArtistProfileView) {
       handleBackToArtistTileView();
     }
-  }, [loadIntoArtistTileView]);
+  }, [loadIntoTileView]);
 
   async function playPausePreview(previewStreamUrl?: string, albumId?: string) {
     if (previewStreamUrl && albumId && (!isPreviewPlaying || previewPlayingForAlbumId !== albumId)) {
@@ -321,14 +323,19 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     return `${formattedMinutes}:${formattedSeconds}`;
   };
 
-  function getImagePosition(imageUrl: string): string {
+  function getImagePositionMeta(imageUrl: string, metaKey: string): string {
     try {
       const url = new URL(imageUrl);
-      const pos = url.searchParams.get("pos");
-      return pos || "left";
+      const pos = url.searchParams.get(metaKey);
+
+      if (metaKey === "pcolor") {
+        return `#${pos}` || "intial";
+      } else {
+        return pos || "intial";
+      }
     } catch {
       // Return default if URL is invalid
-      return "left";
+      return "intial";
     }
   }
 
@@ -337,14 +344,15 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     setInArtistProfileView(false);
 
-    // remove the artist-profile param from the url
+    // remove the artist param from the url
     const currentParams = Object.fromEntries(searchParams.entries());
-    delete currentParams["artist-profile"];
+    delete currentParams["artist"];
+    delete currentParams["t"];
     setSearchParams(currentParams);
 
     // reset the featuredArtistDeepLinkSlug
     onFeaturedArtistDeepLinkSlug("");
-    setLoadIntoArtistTileView(false);
+    setLoadIntoTileView(false);
     setActiveTab("discography");
     setSelAlbumId(undefined);
     setSelArtistId(undefined);
@@ -406,24 +414,23 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               // notify the home page, which then triggers an effect to setSelArtistId
                               onFeaturedArtistDeepLinkSlug(artist.slug);
 
-                              // setUserInteractedWithTabs(true);
+                              setUserInteractedWithTabs(true);
                               // setInArtistProfileView(true);
-                              // setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
+                              setLoadIntoTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
-                              window.scrollTo({
-                                top: 0,
-                                behavior: "smooth",
-                              });
+                              scrollToTopOnMainContentArea();
                             }
                           }}>
                           <div
                             className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
                             style={{
                               "backgroundImage": `url(${artist.img})`,
-                              "backgroundPosition": getImagePosition(artist.img),
+                              "backgroundPosition": getImagePositionMeta(artist.img, "tpos"),
                             }}>
                             <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
-                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{artist.name.replaceAll("_", " ")}</h2>
+                              <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
+                                {artist.name.replaceAll("_", " ")}
+                              </h2>
                             </div>
                           </div>
                         </div>
@@ -444,24 +451,23 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               // notify the home page, which then triggers an effect to setSelArtistId
                               onFeaturedArtistDeepLinkSlug(album.artistSlug, album.albumId);
 
-                              // setUserInteractedWithTabs(true);
+                              setUserInteractedWithTabs(true);
                               // setInArtistProfileView(true);
-                              // setLoadIntoArtistTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
+                              setLoadIntoTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
-                              window.scrollTo({
-                                top: 0,
-                                behavior: "smooth",
-                              });
+                              scrollToTopOnMainContentArea();
                             }
                           }}>
                           <div
                             className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
                             style={{
                               "backgroundImage": `url(${album.img})`,
-                              "backgroundPosition": getImagePosition(album.img),
+                              "backgroundPosition": getImagePositionMeta(album.img, "tpos"),
                             }}>
                             <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
-                              <h2 className={`!text-lg !text-white lg:!text-xl text-nowrap text-center`}>{album.title.replaceAll("_", " ")}</h2>
+                              <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
+                                {album.title.replaceAll("_", " ")}
+                              </h2>
                             </div>
                           </div>
                         </div>
@@ -484,6 +490,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] flex-1 bg-no-repeat bg-cover rounded-lg"
                             style={{
                               "backgroundImage": `url(${artistProfile.img})`,
+                              "backgroundPosition": getImagePositionMeta(artistProfile.img, "ppos"),
+                              "backgroundColor": getImagePositionMeta(artistProfile.img, "pcolor"),
+                              "backgroundSize": getImagePositionMeta(artistProfile.img, "psize"),
                             }}></div>
                         </div>
 
@@ -514,16 +523,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                     </>
                                   </Button>
                                 ) : (
-                                  <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
-                                    <Button
-                                      className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 rounded-none rounded-l-sm"
-                                      variant="outline">
-                                      <>
-                                        <WalletMinimal />
-                                        <span className="ml-2">Login to Power-Up</span>
-                                      </>
-                                    </Button>
-                                  </Link>
+                                  <Button
+                                    className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 rounded-none rounded-l-sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
+                                    }}>
+                                    <>
+                                      <WalletMinimal />
+                                      <span className="ml-2">Login to Power-Up</span>
+                                    </>
+                                  </Button>
                                 )}
                                 {isSigmaWorkflow && (
                                   <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
@@ -620,7 +630,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         <div className="w-full border-b border-gray-600">
                           <div className="flex space-x-8">
                             <button
-                              onClick={() => setActiveTab("discography")}
+                              onClick={() => {
+                                setActiveTab("discography");
+                                const currentParams = Object.fromEntries(searchParams.entries());
+                                delete currentParams["t"];
+                                setSearchParams(currentParams);
+                              }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
                                   activeTab === "discography"
@@ -631,7 +646,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               Discography
                             </button>
                             <button
-                              onClick={() => setActiveTab("leaderboard")}
+                              onClick={() => {
+                                setActiveTab("leaderboard");
+                                const currentParams = Object.fromEntries(searchParams.entries());
+                                delete currentParams["t"];
+                                setSearchParams(currentParams);
+                              }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
                                   activeTab === "leaderboard"
@@ -642,21 +662,31 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               Power-Up Leaderboard
                             </button>
                             <button
-                              onClick={() => setActiveTab("albumSales")}
+                              onClick={() => {
+                                setActiveTab("artistSales");
+                                const currentParams = Object.fromEntries(searchParams.entries());
+                                delete currentParams["t"];
+                                setSearchParams(currentParams);
+                              }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
-                                  activeTab === "albumSales"
+                                  activeTab === "artistSales"
                                     ? "border-orange-500 text-orange-500"
                                     : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                 }
                               `}>
-                              Album Sales
+                              Artist Sales
                             </button>
                             <button
-                              onClick={() => setActiveTab("innerCircle")}
+                              onClick={() => {
+                                setActiveTab("fan");
+                                const currentParams = Object.fromEntries(searchParams.entries());
+                                currentParams["t"] = "fan";
+                                setSearchParams(currentParams);
+                              }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
-                                  activeTab === "innerCircle"
+                                  activeTab === "fan"
                                     ? "border-orange-500 text-orange-500"
                                     : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                 }
@@ -679,14 +709,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               currentTime={currentTime}
                               isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
                               dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
+                              isMusicPlayerOpen={isMusicPlayerOpen}
+                              highlightAlbumId={selAlbumId}
                               onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                               playPausePreview={playPausePreview}
                               checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                               viewSolData={viewSolData}
                               openActionFireLogic={openActionFireLogic}
-                              isMusicPlayerOpen={isMusicPlayerOpen}
                               onCloseMusicPlayer={onCloseMusicPlayer}
-                              highlightAlbumId={selAlbumId}
                             />
                           </div>
                         )}
@@ -701,18 +731,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           </div>
                         )}
 
-                        {activeTab === "albumSales" && (
+                        {activeTab === "artistSales" && (
                           <div className="artist-album-sales w-full">
-                            <AlbumSales creatorPaymentsWallet={artistProfile.creatorPaymentsWallet} />
+                            <ArtistSales creatorPaymentsWallet={artistProfile.creatorPaymentsWallet} />
                           </div>
                         )}
 
-                        {activeTab === "innerCircle" && (
-                          <div className="artist-innercircle w-full">
+                        {activeTab === "fan" && (
+                          <div className="artist-fan w-full">
                             <ArtistInnerCircle
                               artistName={artistProfile.name.replaceAll("_", " ")}
-                              creatorWallet={artistProfile.creatorWallet}
                               artistSlug={artistProfile.slug}
+                              creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
                             />
                           </div>
                         )}

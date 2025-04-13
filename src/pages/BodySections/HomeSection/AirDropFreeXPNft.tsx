@@ -3,16 +3,13 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { confetti } from "@tsparticles/confetti";
 import { Container } from "@tsparticles/engine";
-// import { Link } from "react-router-dom";
-// import MusicGiftPreview from "assets/img/nf-tunes/music-data-nft-gift-preview.png";
 import { Modal } from "components/Modal/Modal";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature, mintMiscDataNft, fetchSolNfts, checkIfFreeDataNftGiftMinted } from "libs/sol/SolViewData";
 import { sleep } from "libs/utils";
-// import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type AirDropFreeXPNftProps = {
   onCloseModal: any;

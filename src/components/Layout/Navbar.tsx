@@ -3,9 +3,8 @@ declare const window: {
 } & Window;
 
 import React, { useEffect, useState } from "react";
-import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Menu, User } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import sigmaLogo from "assets/img/sigma-header-logo.png";
 import { SolBitzDropdown } from "components/BitzDropdown/SolBitzDropdown";
@@ -18,30 +17,16 @@ import { sleep } from "libs/utils";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
 import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
-import { GetNFMeModal } from "../GetNFMeModal";
-import { NFMePreferencesModal } from "../NFMePreferencesModal";
 import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
-
-interface NFMeIdContent {
-  links: {
-    image: string;
-  };
-  metadata: {
-    name: string;
-    description: string;
-  };
-}
 
 export const Navbar = () => {
   const { publicKey: publicKeySol, walletType, disconnect, isConnected } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const isLoggedInSol = !!addressSol;
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
-  const [showNfMeIdModal, setShowNfMeIdModal] = useState<boolean>(false);
-  const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState<boolean>(false);
   const location = useLocation();
-  const { solBitzNfts, solNFMeIdNfts } = useNftsStore();
-  const [nfMeIdImageUrl, setNfMeIdImageUrl] = useState<string | null>(null);
+  const { solBitzNfts } = useNftsStore();
 
   useEffect(() => {
     // if the user is logged in (even after they reload page and still have a session)
@@ -58,23 +43,7 @@ export const Navbar = () => {
         window.ITH_SOL_WALLET_CONNECTED = true;
       }
     }
-  }, [addressSol, isConnected, location]);
-
-  useEffect(() => {
-    if (solNFMeIdNfts.length > 0) {
-      // Get the NFMe ID image if available (@TODO : in reality user may have multiple NFMes and only 1 that is bonded into a NFMe ID, we can do this later)
-      const nfMeId = solNFMeIdNfts[0] as (DasApiAsset & { content: NFMeIdContent }) | undefined;
-
-      const nfmeImg = nfMeId?.content?.links?.image;
-
-      if (nfmeImg) {
-        sessionStorage.removeItem("sig-nfme-later"); // cleanup this session storage key
-        setNfMeIdImageUrl(nfmeImg);
-      } else {
-        setNfMeIdImageUrl(null);
-      }
-    }
-  }, [solNFMeIdNfts]);
+  }, [addressSol, isConnected, location.pathname]);
 
   return (
     <>
@@ -103,67 +72,35 @@ export const Navbar = () => {
               </>
             )}
 
-            {isLoggedInSol && walletType !== "web3auth" && (
-              <>
-                <NavigationMenuItem>
-                  {/* NFMe ID Profile Image */}
-                  <div className="flex items-center relative group">
-                    {nfMeIdImageUrl ? (
-                      <img
-                        src={nfMeIdImageUrl}
-                        alt="NFMe ID"
-                        className="w-[48px] h-[48px] rounded-md object-cover transition-transform duration-300 group-hover:scale-110 cursor-pointer"
-                        onClick={() => setShowNfMePreferencesModal(true)}
-                      />
-                    ) : (
-                      <div
-                        onClick={() => setShowNfMeIdModal(true)}
-                        className="w-[48px] h-[48px] rounded-md bg-gray-800 flex items-center justify-center cursor-pointer transition-transform duration-300 group-hover:scale-110">
-                        <User className="w-6 h-6 text-gray-400" />
-                      </div>
-                    )}
-                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                      {nfMeIdImageUrl ? "Your NFMe ID" : "Get NFMe ID"}
-                    </div>
-                  </div>
-                </NavigationMenuItem>
-              </>
-            )}
-
             {location.pathname !== routeNames.login && (
               <NavigationMenuItem>
                 {!publicKeySol ? (
                   <>
                     {/* Web3 Wallet Login Button */}
-                    <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
-                      <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
-                        <Button
-                          className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-lg h-[48px]"
-                          variant="outline">
-                          Login
-                        </Button>
-                      </div>
-                    </Link>
+                    <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
+                      <Button
+                        className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-lg h-[48px]"
+                        variant="outline"
+                        onClick={() => {
+                          window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
+                        }}>
+                        Login
+                      </Button>
+                    </div>
                   </>
                 ) : (
                   <>
                     {/* Web3 Wallet Account Button */}
                     {walletType === "web3auth" ? (
                       <button
-                        className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[190px] font-bold"
-                        onClick={() => {
-                          const confirmed = window.confirm("Are you sure you want to logout?");
-                          if (confirmed) {
-                            disconnect();
-                          }
-                        }}>
-                        Logout{" "}
-                        <span className="text-xs">
-                          {publicKeySol?.toBase58().slice(0, 4)}... {publicKeySol?.toBase58().slice(-4)}
-                        </span>
+                        className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 font-bold"
+                        onClick={() => setShowLogoutConfirmation(true)}>
+                        Logout
                       </button>
                     ) : (
-                      <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
+                      <div className="phantom-manage-account-button">
+                        <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
+                      </div>
                     )}
                   </>
                 )}
@@ -245,11 +182,30 @@ export const Navbar = () => {
         </div>
       )}
 
-      {/* NFMe ID Claim Modal */}
-      {showNfMeIdModal && <GetNFMeModal setShowNfMeIdModal={setShowNfMeIdModal} setShowNfMePreferencesModal={setShowNfMePreferencesModal} />}
-
-      {/* NFMe Preferences Modal */}
-      <NFMePreferencesModal isOpen={showNfMePreferencesModal} onClose={() => setShowNfMePreferencesModal(false)} />
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">Confirm Logout</h3>
+            <div className="space-y-4">
+              <p>Are you sure you want to logout?</p>
+              <div className="flex gap-4">
+                <Button onClick={() => setShowLogoutConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowLogoutConfirmation(false);
+                    disconnect();
+                  }}
+                  className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
+                  Logout
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { GiverLeaderboardProps, LeaderBoardItemType } from "../interfaces";
 import LeaderBoardTable from "../LeaderBoardTable";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 const GiverLeaderboard: React.FC<GiverLeaderboardProps> = (props) => {
   const { bountySubmitter, bountyId, fetchGetterLeaderBoard, showUserPosition } = props;

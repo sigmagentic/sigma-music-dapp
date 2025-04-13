@@ -4,6 +4,7 @@ export const routeNames = {
   home: "/",
   login: "/login",
   remix: "/remix",
+  paymentSuccess: "/payment-success",
 };
 
 interface RouteType {

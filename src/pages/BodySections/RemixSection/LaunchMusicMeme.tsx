@@ -5,10 +5,11 @@ import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmat
 import axios from "axios";
 import { Loader } from "lucide-react";
 import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/misc";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
 const MAX_TITLE_LENGTH = 20;
 
@@ -134,6 +135,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         payer: publicKey.toBase58(),
         tx: signature,
         task: "gen",
+        type: "sol",
         amount: requiredSolAmount.toString(),
         prompt: getTweetUrl(true, signature),
         inviteCodeUsed: inviteCode,
@@ -188,7 +190,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
 
   // Payment confirmation popup
   const PaymentConfirmationPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-xl font-bold mb-4">Confirm Payment</h3>
         <div className="space-y-4">
@@ -280,7 +282,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
                   return (
                     <a
                       key={index}
-                      href={`/?artist-profile=${style.artistBlob}`}
+                      href={`/?artist=${style.artistBlob}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-400 hover:text-blue-300">

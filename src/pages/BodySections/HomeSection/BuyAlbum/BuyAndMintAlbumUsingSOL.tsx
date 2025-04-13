@@ -4,16 +4,22 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { confetti } from "@tsparticles/confetti";
 import { Loader } from "lucide-react";
-import { BUY_AND_MINT_ALBUM_PRICE_IN_USD, GENERATE_MUSIC_MEME_PRICE_IN_USD, INNER_CIRCLE_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
+import {
+  BUY_AND_MINT_ALBUM_PRICE_IN_USD,
+  GENERATE_MUSIC_MEME_PRICE_IN_USD,
+  INNER_CIRCLE_PRICE_IN_USD,
+  SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS,
+  ENABLE_SOL_PAYMENTS,
+} from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { Artist, Album } from "libs/types";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, logPaymentToAPI, mintAlbumNFTAfterPayment, sleep } from "libs/utils/misc";
+import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPayment, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
-export const BuyAndMintAlbum = ({
+export const BuyAndMintAlbumUsingSOL = ({
   onCloseModal,
   artistProfile,
   albumToBuyAndMint,
@@ -30,7 +36,7 @@ export const BuyAndMintAlbum = ({
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist-profile=${artistProfile.slug}`)}&text=${encodeURIComponent(
+  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist=${artistProfile.slug}`)}&text=${encodeURIComponent(
     `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on Sigma Music and I'm excited to stream it!`
   )}`;
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
@@ -132,6 +138,7 @@ export const BuyAndMintAlbum = ({
         payer: publicKey.toBase58(),
         tx: signature,
         task: "buyAlbum",
+        type: "sol",
         amount: requiredSolAmount.toString(),
         creatorWallet: artistProfile.creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         albumId: albumToBuyAndMint.albumId,
@@ -185,7 +192,7 @@ export const BuyAndMintAlbum = ({
 
     try {
       // Mint the music
-      const _mintAlbumNFTAfterPaymentResponse = await mintAlbumNFTAfterPayment({
+      const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPayment({
         solSignature,
         signatureNonce,
         mintForSolAddr: publicKey?.toBase58(),
@@ -222,8 +229,8 @@ export const BuyAndMintAlbum = ({
       // await mintNFTAfterPaymentAPI({
       //   payer: publicKey.toBase58(),
       //   tx: signature,
-      //   nftType: "innerCircle",
-      //   creatorWallet: creatorWallet,
+      //   nftType: "fan",
+      //   creatorWallet: artistProfile.creatorPaymentsWallet,
       //   membershipId: membershipId,
       //   creatorSlug: artistSlug,
       // });
@@ -276,7 +283,7 @@ export const BuyAndMintAlbum = ({
 
   // Payment confirmation popup
   const PaymentConfirmationPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
         <div className="space-y-4">
@@ -297,7 +304,10 @@ export const BuyAndMintAlbum = ({
               <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
                 Cancel
               </Button>
-              <Button onClick={handlePaymentConfirmation} className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
+              <Button
+                onClick={handlePaymentConfirmation}
+                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
+                disabled={isSolPaymentsDisabled}>
                 Proceed
               </Button>
             </div>
@@ -313,6 +323,8 @@ export const BuyAndMintAlbum = ({
     setMintingStatus("idle");
     setBackendErrorMessage(null);
   }
+
+  let isSolPaymentsDisabled = !ENABLE_SOL_PAYMENTS || ENABLE_SOL_PAYMENTS !== "1";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
@@ -404,9 +416,16 @@ export const BuyAndMintAlbum = ({
 
               {paymentStatus === "idle" && (
                 <>
+                  {isSolPaymentsDisabled && (
+                    <div className="flex gap-4 bg-red-600 p-4 rounded-lg text-sm">
+                      <p className="text-white">SOL payments are currently disabled. Please try again later.</p>
+                    </div>
+                  )}
+
                   <Button
                     onClick={handlePaymentAndMint}
-                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
+                    disabled={isSolPaymentsDisabled}>
                     Buy Music Album
                   </Button>
                 </>

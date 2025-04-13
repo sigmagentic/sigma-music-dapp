@@ -69,7 +69,7 @@ export async function getOrCacheAccessNonceAndSignature({
   solPreaccessSignature: string;
   solPreaccessTimestamp: number;
   signMessage: any;
-  publicKey: any;
+  publicKey?: any;
   updateSolPreaccessNonce: any;
   updateSolSignedPreaccess: any;
   updateSolPreaccessTimestamp: any;
@@ -96,7 +96,8 @@ export async function getOrCacheAccessNonceAndSignature({
 
     const signature = await signMessage(message);
 
-    if (!preAccessNonce || !signature || !publicKey) {
+    // if (!preAccessNonce || !signature || !publicKey) {
+    if (!preAccessNonce || !signature) {
       throw new Error("Missing data for viewData");
     }
 

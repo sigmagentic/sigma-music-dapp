@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { SparklesIcon } from "@heroicons/react/24/solid";
 import { getApiWeb2Apps } from "libs/utils/misc";
+import { Loader } from "lucide-react";
 
 interface LeaderboardEntry {
   dataNFTIdAndGetter: string;
@@ -15,7 +16,7 @@ interface CacheEntry {
 }
 
 const cache: { [key: string]: CacheEntry } = {};
-const CACHE_DURATION = 10000; // 10 seconds in milliseconds
+const CACHE_DURATION_20_SECONDS = 20 * 1000; // 20 seconds in milliseconds
 
 interface ArtistXPLeaderboardProps {
   bountyId: string;
@@ -37,7 +38,7 @@ export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bounty
         const now = Date.now();
         const cacheEntry = cache[bountyId];
 
-        if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION) {
+        if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_20_SECONDS) {
           // Use cached data if it's still valid
           setLeaderboardData(cacheEntry.data);
           setIsLoading(false);
@@ -114,32 +115,30 @@ export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bounty
     };
   }, [bountyId, creatorWallet, xpCollectionIdToUse]);
 
-  const LoadingSkeleton = () => (
-    <div className="animate-pulse">
-      <div className="space-y-3">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="flex items-center space-x-4">
-            <div className="h-12 bg-gray-800 rounded w-full"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   };
 
   if (isLoading) {
-    return <LoadingSkeleton />;
+    return (
+      <div className="h-[100px] flex items-center justify-center">
+        <Loader className="animate-spin" size={30} />
+      </div>
+    );
   }
 
   return (
-    <div className="w-full mt-5">
-      {!isLoading && leaderboardData.length === 0 && <div className="text-sm text-muted-foreground m-5">No power-ups yet</div>}
+    <>
+      {leaderboardData.length === 0 && (
+        <div className="max-w-4xl mx-auto md:m-[initial] p-6 flex flex-col">
+          <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
+            No Power-Ups Yet
+          </h2>
+        </div>
+      )}
 
       {leaderboardData.length > 0 && (
-        <div className="rounded-md border">
+        <div className="rounded-md border mt-5">
           <table className="w-full">
             <thead className="bg-gray-800 text-white">
               <tr>
@@ -189,6 +188,6 @@ export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bounty
           </table>
         </div>
       )}
-    </div>
+    </>
   );
 };
