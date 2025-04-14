@@ -382,7 +382,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                         </div>
                       </div>
                       {perk.terms && (
-                        <div className="relative group">
+                        <div className="hidden md:block relative group">
                           <SparklesIcon className="h-6 w-6 text-gray-500" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-[120px] p-2 bg-gray-800 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                             Click for terms
@@ -424,7 +424,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                         </div>
                       </div>
                       {perk.terms && (
-                        <div className="relative group">
+                        <div className="hidden md:block relative group">
                           <SparklesIcon className="h-6 w-6 text-gray-500" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-[120px] p-2 bg-gray-800 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                             Click for terms

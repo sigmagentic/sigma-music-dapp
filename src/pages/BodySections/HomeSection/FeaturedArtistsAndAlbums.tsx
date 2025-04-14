@@ -628,7 +628,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                       <div className="artist-tabs flex flex-col p-2 items-start bgx-green-600 w-full">
                         {/* Tabs Navigation */}
-                        <div className="w-full border-b border-gray-600">
+                        <div className="tabs-menu w-full border-b border-gray-600 overflow-y-auto">
                           <div className="flex space-x-8">
                             <button
                               onClick={() => {

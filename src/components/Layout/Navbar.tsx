@@ -122,40 +122,35 @@ export const Navbar = () => {
                     }}
                   />
                 ) : (
-                  <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
-                    <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] w-full rounded-lg justify-center">
-                      <Button
-                        className="dark:bg-[#0f0f0f] dark:text-white hover:dark:bg-[#0f0f0f20] border-0 rounded-lg font-medium tracking-wide"
-                        variant="outline">
-                        Login
-                      </Button>
-                    </div>
-                  </Link>
+                  <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] w-full rounded-lg justify-center">
+                    <Button
+                      className="dark:bg-[#0f0f0f] dark:text-white hover:dark:bg-[#0f0f0f20] border-0 rounded-lg font-medium tracking-wide"
+                      variant="outline"
+                      onClick={() => {
+                        window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
+                      }}>
+                      Login
+                    </Button>
+                  </div>
                 )}
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="mr-2">
-                    <Menu />
-                  </Button>
-                </DropdownMenuTrigger>
+                {isLoggedInSol && (
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="mr-2">
+                      <Menu />
+                    </Button>
+                  </DropdownMenuTrigger>
+                )}
               </div>
               <DropdownMenuContent className="w-56">
                 {isLoggedInSol && (
                   <>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <div className="phantom-manage-account-button text-center py-2">
+                        <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
+                      </div>
+                    </DropdownMenuGroup>
                   </>
                 )}
-
-                <DropdownMenuGroup>
-                  <div className="m-auto bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg w-fit">
-                    <Link to={routeNames.login} state={{ from: `${location.pathname}${location.search}` }}>
-                      <Button
-                        className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-lg"
-                        variant="outline">
-                        Account
-                      </Button>
-                    </Link>
-                  </div>
-                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
