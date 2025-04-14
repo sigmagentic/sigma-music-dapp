@@ -773,6 +773,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                       Object.assign(musicPlayerVideo, node);
                     }
                   }}
+                  src={musicPlayerVideo.src}
                   className={`${isSmallScreen ? "hidden" : ""} select-none rounded-md border border-grey-900 transition-all duration-300 ${
                     isFullScreen ? "w-[400px] h-[400px]" : "w-[100px] h-[100px]"
                   }`}

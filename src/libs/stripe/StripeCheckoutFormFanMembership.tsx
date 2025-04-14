@@ -50,11 +50,12 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile }: StripeCheckoutFo
       const albumArtist = membershipProfile.artistName;
       const creatorWallet = membershipProfile.creatorPaymentsWallet;
       const buyerSolAddress = publicKey?.toBase58();
+      const priceInUSDString = membershipProfile.membershipPriceUSD.toString();
 
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}`,
+          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}`,
         },
       });
 

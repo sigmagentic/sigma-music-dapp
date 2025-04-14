@@ -4,9 +4,10 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Loader } from "lucide-react";
 import { STRIPE_PUBLISHABLE_KEY, ENABLE_CC_PAYMENTS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
-import StripeCheckoutFormFanMembership from "contexts/StripeCheckoutFormFanMembership";
 import { Button } from "libComponents/Button";
+import StripeCheckoutFormFanMembership from "libs/stripe/StripeCheckoutFormFanMembership";
 import { getApiWeb2Apps } from "libs/utils/misc";
+import { convertTokenImageUrl } from "libs/utils/ui";
 import { tierData } from "./tierData";
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
@@ -70,7 +71,7 @@ export const JoinInnerCircleCC = ({
   }, [publicKey, creatorPaymentsWallet, membershipId]);
 
   const StripePaymentPopup = useMemo(() => {
-    const tokenImg = creatorFanMembershipAvailability[membershipId]?.tokenImg;
+    const tokenImg = convertTokenImageUrl(creatorFanMembershipAvailability[membershipId]?.tokenImg);
 
     return () => (
       <>
@@ -133,12 +134,12 @@ export const JoinInnerCircleCC = ({
 
   let isCCPaymentsDisabled = !ENABLE_CC_PAYMENTS || ENABLE_CC_PAYMENTS !== "1" || !STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "";
 
-  const tokenImg = creatorFanMembershipAvailability[membershipId]?.tokenImg;
+  const tokenImg = convertTokenImageUrl(creatorFanMembershipAvailability[membershipId]?.tokenImg);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       {showStripePaymentPopup && <StripePaymentPopup />}
-      <div className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 grid grid-cols-1 md:grid-cols-1 max-w-xl gap-6`}>
+      <div className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 grid grid-cols-1 md:grid-cols-2 max-w-4xl gap-6`}>
         {/* Close button  */}
         <button
           onClick={() => {
@@ -149,78 +150,80 @@ export const JoinInnerCircleCC = ({
           ✕
         </button>
 
-        <div>
+        <div className="md:col-span-2">
           <div className="mb-2">
             <h2 className={`!text-2xl text-center font-bold`}>Join {artistName}'s Inner Circle</h2>
           </div>
+        </div>
 
-          <div className="space-y-4">
-            <div className="flex flex-col items-center p-3 shadow-xl">
-              <div className="relative group mb-6">
-                <img
-                  src={tokenImg}
-                  alt={tierData[membershipId]?.label.toUpperCase()}
-                  className="w-32 h-32 md:w-48 md:h-48 lg:w-52 lg:h-52 object-cover rounded-lg shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
-                />
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
+        <div className="space-y-4">
+          <div className="token-img flex flex-col items-center p-3 ">
+            <div className="relative group w-full h-full">
+              <img
+                src={tokenImg}
+                alt={tierData[membershipId]?.label.toUpperCase()}
+                className="w-48 h-48 lg:w-[400px] lg:h-[400px] m-auto object-cover rounded-lg shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
+              />
+              <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </div>
+          </div>
+        </div>
 
-              <div className="text-center space-y-4">
-                <h3 className="text-xl md:text-2xl font-bold text-white">{tierData[membershipId]?.label.toUpperCase()}</h3>
+        <div className="token-info-and-buy flex flex-col gap-2 text-sm items-center justify-center">
+          <div className="text-center space-y-4">
+            <h3 className="text-xl md:text-2xl font-bold text-white">{tierData[membershipId]?.label.toUpperCase()}</h3>
 
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                      $ {tierData[membershipId].defaultPriceUSD} USD
-                    </span>
-                  </div>
-                </div>
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                  $ {tierData[membershipId].defaultPriceUSD} USD
+                </span>
               </div>
             </div>
+          </div>
 
-            {backendErrorMessage && (
-              <div className="flex flex-col gap-4">
-                <p className="bg-red-600 p-4 rounded-lg text-sm">⚠️ {backendErrorMessage}</p>
-              </div>
-            )}
+          <div className="flex flex-col gap-2 text-sm lg:mt-5">
+            <p>
+              <span className="font-bold text-yellow-400">What are you buying?</span> Access to join the inner circle fan membership of {artistName} and receive
+              exclusive content and perks.
+            </p>
+            <p>
+              <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Proceed", you agree to these{" "}
+              <a className="underline" href="https://sigmamusic.fm/legal/terms-of-sale-music" target="_blank" rel="noopener noreferrer">
+                Terms
+              </a>
+              .
+            </p>
+            <p className="text-xs text-gray-400">Payments are processed securely by Stripe. Click on Proceed when ready to pay.</p>
+          </div>
 
-            <div className="flex flex-col gap-2 text-sm">
-              <p>
-                <span className="font-bold text-yellow-400">What are you buying?</span> Access to join the inner circle fan membership of {artistName} and
-                receive exclusive content and perks.
-              </p>
-              <p>
-                <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Proceed", you agree to these{" "}
-                <a className="underline" href="https://sigmamusic.fm/legal/terms-of-sale-music" target="_blank" rel="noopener noreferrer">
-                  Terms
-                </a>
-                .
-              </p>
-              <p className="text-xs text-gray-400">Payments are processed securely by Stripe. Click on Proceed when ready to pay.</p>
+          {isCCPaymentsDisabled && (
+            <div className="flex gap-4 bg-red-600 p-4 rounded-lg text-sm">
+              <p className="text-white">CC payments are currently disabled. Please try again later.</p>
             </div>
+          )}
 
-            {isCCPaymentsDisabled && (
-              <div className="flex gap-4 bg-red-600 p-4 rounded-lg text-sm">
-                <p className="text-white">CC payments are currently disabled. Please try again later.</p>
-              </div>
-            )}
-
-            <div className="flex gap-4">
-              <Button
-                onClick={() => {
-                  resetStateToPristine();
-                  onCloseModal();
-                }}
-                className="flex-1 bg-gray-600 hover:bg-gray-700">
-                Cancel
-              </Button>
-              <Button
-                onClick={() => setShowStripePaymentPopup(true)}
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
-                disabled={isCCPaymentsDisabled}>
-                Proceed
-              </Button>
+          {backendErrorMessage && (
+            <div className="flex flex-col gap-4">
+              <p className="bg-red-600 p-4 rounded-lg text-sm">⚠️ {backendErrorMessage}</p>
             </div>
+          )}
+
+          <div className="flex gap-4 lg:mt-5">
+            <Button
+              onClick={() => {
+                resetStateToPristine();
+                onCloseModal();
+              }}
+              className="flex-1 bg-gray-600 hover:bg-gray-700">
+              Cancel
+            </Button>
+            <Button
+              onClick={() => setShowStripePaymentPopup(true)}
+              className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
+              disabled={isCCPaymentsDisabled}>
+              Proceed
+            </Button>
           </div>
         </div>
       </div>

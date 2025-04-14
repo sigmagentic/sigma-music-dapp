@@ -4,13 +4,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { confetti } from "@tsparticles/confetti";
 import { Loader } from "lucide-react";
-import {
-  BUY_AND_MINT_ALBUM_PRICE_IN_USD,
-  GENERATE_MUSIC_MEME_PRICE_IN_USD,
-  INNER_CIRCLE_PRICE_IN_USD,
-  SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS,
-  ENABLE_SOL_PAYMENTS,
-} from "config";
+import { BUY_AND_MINT_ALBUM_PRICE_IN_USD, GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -372,7 +366,7 @@ export const BuyAndMintAlbumUsingSOL = ({
                       <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
                         {requiredSolAmount ?? "..."} SOL
                       </span>
-                      <span className="text-gray-400">(${INNER_CIRCLE_PRICE_IN_USD} USD)</span>
+                      <span className="text-gray-400">(${BUY_AND_MINT_ALBUM_PRICE_IN_USD} USD)</span>
                     </div>
                   </div>
                 </div>
