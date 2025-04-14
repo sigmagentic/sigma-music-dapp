@@ -57,6 +57,13 @@ export const perksData: Perk[] = [
     description: "I'll record a personalized video message for you",
     terms: "Can be redeemed once a year. Please note that my fans should join my group of the Sigma Discord server so we can coordinate",
   },
+  {
+    pid: "p8",
+    name: "Early access to ticket sales",
+    type: "physical" as const,
+    description: "I'll give you early access to ticket sales for my performances",
+    howToClaim: "Hold a fan membership for access to a private link to purchase tickets before they go on sale to the public",
+  },
 ];
 
 /*
@@ -74,14 +81,14 @@ export const tierData: Record<string, MembershipType> = {
   t1: {
     id: "t1",
     label: "Base",
-    defaultPriceUSD: 0.5,
+    defaultPriceUSD: 9.9,
     term: "lifetime" as const,
     perks: [],
   },
   t2: {
     id: "t2",
     label: "Premium",
-    defaultPriceUSD: 1.0,
+    defaultPriceUSD: 49.9,
     term: "annual" as const,
     perks: [],
   },

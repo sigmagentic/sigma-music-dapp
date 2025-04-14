@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Loader } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Artist, Album } from "libs/types";
-import { Loader } from "lucide-react";
 
 const StripeCheckoutForm = ({ artistProfile, albumToBuyAndMint }: { artistProfile: Artist; albumToBuyAndMint: Album }) => {
   const { publicKey } = useSolanaWallet();

@@ -70,7 +70,7 @@ export const JoinInnerCircleCC = ({
   }, [publicKey, creatorPaymentsWallet, membershipId]);
 
   const StripePaymentPopup = useMemo(() => {
-    const tokenImg = creatorFanMembershipAvailability[membershipId];
+    const tokenImg = creatorFanMembershipAvailability[membershipId]?.tokenImg;
 
     return () => (
       <>
