@@ -407,7 +407,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                       {artistAlbumDataset.map((artist: any) => (
                         <div
                           key={artist.artistId}
-                          className={`flex w-[250px] h-[250px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
+                          className={`flex w-[250px] h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
                           onClick={() => {
                             if (artist.artistId !== selArtistId) {
                               setArtistProfile(null); // reset the artist profile (so previous selected artist clears, the next line -  onFeaturedArtistDeepLinkSlug(artist.slug) - triggers a cascading effect to select the new artist)
@@ -444,7 +444,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                       {albumsDataset.map((album: AlbumWithArtist) => (
                         <div
                           key={album.albumId}
-                          className={`flex w-[250px] h-[250px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
+                          className={`flex w-[250px] h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
                           onClick={() => {
                             if (album.artistId !== selArtistId || album.albumId !== selAlbumId) {
                               setArtistProfile(null); // reset the artist profile (so previous selected artist clears, the next line -  onFeaturedArtistDeepLinkSlug(artist.slug) - triggers a cascading effect to select the new artist)
@@ -520,7 +520,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                     }}>
                                     <>
                                       <Zap className="w-4 h-4" />
-                                      <span className="ml-2">Power-Up Musician</span>
+                                      <span className="ml-2">Power-Up</span>
                                     </>
                                   </Button>
                                 ) : (
@@ -628,7 +628,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                       <div className="artist-tabs flex flex-col p-2 items-start bgx-green-600 w-full">
                         {/* Tabs Navigation */}
-                        <div className="tabs-menu w-full border-b border-gray-600 overflow-y-auto">
+                        <div className="tabs-menu w-full border-b border-gray-600 overflow-y-auto pb-5 md:pb-0">
                           <div className="flex space-x-8">
                             <button
                               onClick={() => {
