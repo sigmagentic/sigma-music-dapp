@@ -200,7 +200,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                 ) : (
                   <>
                     <span className="font-bold cursor-pointer" onClick={() => setShowDetails((prev) => !prev)}>
-                      ℹ️ Why should you power-up musicians?
+                      ℹ️ Why should you power-up artists?
                     </span>{" "}
                     {showDetails && (
                       <div>
