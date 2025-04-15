@@ -271,7 +271,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     }}>
                     <>
                       <WalletMinimal />
-                      <span className="ml-2">Login to Buy Or Play Premium Album</span>
+                      <span className="ml-2">Login to Access Premium Album</span>
                     </>
                   </Button>
 

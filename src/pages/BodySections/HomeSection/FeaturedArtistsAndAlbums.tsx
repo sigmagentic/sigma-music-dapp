@@ -138,7 +138,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     previewTrackAudio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
 
     (async () => {
-      sleep(5);
+      await sleep(2);
       const allArtistsAlbumsData = await getArtistsAlbumsData();
       let allAlbumsData: AlbumWithArtist[] = [];
 
@@ -153,10 +153,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         )
       );
 
-      sleep(5);
+      // await sleep(5);
 
       setArtistAlbumDataset(allArtistsAlbumsData);
       setAlbumsDataset(allAlbumsData);
+
       setArtistAlbumDataLoading(false);
 
       // update the album master lookup
@@ -387,7 +388,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               {artistAlbumDataLoading ? (
                 <div className="m-auto w-full">
                   <div className="w-full flex flex-col items-center h-[250px] md:h-[100%] md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px]">
-                    {[...Array(10)].map((_, index) => (
+                    {[...Array(30)].map((_, index) => (
                       <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
                     ))}
                   </div>
@@ -627,7 +628,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                       <div className="artist-tabs flex flex-col p-2 items-start bgx-green-600 w-full">
                         {/* Tabs Navigation */}
-                        <div className="w-full border-b border-gray-600">
+                        <div className="tabs-menu w-full border-b border-gray-600 overflow-y-auto">
                           <div className="flex space-x-8">
                             <button
                               onClick={() => {

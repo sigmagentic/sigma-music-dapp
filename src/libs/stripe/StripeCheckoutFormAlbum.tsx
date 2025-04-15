@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Loader } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Artist, Album } from "libs/types";
-import { Loader } from "lucide-react";
 
-const StripeCheckoutForm = ({ artistProfile, albumToBuyAndMint }: { artistProfile: Artist; albumToBuyAndMint: Album }) => {
+const StripeCheckoutFormAlbum = ({ artistProfile, albumToBuyAndMint, priceInUSD }: { artistProfile: Artist; albumToBuyAndMint: Album; priceInUSD: number }) => {
   const { publicKey } = useSolanaWallet();
   const stripe = useStripe();
   const elements = useElements();
@@ -39,11 +39,12 @@ const StripeCheckoutForm = ({ artistProfile, albumToBuyAndMint }: { artistProfil
       const albumArtist = artistProfile.name;
       const creatorWallet = artistProfile.creatorPaymentsWallet;
       const buyerSolAddress = publicKey?.toBase58();
+      const priceInUSDString = priceInUSD.toString();
 
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}`,
+          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}`,
         },
       });
 
@@ -89,4 +90,4 @@ const StripeCheckoutForm = ({ artistProfile, albumToBuyAndMint }: { artistProfil
   );
 };
 
-export default StripeCheckoutForm;
+export default StripeCheckoutFormAlbum;
