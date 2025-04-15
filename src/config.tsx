@@ -31,7 +31,6 @@ export const GENERATE_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0
 export const LAUNCH_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0
 
 export const BUY_AND_MINT_ALBUM_PRICE_IN_USD = 0.5; // 0.5
-export const INNER_CIRCLE_PRICE_IN_USD = 0.01; // 0.5
 
 export const SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS = "6WjQ42oteJmPQTiyHpjc7tufvxyenjQs9FUiJFHb1YDX";
 

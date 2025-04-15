@@ -4,8 +4,8 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Loader } from "lucide-react";
 import { BUY_AND_MINT_ALBUM_PRICE_IN_USD, STRIPE_PUBLISHABLE_KEY, ENABLE_CC_PAYMENTS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
-import StripeCheckoutForm from "contexts/StripeCheckoutForm";
 import { Button } from "libComponents/Button";
+import StripeCheckoutForm from "libs/stripe/StripeCheckoutFormAlbum";
 import { Artist, Album } from "libs/types";
 import { getApiWeb2Apps } from "libs/utils/misc";
 
@@ -91,7 +91,7 @@ export const BuyAndMintAlbumUsingCC = ({
                   $ {BUY_AND_MINT_ALBUM_PRICE_IN_USD} USD
                 </span>
                 <div className="mt-2">
-                  <StripeCheckoutForm artistProfile={artistProfile} albumToBuyAndMint={albumToBuyAndMint} />
+                  <StripeCheckoutForm artistProfile={artistProfile} albumToBuyAndMint={albumToBuyAndMint} priceInUSD={BUY_AND_MINT_ALBUM_PRICE_IN_USD} />
                 </div>
               </div>
             </div>

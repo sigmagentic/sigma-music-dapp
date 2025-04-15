@@ -87,3 +87,33 @@ export const scrollToTopOnMainContentArea = () => {
     });
   }
 };
+
+/**
+ * Converts a lighthouse.storage URL to an itheumcloud.com URL for token images
+ * @param tokenImg - The original token image URL
+ * @returns The converted URL or the original URL if conversion is not needed
+ */
+export const convertTokenImageUrl = (tokenImg: string): string => {
+  if (!tokenImg) return tokenImg;
+
+  // Check if the URL is from lighthouse.storage
+  if (tokenImg.includes("lighthouse.storage")) {
+    try {
+      // Extract the filename from the URL
+      const url = new URL(tokenImg);
+      const pathParts = url.pathname.split("/");
+      const fileName = pathParts[pathParts.length - 1];
+
+      // Extract the artist identifier (e.g., 'loonyoT1' from '733_loonyoT1.gif')
+      const artistIdentifier = fileName.split("_")[1];
+
+      if (artistIdentifier) {
+        return `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistIdentifier}`;
+      }
+    } catch (error) {
+      console.error("Error converting token image URL:", error);
+    }
+  }
+
+  return tokenImg;
+};

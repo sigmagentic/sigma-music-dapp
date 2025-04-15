@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { confetti } from "@tsparticles/confetti";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { BUY_AND_MINT_ALBUM_PRICE_IN_USD } from "config";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPayment, sleep } from "libs/utils/misc";
@@ -24,6 +23,7 @@ export const PaymentSuccess = () => {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading"); // the overall status of the process
   const [error, setError] = useState<string | null>(null); // the error message if the process fails
   const { updateSolNfts } = useNftsStore();
+  const [priceInUSD, setPriceInUSD] = useState<string | null>(null);
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -62,8 +62,9 @@ export const PaymentSuccess = () => {
         const _albumTitle = searchParams.get("albumTitle");
         const _albumArtist = searchParams.get("albumArtist");
         const creatorWallet = searchParams.get("creatorWallet");
+        const _priceInUSD = searchParams.get("priceInUSD");
 
-        if (!paymentIntentId || (!albumId && !membershipId)) {
+        if (!paymentIntentId || !_priceInUSD || (!albumId && !membershipId)) {
           throw new Error("Missing required parameters");
         }
 
@@ -76,6 +77,7 @@ export const PaymentSuccess = () => {
         setItemImg(_itemImg);
         setItemTitle(_albumTitle);
         setItemArtist(_albumArtist);
+        setPriceInUSD(_priceInUSD);
 
         console.log("albumId", albumId);
         console.log("membershipId", membershipId);
@@ -105,7 +107,7 @@ export const PaymentSuccess = () => {
               tx: paymentIntentId,
               task: albumId ? "buyAlbum" : "joinFanClub",
               type: "cc",
-              amount: BUY_AND_MINT_ALBUM_PRICE_IN_USD.toString(),
+              amount: _priceInUSD,
               creatorWallet: creatorWallet,
             };
 
@@ -264,9 +266,7 @@ export const PaymentSuccess = () => {
                 </h3>
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                      $ {BUY_AND_MINT_ALBUM_PRICE_IN_USD} USD
-                    </span>
+                    <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">$ {priceInUSD} USD</span>
                   </div>
                 </div>
               </div>

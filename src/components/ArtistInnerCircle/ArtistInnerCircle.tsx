@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { SparklesIcon, ComputerDesktopIcon, UserGroupIcon } from "@heroicons/react/24/solid";
 import { Loader } from "lucide-react";
-import { INNER_CIRCLE_PRICE_IN_USD } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
-import { fetchCreatorFanMembershipAvailability, fetchMyFanMembershipsForArtist, fetchSolPrice, getApiWeb2Apps } from "libs/utils/misc";
+import { fetchCreatorFanMembershipAvailability, fetchMyFanMembershipsForArtist, fetchSolPrice } from "libs/utils/misc";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
 import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
 import { tierData, perksData } from "./tierData";
+import { convertTokenImageUrl } from "libs/utils/ui";
 
 const getPerkTypeIcon = (type: "virtual" | "physical" | "virtual") => {
   switch (type) {
@@ -68,14 +68,16 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
     const fetchAllData = async () => {
       const fanMembershipAvailabilityData = await checkAndloadCreatorFanMembershipAvailability();
       await fetchMembershipData(fanMembershipAvailabilityData);
-
-      if (walletType === "phantom") {
-        fetchPriceInSol();
-      }
     };
 
     fetchAllData();
   }, [walletType, creatorPaymentsWallet]);
+
+  useEffect(() => {
+    if (walletType === "phantom" && artistsMembershipOptions && selectedArtistMembership) {
+      fetchPriceInSol();
+    }
+  }, [selectedArtistMembership, walletType, artistsMembershipOptions]);
 
   useEffect(() => {
     if (!addressSol) {
@@ -107,10 +109,14 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
 
   const fetchPriceInSol = async () => {
     try {
+      if (!artistsMembershipOptions || !selectedArtistMembership) {
+        return;
+      }
+
       const { currentSolPrice } = await fetchSolPrice();
 
       // Calculate required SOL amount based on USD price
-      const solAmount = INNER_CIRCLE_PRICE_IN_USD / currentSolPrice;
+      const solAmount = artistsMembershipOptions[selectedArtistMembership].defaultPriceUSD / currentSolPrice;
       setRequiredSolAmount(Number(solAmount.toFixed(4))); // Round to 4 decimal places
     } catch (error) {
       console.error("Failed to fetch SOL price:", error);
@@ -247,7 +253,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
       {!addressSol && <p className="text-gray-400 text-sm mt-2">Login first to subscribe</p>}
       {addressSol && requiredSolAmount && (
         <p className="text-gray-400 text-sm mt-2">
-          Amount to pay: {requiredSolAmount.toFixed(4)} SOL (${INNER_CIRCLE_PRICE_IN_USD})
+          Amount to pay: {requiredSolAmount.toFixed(4)} SOL (${artistsMembershipOptions?.[selectedArtistMembership]?.defaultPriceUSD} USD)
         </p>
       )}
     </>
@@ -296,11 +302,15 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                   <div
                     key={index}
                     className="p-4 rounded-lg bg-black/40 border border-yellow-500/20 hover:border-yellow-500/40 transition-all cursor-pointer"
-                    onClick={() => membership.tokenImg && setSelectedTokenImg(membership.tokenImg)}>
+                    onClick={() => membership.tokenImg && setSelectedTokenImg(convertTokenImageUrl(membership.tokenImg))}>
                     <div className="flex items-center gap-4">
                       {membership.tokenImg && (
                         <div className="w-24 h-24 rounded-lg overflow-hidden">
-                          <img src={membership.tokenImg} alt={`${membership.membershipLabel} Membership Token`} className="w-full h-full object-cover" />
+                          <img
+                            src={convertTokenImageUrl(membership.tokenImg)}
+                            alt={`${membership.membershipLabel} Membership Token`}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       )}
                       <div>
@@ -372,7 +382,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                         </div>
                       </div>
                       {perk.terms && (
-                        <div className="relative group">
+                        <div className="hidden md:block relative group">
                           <SparklesIcon className="h-6 w-6 text-gray-500" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-[120px] p-2 bg-gray-800 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                             Click for terms
@@ -414,7 +424,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                         </div>
                       </div>
                       {perk.terms && (
-                        <div className="relative group">
+                        <div className="hidden md:block relative group">
                           <SparklesIcon className="h-6 w-6 text-gray-500" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-[120px] p-2 bg-gray-800 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                             Click for terms
@@ -460,7 +470,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
       {selectedTokenImg && (
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
           <div className="relative max-w-4xl w-full">
-            <img src={selectedTokenImg} alt="Membership Token" className="w-full h-auto rounded-lg" />
+            <img src={selectedTokenImg} alt="Membership Token" className="w-[90%] h-auto m-auto rounded-lg" />
             <button
               onClick={() => setSelectedTokenImg(null)}
               className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">

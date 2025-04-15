@@ -26,7 +26,7 @@ export const AlertBanner = () => {
 
   return (
     <div
-      className="mt-2 mx-2 relative overflow-hidden bg-gradient-to-r from-yellow-500/25 via-red-500/30 to-yellow-500/25 border-b border-red-500/40"
+      className="hidden mt-2 mx-2 relative overflow-hidden bg-gradient-to-r from-yellow-500/25 via-red-500/30 to-yellow-500/25 border-b border-red-500/40"
       style={{
         animation: "gradient 3s ease infinite",
         backgroundSize: "200% 200%",
