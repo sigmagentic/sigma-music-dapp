@@ -163,7 +163,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         orderedAlbums.map((album: Album, idx: number) => (
           <div
             key={`${album.albumId}-${idx}`}
-            className={`album flex flex-col my-3 p-2 md:p-5 border w-[100%] ${highlightAlbumId === album.albumId ? "bg-yellow-500/10 border-yellow-500" : ""}`}>
+            className={`album flex flex-col my-3 p-2 md:p-5 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
             <div className="albumDetails flex flex-col md:flex-row">
               <div
                 className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg m-auto"
@@ -173,7 +173,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
               <div className="albumText flex flex-col mt-5 md:mt-0 md:ml-5 md:pr-2 flex-1 mb-5 md:mb-0">
                 <h3 className="!text-xl mb-2 flex items-baseline">
-                  {!inCollectedAlbumsView && <span className="text-3xl mr-1 opacity-50">{`${idx + 1}. `}</span>}
                   <span>
                     {album.title}
                     {inCollectedAlbumsView ? (
@@ -238,7 +237,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 <div>
                   <Button
                     disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || albumPlayIsQueued}
-                    className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                    className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[180px]"
                     variant="outline"
                     onClick={() => {
                       if (playPausePreview) {
@@ -297,7 +296,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         trackPlayIsQueued ||
                         albumPlayIsQueued
                       }
-                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 cursor-pointer"
+                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l cursor-pointer w-[180px]"
                       onClick={() => {
                         // if the user is jumping between multiple albums, the audio player was getting into some weird state
                         // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
@@ -401,7 +400,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               <>
                 {checkOwnershipOfAlbum(album) < 0 && (
                   <>
-                    {getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }) && (
+                    {walletType === "phantom" && getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }) && (
                       <div>
                         <Button
                           className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
@@ -418,23 +417,26 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     )}
 
                     {album._canBeMinted && !inCollectedAlbumsView && (
-                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "cursor-not-allowed" : "cursor-pointer"}`}>
+                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "" : "w-[180px]"}`}>
                         {/* Animated border background */}
                         <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
 
                         {/* Button content */}
                         <Button
-                          className={`relative z-10 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100 ${
-                            !addressSol ? "cursor-not-allowed" : "cursor-pointer"
-                          }`}
-                          disabled={!addressSol}
+                          className={`relative z-2 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100`}
                           onClick={() => {
-                            setAlbumToBuyAndMint(album);
+                            if (addressSol) {
+                              setAlbumToBuyAndMint(album);
+                            } else {
+                              let backToAlbumFocus = `artist=${artistProfile.slug}~${album.albumId}`;
+
+                              window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + "?" + backToAlbumFocus)}`;
+                            }
                           }}>
                           <>
                             <ShoppingCart />
                             <span className="ml-2">
-                              {checkOwnershipOfAlbum(album) > -1 ? "Buy More Album Copies Now" : `Buy Now ${addressSol ? "" : " (Login Above First)"}`}
+                              {checkOwnershipOfAlbum(album) > -1 ? "Buy More Album Copies Now" : `${addressSol ? "Buy Now" : " Login to Buy Now"}`}
                             </span>
                           </>
                         </Button>

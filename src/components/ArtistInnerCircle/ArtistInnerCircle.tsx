@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { SparklesIcon, ComputerDesktopIcon, UserGroupIcon } from "@heroicons/react/24/solid";
-import { Loader } from "lucide-react";
+import { Loader, ShoppingCart } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
 import { fetchCreatorFanMembershipAvailability, fetchMyFanMembershipsForArtist, fetchSolPrice } from "libs/utils/misc";
@@ -8,6 +8,7 @@ import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
 import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
 import { tierData, perksData } from "./tierData";
 import { convertTokenImageUrl } from "libs/utils/ui";
+import { Button } from "libComponents/Button";
 
 const getPerkTypeIcon = (type: "virtual" | "physical" | "virtual") => {
   switch (type) {
@@ -244,12 +245,20 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
 
   const SubscribeButton = () => (
     <>
-      <button
-        disabled={!addressSol}
-        onClick={() => setJoinInnerCircleModalOpen(true)}
-        className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
-        Subscribe Now
-      </button>
+      <div className={`relative group w-[200px] overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "cursor-not-allowed" : "cursor-pointer"}`}>
+        {/* Animated border background */}
+        <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
+        <Button
+          disabled={!addressSol}
+          onClick={() => setJoinInnerCircleModalOpen(true)}
+          className={`relative z-2 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100`}>
+          <>
+            <ShoppingCart />
+            <span className="ml-2"> Subscribe Now</span>
+          </>
+        </Button>
+      </div>
+
       {!addressSol && <p className="text-gray-400 text-sm mt-2">Login first to subscribe</p>}
       {addressSol && requiredSolAmount && (
         <p className="text-gray-400 text-sm mt-2">
