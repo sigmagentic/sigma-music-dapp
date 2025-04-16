@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { Gift, Heart, Loader, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass } from "lucide-react";
+import { Gift, Heart, Loader, AudioWaveform, AudioLines, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
 import { DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS } from "config";
@@ -329,7 +329,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         }
                       }}>
                       <>
-                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <Music2 />}
+                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <>{checkOwnershipOfAlbum(album) > -1 ? <AudioWaveform /> : <AudioLines />}</>}
                         <span className="ml-2">
                           {thisIsPlayingOnMainPlayer(album)
                             ? "Playing..."
