@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { Gift, Heart, Loader, Music2, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass } from "lucide-react";
+import { Gift, Heart, Loader, AudioWaveform, AudioLines, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
 import { DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS } from "config";
@@ -237,7 +237,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 <div>
                   <Button
                     disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || albumPlayIsQueued}
-                    className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[180px]"
+                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[230px]"
                     variant="outline"
                     onClick={() => {
                       if (playPausePreview) {
@@ -260,10 +260,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               )}
 
               {/* when not logged in, show this to convert the wallet into user account */}
-              {!publicKeySol && (
+              {!publicKeySol && !album._canBeMinted && (
                 <div className="relative w-full md:w-auto">
                   <Button
-                    className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
                     variant="outline"
                     onClick={() => {
                       window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
@@ -296,7 +296,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         trackPlayIsQueued ||
                         albumPlayIsQueued
                       }
-                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l cursor-pointer w-[180px]"
+                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l cursor-pointer w-[230px] mr-2"
                       onClick={() => {
                         // if the user is jumping between multiple albums, the audio player was getting into some weird state
                         // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
@@ -329,7 +329,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         }
                       }}>
                       <>
-                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <Music2 />}
+                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <>{checkOwnershipOfAlbum(album) > -1 ? <AudioLines /> : <AudioWaveform />}</>}
                         <span className="ml-2">
                           {thisIsPlayingOnMainPlayer(album)
                             ? "Playing..."
@@ -403,7 +403,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     {walletType === "phantom" && getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }) && (
                       <div>
                         <Button
-                          className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                          className="text-sm cursor-pointer !text-orange-500 dark:!text-yellow-300 mr-2"
                           variant="outline"
                           onClick={() => {
                             window.open(getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }))?.focus();
@@ -417,7 +417,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     )}
 
                     {album._canBeMinted && !inCollectedAlbumsView && (
-                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "" : "w-[180px]"}`}>
+                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "" : "w-[230px]"}`}>
                         {/* Animated border background */}
                         <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
 
@@ -448,7 +448,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 {album.ctaAirdrop && (
                   <div>
                     <Button
-                      className="!text-white text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-700 to-orange-800 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
+                      className="!text-white text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-700 to-orange-800 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mr-2 cursor-pointer"
                       onClick={() => {
                         window.open(album.ctaAirdrop)?.focus();
                       }}>
@@ -463,7 +463,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 {inCollectedAlbumsView && artistProfile && !album.isSigmaRemixAlbum && setFeaturedArtistDeepLinkSlug && setHomeMode && (
                   <div>
                     <Button
-                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 md:mx-2 cursor-pointer"
+                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mr-2 cursor-pointer"
                       onClick={() => {
                         setFeaturedArtistDeepLinkSlug(artistProfile.slug);
                         setSearchParams({ "artist": artistProfile.slug });
