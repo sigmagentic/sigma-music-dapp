@@ -260,7 +260,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               )}
 
               {/* when not logged in, show this to convert the wallet into user account */}
-              {!publicKeySol && (
+              {!publicKeySol && !album._canBeMinted && (
                 <div className="relative w-full md:w-auto">
                   <Button
                     className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
