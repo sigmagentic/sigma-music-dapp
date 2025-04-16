@@ -36,7 +36,10 @@ export const SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS = "6WjQ42oteJmPQTiyHpjc7tufvxy
 
 export const SIGMA_MEME_FEATURE_WHITELIST = "7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj,7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj";
 
-export const ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS = import.meta.env.VITE_ENV_ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS || "";
+export const ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS =
+  import.meta.env.VITE_ENV_NETWORK === "devnet"
+    ? "ar22_a1,ar24_a1,ar25_a1"
+    : "ar16_a1-1, ar16_a1-2,ar16_a1-3,ar16_a1-4,ar15_a1-1,ar15_a1-2,ar15_a1-3,ar15_a1-4,ar15_a1-5,ar15_a1-6,ar15_a2-1,ar15_a2-2,ar15_a2-3,ar15_a2-4,ar15_a2-5,ar4_a2-1,ar4_a2-2,ar13_a1-1,ar13_a1-2,ar13_a1-3,ar12_a1-1,ar12_a1-2,ar12_a1-3,ar12_a1-4,ar12_a1-5,ar2_a3-1,ar2_a3-2,ar9_a1-1,ar9_a1-2,ar9_a1-3,ar2_a1-1,ar2_a1-2,ar2_a1-3,ar2_a1-4,ar1_a2-1,ar1_a2-2,ar1_a2-3,ar1_a2-4,ar7_a1-1,ar7_a1-2,ar7_a1-3,ar4_a1-1,ar4_a1-2,ar22_a1-1,ar22_a1-2,ar22_a1-3,ar22_a1-4,ar22_a1-5,ar22_a1-6";
 
 export const ENABLE_CC_PAYMENTS = import.meta.env.VITE_ENV_ENABLE_CC_PAYMENTS || "0";
 
