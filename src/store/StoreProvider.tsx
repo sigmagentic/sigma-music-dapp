@@ -67,6 +67,24 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
       const _nfMeIdNfts: DasApiAsset[] = solNfts.filter((nft) => nft.content.metadata.name.includes("NFMeID"));
 
+      // console.log("_bitzDataNfts", _bitzDataNfts);
+      // console.log("_bitzDataNfts[0]", JSON.stringify(_bitzDataNfts[0]));
+
+      // if (walletType === "web3auth" && _bitzDataNfts.length === 0) {
+      //   // user has no, so we create the place holder one for them
+      //   const _placeHolderBitzDataNft: any = {
+      //     id: addressSol,
+      //     grouping: [
+      //       {
+      //         group_key: "collection",
+      //         group_value: "tbm-c1",
+      //       },
+      //     ],
+      //   };
+
+      //   _bitzDataNfts.push(_placeHolderBitzDataNft);
+      // }
+
       updateSolBitzNfts(_bitzDataNfts);
       updateSolNFMeIdNfts(_nfMeIdNfts);
 

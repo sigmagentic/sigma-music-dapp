@@ -5,8 +5,8 @@ export const perksData: Perk[] = [
     pid: "p1",
     name: "Upto 10 Free EPs or Single per year",
     type: "virtual" as const,
-    description: "If I drop a new EP or Single as a NFT, you get it for free (upto 10 EPs or Singles per year)",
-    terms: "Please note that I reserve the right to decide which EPs or Singles are eligible for this perk at any time",
+    description: "If I drop a new EP or Single as a NFT, you get to own a copy (as a NFT) for free and stream all bonus tracks",
+    terms: "Upto 10 EPs or Singles per year. Please note that I reserve the right to decide which EPs or Singles are eligible for this perk at any time",
     howToClaim: "Hold the inner circle fan membership NFT",
   },
   {
