@@ -39,7 +39,7 @@ export const SIGMA_MEME_FEATURE_WHITELIST = "7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2
 export const ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS =
   import.meta.env.VITE_ENV_NETWORK === "devnet"
     ? "ar22_a1,ar24_a1,ar25_a1"
-    : "ar16_a1-1, ar16_a1-2,ar16_a1-3,ar16_a1-4,ar15_a1-1,ar15_a1-2,ar15_a1-3,ar15_a1-4,ar15_a1-5,ar15_a1-6,ar15_a2-1,ar15_a2-2,ar15_a2-3,ar15_a2-4,ar15_a2-5,ar4_a2-1,ar4_a2-2,ar13_a1-1,ar13_a1-2,ar13_a1-3,ar12_a1-1,ar12_a1-2,ar12_a1-3,ar12_a1-4,ar12_a1-5,ar2_a3-1,ar2_a3-2,ar9_a1-1,ar9_a1-2,ar9_a1-3,ar2_a1-1,ar2_a1-2,ar2_a1-3,ar2_a1-4,ar1_a2-1,ar1_a2-2,ar1_a2-3,ar1_a2-4,ar7_a1-1,ar7_a1-2,ar7_a1-3,ar4_a1-1,ar4_a1-2,ar22_a1-1,ar22_a1-2,ar22_a1-3,ar22_a1-4,ar22_a1-5,ar22_a1-6";
+    : "ar16_a1, ar15_a1, ar15_a2, ar4_a2, ar14_a2, ar14_a1, ar13_a1, ar12_a1, ar2_a3, ar9_a1, ar8_a1, ar2_a1, ar1_a2, ar7_a1, ar4_a1, ar3_a1, ar1_a1, ar2_a2, ar11_a1, ar14_a3, ar17_a1, ar18_a1, ar8_a2, ar11_a3, ar19_a1, ar14_a4, ar20_a1, ar21_a1, ar11_a2, ar2_a4, ar2_a5, ar2_a6, ar2_a7, ar2_a8, ar22_a1, ar17_a2, ar11_a4, ar12_a2, ar23_a1";
 
 export const ENABLE_CC_PAYMENTS = import.meta.env.VITE_ENV_ENABLE_CC_PAYMENTS || "0";
 
