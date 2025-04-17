@@ -10,7 +10,7 @@ import { LuMousePointerClick } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
-import { getOrCacheAccessNonceAndSignature, viewDataViaMarshalSol } from "libs/sol/SolViewData";
+import { getOrCacheAccessNonceAndSignature, viewDataViaMarshalSol, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
 import { cn, sleep } from "libs/utils";
 import { computeRemainingCooldown } from "libs/utils/functions";
 import { useAccountStore } from "store/account";
@@ -44,7 +44,8 @@ const GetBitzSol = (props: any) => {
   const [hasGameDataNFT, setHasGameDataNFT] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  const { cooldown, updateBitzBalance, updateCooldown, updateGivenBitzSum, updateCollectedBitzSum, updateBonusBitzSum, updateBonusTries } = useSolBitzStore();
+  const { cooldown, updateBitzBalance, updateCooldown, updateGivenBitzSum, updateCollectedBitzSum, updateBonusBitzSum, updateBonusTries, isSigmaWeb2XpSystem } =
+    useSolBitzStore();
 
   const solPreaccessNonce = useAccountStore((state: any) => state.solPreaccessNonce);
   const solPreaccessSignature = useAccountStore((state: any) => state.solPreaccessSignature);
@@ -186,7 +187,7 @@ const GetBitzSol = (props: any) => {
   }, [spinComplete, viewDataRes]);
 
   useEffect(() => {
-    if (solBitzNfts === undefined) return;
+    if (solBitzNfts === undefined || isSigmaWeb2XpSystem === -2) return;
 
     if (!populatedBitzStore) {
       if (userPublicKey && solBitzNfts.length > 0) {
@@ -222,7 +223,8 @@ const GetBitzSol = (props: any) => {
             usedPreAccessNonce,
             usedPreAccessSignature,
             userPublicKey,
-            viewDataArgs
+            viewDataArgs,
+            isSigmaWeb2XpSystem
           );
 
           setIsFetchingDataMarshal(false);
@@ -268,7 +270,7 @@ const GetBitzSol = (props: any) => {
         setPopulatedBitzStore(false);
       }
     }
-  }, [solBitzNfts, userPublicKey]);
+  }, [solBitzNfts, userPublicKey, isSigmaWeb2XpSystem]);
 
   useEffect(() => {
     checkIfHasGameDataNft();
@@ -299,22 +301,28 @@ const GetBitzSol = (props: any) => {
 
       if (!userPublicKey) throw new Error("Missing data for viewData");
 
-      const res = await viewDataViaMarshalSol(
-        requiredDataNFT.id,
-        usedPreAccessNonce,
-        usedPreAccessSignature,
-        userPublicKey,
-        viewDataArgs.fwdHeaderKeys,
-        viewDataArgs.headers
-      );
+      let res: Response | undefined = undefined;
 
-      if (res.ok) {
-        const data = await res.json();
-        return { data, contentType: res.headers.get("content-type") };
+      if (isSigmaWeb2XpSystem === 1) {
+        res = await sigmaWeb2XpSystem(userPublicKey, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, requiredDataNFT.id, true);
+      } else {
+        res = await viewDataViaMarshalSol(
+          requiredDataNFT.id,
+          usedPreAccessNonce,
+          usedPreAccessSignature,
+          userPublicKey,
+          viewDataArgs.fwdHeaderKeys,
+          viewDataArgs.headers
+        );
       }
 
-      console.error("viewData threw catch error" + res.statusText);
-      return undefined;
+      if (res && res.ok) {
+        const data = await res.json();
+        return { data, contentType: res.headers.get("content-type") };
+      } else {
+        console.error("viewData threw catch error " + res?.statusText + " " + res?.status);
+        return undefined;
+      }
     } catch (err) {
       return undefined;
     }
@@ -346,7 +354,7 @@ const GetBitzSol = (props: any) => {
       fwdHeaderKeys: ["dmf-custom-sol-collection-id"],
     };
 
-    const viewDataPayload = await viewData(viewDataArgs, solBitzNfts[0]);
+    let viewDataPayload = await viewData(viewDataArgs, solBitzNfts[0]);
 
     if (viewDataPayload) {
       setGameDataFetched(true);
@@ -604,19 +612,26 @@ export async function viewDataToOnlyGetReadOnlyBitz(
   usedPreAccessNonce: string,
   usedPreAccessSignature: string,
   userPublicKey: PublicKey,
-  viewDataArgs: any
+  viewDataArgs: any,
+  isSigmaWeb2XpSystem: number
 ) {
   try {
     if (!userPublicKey) throw new Error("Missing data for viewData");
 
-    const res = await viewDataViaMarshalSol(
-      requiredDataNFT.id,
-      usedPreAccessNonce,
-      usedPreAccessSignature,
-      userPublicKey,
-      viewDataArgs.fwdHeaderKeys,
-      viewDataArgs.headers
-    );
+    let res = null;
+
+    if (isSigmaWeb2XpSystem === 1) {
+      res = await sigmaWeb2XpSystem(userPublicKey, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, requiredDataNFT.id, true);
+    } else {
+      res = await viewDataViaMarshalSol(
+        requiredDataNFT.id,
+        usedPreAccessNonce,
+        usedPreAccessSignature,
+        userPublicKey,
+        viewDataArgs.fwdHeaderKeys,
+        viewDataArgs.headers
+      );
+    }
 
     if (res.ok) {
       const data = await res.json();

@@ -93,7 +93,7 @@ export const Navbar = () => {
                     {/* Web3 Wallet Account Button */}
                     {walletType === "web3auth" ? (
                       <button
-                        className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 font-bold"
+                        className="p-2 rounded-md border h-[50px] cursor-pointer border-orange-400 font-bold"
                         onClick={() => setShowLogoutConfirmation(true)}>
                         Logout
                       </button>

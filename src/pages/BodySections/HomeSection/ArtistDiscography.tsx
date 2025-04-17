@@ -164,9 +164,9 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
           <div
             key={`${album.albumId}-${idx}`}
             className={`album flex flex-col my-3 p-2 md:p-5 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
-            <div className="albumDetails flex flex-col md:flex-row">
+            <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
               <div
-                className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg m-auto"
+                className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto"
                 style={{
                   "backgroundImage": `url(${album.img})`,
                 }}></div>
@@ -232,7 +232,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               )}
             </div>
 
-            <div className="albumActions mt-3 flex flex-wrap flex-col items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
+            <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
               {album.ctaPreviewStream && !inCollectedAlbumsView && (
                 <div>
                   <Button

@@ -4,14 +4,14 @@ import { confetti } from "@tsparticles/confetti";
 import { Container } from "@tsparticles/engine";
 import { ExternalLinkIcon } from "lucide-react";
 import { Modal } from "components/Modal/Modal";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
-import { getOrCacheAccessNonceAndSignature, viewDataWrapperSol } from "libs/sol/SolViewData";
+import { getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem, viewDataWrapperSol } from "libs/sol/SolViewData";
 import { sleep } from "libs/utils";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type SendBitzPowerUpProps = {
   giveBitzForMusicBountyConfig: {
@@ -38,7 +38,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { solBitzNfts } = useNftsStore();
   const [showDetails, setShowDetails] = useState<boolean>(false);
 
-  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum } = useSolBitzStore();
+  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
 
   // Cached Signature Store Items
@@ -105,7 +105,13 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
         updateSolPreaccessTimestamp,
       });
 
-      const giveBitzGameResult = await viewDataWrapperSol(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+      let giveBitzGameResult = null;
+
+      if (isSigmaWeb2XpSystem === 1) {
+        giveBitzGameResult = await sigmaWeb2XpSystem(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+      } else {
+        giveBitzGameResult = await viewDataWrapperSol(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+      }
 
       if (giveBitzGameResult) {
         if (giveBitzGameResult?.data?.statusCode && giveBitzGameResult?.data?.statusCode != 200) {
