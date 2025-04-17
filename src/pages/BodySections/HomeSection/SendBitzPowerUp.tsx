@@ -195,11 +195,9 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                     </span>{" "}
                     {showDetails && (
                       <div>
-                        Most liked albums get promoted and featured more on Sigma Music and other social channels (this supports the Musician) and in return,
-                        you can earn monthly badges that can earn you rewards. Learn more about the rewards program{" "}
-                        <a href="https://docs.itheum.io/product-docs/product/ai-data-workforce/badges" target="_blank" className="text-blue-500">
-                          here
-                        </a>
+                        Most-liked albums get promoted and featured more on Sigma Music and other social channels, and this may drive more sales of the artist's
+                        content. If the artist has an Inner Circle premium membership offering and has enabled the "revenue share" tier, then more sales will
+                        equal more revenue shared with the artist's Inner Circle members (i.e., you).
                       </div>
                     )}
                   </>
@@ -210,12 +208,11 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                     </span>{" "}
                     {showDetails && (
                       <div>
-                        Musicians with the most XP powering them will be featured more on Sigma Music and other social channels and they will get monthly badges
-                        that can earn them rewards (this supports the Musician) and in return, you can also earn monthly badges that can earn you rewards. Learn
-                        more about the rewards program{" "}
-                        <a href="https://docs.itheum.io/product-docs/product/ai-data-workforce/badges" target="_blank" className="text-blue-500">
-                          here
-                        </a>
+                        Artists with the most XP powering them will be featured more on Sigma Music and other social channels, and they also earn token rewards
+                        (this supports the musician). In return, you can climb the artist's supporter leaderboard, and the top climbers earn token rewards (to
+                        reward you for supporting the artist). Being featured more on Sigma Music and other social channels may also drive more sales of the
+                        artist's content. If the artist has an Inner Circle premium membership offering and has enabled the "revenue share" tier, then more
+                        sales will equal more revenue shared with the artist's Inner Circle members (i.e., you).
                       </div>
                     )}
                   </>
