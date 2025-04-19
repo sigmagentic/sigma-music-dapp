@@ -30,6 +30,7 @@ export interface MusicTrack {
   creatorWallet: string;
   bountyId: string;
   isExplicit: string;
+  alId?: string; // the album and track index in the format (ar22_a1-1)
 }
 
 export interface Album {

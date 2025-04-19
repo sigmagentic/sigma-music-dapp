@@ -4,7 +4,7 @@ import { confetti } from "@tsparticles/confetti";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPayment, sleep } from "libs/utils/misc";
+import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
@@ -160,7 +160,7 @@ export const PaymentSuccess = () => {
               mintParams.membershipId = membershipId;
             }
 
-            const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPayment(mintParams);
+            const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI(mintParams);
 
             if (_mintAlbumNFTAfterPaymentResponse.error) {
               setMintingStatus("failed");

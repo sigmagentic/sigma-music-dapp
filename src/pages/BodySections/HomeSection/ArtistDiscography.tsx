@@ -11,7 +11,7 @@ import { Button } from "libComponents/Button";
 import { fetchSolNfts } from "libs/sol/SolViewData";
 import { BountyBitzSumMapping } from "libs/types";
 import { Artist, Album } from "libs/types";
-import { checkIfAlbumCanBeMinted, isMostLikelyMobile } from "libs/utils/misc";
+import { checkIfAlbumCanBeMintedViaAPI, isMostLikelyMobile } from "libs/utils/misc";
 import { routeNames } from "routes";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
@@ -80,7 +80,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       // check and attack the _canBeMinted flag to each album based on a realtime call to the backend
       const fetchAlbumsWithCanBeMinted = async () => {
         const albumsWithCanBeMinted = await Promise.all(
-          albums.map(async (album) => ({ ...album, _canBeMinted: await checkIfAlbumCanBeMinted(album.albumId) }))
+          albums.map(async (album) => ({ ...album, _canBeMinted: await checkIfAlbumCanBeMintedViaAPI(album.albumId) }))
         );
 
         setAlbumsWithCanBeMintedFlags(albumsWithCanBeMinted);

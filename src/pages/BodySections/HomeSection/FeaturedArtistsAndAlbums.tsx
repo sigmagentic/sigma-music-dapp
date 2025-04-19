@@ -6,7 +6,7 @@ import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArro
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
-import ArtistSales from "components/ArtistSales/ArtistSales";
+import ArtistStats from "components/ArtistStats/ArtistStats";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -664,19 +664,19 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             </button>
                             <button
                               onClick={() => {
-                                setActiveTab("artistSales");
+                                setActiveTab("artistStats");
                                 const currentParams = Object.fromEntries(searchParams.entries());
                                 delete currentParams["t"];
                                 setSearchParams(currentParams);
                               }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
-                                  activeTab === "artistSales"
+                                  activeTab === "artistStats"
                                     ? "border-orange-500 text-orange-500"
                                     : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                 }
                               `}>
-                              Artist Sales
+                              Artist Insights
                             </button>
                             <button
                               onClick={() => {
@@ -732,9 +732,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           </div>
                         )}
 
-                        {activeTab === "artistSales" && (
+                        {activeTab === "artistStats" && (
                           <div className="artist-album-sales w-full">
-                            <ArtistSales creatorPaymentsWallet={artistProfile.creatorPaymentsWallet} />
+                            <ArtistStats creatorPaymentsWallet={artistProfile.creatorPaymentsWallet} artistId={artistProfile.artistId} />
                           </div>
                         )}
 

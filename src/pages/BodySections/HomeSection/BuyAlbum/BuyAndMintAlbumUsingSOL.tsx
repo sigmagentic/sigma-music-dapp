@@ -10,7 +10,7 @@ import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { Artist, Album } from "libs/types";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPayment, sleep } from "libs/utils/misc";
+import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 
 export const BuyAndMintAlbumUsingSOL = ({
@@ -186,7 +186,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
     try {
       // Mint the music
-      const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPayment({
+      const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI({
         solSignature,
         signatureNonce,
         mintForSolAddr: publicKey?.toBase58(),
