@@ -525,8 +525,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   </Button>
                                 ) : (
                                   <Button
-                                    className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 rounded-none rounded-l-sm"
-                                    variant="outline"
+                                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 cursor-pointer rounded-none rounded-l-sm mr-2"
                                     onClick={() => {
                                       window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
                                     }}>
@@ -734,7 +733,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                         {activeTab === "artistStats" && (
                           <div className="artist-album-sales w-full">
-                            <ArtistStats creatorPaymentsWallet={artistProfile.creatorPaymentsWallet} artistId={artistProfile.artistId} />
+                            <ArtistStats
+                              creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
+                              artistId={artistProfile.artistId}
+                              setActiveTab={setActiveTab}
+                              onFeaturedArtistDeepLinkSlug={onFeaturedArtistDeepLinkSlug}
+                            />
                           </div>
                         )}
 

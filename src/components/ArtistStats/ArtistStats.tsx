@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { StreamMetricData } from "libs/types/common";
 import { fetchArtistSalesViaAPI, fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/misc";
 import { useAppStore } from "store/app";
 
@@ -10,15 +12,12 @@ interface ArtistSale {
   amount: string;
 }
 
-interface StreamData {
-  alid: string;
-  streams: number;
-}
-
 interface ArtistStatsProps {
   creatorPaymentsWallet: string;
   showAmounts?: boolean;
   artistId: string;
+  setActiveTab: (tab: string) => void;
+  onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => void;
 }
 
 interface SalesSummary {
@@ -29,11 +28,11 @@ interface SalesSummary {
   last3Months: { count: number; amount: number };
 }
 
-export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false, artistId }: ArtistStatsProps) {
+export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false, artistId, setActiveTab, onFeaturedArtistDeepLinkSlug }: ArtistStatsProps) {
   const [artistStats, setArtistSales] = useState<ArtistSale[]>([]);
-  const [streamsData, setStreamsData] = useState<StreamData[]>([]);
+  const [streamMetricData, setStreamMetricData] = useState<StreamMetricData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { albumMasterLookup } = useAppStore();
+  const { albumMasterLookup, musicTrackLookup, artistLookup } = useAppStore();
 
   const calculateSummary = (sales: ArtistSale[], task: string): SalesSummary => {
     const now = Date.now();
@@ -64,9 +63,16 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
   useEffect(() => {
     const loadArtistData = async () => {
       try {
-        const [salesData, streamsData] = await Promise.all([fetchArtistSalesViaAPI(creatorPaymentsWallet), fetchStreamsLeaderboardByArtistViaAPI(artistId)]);
+        const [salesData, _streamsData] = await Promise.all([fetchArtistSalesViaAPI(creatorPaymentsWallet), fetchStreamsLeaderboardByArtistViaAPI(artistId)]);
         setArtistSales(salesData);
-        setStreamsData(streamsData);
+
+        const streamsDataWithAlbumTitle = _streamsData.map((stream: StreamMetricData) => ({
+          ...stream,
+          songTitle: musicTrackLookup[stream.alid]?.title,
+          coverArtUrl: musicTrackLookup[stream.alid]?.cover_art_url,
+        }));
+
+        setStreamMetricData(streamsDataWithAlbumTitle);
       } catch (error) {
         console.error("Error fetching artist data:", error);
       } finally {
@@ -74,11 +80,21 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
       }
     };
 
-    loadArtistData();
-  }, [creatorPaymentsWallet]);
+    if (Object.keys(musicTrackLookup).length > 0) {
+      loadArtistData();
+    }
+  }, [creatorPaymentsWallet, musicTrackLookup]);
 
   const albumSalesSummary = calculateSummary(artistStats, "buyAlbum");
   const fanClubSalesSummary = calculateSummary(artistStats, "joinFanClub");
+
+  const handleOpenAlbum = (alid: string) => {
+    // Extract album ID from alid (e.g., "ar24_a1-1" -> "ar24_a1")
+    const albumId = alid.split("-")[0];
+    const artistSlug = artistLookup[artistId].slug;
+    setActiveTab("discography");
+    onFeaturedArtistDeepLinkSlug(artistSlug, albumId);
+  };
 
   return (
     <>
@@ -90,16 +106,29 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
         <>
           <div className="streams-leaderboard-container">
             <h1 className="!text-3xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
-              Music Streams Insights
+              Most Streamed Songs
             </h1>
-            {streamsData.length === 0 ? (
+            {streamMetricData.length === 0 ? (
               <p className="text-xl mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
             ) : (
               <div className="relative">
-                <div className="overflow-x-auto pb-4 mt-5 max-w-[calc(3*16rem)]">
+                <div
+                  className="overflow-x-auto pb-4 mt-5 max-w-[calc(3*16rem)]
+                  [&::-webkit-scrollbar]:h-2
+                dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
                   <div className="flex space-x-4 min-w-max">
-                    {streamsData.map((stream, index) => (
-                      <div key={stream.alid} className="flex-shrink-0 w-64 h-48 bg-muted/50 rounded-lg p-6 flex flex-col justify-between relative">
+                    {streamMetricData.map((stream, index) => (
+                      <div
+                        key={stream.alid}
+                        className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                        style={{
+                          backgroundImage: `url(${stream.coverArtUrl})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          backgroundBlendMode: "multiply",
+                          backgroundColor: "#161616d4",
+                        }}>
                         <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{index + 1}</div>
                         <div className="absolute top-2 right-4 text-4xl">
                           {index === 0 && <span>🥇</span>}
@@ -107,15 +136,22 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                           {index === 2 && <span>🥉</span>}
                         </div>
                         <div className="text-center mt-6">
-                          <div className="text-lg font-semibold mb-4">{stream.alid}</div>
+                          <div className="text-lg font-semibold mb-4 text-white">
+                            {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alid}
+                          </div>
                           <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
-                          <div className="text-sm text-muted-foreground mb-2">Streams</div>
+                          <div className="text-sm text-white/70 mb-2">Streams</div>
+                          <button
+                            onClick={() => handleOpenAlbum(stream.alid)}
+                            className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors">
+                            Open Containing Album
+                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-                {streamsData.length > 3 && (
+                {streamMetricData.length > 3 && (
                   <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
                 )}
               </div>

@@ -47,7 +47,7 @@ export const Navbar = () => {
 
   return (
     <>
-      <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-full">
+      <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-full bg-[#171717]">
         <div className="flex flex-col items-left text-xl">
           <Link className="flex flex-row items-center" to={routeNames.home}>
             <div className="flex flex-row leading-none">

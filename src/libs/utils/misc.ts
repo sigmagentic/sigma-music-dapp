@@ -642,6 +642,54 @@ export const fetchStreamsLeaderboardByArtistViaAPI = async (artistId: string) =>
   }
 };
 
+const cache_streamsLeaderboardAllTracksByMonth: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchStreamsLeaderboardAllTracksByMonthViaAPI = async (MMYYString: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
+      console.log(`fetchStreamsLeaderboardAllTracksViaAPI: Getting streams leaderboard for MMYYString: ${MMYYString} from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/streamsLeaderboardByMonthAllTracks?MMYYString=${MMYYString}`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchStreamsLeaderboardByArtistViaAPI: Error fetching streams leaderboard:", error);
+
+    // Update cache (with [] as data)
+    cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
 let logStreamViaAPILastCalled = 0; // worse case the protected in the Music Player component does not work, we also make sure we don't call the API too often here too
 
 export const logStreamViaAPI = async (streamLogData: { streamerAddr: string; albumTrackId: string }) => {

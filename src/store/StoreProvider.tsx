@@ -7,9 +7,12 @@ import { DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
+import { AlbumTrackCatalog } from "libs/types";
 import { computeRemainingCooldown } from "libs/utils/functions";
+import { getAlbumTrackCatalogData, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
+import { useAppStore } from "./app";
 import { useNftsStore } from "./nfts";
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
@@ -34,6 +37,46 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
   // NFT Store
   const { solBitzNfts, solNfts, updateSolNfts, updateIsLoadingSol, updateSolBitzNfts, updateSolNFMeIdNfts } = useNftsStore();
+
+  // Store lookup etc the app needed regardless on if it the use is logged in or not
+  const { updateMusicTrackLookup, musicTrackLookup, updateArtistLookup, artistLookup, updateAlbumLookup } = useAppStore();
+
+  useEffect(() => {
+    (async () => {
+      // we only need to get this once per app session
+      if (Object.keys(musicTrackLookup).length === 0) {
+        const albumTrackCatalogData = await getAlbumTrackCatalogData();
+        updateMusicTrackLookup(albumTrackCatalogData as unknown as AlbumTrackCatalog);
+      }
+
+      if (Object.keys(artistLookup).length === 0) {
+        const albumArtistLookupData = await getArtistsAlbumsData();
+
+        // Create artist lookup
+        const artistLookupMap = albumArtistLookupData.reduce(
+          (acc, artist) => {
+            acc[artist.artistId] = artist;
+            return acc;
+          },
+          {} as Record<string, any>
+        );
+
+        // Create album lookup
+        const albumLookupMap = albumArtistLookupData.reduce(
+          (acc, artist) => {
+            artist.albums.forEach((album: any) => {
+              acc[album.albumId] = album;
+            });
+            return acc;
+          },
+          {} as Record<string, any>
+        );
+
+        updateArtistLookup(artistLookupMap);
+        updateAlbumLookup(albumLookupMap);
+      }
+    })();
+  }, []);
 
   // SOL Logged in - bootstrap nft store
   useEffect(() => {
@@ -62,7 +105,6 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
   // SOL: if someone updates data nfts (i.e. at the start when app loads and we get nfts OR they get a free mint during app session), we go over them and find bitz nfts etc
   useEffect(() => {
-    // if (!publicKeySol || solNfts.length === 0) {
     if (!publicKeySol) {
       return;
     }
@@ -77,10 +119,6 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
       const _nfMeIdNfts: DasApiAsset[] = solNfts.filter((nft) => nft.content.metadata.name.includes("NFMeID"));
 
-      // console.log("_bitzDataNfts", _bitzDataNfts);
-      // console.log("_bitzDataNfts[0]", JSON.stringify(_bitzDataNfts[0]));
-
-      // if (walletType === "web3auth" && _bitzDataNfts.length === 0) {
       if (_bitzDataNfts.length === 0) {
         // user has no, so we create the place holder one for them
         const _placeHolderBitzDataNft: any = {

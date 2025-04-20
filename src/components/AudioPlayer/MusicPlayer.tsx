@@ -181,6 +181,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [imgLoading, setImgLoading] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(!playerExplicitlyDockedByUser && window.innerWidth >= 768);
   const [showBonusTrackModal, setShowBonusTrackModal] = useState(false);
+  const [loggedStreamMetricForTrack, setLoggedStreamMetricForTrack] = useState(0); // a simple 1 or 0 that is linked to the logic of logging a stream event to the backend so in the UI we can reflect this for debugging
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -329,16 +330,20 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       clearInterval(listenTimer);
     }
     setTimeInSecondsListenedToTrack(0);
+    setLoggedStreamMetricForTrack(0);
     streamLogEventSentToAPI = false;
   }, [currentTrackIndex]);
 
   useEffect(() => {
     // we log a stream event when the user has listened to the track for 30 seconds
     if (trackList[currentTrackIndex]?.alId && timeInSecondsListenedToTrack > LOG_STREAM_EVENT_METRIC_EVERY_SECONDS && !streamLogEventSentToAPI) {
+      setLoggedStreamMetricForTrack(1);
       streamLogEventSentToAPI = true;
-      logStreamViaAPI({ streamerAddr: publicKey?.toBase58() || "", albumTrackId: trackList[currentTrackIndex].alId });
+      // 0 means its public non-logged in user stream
+      console.log(`Saving Stream Metric Event for track alId = ${trackList[currentTrackIndex].alId} streamLogEventSentToAPI = ${streamLogEventSentToAPI}`);
+      logStreamViaAPI({ streamerAddr: publicKey?.toBase58() || "0", albumTrackId: trackList[currentTrackIndex].alId });
     }
-  }, [timeInSecondsListenedToTrack, publicKey, trackList, currentTrackIndex]);
+  }, [timeInSecondsListenedToTrack, publicKey, trackList]);
 
   const pauseMusicPlayer = () => {
     if (isPlaying) {
@@ -529,6 +534,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       clearInterval(listenTimer);
     }
     setTimeInSecondsListenedToTrack(0);
+    setLoggedStreamMetricForTrack(0);
     streamLogEventSentToAPI = false;
 
     getCurrentMediaElement().currentTime = 0;
@@ -920,7 +926,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 <span className="w-[4rem] p-2 text-xs font-sans font-medium text-muted-foreground ">
                   {duration}
 
-                  {timeInSecondsListenedToTrack > LOG_STREAM_EVENT_METRIC_EVERY_SECONDS && <span className="ml-2">✅</span>}
+                  {loggedStreamMetricForTrack === 1 && <span className="ml-2">☑️</span>}
                 </span>
               </div>
 

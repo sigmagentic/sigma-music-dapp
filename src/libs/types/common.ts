@@ -109,3 +109,18 @@ export interface MembershipType {
 export interface MembershipData {
   [key: string]: MembershipType;
 }
+
+export interface TrackInfo {
+  arId: string;
+  title: string;
+  cover_art_url: string;
+}
+
+export type AlbumTrackCatalog = Record<string, TrackInfo>;
+
+export interface StreamMetricData {
+  alid: string;
+  streams: number;
+  songTitle: string;
+  coverArtUrl: string;
+}
