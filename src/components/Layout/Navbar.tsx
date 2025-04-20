@@ -47,7 +47,7 @@ export const Navbar = () => {
 
   return (
     <>
-      <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-full">
+      <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-full bg-[#171717]">
         <div className="flex flex-col items-left text-xl">
           <Link className="flex flex-row items-center" to={routeNames.home}>
             <div className="flex flex-row leading-none">
@@ -93,7 +93,7 @@ export const Navbar = () => {
                     {/* Web3 Wallet Account Button */}
                     {walletType === "web3auth" ? (
                       <button
-                        className="mt-2 p-2 rounded-md border-2 cursor-pointer border-orange-400 font-bold"
+                        className="p-2 rounded-md border h-[50px] cursor-pointer border-orange-400 font-bold"
                         onClick={() => setShowLogoutConfirmation(true)}>
                         Logout
                       </button>

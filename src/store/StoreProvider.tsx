@@ -6,10 +6,13 @@ import { IS_DEVNET } from "appsConfig";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
+import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
+import { AlbumTrackCatalog } from "libs/types";
 import { computeRemainingCooldown } from "libs/utils/functions";
+import { getAlbumTrackCatalogData, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
+import { useAppStore } from "./app";
 import { useNftsStore } from "./nfts";
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
@@ -19,12 +22,61 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
 
   // ACCOUNT Store
-  const { updateBitzBalance, updateCooldown, updateGivenBitzSum, updateCollectedBitzSum, updateBonusBitzSum, updateBonusTries } = useSolBitzStore();
+  const {
+    updateBitzBalance,
+    updateCooldown,
+    updateGivenBitzSum,
+    updateCollectedBitzSum,
+    updateBonusBitzSum,
+    updateBonusTries,
+    updateIsSigmaWeb2XpSystem,
+    isSigmaWeb2XpSystem,
+  } = useSolBitzStore();
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
 
   // NFT Store
   const { solBitzNfts, solNfts, updateSolNfts, updateIsLoadingSol, updateSolBitzNfts, updateSolNFMeIdNfts } = useNftsStore();
+
+  // Store lookup etc the app needed regardless on if it the use is logged in or not
+  const { updateMusicTrackLookup, musicTrackLookup, updateArtistLookup, artistLookup, updateAlbumLookup } = useAppStore();
+
+  useEffect(() => {
+    (async () => {
+      // we only need to get this once per app session
+      if (Object.keys(musicTrackLookup).length === 0) {
+        const albumTrackCatalogData = await getAlbumTrackCatalogData();
+        updateMusicTrackLookup(albumTrackCatalogData as unknown as AlbumTrackCatalog);
+      }
+
+      if (Object.keys(artistLookup).length === 0) {
+        const albumArtistLookupData = await getArtistsAlbumsData();
+
+        // Create artist lookup
+        const artistLookupMap = albumArtistLookupData.reduce(
+          (acc, artist) => {
+            acc[artist.artistId] = artist;
+            return acc;
+          },
+          {} as Record<string, any>
+        );
+
+        // Create album lookup
+        const albumLookupMap = albumArtistLookupData.reduce(
+          (acc, artist) => {
+            artist.albums.forEach((album: any) => {
+              acc[album.albumId] = album;
+            });
+            return acc;
+          },
+          {} as Record<string, any>
+        );
+
+        updateArtistLookup(artistLookupMap);
+        updateAlbumLookup(albumLookupMap);
+      }
+    })();
+  }, []);
 
   // SOL Logged in - bootstrap nft store
   useEffect(() => {
@@ -53,7 +105,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
   // SOL: if someone updates data nfts (i.e. at the start when app loads and we get nfts OR they get a free mint during app session), we go over them and find bitz nfts etc
   useEffect(() => {
-    if (!publicKeySol || solNfts.length === 0) {
+    if (!publicKeySol) {
       return;
     }
 
@@ -67,23 +119,23 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
       const _nfMeIdNfts: DasApiAsset[] = solNfts.filter((nft) => nft.content.metadata.name.includes("NFMeID"));
 
-      // console.log("_bitzDataNfts", _bitzDataNfts);
-      // console.log("_bitzDataNfts[0]", JSON.stringify(_bitzDataNfts[0]));
+      if (_bitzDataNfts.length === 0) {
+        // user has no, so we create the place holder one for them
+        const _placeHolderBitzDataNft: any = {
+          id: "tbm-t1-ignored",
+          grouping: [
+            {
+              group_key: "collection",
+              group_value: "tbm-c1",
+            },
+          ],
+        };
 
-      // if (walletType === "web3auth" && _bitzDataNfts.length === 0) {
-      //   // user has no, so we create the place holder one for them
-      //   const _placeHolderBitzDataNft: any = {
-      //     id: addressSol,
-      //     grouping: [
-      //       {
-      //         group_key: "collection",
-      //         group_value: "tbm-c1",
-      //       },
-      //     ],
-      //   };
-
-      //   _bitzDataNfts.push(_placeHolderBitzDataNft);
-      // }
+        _bitzDataNfts.push(_placeHolderBitzDataNft);
+        updateIsSigmaWeb2XpSystem(1);
+      } else {
+        updateIsSigmaWeb2XpSystem(0);
+      }
 
       updateSolBitzNfts(_bitzDataNfts);
       updateSolNFMeIdNfts(_nfMeIdNfts);
@@ -95,13 +147,13 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   // SOL - Bitz Bootstrap
   useEffect(() => {
     (async () => {
-      if (DISABLE_BITZ_FEATURES) {
+      if (DISABLE_BITZ_FEATURES || isSigmaWeb2XpSystem === -2 || !publicKeySol) {
         return;
       }
 
       resetBitzValsToLoadingSOL();
 
-      if (solBitzNfts.length > 0 && solPreaccessNonce !== "" && solPreaccessSignature !== "" && publicKeySol) {
+      if (solPreaccessNonce !== "" && solPreaccessSignature !== "" && publicKeySol && (solBitzNfts.length > 0 || isSigmaWeb2XpSystem === 1)) {
         const viewDataArgs = {
           headers: {
             "dmf-custom-only-state": "1",
@@ -110,7 +162,13 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
           fwdHeaderKeys: ["dmf-custom-only-state", "dmf-custom-sol-collection-id"],
         };
 
-        const getBitzGameResult = await viewDataWrapperSol(publicKeySol!, solPreaccessNonce, solPreaccessSignature, viewDataArgs, solBitzNfts[0].id);
+        let getBitzGameResult = null;
+
+        if (isSigmaWeb2XpSystem === 1) {
+          getBitzGameResult = await sigmaWeb2XpSystem(publicKeySol!, solPreaccessNonce, solPreaccessSignature, viewDataArgs, solBitzNfts[0].id);
+        } else {
+          getBitzGameResult = await viewDataWrapperSol(publicKeySol!, solPreaccessNonce, solPreaccessSignature, viewDataArgs, solBitzNfts[0].id);
+        }
 
         if (getBitzGameResult) {
           let bitzBeforePlay = getBitzGameResult.data.gamePlayResult.bitsScoreBeforePlay || 0;
@@ -148,7 +206,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
         resetBitzValsToZeroSOL();
       }
     })();
-  }, [publicKeySol, solBitzNfts, solPreaccessNonce, solPreaccessSignature]);
+  }, [publicKeySol, solBitzNfts, solPreaccessNonce, solPreaccessSignature, isSigmaWeb2XpSystem]);
 
   // In your component or hook where you need to sign messages
   // const signMessageViaWeb3Auth = async (message: Uint8Array) => {

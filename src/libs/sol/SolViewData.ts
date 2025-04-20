@@ -158,6 +158,56 @@ export async function viewDataWrapperSol(publicKeySol: PublicKey, usedPreAccessN
   }
 }
 
+export async function sigmaWeb2XpSystem(
+  publicKeySol: PublicKey,
+  usedPreAccessNonce: string,
+  usedPreAccessSignature: string,
+  viewDataArgs: any,
+  tokenId: any,
+  justSendRawResponse = false
+): Promise<any> {
+  try {
+    const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
+
+    const headersToSend = {
+      ...viewDataArgs.headers,
+      "itm-marshal-fwd-chainid": chainId,
+      "itm-marshal-fwd-tokenid": tokenId,
+      "itm-marshal-fwd-accessrequesteraddr": publicKeySol.toBase58(),
+      "itm-marshal-fwd-accessrequestersignature": usedPreAccessSignature,
+      "itm-marshal-fwd-accessrequestersignednonce": usedPreAccessNonce,
+      "x-sigma-xp-usage": "1",
+    };
+
+    let accessUrl = `${getApiWeb2Apps()}/datadexapi/sigmaXp`;
+
+    const res = await fetch(accessUrl, { headers: headersToSend });
+
+    if (justSendRawResponse) {
+      return res;
+    }
+
+    let blobDataType = BlobDataType.TEXT;
+    let data;
+
+    if (res.ok) {
+      const contentType = res.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      }
+
+      return { data, blobDataType, contentType };
+    } else {
+      console.error(res.statusText);
+
+      return undefined;
+    }
+  } catch (err) {
+    return undefined;
+  }
+}
+
 export async function mintMiscDataNft(mintTemplate: string, mintForSolAddr: string, solSignature: string, signatureNonce: string) {
   try {
     const headers = {

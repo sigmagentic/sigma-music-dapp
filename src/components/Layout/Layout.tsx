@@ -256,7 +256,12 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
             </nav>
           </div>
           {/* this is the body part that is fixed and scrolls in view */}
-          <div className={`main-content transition-all duration-300 w-full md:overflow-y-auto md:max-h-[calc(100vh-102px)] md:overflow-x-hidden`}>
+          <div
+            className={`main-content transition-all duration-300 w-full md:overflow-y-auto md:max-h-[calc(100vh-102px)] md:overflow-x-hidden
+               [&::-webkit-scrollbar]:w-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500
+            `}>
             <AlertBanner />
             <main className="flex flex-col flex-auto md:mx-[1rem] min-h-[80dvh] px-4 md:px-0">{children}</main>
           </div>

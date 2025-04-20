@@ -6,7 +6,7 @@ import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArro
 import { Link, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
-import ArtistSales from "components/ArtistSales/ArtistSales";
+import ArtistStats from "components/ArtistStats/ArtistStats";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -498,17 +498,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         </div>
 
                         {/* artists details and power up */}
-                        <div className="details-container p-5 pt-2 flex-1">
+                        <div className="details-container p-5 pt-2 flex-1 flex flex-col md:block items-baseline">
                           <h2 className={`!text-xl !text-white lg:!text-3xl text-nowrap mb-5 text-center md:text-left mt-5`}>
                             {artistProfile.name.replaceAll("_", " ")}
                           </h2>
 
                           {!DISABLE_BITZ_FEATURES && (
-                            <div className="powerUpWithBitz flex flex-col md:flex-row items-center mb-5">
+                            <div className="powerUpWithBitz flex flex-row items-center mb-5 w-full md:w-auto">
                               <div className="relative">
                                 {publicKeySol ? (
                                   <Button
-                                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 mx-2 cursor-pointer rounded-none rounded-l-sm"
+                                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 cursor-pointer rounded-none rounded-l-sm mr-2"
                                     disabled={!publicKeySol}
                                     onClick={() => {
                                       onSendBitzForMusicBounty({
@@ -525,8 +525,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   </Button>
                                 ) : (
                                   <Button
-                                    className="text-sm mx-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 rounded-none rounded-l-sm"
-                                    variant="outline"
+                                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 cursor-pointer rounded-none rounded-l-sm mr-2"
                                     onClick={() => {
                                       window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
                                     }}>
@@ -547,7 +546,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               </div>
 
                               <div
-                                className={`${publicKeySol && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "ml-0"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-2 md:mt-0 rounded-r md:min-w-[100px] flex items-center justify-center `}>
+                                className={`${publicKeySol && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "-ml-[12px]"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-0 rounded-r md:min-w-[100px] flex items-center justify-center `}>
                                 {typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum === "undefined" ? (
                                   <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
                                 ) : (
@@ -571,7 +570,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             </div>
                           )}
 
-                          <div className={`${isSigmaWorkflow ? "opacity-[0.1]" : ""}`}>
+                          <div className={`artist-bio-n-links flex flex-col items-baseline md:block ${isSigmaWorkflow ? "opacity-[0.1]" : ""}`}>
                             <p className="artist-who">{artistProfile.bio}</p>
 
                             {(artistProfile.dripLink !== "" ||
@@ -579,7 +578,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistProfile.webLink !== "" ||
                               artistProfile.ytLink !== "" ||
                               artistProfile.otherLink1 !== "") && (
-                              <div className="flex flex-col md:flex-row mt-5 flex-wrap">
+                              <div className="flex flex-row mt-5 flex-wrap">
                                 {artistProfile.dripLink && (
                                   <a className="underline hover:no-underline mx-2 text-sm mt-1" href={artistProfile.dripLink} target="_blank">
                                     <div className="border-[0.5px] text-center p-2 m-2 flex flex-col justify-center align-middle">
@@ -664,19 +663,19 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             </button>
                             <button
                               onClick={() => {
-                                setActiveTab("artistSales");
+                                setActiveTab("artistStats");
                                 const currentParams = Object.fromEntries(searchParams.entries());
                                 delete currentParams["t"];
                                 setSearchParams(currentParams);
                               }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
                                 ${
-                                  activeTab === "artistSales"
+                                  activeTab === "artistStats"
                                     ? "border-orange-500 text-orange-500"
                                     : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                 }
                               `}>
-                              Artist Sales
+                              Artist Insights
                             </button>
                             <button
                               onClick={() => {
@@ -732,9 +731,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           </div>
                         )}
 
-                        {activeTab === "artistSales" && (
+                        {activeTab === "artistStats" && (
                           <div className="artist-album-sales w-full">
-                            <ArtistSales creatorPaymentsWallet={artistProfile.creatorPaymentsWallet} />
+                            <ArtistStats
+                              creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
+                              artistId={artistProfile.artistId}
+                              setActiveTab={setActiveTab}
+                              onFeaturedArtistDeepLinkSlug={onFeaturedArtistDeepLinkSlug}
+                            />
                           </div>
                         )}
 
