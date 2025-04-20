@@ -667,7 +667,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       className={`relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black transition-all duration-300 ${
         isFullScreen ? "fixed inset-0 z-[9999] rounded-none h-screen w-screen overflow-hidden" : ""
       }`}>
-      <div className="debug bg-yellow-400 text-black p-2 w-full text-xs absolute top-0 left-0">
+      <div className="debug hidden bg-yellow-400 text-black p-2 w-full text-xs absolute top-0 left-0">
         {/* <p className="mb-2">isFullScreen = {isFullScreen.toString()}</p> */}
         {/* <p className="mb-2">loadIntoDockedMode = {loadIntoDockedMode?.toString()}</p> */}
         {/* <p className="mb-2">trackList = {JSON.stringify(trackList)}</p> */}
