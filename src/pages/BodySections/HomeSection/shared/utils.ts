@@ -2,7 +2,7 @@ import axios from "axios";
 import { IS_LIVE_DEMO_MODE } from "appsConfig";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { DISABLE_BITZ_FEATURES } from "config";
-import { GiftBitzToArtistMeta, MusicTrack } from "libs/types";
+import { AlbumTrackCatalog, GiftBitzToArtistMeta, MusicTrack } from "libs/types";
 import { getApiWeb2Apps } from "libs/utils/misc";
 import { fetchBitSumAndGiverCountsSol } from "pages/AppMarketplace/GetBitz/GetBitzSol/GiveBitzBase";
 
@@ -55,6 +55,33 @@ export async function getArtistsAlbumsData() {
   } catch (e) {
     console.error(e);
     return [];
+  }
+}
+
+// get and cache the artists and albums data locally
+let _albumTrackCatalogDataCachedOnWindow: AlbumTrackCatalog = {};
+let _albumTrackCatalogDataCachedOn: number = 0;
+
+export async function getAlbumTrackCatalogData() {
+  try {
+    // cache for 120 seconds
+    if (Object.keys(_albumTrackCatalogDataCachedOnWindow).length > 0 && Date.now() - _albumTrackCatalogDataCachedOn < 120 * 1000) {
+      console.log(`getAlbumTrackCatalogData: [cache]`);
+      return _albumTrackCatalogDataCachedOnWindow;
+    } else {
+      console.log(`getAlbumTrackCatalogData: [no-cache]`);
+      const getAlbumTrackCatalogAPI = `${getApiWeb2Apps(true)}/app_nftunes/assets/json/albumTrackCatalog.json`;
+      const dataRes = await axios.get(getAlbumTrackCatalogAPI);
+      let dataset: AlbumTrackCatalog = dataRes.data;
+
+      _albumTrackCatalogDataCachedOnWindow = dataset;
+      _albumTrackCatalogDataCachedOn = Date.now();
+
+      return _albumTrackCatalogDataCachedOnWindow;
+    }
+  } catch (e) {
+    console.error(e);
+    return {};
   }
 }
 

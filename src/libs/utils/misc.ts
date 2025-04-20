@@ -1,3 +1,4 @@
+import { LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
 import { MusicTrack } from "libs/types";
 
 interface CacheEntry_DataWithTimestamp {
@@ -138,7 +139,7 @@ export const logPaymentToAPI = async (paymentData: any) => {
   }
 };
 
-export const mintAlbumOrFanNFTAfterPayment = async (mintData: any) => {
+export const mintAlbumOrFanNFTAfterPaymentViaAPI = async (mintData: any) => {
   try {
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumOrFanNFTAfterPayment`, {
       method: "POST",
@@ -338,14 +339,14 @@ export async function mergeImages(
 
 const cache_checkIfAlbumCanBeMinted: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const checkIfAlbumCanBeMinted = async (albumId: string) => {
+export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_checkIfAlbumCanBeMinted[albumId];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
-      console.log(`checkIfAlbumCanBeMinted: Using cached minting status for albumId: ${albumId}`);
+      console.log(`checkIfAlbumCanBeMintedViaAPI: Using cached minting status for albumId: ${albumId}`);
       return cacheEntry.data;
     }
 
@@ -385,7 +386,7 @@ export const checkIfAlbumCanBeMinted = async (albumId: string) => {
 
 const cache_albumTracks: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const getAlbumTracksFromDb = async (artistId: string, albumId: string, userOwnsAlbum?: boolean) => {
+export const getAlbumTracksFromDBViaAPI = async (artistId: string, albumId: string, userOwnsAlbum?: boolean) => {
   const now = Date.now();
 
   const bonus = userOwnsAlbum ? 1 : 0;
@@ -435,14 +436,16 @@ export const getAlbumTracksFromDb = async (artistId: string, albumId: string, us
 
 const cache_creatorFanMembershipAvailability: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchCreatorFanMembershipAvailability = async (creatorPaymentsWallet: string) => {
+export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPaymentsWallet: string) => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_creatorFanMembershipAvailability[creatorPaymentsWallet];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
-      console.log(`fetchCreatorFanMembershipAvailability: Getting fan membership availability for creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`);
+      console.log(
+        `fetchCreatorFanMembershipAvailabilityViaAPI: Getting fan membership availability for creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`
+      );
       return cacheEntry.data as Record<string, any>;
     }
 
@@ -491,7 +494,7 @@ export const fetchCreatorFanMembershipAvailability = async (creatorPaymentsWalle
 
 const cache_myFanMembershipsForThisArtist: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchMyFanMembershipsForArtist = async (addressSol: string, creatorPaymentsWallet: string, bypassCacheAsNewDataAdded = false) => {
+export const fetchMyFanMembershipsForArtistViaAPI = async (addressSol: string, creatorPaymentsWallet: string, bypassCacheAsNewDataAdded = false) => {
   const now = Date.now();
 
   try {
@@ -499,7 +502,7 @@ export const fetchMyFanMembershipsForArtist = async (addressSol: string, creator
     const cacheEntry = cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN && !bypassCacheAsNewDataAdded) {
       console.log(
-        `fetchMyFanMembershipsForArtist: Getting fan memberships for addressSol: ${addressSol} and creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`
+        `fetchMyFanMembershipsForArtistViaAPI: Getting fan memberships for addressSol: ${addressSol} and creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`
       );
       return cacheEntry.data;
     }
@@ -529,7 +532,7 @@ export const fetchMyFanMembershipsForArtist = async (addressSol: string, creator
       return [];
     }
   } catch (error) {
-    console.error("fetchMyFanMembershipsForArtist: Error fetching fan memberships:", error);
+    console.error("fetchMyFanMembershipsForArtistViaAPI: Error fetching fan memberships:", error);
 
     // Update cache (with [] as data)
     cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`] = {
@@ -543,14 +546,14 @@ export const fetchMyFanMembershipsForArtist = async (addressSol: string, creator
 
 const cache_artistSales: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchArtistSales = async (creatorPaymentsWallet: string) => {
+export const fetchArtistSalesViaAPI = async (creatorPaymentsWallet: string) => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_artistSales[`${creatorPaymentsWallet}`];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
-      console.log(`fetchArtistSales: Getting artist sales for creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`);
+      console.log(`fetchArtistSalesViaAPI: Getting artist sales for creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`);
       return cacheEntry.data;
     }
 
@@ -579,7 +582,7 @@ export const fetchArtistSales = async (creatorPaymentsWallet: string) => {
       return [];
     }
   } catch (error) {
-    console.error("fetchArtistSales: Error fetching artist sales:", error);
+    console.error("fetchArtistSalesViaAPI: Error fetching artist sales:", error);
 
     // Update cache (with [] as data)
     cache_artistSales[`${creatorPaymentsWallet}`] = {
@@ -588,5 +591,139 @@ export const fetchArtistSales = async (creatorPaymentsWallet: string) => {
     };
 
     return [];
+  }
+};
+
+const cache_streamsLeaderboardByArtist: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchStreamsLeaderboardByArtistViaAPI = async (artistId: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_streamsLeaderboardByArtist[`${artistId}`];
+    if (cacheEntry && now - cacheEntry.timestamp < 10) {
+      console.log(`fetchStreamsLeaderboardByArtistViaAPI: Getting streams leaderboard for artistId: ${artistId} from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/streamsLeaderboardByArtist?arId=${artistId}`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_streamsLeaderboardByArtist[`${artistId}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_streamsLeaderboardByArtist[`${artistId}`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchStreamsLeaderboardByArtistViaAPI: Error fetching streams leaderboard:", error);
+
+    // Update cache (with [] as data)
+    cache_streamsLeaderboardByArtist[`${artistId}`] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
+const cache_streamsLeaderboardAllTracksByMonth: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchStreamsLeaderboardAllTracksByMonthViaAPI = async (MMYYString: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
+      console.log(`fetchStreamsLeaderboardAllTracksViaAPI: Getting streams leaderboard for MMYYString: ${MMYYString} from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/streamsLeaderboardByMonthAllTracks?MMYYString=${MMYYString}`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchStreamsLeaderboardByArtistViaAPI: Error fetching streams leaderboard:", error);
+
+    // Update cache (with [] as data)
+    cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
+let logStreamViaAPILastCalled = 0; // worse case the protected in the Music Player component does not work, we also make sure we don't call the API too often here too
+
+export const logStreamViaAPI = async (streamLogData: { streamerAddr: string; albumTrackId: string }) => {
+  try {
+    const nowTimeStamp = Date.now();
+
+    if (nowTimeStamp - logStreamViaAPILastCalled < LOG_STREAM_EVENT_METRIC_EVERY_SECONDS * 1000) {
+      console.log("logStreamViaAPI: Skipping log stream via API because it was called too recently");
+      return;
+    }
+
+    logStreamViaAPILastCalled = nowTimeStamp; // put this here rather that after the asunc call next to prevent multiple calls (due to async delay)
+
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/streamsLogTrackEntry`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(streamLogData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error logging stream:", error);
+    throw error;
   }
 };

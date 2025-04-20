@@ -8,7 +8,7 @@ import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
-import { filterRadioTracksByUserPreferences, getAlbumTracksFromDb } from "libs/utils/misc";
+import { filterRadioTracksByUserPreferences, getAlbumTracksFromDBViaAPI } from "libs/utils/misc";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
@@ -241,7 +241,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
       let _musicPlayerTrackListFromDb = false;
 
-      let albumTracksFromDb = await getAlbumTracksFromDb(playAlbumNowParams.artistId, playAlbumNowParams.albumId, userOwnsAlbum);
+      let albumTracksFromDb = await getAlbumTracksFromDBViaAPI(playAlbumNowParams.artistId, playAlbumNowParams.albumId, userOwnsAlbum);
       albumTracksFromDb = albumTracksFromDb.map((track: any) => ({
         ...track,
         artist: playAlbumNowParams.artistName,

@@ -9,7 +9,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPayment, sleep } from "libs/utils/misc";
+import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 import { tierData } from "./tierData";
 
@@ -190,7 +190,7 @@ export const JoinInnerCircleSOL = ({
 
     try {
       // Mint the NFT
-      const _mintNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPayment({
+      const _mintNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI({
         solSignature,
         signatureNonce,
         mintForSolAddr: publicKey?.toBase58(),

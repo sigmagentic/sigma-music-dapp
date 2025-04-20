@@ -30,6 +30,7 @@ export interface MusicTrack {
   creatorWallet: string;
   bountyId: string;
   isExplicit: string;
+  alId?: string; // the album and track index in the format (ar22_a1-1)
 }
 
 export interface Album {
@@ -107,4 +108,19 @@ export interface MembershipType {
 
 export interface MembershipData {
   [key: string]: MembershipType;
+}
+
+export interface TrackInfo {
+  arId: string;
+  title: string;
+  cover_art_url: string;
+}
+
+export type AlbumTrackCatalog = Record<string, TrackInfo>;
+
+export interface StreamMetricData {
+  alid: string;
+  streams: number;
+  songTitle: string;
+  coverArtUrl: string;
 }

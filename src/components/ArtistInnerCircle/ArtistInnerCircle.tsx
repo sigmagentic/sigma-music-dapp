@@ -3,7 +3,7 @@ import { SparklesIcon, ComputerDesktopIcon, UserGroupIcon } from "@heroicons/rea
 import { Loader, ShoppingCart } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
-import { fetchCreatorFanMembershipAvailability, fetchMyFanMembershipsForArtist, fetchSolPrice } from "libs/utils/misc";
+import { fetchCreatorFanMembershipAvailabilityViaAPI, fetchMyFanMembershipsForArtistViaAPI, fetchSolPrice } from "libs/utils/misc";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
 import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
 import { tierData, perksData } from "./tierData";
@@ -132,7 +132,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
     }
 
     try {
-      const data: MyFanMembershipType[] = await fetchMyFanMembershipsForArtist(addressSol, creatorPaymentsWallet, bypassCacheAsNewDataAdded);
+      const data: MyFanMembershipType[] = await fetchMyFanMembershipsForArtistViaAPI(addressSol, creatorPaymentsWallet, bypassCacheAsNewDataAdded);
 
       // Augment the data with membership information
       const augmentedData = data.map((membership) => {
@@ -179,7 +179,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
 
   const checkAndloadCreatorFanMembershipAvailability = async () => {
     try {
-      const data: Record<string, any> = await fetchCreatorFanMembershipAvailability(creatorPaymentsWallet);
+      const data: Record<string, any> = await fetchCreatorFanMembershipAvailabilityViaAPI(creatorPaymentsWallet);
 
       if (data && Object.keys(data).length > 0) {
         setCreatorFanMembershipAvailability(data);

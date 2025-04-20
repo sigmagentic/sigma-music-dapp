@@ -25,16 +25,15 @@ import "slick-carousel/slick/slick-theme.css";
 import "./AudioPlayer.css";
 import DEFAULT_SONG_IMAGE from "assets/img/audio-player-image.png";
 import DEFAULT_SONG_LIGHT_IMAGE from "assets/img/audio-player-light-image.png";
-import { DISABLE_BITZ_FEATURES, MARSHAL_CACHE_DURATION_SECONDS } from "config";
+import { DISABLE_BITZ_FEATURES, LOG_STREAM_EVENT_METRIC_EVERY_SECONDS, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BountyBitzSumMapping, MusicTrack } from "libs/types";
+import { logStreamViaAPI } from "libs/utils/misc";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
-
-let playerExplicitlyDockedByUser = false;
 
 type MusicPlayerProps = {
   trackList: MusicTrack[];
@@ -102,6 +101,15 @@ const SCREEN_STYLES = {
   },
 };
 
+/*
+we count how many seconds the user has listened to the track. (we track if they scrub or pause etc)
+this is used to make sure they user listnes to at least 30 seconds before we log a "stream" event to the backend
+*/
+let listenTimer: NodeJS.Timeout;
+let streamLogEventSentToAPI = false; // we use a global variable here to prevent the API from being accidentally called multiple times due to local effects
+
+let playerExplicitlyDockedByUser = false;
+
 export const MusicPlayer = (props: MusicPlayerProps) => {
   const {
     dataNftToOpen,
@@ -132,6 +140,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [progress, setProgress] = useState(0);
+  const [timeInSecondsListenedToTrack, setTimeInSecondsListenedToTrack] = useState(0);
   const [duration, setDuration] = useState("00:00");
   const [isLoaded, setIsLoaded] = useState(false);
   const { signMessage } = useWallet();
@@ -172,6 +181,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [imgLoading, setImgLoading] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(!playerExplicitlyDockedByUser && window.innerWidth >= 768);
   const [showBonusTrackModal, setShowBonusTrackModal] = useState(false);
+  const [loggedStreamMetricForTrack, setLoggedStreamMetricForTrack] = useState(0); // a simple 1 or 0 that is linked to the logic of logging a stream event to the backend so in the UI we can reflect this for debugging
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -203,8 +213,34 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         }
       };
 
+      const startListenTimer = () => {
+        // before we start a timer, we do a check and clean off any existing timer to make sure we don't have multiple timers running
+        if (listenTimer) {
+          clearInterval(listenTimer);
+        }
+
+        listenTimer = setInterval(() => {
+          setTimeInSecondsListenedToTrack((prev) => prev + 1);
+        }, 1000);
+      };
+
+      const stopListenTimer = () => {
+        if (listenTimer) {
+          clearInterval(listenTimer);
+        }
+      };
+
+      // Start timer when track starts playing
+      mediaElement.addEventListener("play", startListenTimer);
+      // Stop timer when track is paused
+      mediaElement.addEventListener("pause", stopListenTimer);
+      // Stop timer when track ends
+      mediaElement.addEventListener("ended", () => {
+        stopListenTimer();
+        handleEnded();
+      });
+
       // Add event listeners to current media element
-      mediaElement.addEventListener("ended", handleEnded);
       mediaElement.addEventListener("timeupdate", updateProgress);
       mediaElement.addEventListener("canplaythrough", handleCanPlayThrough);
 
@@ -218,11 +254,18 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       }
 
       return () => {
+        stopListenTimer(); // stop the listen timer interval
+
         // Clean up both audio and video elements
         musicPlayerAudio.pause();
         musicPlayerVideo.pause();
+        mediaElement.removeEventListener("play", startListenTimer);
+        mediaElement.removeEventListener("pause", stopListenTimer);
         mediaElement.removeEventListener("timeupdate", updateProgress);
-        mediaElement.removeEventListener("ended", handleEnded);
+        mediaElement.removeEventListener("ended", () => {
+          stopListenTimer();
+          handleEnded();
+        });
         mediaElement.removeEventListener("canplaythrough", handleCanPlayThrough);
       };
     }
@@ -280,6 +323,27 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       document.body.style.overflow = "auto";
     };
   }, [isFullScreen]);
+
+  // Reset listen timer only when track changes
+  useEffect(() => {
+    if (listenTimer) {
+      clearInterval(listenTimer);
+    }
+    setTimeInSecondsListenedToTrack(0);
+    setLoggedStreamMetricForTrack(0);
+    streamLogEventSentToAPI = false;
+  }, [currentTrackIndex]);
+
+  useEffect(() => {
+    // we log a stream event when the user has listened to the track for 30 seconds
+    if (trackList[currentTrackIndex]?.alId && timeInSecondsListenedToTrack > LOG_STREAM_EVENT_METRIC_EVERY_SECONDS && !streamLogEventSentToAPI) {
+      setLoggedStreamMetricForTrack(1);
+      streamLogEventSentToAPI = true;
+      // 0 means its public non-logged in user stream
+      console.log(`Saving Stream Metric Event for track alId = ${trackList[currentTrackIndex].alId} streamLogEventSentToAPI = ${streamLogEventSentToAPI}`);
+      logStreamViaAPI({ streamerAddr: publicKey?.toBase58() || "0", albumTrackId: trackList[currentTrackIndex].alId });
+    }
+  }, [timeInSecondsListenedToTrack, publicKey, trackList]);
 
   const pauseMusicPlayer = () => {
     if (isPlaying) {
@@ -465,8 +529,25 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   };
 
   const repeatTrack = () => {
+    // reset the listen timer
+    if (listenTimer) {
+      clearInterval(listenTimer);
+    }
+    setTimeInSecondsListenedToTrack(0);
+    setLoggedStreamMetricForTrack(0);
+    streamLogEventSentToAPI = false;
+
     getCurrentMediaElement().currentTime = 0;
-    if (isPlaying) getCurrentMediaElement().play();
+    if (isPlaying) {
+      getCurrentMediaElement().play();
+
+      // NOTE: this is a anomoly, as play() should trigger the  mediaElement.addEventListener("play", startListenTimer); above and the
+      // ... setInterval logic should attach there, but for some reason it doesn't always attach on the first play, so we add this here.
+      // ... but as we clearInterval above also INSIDE the addEventListener above, worse case we should be pretected from multiple timers running
+      listenTimer = setInterval(() => {
+        setTimeInSecondsListenedToTrack((prev) => prev + 1);
+      }, 1000);
+    }
   };
 
   const handleProgressChange = (newProgress: number) => {
@@ -586,14 +667,20 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       className={`relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black transition-all duration-300 ${
         isFullScreen ? "fixed inset-0 z-[9999] rounded-none h-screen w-screen overflow-hidden" : ""
       }`}>
-      <div className="debug hidden bg-yellow-400 text-black p-2 w-full text-xs">
-        <p className="mb-2">isFullScreen = {isFullScreen.toString()}</p>
-        <p className="mb-2">loadIntoDockedMode = {loadIntoDockedMode?.toString()}</p>
+      <div className="debug hidden bg-yellow-400 text-black p-2 w-full text-xs absolute top-0 left-0">
+        {/* <p className="mb-2">isFullScreen = {isFullScreen.toString()}</p> */}
+        {/* <p className="mb-2">loadIntoDockedMode = {loadIntoDockedMode?.toString()}</p> */}
         {/* <p className="mb-2">trackList = {JSON.stringify(trackList)}</p> */}
         {/* <p className="mb-2">firstSongBlobUrl = {firstSongBlobUrl}</p> */}
-        <p className="mb-2">isPlaying = {isPlaying.toString()}</p>
-        <p className="mb-2">pauseAsOtherAudioPlaying = {pauseAsOtherAudioPlaying?.toString()}</p>
-        <p className="mb-2">musicPlayerAudio.src = {musicPlayerAudio.src}</p>
+        {/* <p className="mb-2">isPlaying = {isPlaying.toString()}</p> */}
+        {/* <p className="mb-2">pauseAsOtherAudioPlaying = {pauseAsOtherAudioPlaying?.toString()}</p> */}
+        {/* <p className="mb-2">musicPlayerAudio.src = {musicPlayerAudio.src}</p> */}
+        {trackList[currentTrackIndex]?.alId && (
+          <p className="mb-2">
+            isPlaying = {isPlaying.toString()} progress = {progress} timeInSecondsListenedToTrack = {timeInSecondsListenedToTrack} albumTrackId ={" "}
+            {trackList[currentTrackIndex].alId}
+          </p>
+        )}
       </div>
 
       {!firstSongBlobUrl ? (
@@ -836,7 +923,11 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   onChange={(e) => handleProgressChange(Number(e.target.value))}
                   className="accent-black dark:accent-white w-full bg-white mx-auto  focus:outline-none cursor-pointer"
                 />{" "}
-                <span className="w-[4rem] p-2 text-xs font-sans font-medium text-muted-foreground ">{duration}</span>
+                <span className="w-[4rem] p-2 text-xs font-sans font-medium text-muted-foreground ">
+                  {duration}
+
+                  {loggedStreamMetricForTrack === 1 && <span className="ml-2">☑️</span>}
+                </span>
               </div>
 
               <div className="songCategoryAndTitle flex flex-col w-full justify-center items-center">
@@ -868,6 +959,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 <Library className="w-full hover:scale-105" />
               </button>
             </div>
+
             {/* like album */}
             {!DISABLE_BITZ_FEATURES && bitzGiftingMeta && (
               <div
@@ -891,6 +983,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 </div>
               </div>
             )}
+
             {trackList[currentTrackIndex].bonus === 1 && (
               <p
                 className={`${isFullScreen && displayTrackList ? "md:right-[410px]" : "right-[10px] md:right-[50px]"} z-10 bottom-4 text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black absolute`}>

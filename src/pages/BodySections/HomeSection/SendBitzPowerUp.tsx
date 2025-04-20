@@ -4,14 +4,14 @@ import { confetti } from "@tsparticles/confetti";
 import { Container } from "@tsparticles/engine";
 import { ExternalLinkIcon } from "lucide-react";
 import { Modal } from "components/Modal/Modal";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
-import { getOrCacheAccessNonceAndSignature, viewDataWrapperSol } from "libs/sol/SolViewData";
+import { getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem, viewDataWrapperSol } from "libs/sol/SolViewData";
 import { sleep } from "libs/utils";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 type SendBitzPowerUpProps = {
   giveBitzForMusicBountyConfig: {
@@ -38,7 +38,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { solBitzNfts } = useNftsStore();
   const [showDetails, setShowDetails] = useState<boolean>(false);
 
-  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum } = useSolBitzStore();
+  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
 
   // Cached Signature Store Items
@@ -105,7 +105,13 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
         updateSolPreaccessTimestamp,
       });
 
-      const giveBitzGameResult = await viewDataWrapperSol(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+      let giveBitzGameResult = null;
+
+      if (isSigmaWeb2XpSystem === 1) {
+        giveBitzGameResult = await sigmaWeb2XpSystem(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+      } else {
+        giveBitzGameResult = await viewDataWrapperSol(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+      }
 
       if (giveBitzGameResult) {
         if (giveBitzGameResult?.data?.statusCode && giveBitzGameResult?.data?.statusCode != 200) {
@@ -189,11 +195,9 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                     </span>{" "}
                     {showDetails && (
                       <div>
-                        Most liked albums get promoted and featured more on Sigma Music and other social channels (this supports the Musician) and in return,
-                        you can earn monthly badges that can earn you rewards. Learn more about the rewards program{" "}
-                        <a href="https://docs.itheum.io/product-docs/product/ai-data-workforce/badges" target="_blank" className="text-blue-500">
-                          here
-                        </a>
+                        Most-liked albums get promoted and featured more on Sigma Music and other social channels, and this may drive more sales of the artist's
+                        content. If the artist has an Inner Circle premium membership offering and has enabled the "revenue share" tier, then more sales will
+                        equal more revenue shared with the artist's Inner Circle members (i.e., you).
                       </div>
                     )}
                   </>
@@ -204,12 +208,11 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                     </span>{" "}
                     {showDetails && (
                       <div>
-                        Musicians with the most XP powering them will be featured more on Sigma Music and other social channels and they will get monthly badges
-                        that can earn them rewards (this supports the Musician) and in return, you can also earn monthly badges that can earn you rewards. Learn
-                        more about the rewards program{" "}
-                        <a href="https://docs.itheum.io/product-docs/product/ai-data-workforce/badges" target="_blank" className="text-blue-500">
-                          here
-                        </a>
+                        Artists with the most XP powering them will be featured more on Sigma Music and other social channels, and they also earn token rewards
+                        (this supports the musician). In return, you can climb the artist's supporter leaderboard, and the top climbers earn token rewards (to
+                        reward you for supporting the artist). Being featured more on Sigma Music and other social channels may also drive more sales of the
+                        artist's content. If the artist has an Inner Circle premium membership offering and has enabled the "revenue share" tier, then more
+                        sales will equal more revenue shared with the artist's Inner Circle members (i.e., you).
                       </div>
                     )}
                   </>

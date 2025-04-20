@@ -4,8 +4,9 @@ import { Loader } from "lucide-react";
 import { FlaskRound } from "lucide-react";
 import bounty from "assets/img/getbitz/givebitz/bountyMain.png";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Highlighter } from "libComponents/animated/HighlightHoverEffect";
-import { getOrCacheAccessNonceAndSignature, viewDataWrapperSol } from "libs/sol/SolViewData";
+import { getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem, viewDataWrapperSol } from "libs/sol/SolViewData";
 import { getApiWeb2Apps, sleep } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
@@ -14,23 +15,24 @@ import { getDataBounties } from "./configSol";
 import PowerUpBounty from "../common/GiveBitz/PowerUpBounty";
 import { GiveBitzDataBounty, LeaderBoardItemType } from "../common/interfaces";
 import LeaderBoardTable from "../common/LeaderBoardTable";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 const GiveBitzBase = () => {
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const { solBitzNfts } = useNftsStore();
-  const givenBitzSum = useSolBitzStore((state: any) => state.givenBitzSum);
-  const collectedBitzSum = useSolBitzStore((state: any) => state.collectedBitzSum);
-  const bonusBitzSum = useSolBitzStore((state: any) => state.bonusBitzSum);
-  const bitzBalance = useSolBitzStore((state: any) => state.bitzBalance);
+  // const givenBitzSum = useSolBitzStore((state: any) => state.givenBitzSum);
+  // const collectedBitzSum = useSolBitzStore((state: any) => state.collectedBitzSum);
+  // const bonusBitzSum = useSolBitzStore((state: any) => state.bonusBitzSum);
+  // const bitzBalance = useSolBitzStore((state: any) => state.bitzBalance);
   const [giverLeaderBoardIsLoading, setGiverLeaderBoardIsLoading] = useState<boolean>(false);
   const [giverLeaderBoard, setGiverLeaderBoard] = useState<LeaderBoardItemType[]>([]);
-  const bitzStore = useSolBitzStore();
+  // const bitzStore = useSolBitzStore();
   const [dataBounties, setDataBounties] = useState<GiveBitzDataBounty[]>([]);
   const [fetchingDataBountiesReceivedSum, setFetchingDataBountiesReceivedSum] = useState<boolean>(true);
   const [isSendingPowerUp, setIsSendingPowerUp] = useState<boolean>(false);
+
+  const { givenBitzSum, collectedBitzSum, bonusBitzSum, bitzBalance, updateGivenBitzSum, updateBitzBalance, isSigmaWeb2XpSystem } = useSolBitzStore();
 
   // S: Cached Signature Store Items
   const solPreaccessNonce = useAccountStore((state: any) => state.solPreaccessNonce);
@@ -93,7 +95,8 @@ const GiveBitzBase = () => {
   async function fetchMyGivenBitz() {
     // dont do it for when page load or collectedBitzSum is still being collected (collectedBitzSum will be -2 or -1 state)
     if (collectedBitzSum > 0) {
-      bitzStore.updateGivenBitzSum(-2);
+      // bitzStore.updateGivenBitzSum(-2);
+      updateGivenBitzSum(-2);
 
       const collectionidToUse = !addressSol || solBitzNfts.length === 0 ? DEFAULT_BITZ_COLLECTION_SOL : solBitzNfts[0].grouping[0].group_value;
 
@@ -110,10 +113,12 @@ const GiveBitzBase = () => {
 
         // update stores
         const sumGivenBits = data.bits ? parseInt(data.bits, 10) : -2;
-        bitzStore.updateGivenBitzSum(sumGivenBits);
+        // bitzStore.updateGivenBitzSum(sumGivenBits);
+        updateGivenBitzSum(sumGivenBits);
 
         if (sumGivenBits > 0) {
-          bitzStore.updateBitzBalance(collectedBitzSum + bonusBitzSum - sumGivenBits); // update new balance (collected bits - given bits)
+          // bitzStore.updateBitzBalance(collectedBitzSum + bonusBitzSum - sumGivenBits); // update new balance (collected bits - given bits)
+          updateBitzBalance(collectedBitzSum + bonusBitzSum - sumGivenBits); // update new balance (collected bits - given bits)
         }
       } catch (err: any) {
         const message = "Getting my sum givenBits failed:" + err.message;
@@ -271,8 +276,13 @@ const GiveBitzBase = () => {
         updateSolPreaccessTimestamp,
       });
 
-      // const giveBitzGameResult = await viewData(viewDataArgs, solBitzNfts[0]);
-      const giveBitzGameResult = await viewDataWrapperSol(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+      let giveBitzGameResult = null;
+
+      if (isSigmaWeb2XpSystem === 1) {
+        giveBitzGameResult = await sigmaWeb2XpSystem(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+      } else {
+        giveBitzGameResult = await viewDataWrapperSol(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+      }
 
       if (giveBitzGameResult) {
         if (giveBitzGameResult?.data?.statusCode && giveBitzGameResult?.data?.statusCode != 200) {
