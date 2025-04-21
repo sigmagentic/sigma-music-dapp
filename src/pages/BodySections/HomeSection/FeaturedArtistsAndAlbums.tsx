@@ -498,7 +498,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         </div>
 
                         {/* artists details and power up */}
-                        <div className="details-container p-5 pt-2 flex-1 flex flex-col md:block items-baseline">
+                        <div className="details-container p-2 md:p-5 pt-2 flex-1 flex flex-col md:block items-baseline">
                           <h2 className={`!text-xl !text-white lg:!text-3xl text-nowrap mb-5 text-center md:text-left mt-5`}>
                             {artistProfile.name.replaceAll("_", " ")}
                           </h2>
@@ -525,7 +525,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   </Button>
                                 ) : (
                                   <Button
-                                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 cursor-pointer rounded-none rounded-l-sm mr-2"
+                                    className="!text-black text-sm px-[1rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 cursor-pointer rounded-none rounded-l-sm mr-2"
                                     onClick={() => {
                                       window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
                                     }}>
@@ -580,42 +580,41 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistProfile.otherLink1 !== "") && (
                               <div className="flex flex-row mt-5 flex-wrap">
                                 {artistProfile.dripLink && (
-                                  <a className="underline hover:no-underline mx-2 text-sm mt-1" href={artistProfile.dripLink} target="_blank">
-                                    <div className="border-[0.5px] text-center p-2 m-2 flex flex-col justify-center align-middle">
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.dripLink} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
                                       <Droplet className="m-auto w-5" />
-                                      Artist on Drip
+                                      Drip
                                     </div>
                                   </a>
                                 )}
                                 {artistProfile.xLink && (
-                                  <a className="underline hover:no-underline mx-2 text-sm mt-1" href={artistProfile.xLink} target="_blank">
-                                    <div className="border-[0.5px] text-center p-2 m-2 flex flex-col justify-center align-middle">
-                                      <Twitter className="m-auto w-5" />
-                                      Artist on X
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.xLink} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
+                                      <Twitter className="m-auto w-5" />X
                                     </div>
                                   </a>
                                 )}
                                 {artistProfile.ytLink && (
-                                  <a className="underline hover:no-underline mx-2 text-sm mt-1" href={artistProfile.ytLink} target="_blank">
-                                    <div className="border-[0.5px] text-center p-2 m-2 flex flex-col justify-center align-middle">
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.ytLink} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
                                       <Youtube className="m-auto w-5" />
-                                      Artist on YouTube
+                                      YouTube
                                     </div>
                                   </a>
                                 )}
                                 {artistProfile.webLink && (
-                                  <a className="underline hover:no-underline mx-2 text-sm mt-1" href={artistProfile.webLink} target="_blank">
-                                    <div className="border-[0.5px] text-center p-2 m-2 flex flex-col justify-center align-middle">
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.webLink} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
                                       <Globe className="m-auto w-5" />
-                                      Artist Website
+                                      Website
                                     </div>
                                   </a>
                                 )}
                                 {artistProfile.otherLink1 && (
-                                  <a className="underline hover:no-underline mx-2 text-sm mt-1" href={artistProfile.otherLink1} target="_blank">
-                                    <div className="border-[0.5px] text-center p-2 m-2 flex flex-col justify-center align-middle">
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.otherLink1} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
                                       <Link2 className="m-auto w-5" />
-                                      More Content
+                                      More
                                     </div>
                                   </a>
                                 )}
