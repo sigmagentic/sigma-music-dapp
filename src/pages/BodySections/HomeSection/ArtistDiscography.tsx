@@ -237,7 +237,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 <div>
                   <Button
                     disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || albumPlayIsQueued}
-                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[230px]"
+                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
                     variant="outline"
                     onClick={() => {
                       if (playPausePreview) {
@@ -263,14 +263,14 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               {!publicKeySol && !album._canBeMinted && (
                 <div className="relative w-full md:w-auto">
                   <Button
-                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
                     variant="outline"
                     onClick={() => {
                       window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
                     }}>
                     <>
                       <WalletMinimal />
-                      <span className="ml-2">Login to Access Premium Album</span>
+                      <span className="ml-2">Login for Premium Album</span>
                     </>
                   </Button>
 
@@ -296,7 +296,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         trackPlayIsQueued ||
                         albumPlayIsQueued
                       }
-                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l cursor-pointer w-[230px] mr-2"
+                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l cursor-pointer w-[222px] mr-2"
                       onClick={() => {
                         // if the user is jumping between multiple albums, the audio player was getting into some weird state
                         // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
@@ -417,7 +417,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     )}
 
                     {album._canBeMinted && !inCollectedAlbumsView && (
-                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "" : "w-[230px]"}`}>
+                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "" : "w-[222px]"}`}>
                         {/* Animated border background */}
                         <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
 
