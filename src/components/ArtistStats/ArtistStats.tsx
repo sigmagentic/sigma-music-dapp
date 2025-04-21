@@ -111,9 +111,9 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
             {streamMetricData.length === 0 ? (
               <p className="text-xl mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
             ) : (
-              <div className="relative">
+              <div className="relative w-full">
                 <div
-                  className="overflow-x-auto pb-4 mt-5 max-w-[calc(3*16rem)]
+                  className="overflow-x-auto pb-4 mt-5 max-w-[calc(3*16rem)] 2xl:max-w-full
                   [&::-webkit-scrollbar]:h-2
                 dark:[&::-webkit-scrollbar-track]:bg-neutral-700
                 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -136,7 +136,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                           {index === 2 && <span>🥉</span>}
                         </div>
                         <div className="text-center mt-6">
-                          <div className="text-lg font-semibold mb-4 text-white">
+                          <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
                             {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alid}
                           </div>
                           <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>

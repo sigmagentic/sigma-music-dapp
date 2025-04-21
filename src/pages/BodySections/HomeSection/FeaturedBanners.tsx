@@ -96,7 +96,7 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
                       {index === 2 && <span>🥉</span>}
                     </div>
                     <div className="text-center mt-4">
-                      <div className="text-lg font-semibold mb-4 text-white">
+                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
                         {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alid}
                       </div>
                       <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
