@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { Loader } from "lucide-react";
-import { BUY_AND_MINT_ALBUM_PRICE_IN_USD, STRIPE_PUBLISHABLE_KEY, ENABLE_CC_PAYMENTS } from "config";
+import { STRIPE_PUBLISHABLE_KEY, ENABLE_CC_PAYMENTS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import StripeCheckoutForm from "libs/stripe/StripeCheckoutFormAlbum";
@@ -45,7 +45,7 @@ export const BuyAndMintAlbumUsingCC = ({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        amountToPay: BUY_AND_MINT_ALBUM_PRICE_IN_USD.toString(),
+        amountToPay: albumToBuyAndMint._buyNowMeta?.priceInUSD,
         albumId: albumToBuyAndMint.albumId,
         buyerSolAddress: publicKey.toBase58(),
       }),
@@ -88,10 +88,14 @@ export const BuyAndMintAlbumUsingCC = ({
                 </button>
                 <h3 className="text-xl font-bold mb-4">Secure Payment via Stripe</h3>
                 <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                  $ {BUY_AND_MINT_ALBUM_PRICE_IN_USD} USD
+                  $ {albumToBuyAndMint._buyNowMeta?.priceInUSD} USD
                 </span>
                 <div className="mt-2">
-                  <StripeCheckoutForm artistProfile={artistProfile} albumToBuyAndMint={albumToBuyAndMint} priceInUSD={BUY_AND_MINT_ALBUM_PRICE_IN_USD} />
+                  <StripeCheckoutForm
+                    artistProfile={artistProfile}
+                    albumToBuyAndMint={albumToBuyAndMint}
+                    priceInUSD={albumToBuyAndMint._buyNowMeta?.priceInUSD || null}
+                  />
                 </div>
               </div>
             </div>
@@ -153,7 +157,7 @@ export const BuyAndMintAlbumUsingCC = ({
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                      $ {BUY_AND_MINT_ALBUM_PRICE_IN_USD} USD
+                      $ {albumToBuyAndMint._buyNowMeta?.priceInUSD} USD
                     </span>
                   </div>
                 </div>
