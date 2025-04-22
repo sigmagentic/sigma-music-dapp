@@ -4,8 +4,8 @@ import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { Web3Auth } from "@web3auth/modal";
 import { SolanaPrivateKeyProvider, SolanaWallet } from "@web3auth/solana-provider";
 import { useLocation } from "react-router-dom";
-import { routeNames } from "routes";
 import { IS_DEVNET } from "appsConfig";
+import { routeNames } from "routes";
 
 interface Web3AuthContextType {
   web3auth: Web3Auth | null;
