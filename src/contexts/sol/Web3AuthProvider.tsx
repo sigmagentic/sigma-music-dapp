@@ -5,6 +5,7 @@ import { Web3Auth } from "@web3auth/modal";
 import { SolanaPrivateKeyProvider, SolanaWallet } from "@web3auth/solana-provider";
 import { useLocation } from "react-router-dom";
 import { routeNames } from "routes";
+import { IS_DEVNET } from "appsConfig";
 
 interface Web3AuthContextType {
   web3auth: Web3Auth | null;
@@ -55,7 +56,7 @@ export const useWeb3Auth = () => useContext(Web3AuthContext);
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.SOLANA,
   chainId: "0x1", // Mainnet
-  rpcTarget: import.meta.env.VITE_ENV_SOLANA_NETWORK_RPC || "https://rpc.ankr.com/solana",
+  rpcTarget: import.meta.env.VITE_ENV_SOLANA_NETWORK_RPC,
   displayName: "Solana Mainnet",
   blockExplorerUrl: "https://explorer.solana.com",
   ticker: "SOL",
@@ -91,7 +92,7 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         const web3authInstance = new Web3Auth({
           clientId: import.meta.env.VITE_WEB3AUTH_CLIENT_ID || "",
-          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
+          web3AuthNetwork: IS_DEVNET ? WEB3AUTH_NETWORK.SAPPHIRE_DEVNET : WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
           chainConfig,
           privateKeyProvider,
           enableLogging: false,
