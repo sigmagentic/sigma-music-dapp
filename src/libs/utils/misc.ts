@@ -357,30 +357,30 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
 
       // Update cache
       cache_checkIfAlbumCanBeMinted[albumId] = {
-        data: data.canBeMinted,
+        data: data,
         timestamp: now,
       };
 
-      return data.canBeMinted;
+      return data;
     } else {
       // Update cache (with false as data)
       cache_checkIfAlbumCanBeMinted[albumId] = {
-        data: false,
+        data: { _canBeMinted: false },
         timestamp: now,
       };
 
-      return false;
+      return { _canBeMinted: false };
     }
   } catch (error) {
     console.error("Error checking if album can be minted:", error);
 
     // Update cache (with false as data)
     cache_checkIfAlbumCanBeMinted[albumId] = {
-      data: false,
+      data: { _canBeMinted: false },
       timestamp: now,
     };
 
-    return false;
+    return { _canBeMinted: false };
   }
 };
 
