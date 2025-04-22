@@ -90,24 +90,25 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           config: { chainConfig },
         });
 
+        // https://web3auth.io/docs/sdk/pnp/web/modal/initialize
         const web3authInstance = new Web3Auth({
           clientId: import.meta.env.VITE_WEB3AUTH_CLIENT_ID || "",
           web3AuthNetwork: IS_DEVNET ? WEB3AUTH_NETWORK.SAPPHIRE_DEVNET : WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
           chainConfig,
           privateKeyProvider,
           enableLogging: false,
-          uiConfig: {
-            appName: "Sigma Music",
-            loginMethodsOrder: ["email_passwordless"],
-            defaultLanguage: "en",
-            modalZIndex: "2147483647",
-            loginGridCol: 3,
-            mode: "dark",
-            primaryButton: "emailLogin",
-            theme: {
-              primary: "#ffffff", // Primary button color
-            },
-          },
+          // uiConfig: {
+          //   appName: "Sigma Music",
+          //   loginMethodsOrder: ["email_passwordless"],
+          //   defaultLanguage: "en",
+          //   modalZIndex: "2147483647",
+          //   loginGridCol: 3,
+          //   mode: "dark",
+          //   primaryButton: "emailLogin",
+          //   theme: {
+          //     primary: "#ffffff", // Primary button color
+          //   },
+          // },
         });
 
         await web3authInstance.initModal();
