@@ -282,12 +282,12 @@ h6 {
 }
 
 /* S: Web3 Auth Overrides */
-.w3a-modal__inner,
+/* .w3a-modal__inner,
 .w3a-modal__inner--active,
 .w3a--p-6,
 .w3a--pt-7 {
   background-color: #0a0a0a !important;
-}
+} */
 
 /* E: Web3 Auth Overrides */
 
