@@ -628,8 +628,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
     return (
       <div className={styles.loader.container}>
-        <Loader className={styles.loader.icon} />
-        <p className={styles.loader.text}>hold tight, streaming music from the blockchain</p>
+        <Loader className={styles.loader.icon + (isSmallScreen ? " w-8 h-8 mr-12" : "")} />
+        {!isSmallScreen && <p className={styles.loader.text}>hold tight, streaming music from the blockchain</p>}
 
         {/* only show close button if the view sol data failed durign track load */}
         {viewSolDataHasError && (
@@ -961,7 +961,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             </div>
 
             {/* like album */}
-            {!DISABLE_BITZ_FEATURES && bitzGiftingMeta && (
+            {!DISABLE_BITZ_FEATURES && !isSmallScreen && bitzGiftingMeta && (
               <div
                 className={`absolute right-2 ${isFullScreen && displayTrackList ? "md:right-[410px]" : "md:right-[50px]"} z-10 top-4 text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center ${publicKey ? "cursor-pointer" : ""}`}
                 onClick={() => {
