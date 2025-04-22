@@ -49,7 +49,10 @@ export interface Album {
   isSpotlight: string;
   isFeatured: string;
   isSigmaRemixAlbum: string;
-  _canBeMinted: boolean;
+  _buyNowMeta?: {
+    canBeMinted: boolean;
+    priceInUSD: string;
+  };
 }
 
 export interface Artist {

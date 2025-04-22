@@ -427,6 +427,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             style={{
                               "backgroundImage": `url(${artist.img})`,
                               "backgroundPosition": getImagePositionMeta(artist.img, "tpos"),
+                              "backgroundColor": getImagePositionMeta(artist.img, "tcolor"),
+                              "backgroundSize": getImagePositionMeta(artist.img, "tsize"),
                             }}>
                             <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
                               <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
@@ -464,6 +466,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             style={{
                               "backgroundImage": `url(${album.img})`,
                               "backgroundPosition": getImagePositionMeta(album.img, "tpos"),
+                              "backgroundColor": getImagePositionMeta(album.img, "tcolor"),
+                              "backgroundSize": getImagePositionMeta(album.img, "tsize"),
                             }}>
                             <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
                               <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>

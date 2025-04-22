@@ -77,10 +77,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
   useEffect(() => {
     if (artistProfile && albums.length > 0) {
-      // check and attack the _canBeMinted flag to each album based on a realtime call to the backend
+      // check and attach the _buyNowMeta (canBeMinted flag and priceInUSD) to each album based on a realtime call to the backend
       const fetchAlbumsWithCanBeMinted = async () => {
         const albumsWithCanBeMinted = await Promise.all(
-          albums.map(async (album) => ({ ...album, _canBeMinted: await checkIfAlbumCanBeMintedViaAPI(album.albumId) }))
+          albums.map(async (album) => ({ ...album, _buyNowMeta: await checkIfAlbumCanBeMintedViaAPI(album.albumId) }))
         );
 
         setAlbumsWithCanBeMintedFlags(albumsWithCanBeMinted);
@@ -260,7 +260,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               )}
 
               {/* when not logged in, show this to convert the wallet into user account */}
-              {!publicKeySol && !album._canBeMinted && (
+              {!publicKeySol && !album._buyNowMeta?.canBeMinted && (
                 <div className="relative w-full md:w-auto">
                   <Button
                     className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
@@ -329,7 +329,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         }
                       }}>
                       <>
-                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <>{checkOwnershipOfAlbum(album) > -1 ? <AudioLines /> : <AudioWaveform />}</>}
+                        {/* {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <>{checkOwnershipOfAlbum(album) > -1 ? <AudioLines /> : <AudioWaveform />}</>} */}
                         <span className="ml-2">
                           {thisIsPlayingOnMainPlayer(album)
                             ? "Playing..."
@@ -416,7 +416,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       </div>
                     )}
 
-                    {album._canBeMinted && !inCollectedAlbumsView && (
+                    {album._buyNowMeta?.canBeMinted && album._buyNowMeta?.priceInUSD && !inCollectedAlbumsView && (
                       <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "" : "w-[222px]"}`}>
                         {/* Animated border background */}
                         <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
@@ -434,9 +434,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                             }
                           }}>
                           <>
-                            <ShoppingCart />
                             <span className="ml-2">
-                              {checkOwnershipOfAlbum(album) > -1 ? "Buy More Album Copies Now" : `${addressSol ? "Buy Now" : " Login to Buy Now"}`}
+                              {checkOwnershipOfAlbum(album) > -1
+                                ? "Buy More Album Copies Now"
+                                : `${addressSol ? `Buy Now $ ${album._buyNowMeta?.priceInUSD} USD` : " Login to Buy Now"}`}
                             </span>
                           </>
                         </Button>
