@@ -407,7 +407,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                       {artistAlbumDataset.map((artist: any) => (
                         <div
                           key={artist.artistId}
-                          className={`flex w-[250px] h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
+                          className={`flex w-[300px] h-[300px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
                           onClick={() => {
                             if (artist.artistId !== selArtistId) {
                               setArtistProfile(null); // reset the artist profile (so previous selected artist clears, the next line -  onFeaturedArtistDeepLinkSlug(artist.slug) - triggers a cascading effect to select the new artist)
@@ -446,7 +446,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                       {albumsDataset.map((album: AlbumWithArtist) => (
                         <div
                           key={album.albumId}
-                          className={`flex w-[250px] h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
+                          className={`flex w-[300px] h-[300px] md:w-[250px] md:h-[250px] m-2 cursor-pointer transition-transform duration-200 hover:scale-105`}
                           onClick={() => {
                             if (album.artistId !== selArtistId || album.albumId !== selAlbumId) {
                               setArtistProfile(null); // reset the artist profile (so previous selected artist clears, the next line -  onFeaturedArtistDeepLinkSlug(artist.slug) - triggers a cascading effect to select the new artist)

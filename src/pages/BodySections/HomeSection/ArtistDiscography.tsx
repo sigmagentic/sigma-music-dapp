@@ -417,7 +417,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     )}
 
                     {album._buyNowMeta?.canBeMinted && album._buyNowMeta?.priceInUSD && !inCollectedAlbumsView && (
-                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "" : "w-[222px]"}`}>
+                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "w-[222px]" : "w-[222px]"}`}>
                         {/* Animated border background */}
                         <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
 
