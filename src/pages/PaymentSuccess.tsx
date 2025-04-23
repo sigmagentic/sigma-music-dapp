@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { confetti } from "@tsparticles/confetti";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { SOL_ENV_ENUM } from "config";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
+import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep, udpateUserProfileOnBackEndAPI } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
@@ -45,6 +46,7 @@ export const PaymentSuccess = () => {
         if (!isConnected) {
           await connect();
         }
+
         // membershipId=t1&
         // artist=yfgp&
         // albumImg=https%3A%2F%2Fgateway.lighthouse.storage%2Fipfs%2Fbafybeigmvvyz7vt3ahbiybe6tsxafirlkc54ajnxppm2kjwvcoqhkfxj74&
@@ -63,6 +65,7 @@ export const PaymentSuccess = () => {
         const _albumArtist = searchParams.get("albumArtist");
         const creatorWallet = searchParams.get("creatorWallet");
         const _priceInUSD = searchParams.get("priceInUSD");
+        const _billingEmail = searchParams.get("billingEmail");
 
         if (!paymentIntentId || !_priceInUSD || (!albumId && !membershipId)) {
           throw new Error("Missing required parameters");
@@ -122,6 +125,17 @@ export const PaymentSuccess = () => {
             if (_logPaymentToAPIResponse.error) {
               setPaymentLogStatus("failed");
               throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
+            }
+
+            // save the billing email to the user's web2 account details (as it's the latest the user used)
+            if (_billingEmail) {
+              const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
+
+              const _updateUserBillingEmail = await udpateUserProfileOnBackEndAPI({ addr: buyerSolAddress, chainId, billingEmail: _billingEmail });
+
+              if (_updateUserBillingEmail.error) {
+                console.error("Failed to update user billing email", _updateUserBillingEmail.errorMessage);
+              }
             }
           } catch (e) {
             setPaymentLogStatus("failed");
