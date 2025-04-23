@@ -6,9 +6,10 @@ import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthRedirectWrapper } from "components";
 import { SOL_ENV_ENUM } from "config";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { getApiWeb2Apps } from "libs/utils";
 import { useSolanaWallet } from "../../contexts/sol/useSolanaWallet";
-
+import { useAccountStore } from "../../store/account";
 /* 
 we use global vars here so we can maintain this state across routing back and forth to this unlock page
 these vars are used to detect a "new login", i.e a logged out user logged in. we can use this to enable
@@ -28,6 +29,8 @@ const LoginPage = () => {
   const [userAccountLoggingIn, setIsUserAccountLoggingIn] = useState<boolean>(false);
   const { publicKey, isConnected, connect, disconnect } = useSolanaWallet();
   const address = publicKey?.toBase58();
+  const { updateUserWeb2AccountDetails } = useAccountStore();
+  const { userInfo } = useWeb3Auth();
 
   useEffect(() => {
     window.scrollTo({
@@ -58,9 +61,21 @@ const LoginPage = () => {
 
   const logUserLoggedInInUserAccounts = async (addr: string, chainId: string) => {
     try {
-      const callRes = await axios.post(`${getApiWeb2Apps()}/datadexapi/userAccounts/userLoggedIn`, {
+      const userLoggedInMetadata: any = {
         addr,
         chainId,
+      };
+
+      if (userInfo.name) {
+        userLoggedInMetadata.displayName = userInfo.name;
+      }
+
+      if (userInfo.email) {
+        userLoggedInMetadata.primaryAccountEmail = userInfo.email;
+      }
+
+      const callRes = await axios.post(`${getApiWeb2Apps()}/datadexapi/userAccounts/userLoggedIn`, {
+        ...userLoggedInMetadata,
       });
 
       const userLoggedInCallData = callRes.data;
@@ -78,7 +93,12 @@ const LoginPage = () => {
             icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
           });
 
+          updateUserWeb2AccountDetails(userLoggedInCallData);
+
           isTriggerFreeGift = "g=1";
+        } else {
+          console.log("userLoggedInCallData", userLoggedInCallData);
+          updateUserWeb2AccountDetails(userLoggedInCallData);
         }
 
         // Get the redirect path from query parameter

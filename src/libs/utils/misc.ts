@@ -139,6 +139,33 @@ export const logPaymentToAPI = async (paymentData: any) => {
   }
 };
 
+export const udpateUserProfileOnBackEndAPI = async (userProfileData: any) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/userAccounts/userUpdate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userProfileData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error saving user profile data:", error);
+    throw error;
+  }
+};
+
 export const mintAlbumOrFanNFTAfterPaymentViaAPI = async (mintData: any) => {
   try {
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumOrFanNFTAfterPayment`, {

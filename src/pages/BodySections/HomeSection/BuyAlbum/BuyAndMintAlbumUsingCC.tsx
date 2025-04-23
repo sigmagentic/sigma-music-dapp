@@ -4,8 +4,9 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Loader } from "lucide-react";
 import { STRIPE_PUBLISHABLE_KEY, ENABLE_CC_PAYMENTS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { Button } from "libComponents/Button";
-import StripeCheckoutForm from "libs/stripe/StripeCheckoutFormAlbum";
+import StripeCheckoutFormAlbum from "libs/stripe/StripeCheckoutFormAlbum";
 import { Artist, Album } from "libs/types";
 import { getApiWeb2Apps } from "libs/utils/misc";
 
@@ -24,6 +25,7 @@ export const BuyAndMintAlbumUsingCC = ({
   const [showStripePaymentPopup, setShowStripePaymentPopup] = useState(false);
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState("");
+  const { userInfo } = useWeb3Auth();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -38,17 +40,23 @@ export const BuyAndMintAlbumUsingCC = ({
   useEffect(() => {
     if (!publicKey) return;
 
+    const intentExtraParams: Record<string, any> = {
+      amountToPay: albumToBuyAndMint._buyNowMeta?.priceInUSD,
+      albumId: albumToBuyAndMint.albumId,
+      buyerSolAddress: publicKey.toBase58(),
+    };
+
+    if (userInfo.email) {
+      intentExtraParams.accountEmail = userInfo.email;
+    }
+
     // Fetch payment intent clientSecret from your backend
     fetch(`${getApiWeb2Apps()}/datadexapi/sigma/paymentCreateIntent`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        amountToPay: albumToBuyAndMint._buyNowMeta?.priceInUSD,
-        albumId: albumToBuyAndMint.albumId,
-        buyerSolAddress: publicKey.toBase58(),
-      }),
+      body: JSON.stringify(intentExtraParams),
     })
       .then((res) => {
         if (!res.ok) {
@@ -71,13 +79,12 @@ export const BuyAndMintAlbumUsingCC = ({
             stripe={stripePromise}
             options={{
               clientSecret,
-              // Fully customizable with appearance API.
               appearance: {
                 theme: "night",
               },
             }}>
             <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
-              <div className="relative bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
+              <div className="relative bg-[#1A1A1A] rounded-lg p-6 max-w-md md:max-w-lg w-full mx-4">
                 {/* Close button */}
                 <button
                   onClick={() => {
@@ -86,16 +93,22 @@ export const BuyAndMintAlbumUsingCC = ({
                   className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
                   ✕
                 </button>
-                <h3 className="text-xl font-bold mb-4">Secure Payment via Stripe</h3>
-                <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                  $ {albumToBuyAndMint._buyNowMeta?.priceInUSD} USD
-                </span>
-                <div className="mt-2">
-                  <StripeCheckoutForm
-                    artistProfile={artistProfile}
-                    albumToBuyAndMint={albumToBuyAndMint}
-                    priceInUSD={albumToBuyAndMint._buyNowMeta?.priceInUSD || null}
-                  />
+                <div
+                  className="max-h-[550px] overflow-x-hidden overflow-y-auto p-[15px] 
+                  [&::-webkit-scrollbar]:h-2
+                dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+                  <h3 className="text-xl font-bold mb-4">Secure Payment</h3>
+                  <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                    $ {albumToBuyAndMint._buyNowMeta?.priceInUSD} USD
+                  </span>
+                  <div className="mt-2">
+                    <StripeCheckoutFormAlbum
+                      artistProfile={artistProfile}
+                      albumToBuyAndMint={albumToBuyAndMint}
+                      priceInUSD={albumToBuyAndMint._buyNowMeta?.priceInUSD || null}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
