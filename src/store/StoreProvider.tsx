@@ -3,7 +3,7 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
 import { IS_DEVNET } from "appsConfig";
-import { DISABLE_BITZ_FEATURES } from "config";
+import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
@@ -126,7 +126,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
           grouping: [
             {
               group_key: "collection",
-              group_value: "tbm-c1",
+              group_value: DEFAULT_BITZ_COLLECTION_SOL,
             },
           ],
         };
