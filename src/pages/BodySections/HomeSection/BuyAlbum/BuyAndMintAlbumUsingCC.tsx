@@ -85,14 +85,6 @@ export const BuyAndMintAlbumUsingCC = ({
             }}>
             <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
               <div className="relative bg-[#1A1A1A] rounded-lg p-6 max-w-md md:max-w-lg w-full mx-4">
-                {/* Close button */}
-                <button
-                  onClick={() => {
-                    setShowStripePaymentPopup(false);
-                  }}
-                  className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
-                  ✕
-                </button>
                 <div
                   className="max-h-[550px] overflow-x-hidden overflow-y-auto p-[15px] 
                   [&::-webkit-scrollbar]:h-2
@@ -107,6 +99,9 @@ export const BuyAndMintAlbumUsingCC = ({
                       artistProfile={artistProfile}
                       albumToBuyAndMint={albumToBuyAndMint}
                       priceInUSD={albumToBuyAndMint._buyNowMeta?.priceInUSD || null}
+                      closeStripePaymentPopup={() => {
+                        setShowStripePaymentPopup(false);
+                      }}
                     />
                   </div>
                 </div>

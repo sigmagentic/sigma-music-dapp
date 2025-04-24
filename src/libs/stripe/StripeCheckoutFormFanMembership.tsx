@@ -14,9 +14,10 @@ type StripeCheckoutFormFanMembershipProps = {
     membershipLabel: string;
     creatorPaymentsWallet: string;
   };
+  closeStripePaymentPopup: () => void;
 };
 
-const StripeCheckoutFormFanMembership = ({ membershipProfile }: StripeCheckoutFormFanMembershipProps) => {
+const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePaymentPopup }: StripeCheckoutFormFanMembershipProps) => {
   const { publicKey } = useSolanaWallet();
   const { userInfo } = useWeb3Auth();
   const stripe = useStripe();
@@ -114,7 +115,7 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile }: StripeCheckoutFo
           <Loader className="animate-spin" />
         </div>
       )}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 mb-3">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
             Email Address (for the payment receipt)
@@ -134,11 +135,20 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile }: StripeCheckoutFo
       <PaymentElement onReady={() => setPaymentElementReady(true)} />
       <AddressElement options={{ mode: "billing" }} />
       <button
+        className="mt-5 bg-gray-600 text-primary-foreground font-bold py-2 px-4 rounded-lg hover:opacity-90 mr-3"
+        type="button"
+        onClick={() => {
+          closeStripePaymentPopup();
+        }}>
+        Cancel
+      </button>
+      <button
         className="mt-5 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         type="submit"
         disabled={loading || !stripe || !elements || !paymentElementReady || !!emailError}>
         {loading ? "Processing..." : "Pay"}
       </button>
+
       {error && (
         <div className="flex flex-col gap-4 mt-2">
           <p className="bg-red-600 p-2 rounded-lg text-sm">⚠️ {error}</p>

@@ -242,10 +242,11 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
       let _musicPlayerTrackListFromDb = false;
 
       let albumTracksFromDb = await getAlbumTracksFromDBViaAPI(playAlbumNowParams.artistId, playAlbumNowParams.albumId, userOwnsAlbum);
-      albumTracksFromDb = albumTracksFromDb.map((track: any) => ({
+      albumTracksFromDb = albumTracksFromDb.map((track: MusicTrack) => ({
         ...track,
         artist: playAlbumNowParams.artistName,
         album: playAlbumNowParams.albumName,
+        albumTrackId: track.alId, // the DB calls it alId, but in the app we normalize it to albumTrackId
       }));
 
       console.log("---> albumTracks from DB", albumTracksFromDb);
