@@ -30,7 +30,8 @@ export interface MusicTrack {
   creatorWallet: string;
   bountyId: string;
   isExplicit: string;
-  alId?: string; // the album and track index in the format (ar22_a1-1)
+  alId?: string; // the album and track index in the format (ar22_a1-1) -- it comes for DB in this format, but in the app we normalize it to albumTrackId
+  albumTrackId?: string; // (same as above alid, the radio streams json has it in this format) the album and track index in the format (ar22_a1-1)
 }
 
 export interface Album {

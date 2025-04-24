@@ -5,15 +5,14 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { Artist, Album } from "libs/types";
 
-const StripeCheckoutFormAlbum = ({
-  artistProfile,
-  albumToBuyAndMint,
-  priceInUSD,
-}: {
+type StripeCheckoutFormAlbumProps = {
   artistProfile: Artist;
   albumToBuyAndMint: Album;
   priceInUSD: string | null;
-}) => {
+  closeStripePaymentPopup: () => void;
+};
+
+const StripeCheckoutFormAlbum = ({ artistProfile, albumToBuyAndMint, priceInUSD, closeStripePaymentPopup }: StripeCheckoutFormAlbumProps) => {
   const { publicKey } = useSolanaWallet();
   const { userInfo } = useWeb3Auth();
   const stripe = useStripe();
@@ -114,7 +113,7 @@ const StripeCheckoutFormAlbum = ({
           <Loader className="animate-spin" />
         </div>
       )}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 mb-3">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
             Email Address (for the payment receipt)
@@ -134,11 +133,20 @@ const StripeCheckoutFormAlbum = ({
       <PaymentElement onReady={() => setPaymentElementReady(true)} />
       <AddressElement options={{ mode: "billing" }} />
       <button
+        className="mt-5 bg-gray-600 text-primary-foreground font-bold py-2 px-4 rounded-lg hover:opacity-90 mr-3"
+        type="button"
+        onClick={() => {
+          closeStripePaymentPopup();
+        }}>
+        Cancel
+      </button>
+      <button
         className="mt-5 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         type="submit"
         disabled={loading || !stripe || !elements || !paymentElementReady || !!emailError}>
         {loading ? "Processing..." : "Pay"}
       </button>
+
       {error && (
         <div className="flex flex-col gap-4 mt-2">
           <p className="bg-red-600 p-2 rounded-lg text-sm">⚠️ {error}</p>

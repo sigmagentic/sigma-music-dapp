@@ -233,7 +233,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             </div>
 
             <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
-              {album.ctaPreviewStream && !inCollectedAlbumsView && (
+              {album.ctaPreviewStream && !inCollectedAlbumsView && checkOwnershipOfAlbum(album) === -1 && (
                 <div>
                   <Button
                     disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || albumPlayIsQueued}
@@ -296,7 +296,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         trackPlayIsQueued ||
                         albumPlayIsQueued
                       }
-                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l cursor-pointer w-[222px] mr-2"
+                      className={`!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r  ${checkOwnershipOfAlbum(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px] mr-2`}
                       onClick={() => {
                         // if the user is jumping between multiple albums, the audio player was getting into some weird state
                         // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
@@ -329,7 +329,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         }
                       }}>
                       <>
-                        {/* {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <>{checkOwnershipOfAlbum(album) > -1 ? <AudioLines /> : <AudioWaveform />}</>} */}
+                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <AudioWaveform />}
                         <span className="ml-2">
                           {thisIsPlayingOnMainPlayer(album)
                             ? "Playing..."
