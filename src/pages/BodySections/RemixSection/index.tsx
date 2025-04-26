@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
 import { debounce } from "lodash";
-import { ArrowUpRight, Heart, Info, Loader, Pause, Play, Pointer } from "lucide-react";
+import { ArrowUpRight, Rocket, Info, Loader, Pause, Play, Pointer } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthRedirectWrapper } from "components";
 import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON, SIGMA_MEME_FEATURE_WHITELIST } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { BountyBitzSumMapping } from "libs/types";
 import { getApiWeb2Apps, logStatusChangeToAPI, sleep } from "libs/utils";
@@ -15,7 +15,6 @@ import { updateBountyBitzSumGlobalMappingWindow } from "pages/BodySections/HomeS
 import { useNftsStore } from "store/nfts";
 import { LaunchMusicMeme } from "./LaunchMusicMeme";
 import { LaunchToPumpFun } from "./LaunchToPumpFun";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 interface Version {
   bountyId: string;
@@ -534,7 +533,7 @@ const RemixSectionContent = () => {
                                   ) : (
                                     <div
                                       className="p-5 md:p-0 flex items-center gap-2"
-                                      title={addressSol ? "Like This Album With 5 XP" : "Login to Like This Album"}
+                                      title={addressSol ? "Boost This Album With 5 XP" : "Login to Boost This Album"}
                                       onClick={() => {
                                         if (addressSol) {
                                           handleSendBitzForMusicBounty({
@@ -546,7 +545,7 @@ const RemixSectionContent = () => {
                                         }
                                       }}>
                                       {bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum}
-                                      <Heart className="w-4 h-4" />
+                                      <Rocket className="w-4 h-4" />
                                     </div>
                                   )}
                                 </div>
@@ -608,7 +607,7 @@ const RemixSectionContent = () => {
                       ) : (
                         <div
                           className="p-5 md:p-0 flex items-center gap-2"
-                          title={addressSol ? "Like This Album With 5 XP" : "Login to Like This Album"}
+                          title={addressSol ? "Boost This Album With 5 XP" : "Login to Boost This Album"}
                           onClick={() => {
                             if (addressSol) {
                               handleSendBitzForMusicBounty({
@@ -620,7 +619,7 @@ const RemixSectionContent = () => {
                             }
                           }}>
                           {bountyBitzSumGlobalMapping[item.versions[0].bountyId]?.bitsSum}
-                          <Heart className="w-4 h-4" />
+                          <Rocket className="w-4 h-4" />
                         </div>
                       )}
                     </div>
