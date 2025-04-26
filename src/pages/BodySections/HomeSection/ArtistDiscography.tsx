@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { Gift, Heart, Loader, AudioWaveform, AudioLines, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass } from "lucide-react";
+import { Gift, Heart, Loader, AudioWaveform, AudioLines, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass, Rocket } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
 import { DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS } from "config";
@@ -211,7 +211,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     ) : (
                       <div
                         className="p-5 md:p-0 flex items-center gap-2"
-                        title={userLoggedInWithWallet ? "Like This Album With 5 XP" : "Login to Like This Album"}
+                        title={userLoggedInWithWallet ? "Boost This Album With 5 XP" : "Login to Boost This Album"}
                         onClick={() => {
                           if (userLoggedInWithWallet) {
                             onSendBitzForMusicBounty({
@@ -224,7 +224,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                           }
                         }}>
                         {bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum}
-                        <Heart className="w-4 h-4" />
+                        <Rocket className="w-4 h-4" />
                       </div>
                     )}
                   </div>

@@ -3,7 +3,7 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   ChevronDown,
-  Heart,
+  Rocket,
   Library,
   Loader,
   Pause,
@@ -974,7 +974,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               </button>
             </div>
 
-            {/* like album */}
+            {/* boost album */}
             {!DISABLE_BITZ_FEATURES && !isSmallScreen && bitzGiftingMeta && (
               <div
                 className={`absolute right-2 ${isFullScreen && displayTrackList ? "md:right-[410px]" : "md:right-[50px]"} ${!isFullScreen ? "scale-75" : ""} z-10 top-4 text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center ${publicKey ? "cursor-pointer" : ""}`}
@@ -985,7 +985,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 }}>
                 <div
                   className="p-5 md:p-0 flex items-center gap-2"
-                  title={"Like This Album With 5 XP"}
+                  title={"Boost This Album With 5 XP"}
                   onClick={() => {
                     if (publicKey) {
                       likeAlbumWithBiTz(trackList[currentTrackIndex]);
@@ -993,7 +993,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   }}>
                   {bitzGiftingMeta ? bountyBitzSumGlobalMapping[bitzGiftingMeta.giveBitzToCampaignId]?.bitsSum : 0}
 
-                  <Heart className="w-4 h-4" />
+                  <Rocket className="w-4 h-4" />
                 </div>
               </div>
             )}

@@ -174,7 +174,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
           setGiftBitzWorkflow(false);
         }}
         closeOnOverlayClick={false}
-        title={!isLikeMode ? "Power-Up This Creator With XP" : "Like This Album With 5 XP"}
+        title={!isLikeMode ? "Power-Up This Creator With XP" : "Boost This Album With 5 XP"}
         hasFilter={false}
         filterData={[]}
         modalClassName={""}
@@ -191,11 +191,11 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                 {isLikeMode ? (
                   <>
                     <span className="font-bold cursor-pointer" onClick={() => setShowDetails((prev) => !prev)}>
-                      ℹ️ Why should you like albums?
+                      ℹ️ Why should you boost albums?
                     </span>{" "}
                     {showDetails && (
                       <div>
-                        Most-liked albums get promoted and featured more on Sigma Music and other social channels, and this may drive more sales of the artist's
+                        Boosted albums get promoted and featured more on Sigma Music and other social channels, and this may drive more sales of the artist's
                         content. If the artist has an Inner Circle premium membership offering and has enabled the "revenue share" tier, then more sales will
                         equal more revenue shared with the artist's Inner Circle members (i.e., you).
                       </div>
