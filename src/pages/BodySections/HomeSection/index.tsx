@@ -23,8 +23,18 @@ import { RadioBgCanvas } from "./RadioBgCanvas";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import CAMPAIGN_WSB_HERO from "assets/img/campaigns/campaign-wsb-hero.png";
+import { COUNTRIES } from "libs/constants/countries";
+import { TEAMS } from "libs/constants/teams";
 
-export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
+type HomeSectionProps = {
+  homeMode: string;
+  setHomeMode: (homeMode: string) => void;
+  filterByArtistCampaignCode?: string;
+};
+
+export const HomeSection = (props: HomeSectionProps) => {
+  const { homeMode, setHomeMode, filterByArtistCampaignCode } = props;
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
@@ -37,6 +47,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol } = useSolanaWallet();
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   const [bitzGiftingMeta, setBitzGiftingMeta] = useState<{
     giveBitzToCampaignId: string;
@@ -470,6 +481,54 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
             </div>
           )}
 
+          {homeMode.includes("campaigns-wsb") && (
+            <div className="w-full mt-5">
+              <div className="flex flex-col md:flex-row justify-center items-center xl:items-start w-[100%] h-[350px]">
+                <div className="flex flex-col w-full md:w-1/2 h-full">
+                  <div
+                    className="campaign-wsb-banner h-full"
+                    style={{ backgroundImage: `url(${CAMPAIGN_WSB_HERO})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                  />
+                </div>
+                <div className="flex flex-col w-full md:w-1/2 h-full p-6">
+                  {!selectedCountry ? (
+                    <>
+                      <h2 className="text-2xl font-bold mb-4">Countries</h2>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {COUNTRIES.map((country) => (
+                          <button
+                            key={country.code}
+                            onClick={() => setSelectedCountry(country.code)}
+                            className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                            <span className="text-lg">{country.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold">Teams from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}</h2>
+                        <button
+                          onClick={() => setSelectedCountry(null)}
+                          className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                          Back to Countries
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {TEAMS[selectedCountry]?.map((team) => (
+                          <div key={team.teamCode} className="flex items-center space-x-2 p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+                            <span className="text-lg">{team.teamName}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Artists and their Albums */}
           {(homeMode.includes("artists") || homeMode.includes("albums")) && (
             <>
@@ -518,6 +577,61 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                   loadIntoTileView={loadIntoTileView}
                   setLoadIntoTileView={setLoadIntoTileView}
                   isAllAlbumsMode={homeMode.includes("albums")}
+                  filterByArtistCampaignCode={filterByArtistCampaignCode}
+                />
+              </div>
+            </>
+          )}
+
+          {/* WSB Campaign */}
+          {homeMode.includes("campaigns-wsb") && (
+            <>
+              <div className="w-full mt-5">
+                <FeaturedArtistsAndAlbums
+                  viewSolData={viewSolData}
+                  stopPreviewPlayingNow={stopPreviewPlaying}
+                  featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
+                  onFeaturedArtistDeepLinkSlug={(artistSlug: string, albumId?: string) => {
+                    let slugToUse = artistSlug;
+
+                    if (albumId) {
+                      slugToUse = `${artistSlug}~${albumId}`;
+                    }
+
+                    setFeaturedArtistDeepLinkSlug(slugToUse);
+                  }}
+                  onPlayHappened={() => {
+                    // pause the preview tracks if playing
+                    setStopPreviewPlaying(false);
+
+                    // pause the radio if playing
+                    if (launchRadioPlayer) {
+                      setLaunchRadioPlayer(false);
+                    }
+
+                    // pause the main player if playing
+                    setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
+                  }}
+                  checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                  openActionFireLogic={(_bitzGiftingMeta?: any) => {
+                    setLaunchMusicPlayer(true);
+                    setStopPreviewPlaying(true);
+
+                    if (_bitzGiftingMeta) {
+                      setBitzGiftingMeta(_bitzGiftingMeta);
+                    }
+                  }}
+                  onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
+                  bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                  setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
+                  userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
+                  dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
+                  onCloseMusicPlayer={resetAudioPlayerState}
+                  isMusicPlayerOpen={launchMusicPlayer}
+                  loadIntoTileView={loadIntoTileView}
+                  setLoadIntoTileView={setLoadIntoTileView}
+                  isAllAlbumsMode={homeMode.includes("albums")}
+                  filterByArtistCampaignCode={"wsb"}
                 />
               </div>
             </>

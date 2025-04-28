@@ -20,6 +20,7 @@ export const JoinInnerCircleSOL = ({
   creatorPaymentsWallet,
   membershipId,
   creatorFanMembershipAvailability,
+  artistId,
 }: {
   onCloseModal: (isMintingSuccess: boolean) => void;
   artistName: string;
@@ -27,6 +28,7 @@ export const JoinInnerCircleSOL = ({
   creatorPaymentsWallet: string;
   membershipId: string;
   creatorFanMembershipAvailability: Record<string, any>;
+  artistId: string;
 }) => {
   const { connection } = useConnection();
   const { sendTransaction, signMessage } = useWallet();
@@ -198,6 +200,7 @@ export const JoinInnerCircleSOL = ({
         nftType: "fan",
         creatorWallet: creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         membershipId: membershipId,
+        artistId: artistId,
       });
 
       if (_mintNFTAfterPaymentResponse.error) {

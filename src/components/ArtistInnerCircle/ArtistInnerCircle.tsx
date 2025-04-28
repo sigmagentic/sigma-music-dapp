@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { SparklesIcon, ComputerDesktopIcon, UserGroupIcon } from "@heroicons/react/24/solid";
 import { Loader, ShoppingCart } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { Button } from "libComponents/Button";
 import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
 import { fetchCreatorFanMembershipAvailabilityViaAPI, fetchMyFanMembershipsForArtistViaAPI, fetchSolPrice } from "libs/utils/misc";
+import { convertTokenImageUrl } from "libs/utils/ui";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
 import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
 import { tierData, perksData } from "./tierData";
-import { convertTokenImageUrl } from "libs/utils/ui";
-import { Button } from "libComponents/Button";
 
 const getPerkTypeIcon = (type: "virtual" | "physical" | "virtual") => {
   switch (type) {
@@ -46,9 +46,10 @@ interface ArtistInnerCircleProps {
   artistName: string;
   artistSlug: string;
   creatorPaymentsWallet: string;
+  artistId: string;
 }
 
-export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName, artistSlug, creatorPaymentsWallet }) => {
+export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName, artistSlug, creatorPaymentsWallet, artistId }) => {
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [isLoading, setIsLoading] = useState(true);
@@ -111,6 +112,12 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
   const fetchPriceInSol = async () => {
     try {
       if (!artistsMembershipOptions || !selectedArtistMembership) {
+        return;
+      }
+
+      // user has not set up their membership options yet, so sel the required sol abount to -1 so we can move from the loading state
+      if (Object.keys(artistsMembershipOptions).length === 0) {
+        setRequiredSolAmount(-1);
         return;
       }
 
@@ -179,7 +186,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
 
   const checkAndloadCreatorFanMembershipAvailability = async () => {
     try {
-      const data: Record<string, any> = await fetchCreatorFanMembershipAvailabilityViaAPI(creatorPaymentsWallet);
+      const data: Record<string, any> = await fetchCreatorFanMembershipAvailabilityViaAPI(creatorPaymentsWallet, artistId);
 
       if (data && Object.keys(data).length > 0) {
         setCreatorFanMembershipAvailability(data);
@@ -498,6 +505,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                 artistSlug={artistSlug}
                 creatorPaymentsWallet={creatorPaymentsWallet}
                 membershipId={selectedArtistMembership}
+                artistId={artistId}
                 creatorFanMembershipAvailability={creatorFanMembershipAvailability || {}}
                 onCloseModal={(isMintingSuccess: boolean) => {
                   setJoinInnerCircleModalOpen(false);
@@ -513,6 +521,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                 artistSlug={artistSlug}
                 creatorPaymentsWallet={creatorPaymentsWallet}
                 membershipId={selectedArtistMembership}
+                artistId={artistId}
                 creatorFanMembershipAvailability={creatorFanMembershipAvailability || {}}
                 onCloseModal={() => {
                   setJoinInnerCircleModalOpen(false);

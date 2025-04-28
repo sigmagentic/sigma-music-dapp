@@ -8,6 +8,7 @@ import { fetchBitSumAndGiverCountsSol } from "pages/AppMarketplace/GetBitz/GetBi
 
 // get and cache the artists and albums data locally
 let _artistsAlbumsDataCachedOnWindow: any[] = [];
+let _artistsAlbumsDataOrganizedBySectionsCachedOnWindow: Record<string, { sectionCode: string; filteredItems: any[] }> = {};
 let _artistsAlbumsDataCachedOn: number = 0;
 
 export async function getArtistsAlbumsData() {
@@ -15,12 +16,18 @@ export async function getArtistsAlbumsData() {
     // cache for 120 seconds
     if (_artistsAlbumsDataCachedOnWindow.length > 0 && Date.now() - _artistsAlbumsDataCachedOn < 120 * 1000) {
       console.log(`getArtistsAlbumsData: [cache]`);
-      return _artistsAlbumsDataCachedOnWindow;
+      return {
+        albumArtistLookupData: _artistsAlbumsDataCachedOnWindow,
+        albumArtistLookupDataOrganizedBySections: _artistsAlbumsDataOrganizedBySectionsCachedOnWindow,
+      };
     } else {
       console.log(`getArtistsAlbumsData: [no-cache]`);
       const getArtistsAlbumsAPI = `${getApiWeb2Apps(true)}/app_nftunes/assets/json/albumsAndArtistsData.json`;
       const dataRes = await axios.get(getArtistsAlbumsAPI);
       let dataset = dataRes.data;
+      let cloneDataset = [...dataset];
+
+      const organizedBySectionsDataset = organizeArtistsByCampaignCodes(cloneDataset);
 
       // if we are in live demo mode, we need to filter the dataset to only include the live demo artists
       if (!IS_LIVE_DEMO_MODE) {
@@ -48,13 +55,20 @@ export async function getArtistsAlbumsData() {
       }
 
       _artistsAlbumsDataCachedOnWindow = dataset;
+      _artistsAlbumsDataOrganizedBySectionsCachedOnWindow = organizedBySectionsDataset;
       _artistsAlbumsDataCachedOn = Date.now();
 
-      return _artistsAlbumsDataCachedOnWindow;
+      return {
+        albumArtistLookupData: _artistsAlbumsDataCachedOnWindow,
+        albumArtistLookupDataOrganizedBySections: _artistsAlbumsDataOrganizedBySectionsCachedOnWindow,
+      };
     }
   } catch (e) {
     console.error(e);
-    return [];
+    return {
+      albumArtistLookupData: [],
+      albumArtistLookupDataOrganizedBySections: {},
+    };
   }
 }
 
@@ -226,4 +240,52 @@ export async function getNFTuneFirstTrackBlobData(trackOne: MusicTrack) {
     console.error(e);
     return "";
   }
+}
+
+export function organizeArtistsByCampaignCodes(dataset: any[]) {
+  const sectionsMap: Record<string, { sectionCode: string; filteredItems: any[] }> = {};
+
+  // Process each artist
+  dataset.forEach((artist) => {
+    const { artistCampaignCode, artistSubGroup1Code, artistSubGroup2Code } = artist;
+
+    // Skip if no campaign code
+    if (!artistCampaignCode) return;
+
+    // Add to campaign level section
+    const campaignKey = artistCampaignCode;
+    if (!sectionsMap[campaignKey]) {
+      sectionsMap[campaignKey] = {
+        sectionCode: campaignKey,
+        filteredItems: [],
+      };
+    }
+    sectionsMap[campaignKey].filteredItems.push(artist);
+
+    // Add to campaign-subgroup1 level section if subgroup1 exists
+    if (artistSubGroup1Code) {
+      const campaignSubgroup1Key = `${artistCampaignCode}-${artistSubGroup1Code}`;
+      if (!sectionsMap[campaignSubgroup1Key]) {
+        sectionsMap[campaignSubgroup1Key] = {
+          sectionCode: campaignSubgroup1Key,
+          filteredItems: [],
+        };
+      }
+      sectionsMap[campaignSubgroup1Key].filteredItems.push(artist);
+
+      // Add to campaign-subgroup1-subgroup2 level section if subgroup2 exists
+      if (artistSubGroup2Code) {
+        const campaignSubgroup12Key = `${artistCampaignCode}-${artistSubGroup1Code}-${artistSubGroup2Code}`;
+        if (!sectionsMap[campaignSubgroup12Key]) {
+          sectionsMap[campaignSubgroup12Key] = {
+            sectionCode: campaignSubgroup12Key,
+            filteredItems: [],
+          };
+        }
+        sectionsMap[campaignSubgroup12Key].filteredItems.push(artist);
+      }
+    }
+  });
+
+  return sectionsMap;
 }

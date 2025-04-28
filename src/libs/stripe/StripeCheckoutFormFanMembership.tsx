@@ -9,6 +9,7 @@ type StripeCheckoutFormFanMembershipProps = {
     artistSlug: string;
     artistName: string;
     membershipId: string;
+    artistId: string;
     tokenImg: string;
     membershipPriceUSD: number;
     membershipLabel: string;
@@ -73,6 +74,7 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePayment
     try {
       /* on the payment success page, we need some params so we can display the album purchase details and also redirect when it's done */
       const membershipId = membershipProfile.membershipId;
+      const artistId = membershipProfile.artistId;
       const artistSlug = membershipProfile.artistSlug;
       const albumImg = membershipProfile.tokenImg;
       const albumTitle = membershipProfile.membershipLabel;
@@ -84,7 +86,7 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePayment
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}&billingEmail=${encodeURIComponent(email)}`,
+          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artistId=${artistId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}&billingEmail=${encodeURIComponent(email)}`,
           receipt_email: email,
         },
       });

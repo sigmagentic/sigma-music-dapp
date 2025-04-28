@@ -19,6 +19,7 @@ export const JoinInnerCircleCC = ({
   artistSlug,
   creatorPaymentsWallet,
   membershipId,
+  artistId,
   creatorFanMembershipAvailability,
 }: {
   onCloseModal: () => void;
@@ -26,6 +27,7 @@ export const JoinInnerCircleCC = ({
   artistSlug: string;
   creatorPaymentsWallet: string;
   membershipId: string;
+  artistId: string;
   creatorFanMembershipAvailability: Record<string, any>;
 }) => {
   const { publicKey } = useSolanaWallet();
@@ -110,6 +112,7 @@ export const JoinInnerCircleCC = ({
                         artistSlug,
                         artistName,
                         membershipId,
+                        artistId,
                         tokenImg,
                         membershipPriceUSD: tierData[membershipId].defaultPriceUSD,
                         membershipLabel: tierData[membershipId].label,

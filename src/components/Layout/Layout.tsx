@@ -11,6 +11,7 @@ import {
   CursorArrowRippleIcon,
   PuzzlePieceIcon,
   UserIcon,
+  GlobeEuropeAfricaIcon,
 } from "@heroicons/react/24/outline";
 import { Toaster } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
@@ -112,7 +113,6 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
-                      hover:text-black
                     `}>
                       <RadioIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden">Radio</span>
@@ -131,7 +131,6 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
-                      hover:text-black
                     `}>
                       <UserGroupIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden">Artists</span>
@@ -207,6 +206,25 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       <PuzzlePieceIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden">Games</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
+                    </button>
+                  </Tooltip>
+                  <Tooltip text="WSB Campaign">
+                    <button
+                      onClick={() => {
+                        removeArtistProfileParamFromUrl();
+                        setHomeMode(`campaigns-wsb-${new Date().getTime()}`);
+                      }}
+                      disabled={homeMode.includes("campaigns-wsb")}
+                      className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:text-orange-500
+                    `}>
+                      <GlobeEuropeAfricaIcon className="h-6 w-6 mr-1 md:mr-0" />
+                      <span className="md:hidden">WSB</span>
+                      {!isMenuCollapsed && <span className="hidden md:inline">WSB</span>}
                     </button>
                   </Tooltip>
                   {isLoggedIn && (

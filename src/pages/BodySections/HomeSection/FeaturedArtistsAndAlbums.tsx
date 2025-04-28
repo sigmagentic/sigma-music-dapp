@@ -31,6 +31,7 @@ type FeaturedArtistsAndAlbumsProps = {
   isMusicPlayerOpen?: boolean;
   loadIntoTileView?: boolean;
   isAllAlbumsMode?: boolean;
+  filterByArtistCampaignCode?: string;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number, f?: any) => void;
   onPlayHappened: () => void;
@@ -52,6 +53,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     isMusicPlayerOpen,
     loadIntoTileView,
     isAllAlbumsMode,
+    filterByArtistCampaignCode,
     openActionFireLogic,
     viewSolData,
     onPlayHappened,
@@ -83,7 +85,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [albumsDataset, setAlbumsDataset] = useState<AlbumWithArtist[]>([]);
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState("discography");
-  const { updateAlbumMasterLookup } = useAppStore();
+  const { updateAlbumMasterLookup, artistLookupOrganizedBySections } = useAppStore();
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -139,10 +141,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     (async () => {
       await sleep(2);
-      const allArtistsAlbumsData = await getArtistsAlbumsData();
+      const { albumArtistLookupData, albumArtistLookupDataOrganizedBySections } = await getArtistsAlbumsData();
       let allAlbumsData: AlbumWithArtist[] = [];
 
-      allAlbumsData = allArtistsAlbumsData.flatMap((artist: Artist) =>
+      const artistDataToUse = filterByArtistCampaignCode
+        ? albumArtistLookupDataOrganizedBySections[filterByArtistCampaignCode].filteredItems
+        : albumArtistLookupData;
+
+      allAlbumsData = artistDataToUse.flatMap((artist: Artist) =>
         artist.albums.map(
           (album: Album): AlbumWithArtist => ({
             ...album,
@@ -155,7 +161,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
       // await sleep(5);
 
-      setArtistAlbumDataset(allArtistsAlbumsData);
+      setArtistAlbumDataset(artistDataToUse);
       setAlbumsDataset(allAlbumsData);
 
       setArtistAlbumDataLoading(false);
@@ -377,7 +383,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                 </>
               </Button>
             ) : (
-              <span className="text-center">{isAllAlbumsMode ? "Albums" : "Artists"}</span>
+              <>{!filterByArtistCampaignCode && <span className="text-center">{isAllAlbumsMode ? "Albums" : "Artists"}</span>}</>
             )}
           </div>
         </div>
@@ -403,7 +409,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               {!inArtistProfileView && (
                 <div className="flex flex-col gap-4 p-2 items-start bg-background min-h-[350px] w-full">
                   {!isAllAlbumsMode && (
-                    <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px] ">
+                    <div className="artist-boxes w-full flex flex-col items-center md:items-start md:grid md:grid-auto-flow-column md:grid-cols-[repeat(auto-fill,250px)] md:gap-[10px]">
                       {artistAlbumDataset.map((artist: any) => (
                         <div
                           key={artist.artistId}
@@ -438,11 +444,15 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           </div>
                         </div>
                       ))}
+                      {/* Add dummy items to fill the grid */}
+                      {[...Array(10)].map((_, index) => (
+                        <div key={`dummy-${index}`} className="hidden md:block w-[250px] h-[250px]" />
+                      ))}
                     </div>
                   )}
 
                   {isAllAlbumsMode && (
-                    <div className="artist-boxes w-full flex flex-col items-center md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px] ">
+                    <div className="artist-boxes w-full flex flex-col items-center md:items-start md:grid md:grid-auto-flow-column md:grid-cols-[repeat(auto-fill,250px)] md:gap-[10px]">
                       {albumsDataset.map((album: AlbumWithArtist) => (
                         <div
                           key={album.albumId}
@@ -751,6 +761,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistName={artistProfile.name.replaceAll("_", " ")}
                               artistSlug={artistProfile.slug}
                               creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
+                              artistId={artistProfile.artistId}
                             />
                           </div>
                         )}
