@@ -12,6 +12,7 @@ type CampaignHeroProps = {
 export const CampaignHero = (props: CampaignHeroProps) => {
   const { handleCampaignCodeFilterChange } = props;
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
   useEffect(() => {
     handleCampaignCodeFilterChange("wsb");
@@ -31,7 +32,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
               style={{ backgroundImage: `url(${CAMPAIGN_WSB_HERO})`, backgroundSize: "cover", backgroundPosition: "center" }}
             />
           </div>
-          <div className="flex flex-col w-full md:w-1/2 h-full p-6">
+          <div className="flex flex-col w-full md:w-1/2 h-full p-6 bg-black">
             {!selectedCountry ? (
               <>
                 <h2 className="text-2xl font-bold mb-4">Countries Battling</h2>
@@ -49,7 +50,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                   ))}
                 </div>
               </>
-            ) : (
+            ) : !selectedTeam ? (
               <>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold">Teams from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}</h2>
@@ -64,11 +65,37 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {TEAMS[selectedCountry]?.map((team) => (
-                    <div key={team.teamCode} className="flex items-center space-x-2 p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+                    <button
+                      key={team.teamCode}
+                      onClick={() => {
+                        setSelectedTeam(team.teamCode);
+                        handleCampaignCodeFilterChange("wsb-" + selectedCountry + "-" + team.teamCode);
+                      }}
+                      className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                       <span className="text-lg">{team.teamName}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4 md:items-baseline">
+                  <h2 className="text-3xl xl:text-5xl font-bold w-[250px]">
+                    Team{" "}
+                    <span className="text-center md:text-left font-[Clash-Medium] text-3xl xl:text-5xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
+                      {TEAMS[selectedCountry]?.find((t) => t.teamCode === selectedTeam)?.teamName}
+                    </span>
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setSelectedTeam(null);
+                      handleCampaignCodeFilterChange("wsb-" + selectedCountry);
+                    }}
+                    className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    Back to Teams from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{/* Add your artists list here */}</div>
               </>
             )}
           </div>

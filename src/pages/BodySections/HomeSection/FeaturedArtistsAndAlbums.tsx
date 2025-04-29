@@ -121,6 +121,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
   useEffect(() => {
     console.log("FEATURED ARTISTS AND ALBUMS LOADED", filterByArtistCampaignCode);
+
     scrollToTopOnMainContentArea();
 
     const isHlWorkflowDeepLink = searchParams.get("hl");
@@ -168,9 +169,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     console.log("FEATURED ARTISTS AND ALBUMS CHANGED", filterByArtistCampaignCode);
 
     if (filterByArtistCampaignCode) {
-      // -1 means we are not in a campaign mode
       fetchAndUpdateArtistAlbumDataIntoView();
     } else {
+      // -1 means we are NOT in a campaign mode so we clear any data if the filterByArtistCampaignCode was not given
       if (filterByArtistCampaignCode !== -1) {
         setArtistAlbumDataLoading(true);
         setArtistAlbumDataset([]);
@@ -475,10 +476,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               ))}
                           </div>
                         </div>
-                      ))}
-                      {/* Add dummy items to fill the grid */}
-                      {[...Array(10)].map((_, index) => (
-                        <div key={`dummy-${index}`} className="hidden md:block w-[250px] h-[250px]" />
                       ))}
                     </div>
                   )}
