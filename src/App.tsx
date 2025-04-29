@@ -23,16 +23,6 @@ export const App = () => {
                   <Route path={routeNames.home} element={<Home homeMode={homeMode} setHomeMode={(newHomeMode) => setHomeMode(newHomeMode)} />} />
                   <Route path={routeNames.remix} element={<Remix />} />
                   <Route path={routeNames.paymentSuccess} element={<PaymentSuccess />} />
-                  <Route
-                    path={routeNames.campaigns}
-                    element={
-                      <Home
-                        homeMode={"artists-" + new Date().getTime()}
-                        setHomeMode={(newHomeMode) => setHomeMode(newHomeMode)}
-                        filterByArtistCampaignCode="wsb"
-                      />
-                    }
-                  />
                   <Route path="*" element={<PageNotFound />} />
                 </Routes>
               </Layout>

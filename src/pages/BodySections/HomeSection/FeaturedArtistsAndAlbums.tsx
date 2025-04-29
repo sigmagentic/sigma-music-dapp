@@ -31,7 +31,7 @@ type FeaturedArtistsAndAlbumsProps = {
   isMusicPlayerOpen?: boolean;
   loadIntoTileView?: boolean;
   isAllAlbumsMode?: boolean;
-  filterByArtistCampaignCode?: string;
+  filterByArtistCampaignCode?: string | number;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number, f?: any) => void;
   onPlayHappened: () => void;
@@ -120,10 +120,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   }, 2500);
 
   useEffect(() => {
+    console.log("FEATURED ARTISTS AND ALBUMS LOADED", filterByArtistCampaignCode);
     scrollToTopOnMainContentArea();
 
     const isHlWorkflowDeepLink = searchParams.get("hl");
-    const jumpToTab = searchParams.get("t");
+    const jumpToTab = searchParams.get("tab");
 
     if (isHlWorkflowDeepLink === "sample") {
       setIsFreeDropSampleWorkflow(true);
@@ -139,44 +140,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     previewTrackAudio.addEventListener("timeupdate", eventToAttachTimeUpdate);
     previewTrackAudio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
 
-    (async () => {
-      await sleep(2);
-      const { albumArtistLookupData, albumArtistLookupDataOrganizedBySections } = await getArtistsAlbumsData();
-      let allAlbumsData: AlbumWithArtist[] = [];
-
-      const artistDataToUse = filterByArtistCampaignCode
-        ? albumArtistLookupDataOrganizedBySections[filterByArtistCampaignCode].filteredItems
-        : albumArtistLookupData;
-
-      allAlbumsData = artistDataToUse.flatMap((artist: Artist) =>
-        artist.albums.map(
-          (album: Album): AlbumWithArtist => ({
-            ...album,
-            artistId: artist.artistId,
-            artistName: artist.name,
-            artistSlug: artist.slug,
-          })
-        )
-      );
-
-      // await sleep(5);
-
-      setArtistAlbumDataset(artistDataToUse);
-      setAlbumsDataset(allAlbumsData);
-
-      setArtistAlbumDataLoading(false);
-
-      // update the album master lookup
-      updateAlbumMasterLookup(
-        allAlbumsData.reduce(
-          (acc, album) => {
-            acc[album.albumId] = album;
-            return acc;
-          },
-          {} as Record<string, AlbumWithArtist>
-        )
-      );
-    })();
+    fetchAndUpdateArtistAlbumDataIntoView();
 
     return () => {
       previewTrackAudio.pause();
@@ -194,11 +158,27 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       // remove the artist param from the url
       const currentParams = Object.fromEntries(searchParams.entries());
       delete currentParams["artist"];
-      delete currentParams["t"];
+      delete currentParams["tab"];
       setSearchParams(currentParams);
     },
     []
   );
+
+  useEffect(() => {
+    console.log("FEATURED ARTISTS AND ALBUMS CHANGED", filterByArtistCampaignCode);
+
+    if (filterByArtistCampaignCode) {
+      // -1 means we are not in a campaign mode
+      fetchAndUpdateArtistAlbumDataIntoView();
+    } else {
+      if (filterByArtistCampaignCode !== -1) {
+        setArtistAlbumDataLoading(true);
+        setArtistAlbumDataset([]);
+        setAlbumsDataset([]);
+        setArtistAlbumDataLoading(false);
+      }
+    }
+  }, [filterByArtistCampaignCode]);
 
   useEffect(() => {
     if (artistAlbumDataset.length === 0) {
@@ -273,6 +253,52 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       handleBackToArtistTileView();
     }
   }, [loadIntoTileView]);
+
+  async function fetchAndUpdateArtistAlbumDataIntoView() {
+    setArtistAlbumDataLoading(true);
+
+    await sleep(2);
+
+    const { albumArtistLookupData, albumArtistLookupDataOrganizedBySections } = await getArtistsAlbumsData();
+    let allAlbumsData: AlbumWithArtist[] = [];
+
+    console.log("filterByArtistCampaignCode", filterByArtistCampaignCode);
+    console.log("albumArtistLookupDataOrganizedBySections", albumArtistLookupDataOrganizedBySections);
+
+    const artistDataToUse =
+      filterByArtistCampaignCode && filterByArtistCampaignCode !== -1
+        ? albumArtistLookupDataOrganizedBySections[filterByArtistCampaignCode].filteredItems
+        : albumArtistLookupData;
+
+    allAlbumsData = artistDataToUse.flatMap((artist: Artist) =>
+      artist.albums.map(
+        (album: Album): AlbumWithArtist => ({
+          ...album,
+          artistId: artist.artistId,
+          artistName: artist.name,
+          artistSlug: artist.slug,
+        })
+      )
+    );
+
+    // await sleep(2);
+
+    setArtistAlbumDataset(artistDataToUse);
+    setAlbumsDataset(allAlbumsData);
+
+    setArtistAlbumDataLoading(false);
+
+    // update the album master lookup
+    updateAlbumMasterLookup(
+      allAlbumsData.reduce(
+        (acc, album) => {
+          acc[album.albumId] = album;
+          return acc;
+        },
+        {} as Record<string, AlbumWithArtist>
+      )
+    );
+  }
 
   async function playPausePreview(previewStreamUrl?: string, albumId?: string) {
     if (previewStreamUrl && albumId && (!isPreviewPlaying || previewPlayingForAlbumId !== albumId)) {
@@ -354,7 +380,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     // remove the artist param from the url
     const currentParams = Object.fromEntries(searchParams.entries());
     delete currentParams["artist"];
-    delete currentParams["t"];
+    delete currentParams["tab"];
     setSearchParams(currentParams);
 
     // reset the featuredArtistDeepLinkSlug
@@ -383,7 +409,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                 </>
               </Button>
             ) : (
-              <>{!filterByArtistCampaignCode && <span className="text-center">{isAllAlbumsMode ? "Albums" : "Artists"}</span>}</>
+              <>
+                {!filterByArtistCampaignCode ||
+                  (filterByArtistCampaignCode === -1 && <span className="text-center">{isAllAlbumsMode ? "Albums" : "Artists"}</span>)}
+              </>
             )}
           </div>
         </div>
@@ -436,11 +465,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               "backgroundColor": getImagePositionMeta(artist.img, "tcolor"),
                               "backgroundSize": getImagePositionMeta(artist.img, "tsize"),
                             }}>
-                            <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
-                              <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
-                                {artist.name.replaceAll("_", " ")}
-                              </h2>
-                            </div>
+                            {!filterByArtistCampaignCode ||
+                              (filterByArtistCampaignCode === -1 && (
+                                <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
+                                  <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
+                                    {artist.name.replaceAll("_", " ")}
+                                  </h2>
+                                </div>
+                              ))}
                           </div>
                         </div>
                       ))}
@@ -646,7 +678,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               onClick={() => {
                                 setActiveTab("discography");
                                 const currentParams = Object.fromEntries(searchParams.entries());
-                                delete currentParams["t"];
+                                delete currentParams["tab"];
                                 setSearchParams(currentParams);
                               }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
@@ -662,7 +694,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               onClick={() => {
                                 setActiveTab("leaderboard");
                                 const currentParams = Object.fromEntries(searchParams.entries());
-                                delete currentParams["t"];
+                                delete currentParams["tab"];
                                 setSearchParams(currentParams);
                               }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
@@ -678,7 +710,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               onClick={() => {
                                 setActiveTab("artistStats");
                                 const currentParams = Object.fromEntries(searchParams.entries());
-                                delete currentParams["t"];
+                                delete currentParams["tab"];
                                 setSearchParams(currentParams);
                               }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
@@ -694,7 +726,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               onClick={() => {
                                 setActiveTab("fan");
                                 const currentParams = Object.fromEntries(searchParams.entries());
-                                currentParams["t"] = "fan";
+                                currentParams["tab"] = "fan";
                                 setSearchParams(currentParams);
                               }}
                               className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative

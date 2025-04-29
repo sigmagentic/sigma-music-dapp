@@ -42,6 +42,8 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
   const removeArtistProfileParamFromUrl = () => {
     const currentParams = Object.fromEntries(searchParams.entries());
     delete currentParams["artist"];
+    delete currentParams["campaign"];
+    delete currentParams["tab"];
     setSearchParams(currentParams);
   };
 

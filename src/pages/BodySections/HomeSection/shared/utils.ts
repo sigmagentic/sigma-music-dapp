@@ -33,6 +33,9 @@ export async function getArtistsAlbumsData() {
       if (!IS_LIVE_DEMO_MODE) {
         dataset = dataset.filter((artist: any) => !artist.name.includes("(DEMO)"));
       } else {
+        // only keep items in dataset that have no campaign code
+        dataset = dataset.filter((artist: any) => artist.artistCampaignCode === "" || artist.artistCampaignCode === undefined);
+
         // First process the demo items and mark them
         dataset = dataset.map((artist: any) => {
           if (artist.name.includes("(DEMO)")) {
@@ -242,11 +245,22 @@ export async function getNFTuneFirstTrackBlobData(trackOne: MusicTrack) {
   }
 }
 
+// Fisher-Yates shuffle algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export function organizeArtistsByCampaignCodes(dataset: any[]) {
   const sectionsMap: Record<string, { sectionCode: string; filteredItems: any[] }> = {};
+  const shuffledDataset = shuffleArray(dataset);
 
   // Process each artist
-  dataset.forEach((artist) => {
+  shuffledDataset.forEach((artist) => {
     const { artistCampaignCode, artistSubGroup1Code, artistSubGroup2Code } = artist;
 
     // Skip if no campaign code

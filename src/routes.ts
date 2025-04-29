@@ -5,7 +5,6 @@ export const routeNames = {
   login: "/login",
   remix: "/remix",
   paymentSuccess: "/payment-success",
-  campaigns: "/campaigns/wsb",
 };
 
 interface RouteType {
