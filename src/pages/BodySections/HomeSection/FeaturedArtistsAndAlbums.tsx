@@ -86,6 +86,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState("discography");
   const { updateAlbumMasterLookup, artistLookupOrganizedBySections } = useAppStore();
+  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan"]);
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -180,6 +181,23 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       }
     }
   }, [filterByArtistCampaignCode]);
+
+  // if this is triggered, then we are in the artist profile view
+  useEffect(() => {
+    if (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== "") {
+      console.log("SLUG CHANGED", featuredArtistDeepLinkSlug);
+
+      const campaignCode = searchParams.get("campaign") || "";
+
+      if (campaignCode && campaignCode !== "") {
+        // for campiagns, we jump to the fan tab
+        setActiveTab("fan");
+        setTabsOrdered(["fan", "leaderboard", "artistStats"]);
+      } else {
+        setTabsOrdered(["discography", "leaderboard", "artistStats", "fan"]);
+      }
+    }
+  }, [featuredArtistDeepLinkSlug]);
 
   useEffect(() => {
     if (artistAlbumDataset.length === 0) {
@@ -671,75 +689,82 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         {/* Tabs Navigation */}
                         <div className="tabs-menu w-full border-b border-gray-600 overflow-y-auto pb-5 md:pb-0">
                           <div className="flex space-x-8">
-                            <button
-                              onClick={() => {
-                                setActiveTab("discography");
-                                const currentParams = Object.fromEntries(searchParams.entries());
-                                delete currentParams["tab"];
-                                setSearchParams(currentParams);
-                              }}
-                              className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
-                                ${
-                                  activeTab === "discography"
-                                    ? "border-orange-500 text-orange-500"
-                                    : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
-                                }
-                              `}>
-                              Discography
-                            </button>
-                            <button
-                              onClick={() => {
-                                setActiveTab("leaderboard");
-                                const currentParams = Object.fromEntries(searchParams.entries());
-                                delete currentParams["tab"];
-                                setSearchParams(currentParams);
-                              }}
-                              className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
-                                ${
-                                  activeTab === "leaderboard"
-                                    ? "border-orange-500 text-orange-500"
-                                    : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
-                                }
-                              `}>
-                              Power-Up Leaderboard
-                            </button>
-                            <button
-                              onClick={() => {
-                                setActiveTab("artistStats");
-                                const currentParams = Object.fromEntries(searchParams.entries());
-                                delete currentParams["tab"];
-                                setSearchParams(currentParams);
-                              }}
-                              className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
-                                ${
-                                  activeTab === "artistStats"
-                                    ? "border-orange-500 text-orange-500"
-                                    : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
-                                }
-                              `}>
-                              Artist Insights
-                            </button>
-                            <button
-                              onClick={() => {
-                                setActiveTab("fan");
-                                const currentParams = Object.fromEntries(searchParams.entries());
-                                currentParams["tab"] = "fan";
-                                setSearchParams(currentParams);
-                              }}
-                              className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
-                                ${
-                                  activeTab === "fan"
-                                    ? "border-orange-500 text-orange-500"
-                                    : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
-                                }
-                              `}>
-                              Inner Circle Fan Membership
-                            </button>
+                            {tabsOrdered.includes("discography") && (
+                              <button
+                                onClick={() => {
+                                  setActiveTab("discography");
+                                  const currentParams = Object.fromEntries(searchParams.entries());
+                                  delete currentParams["tab"];
+                                  setSearchParams(currentParams);
+                                }}
+                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "discography"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                                Discography
+                              </button>
+                            )}
+                            {tabsOrdered.includes("leaderboard") && (
+                              <button
+                                onClick={() => {
+                                  setActiveTab("leaderboard");
+                                  const currentParams = Object.fromEntries(searchParams.entries());
+                                  delete currentParams["tab"];
+                                  setSearchParams(currentParams);
+                                }}
+                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "leaderboard"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                                Power-Up Leaderboard
+                              </button>
+                            )}
+                            {tabsOrdered.includes("artistStats") && (
+                              <button
+                                onClick={() => {
+                                  setActiveTab("artistStats");
+                                  const currentParams = Object.fromEntries(searchParams.entries());
+                                  delete currentParams["tab"];
+                                  setSearchParams(currentParams);
+                                }}
+                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "artistStats"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                                Artist Insights
+                              </button>
+                            )}
+                            {tabsOrdered.includes("fan") && (
+                              <button
+                                onClick={() => {
+                                  setActiveTab("fan");
+                                  const currentParams = Object.fromEntries(searchParams.entries());
+                                  currentParams["tab"] = "fan";
+                                  setSearchParams(currentParams);
+                                }}
+                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "fan"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                                Inner Circle Fan Membership
+                              </button>
+                            )}
                           </div>
                         </div>
-
                         {/* Tabs Content */}
-                        {activeTab === "discography" && (
+                        {tabsOrdered.includes("discography") && activeTab === "discography" && (
                           <div className="artist-discography w-full">
                             <ArtistDiscography
                               albums={artistProfile.albums}
@@ -762,8 +787,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             />
                           </div>
                         )}
-
-                        {activeTab === "leaderboard" && (
+                        {tabsOrdered.includes("leaderboard") && activeTab === "leaderboard" && (
                           <div className="artist-xp-leaderboard w-full">
                             <ArtistXPLeaderboard
                               bountyId={artistProfile.bountyId}
@@ -772,8 +796,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             />
                           </div>
                         )}
-
-                        {activeTab === "artistStats" && (
+                        {tabsOrdered.includes("artistStats") && activeTab === "artistStats" && (
                           <div className="artist-album-sales w-full">
                             <ArtistStats
                               creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
@@ -783,8 +806,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             />
                           </div>
                         )}
-
-                        {activeTab === "fan" && (
+                        {tabsOrdered.includes("fan") && activeTab === "fan" && (
                           <div className="artist-fan w-full">
                             <ArtistInnerCircle
                               artistName={artistProfile.name.replaceAll("_", " ")}

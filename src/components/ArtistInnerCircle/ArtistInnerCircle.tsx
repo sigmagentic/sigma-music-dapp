@@ -139,7 +139,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
     }
 
     try {
-      const data: MyFanMembershipType[] = await fetchMyFanMembershipsForArtistViaAPI(addressSol, creatorPaymentsWallet, bypassCacheAsNewDataAdded);
+      const data: MyFanMembershipType[] = await fetchMyFanMembershipsForArtistViaAPI(addressSol, creatorPaymentsWallet, artistId, bypassCacheAsNewDataAdded);
 
       // Augment the data with membership information
       const augmentedData = data.map((membership) => {
@@ -266,9 +266,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
         </Button>
       </div>
 
-      {!addressSol && <p className="text-gray-400 text-sm mt-2">Login first to subscribe</p>}
+      {!addressSol && <p className="text-gray-400 text-sm mt-2 text-center md:text-left">Login first to subscribe</p>}
       {addressSol && requiredSolAmount && (
-        <p className="text-gray-400 text-sm mt-2">
+        <p className="text-gray-400 text-sm mt-2 text-center md:text-left">
           Amount to pay: {requiredSolAmount.toFixed(4)} SOL (${artistsMembershipOptions?.[selectedArtistMembership]?.defaultPriceUSD} USD)
         </p>
       )}

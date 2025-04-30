@@ -64,6 +64,21 @@ export const perksData: Perk[] = [
     description: "I'll give you early access to ticket sales for my performances",
     howToClaim: "Hold a fan membership for access to a private link to purchase tickets before they go on sale to the public",
   },
+  {
+    pid: "p9",
+    name: "Private 1:1 call with me",
+    type: "physical" as const,
+    description: "I'll give you a private 1:1 call with me to chat about anything you want related to my music, my career, my life, etc",
+    howToClaim: "Hold a fan membership to access a private link to schedule a call with me",
+  },
+  {
+    pid: "p10",
+    name: "10% Revenue Share on my Fan Membership Sales for 3 months",
+    type: "physical" as const,
+    description: "Help promote my work and grow my fanbase and you can share in the revenue. Share in my success and I'll share in yours",
+    terms:
+      "10% of total sales per month will be shared with all fans who hold this tier for 3 months after your purchase this tier. You need to hold the inner circle fan membership NFT for a whole month to be eligible for a monthly split. All earnings will be split equally among all fans who hold this tier and you will be paid out monthly in USDC (a USD stable coin on Solana that is equal to $1 USD). Please note that only renenue collected during the 3 months after your purchase this tier will be shared with you. All renevue splits are based on my discretion and are non negotiable.",
+  },
 ];
 
 /*

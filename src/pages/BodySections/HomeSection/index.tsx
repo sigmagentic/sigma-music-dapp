@@ -44,8 +44,6 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol } = useSolanaWallet();
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-
   const [bitzGiftingMeta, setBitzGiftingMeta] = useState<{
     giveBitzToCampaignId: string;
     bountyBitzSum: number;

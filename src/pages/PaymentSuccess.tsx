@@ -61,6 +61,8 @@ export const PaymentSuccess = () => {
         const membershipId = searchParams.get("membershipId");
         const artistId = searchParams.get("artistId");
         const artistSlug = searchParams.get("artist");
+        const campaignCode = searchParams.get("campaignCode");
+
         const _itemImg = searchParams.get("albumImg");
         const _albumTitle = searchParams.get("albumTitle");
         const _albumArtist = searchParams.get("albumArtist");
@@ -206,7 +208,11 @@ export const PaymentSuccess = () => {
           let redirectUrl = `/?artist=${artistSlug}~${albumId}`;
 
           if (membershipId) {
-            redirectUrl += `/?artist=${artistSlug}&t=fan`;
+            redirectUrl = `/?artist=${artistSlug}&tab=fan`;
+
+            if (campaignCode && campaignCode !== "") {
+              redirectUrl += `&campaign=${campaignCode}`;
+            }
           }
 
           navigate(redirectUrl);
