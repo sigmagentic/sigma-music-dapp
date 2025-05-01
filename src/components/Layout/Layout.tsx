@@ -15,6 +15,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Toaster } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
+import { ENABLE_WSB_CAMPAIGN } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
@@ -24,9 +25,9 @@ import { Navbar } from "./Navbar";
 
 const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => {
   return (
-    <div className="relative group flex md:block">
+    <div className="relative group">
       {children}
-      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+      <div className="fixed transform -translate-y-full mt-5 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
         {text}
       </div>
     </div>
@@ -62,15 +63,15 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
           <div
             className={`side-panel-menu md:min-h-[calc(100vh-102px)] md:p-4 text-white transition-all duration-300 relative w-full ${isMenuCollapsed ? "md:w-20" : "md:w-52"} ${isLoginRoute || isRemixRoute ? "hidden" : ""}`}>
             <nav className={`flex flex-row md:flex-col md:space-y-6 ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""}`}>
-              <div className={`menu-section hidden md:flex ${isMenuCollapsed ? "" : "md:justify-center"} `}>
+              <div className={`menu-section hidden md:flex ${isMenuCollapsed ? "ml-[7px]" : "md:justify-center"} `}>
                 <button
                   onClick={() => setIsMenuCollapsed(!isMenuCollapsed)}
-                  className="py-3 px-4 text-white rounded-full transition-colors border-2 border-white">
-                  {isMenuCollapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
+                  className="py-2 px-3 text-white rounded-full transition-colors border-2 border-white">
+                  {isMenuCollapsed ? <ChevronRightIcon className="h-3 w-3" /> : <ChevronLeftIcon className="h-3 w-3" />}
                 </button>
               </div>
 
-              <div className="menu-section w-full">
+              <div className="menu-section w-full !mt-[10px]">
                 <div
                   className={`
                 flex md:flex-col 
@@ -210,13 +211,13 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
                     </button>
                   </Tooltip>
-                  <Tooltip text="WSB Campaign">
+                  <Tooltip text="World Supremacy Battle Campaign: Buy tokenized versions of your favorite dance artists (coming soon)">
                     <button
                       onClick={() => {
                         removeArtistProfileParamFromUrl();
                         setHomeMode(`campaigns-wsb-${new Date().getTime()}`);
                       }}
-                      disabled={homeMode.includes("campaigns-wsb")}
+                      disabled={homeMode.includes("campaigns-wsb") || ENABLE_WSB_CAMPAIGN === "0"}
                       className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
@@ -231,7 +232,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                   </Tooltip>
                   {isLoggedIn && (
                     <>
-                      <Tooltip text="Your Sigma NFT Collection">
+                      <Tooltip text="Your collection of Sigma NFTs">
                         <button
                           onClick={() => {
                             removeArtistProfileParamFromUrl();

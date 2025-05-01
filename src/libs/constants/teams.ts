@@ -11,7 +11,7 @@ export const TEAMS: Record<string, Team[]> = {
     { teamName: "Open Team One Crew", teamCode: "3" },
   ],
   zaf: [
-    { teamName: "Fuego Crew", teamCode: "4" },
+    { teamName: "Fuego Crew", teamCode: "fgc" },
     { teamName: "Devolution Dance Fam", teamCode: "5" },
     { teamName: "Obbf Dynamic", teamCode: "6" },
     { teamName: "CPC", teamCode: "7" },

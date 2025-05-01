@@ -25,11 +25,11 @@ export const CampaignHero = (props: CampaignHeroProps) => {
   return (
     <>
       <div className="w-full mt-5">
-        <div className="flex flex-col md:flex-row justify-center items-center xl:items-start w-[100%] h-[350px]">
+        <div className="flex flex-col md:flex-row justify-center items-center xl:items-start w-[100%] h-[100%] md:h-[350px]">
           <div className="flex flex-col w-full md:w-1/2 h-full">
             <div
-              className="campaign-wsb-banner h-full"
-              style={{ backgroundImage: `url(${CAMPAIGN_WSB_HERO})`, backgroundSize: "cover", backgroundPosition: "center" }}
+              className="campaign-wsb-banner h-[350px] md:h-full rounded-lg md:rounded-l-lg rounded-r-none"
+              style={{ backgroundImage: `url(${CAMPAIGN_WSB_HERO})`, backgroundSize: "cover" }}
             />
           </div>
           <div className="flex flex-col w-full md:w-1/2 h-full p-6 bg-black">
@@ -45,15 +45,15 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                         handleCampaignCodeFilterChange("wsb-" + country.code);
                       }}
                       className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                      <span className="text-lg">{country.label}</span>
+                      <span className="text-sm md:text-lg">{country.label}</span>
                     </button>
                   ))}
                 </div>
               </>
             ) : !selectedTeam ? (
               <>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold">Teams from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}</h2>
+                <div className="flex flex-col-reverse md:flex-row justify-between mb-4 items-baseline">
+                  <h2 className="text-2xl font-bold mt-5 md:mt-0">Teams from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}</h2>
                   <button
                     onClick={() => {
                       setSelectedCountry(null);
@@ -72,15 +72,15 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                         handleCampaignCodeFilterChange("wsb-" + selectedCountry + "-" + team.teamCode);
                       }}
                       className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                      <span className="text-lg">{team.teamName}</span>
+                      <span className="text-sm md:text-lg">{team.teamName}</span>
                     </button>
                   ))}
                 </div>
               </>
             ) : (
               <>
-                <div className="flex items-center justify-between mb-4 md:items-baseline">
-                  <h2 className="text-3xl xl:text-5xl font-bold w-[250px]">
+                <div className="flex flex-col-reverse md:flex-row justify-between mb-4 items-baseline">
+                  <h2 className="text-3xl xl:text-5xl font-bold w-[250px] mt-5 md:mt-0">
                     Team{" "}
                     <span className="text-center md:text-left font-[Clash-Medium] text-3xl xl:text-5xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
                       {TEAMS[selectedCountry]?.find((t) => t.teamCode === selectedTeam)?.teamName}

@@ -3,7 +3,7 @@ import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
 import ArtistStats from "components/ArtistStats/ArtistStats";
@@ -85,7 +85,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [albumsDataset, setAlbumsDataset] = useState<AlbumWithArtist[]>([]);
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState("discography");
-  const { updateAlbumMasterLookup, artistLookupOrganizedBySections } = useAppStore();
+  const { updateAlbumMasterLookup } = useAppStore();
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan"]);
 
   function eventToAttachEnded() {
@@ -170,6 +170,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     console.log("FEATURED ARTISTS AND ALBUMS CHANGED", filterByArtistCampaignCode);
 
     if (filterByArtistCampaignCode) {
+      // the user maybe looking at an artist, we need to revert to the tile page
+      setLoadIntoTileView(true);
+
       fetchAndUpdateArtistAlbumDataIntoView();
     } else {
       // -1 means we are NOT in a campaign mode so we clear any data if the filterByArtistCampaignCode was not given
@@ -707,6 +710,24 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                 Discography
                               </button>
                             )}
+                            {tabsOrdered.includes("fan") && (
+                              <button
+                                onClick={() => {
+                                  setActiveTab("fan");
+                                  const currentParams = Object.fromEntries(searchParams.entries());
+                                  currentParams["tab"] = "fan";
+                                  setSearchParams(currentParams);
+                                }}
+                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "fan"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                                Inner Circle Fan Membership
+                              </button>
+                            )}
                             {tabsOrdered.includes("leaderboard") && (
                               <button
                                 onClick={() => {
@@ -741,24 +762,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   }
                                 `}>
                                 Artist Insights
-                              </button>
-                            )}
-                            {tabsOrdered.includes("fan") && (
-                              <button
-                                onClick={() => {
-                                  setActiveTab("fan");
-                                  const currentParams = Object.fromEntries(searchParams.entries());
-                                  currentParams["tab"] = "fan";
-                                  setSearchParams(currentParams);
-                                }}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
-                                  ${
-                                    activeTab === "fan"
-                                      ? "border-orange-500 text-orange-500"
-                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
-                                  }
-                                `}>
-                                Inner Circle Fan Membership
                               </button>
                             )}
                           </div>

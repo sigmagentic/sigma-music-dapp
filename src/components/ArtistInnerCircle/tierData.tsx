@@ -73,11 +73,11 @@ export const perksData: Perk[] = [
   },
   {
     pid: "p10",
-    name: "10% Revenue Share on my Fan Membership Sales for 3 months",
+    name: "10% of collected revenue is raffled off to 10 lucky fans",
     type: "physical" as const,
     description: "Help promote my work and grow my fanbase and you can share in the revenue. Share in my success and I'll share in yours",
     terms:
-      "10% of total sales per month will be shared with all fans who hold this tier for 3 months after your purchase this tier. You need to hold the inner circle fan membership NFT for a whole month to be eligible for a monthly split. All earnings will be split equally among all fans who hold this tier and you will be paid out monthly in USDC (a USD stable coin on Solana that is equal to $1 USD). Please note that only renenue collected during the 3 months after your purchase this tier will be shared with you. All renevue splits are based on my discretion and are non negotiable.",
+      "Each inner circle fan token = 1 raffle ticket. 10% of total sales per week will be shared with 10 lucky fans who hold the inner circle fan membership NFT. You need to hold the inner circle fan membership NFT for a whole week to be eligible for this competition. All winners are selected at random and are non negotiable.",
   },
 ];
 
