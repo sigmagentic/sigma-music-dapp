@@ -99,7 +99,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <HomeIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Home</span>
+                      <span className="md:hidden w-max">Home</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Home</span>}
                     </button>
                   </Tooltip>
@@ -118,7 +118,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <RadioIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Radio</span>
+                      <span className="md:hidden w-max">Radio</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Radio</span>}
                     </button>
                   </Tooltip>
@@ -136,7 +136,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <UserGroupIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Artists</span>
+                      <span className="md:hidden w-max">Artists</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Artists</span>}
                     </button>
                   </Tooltip>
@@ -154,7 +154,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <Square3Stack3DIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Albums</span>
+                      <span className="md:hidden w-max">Albums</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Albums</span>}
                     </button>
                   </Tooltip>
@@ -171,7 +171,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <ChatBubbleOvalLeftEllipsisIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">AI Agent</span>
+                      <span className="md:hidden w-max">AI Agent</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Agent</span>}
                     </button>
                   </Tooltip>
@@ -188,7 +188,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">REMiX</span>
+                      <span className="md:hidden w-max">REMiX</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">REMiX</span>}
                     </button>
                   </Tooltip>
@@ -207,7 +207,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <PuzzlePieceIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Games</span>
+                      <span className="md:hidden w-max">Games</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
                     </button>
                   </Tooltip>
@@ -226,7 +226,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <GlobeEuropeAfricaIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">WSB</span>
+                      <span className="md:hidden w-max">WSB</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">WSB</span>}
                     </button>
                   </Tooltip>
@@ -247,7 +247,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                           hover:text-orange-500
                         `}>
                           <WalletIcon className="h-6 w-6 mr-1 md:mr-0" />
-                          <span className="md:hidden">Collect</span>
+                          <span className="md:hidden w-max">Collect</span>
                           {!isMenuCollapsed && <span className="hidden md:inline">Collect</span>}
                         </button>
                       </Tooltip>
@@ -266,7 +266,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                           hover:text-orange-500
                         `}>
                           <UserIcon className="h-6 w-6 mr-1 md:mr-0" />
-                          <span className="md:hidden">Profile</span>
+                          <span className="md:hidden w-max">Profile</span>
                           {!isMenuCollapsed && <span className="hidden md:inline">Profile</span>}
                         </button>
                       </Tooltip>
