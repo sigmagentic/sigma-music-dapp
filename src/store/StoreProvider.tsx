@@ -39,7 +39,8 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   const { solBitzNfts, solNfts, updateSolNfts, updateIsLoadingSol, updateSolBitzNfts, updateSolNFMeIdNfts } = useNftsStore();
 
   // Store lookup etc the app needed regardless on if it the use is logged in or not
-  const { updateMusicTrackLookup, musicTrackLookup, updateArtistLookup, artistLookup, updateAlbumLookup } = useAppStore();
+  const { updateMusicTrackLookup, musicTrackLookup, updateArtistLookup, artistLookup, updateAlbumLookup, updateArtistLookupOrganizedBySections } =
+    useAppStore();
 
   useEffect(() => {
     (async () => {
@@ -50,7 +51,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       }
 
       if (Object.keys(artistLookup).length === 0) {
-        const albumArtistLookupData = await getArtistsAlbumsData();
+        const { albumArtistLookupData, albumArtistLookupDataOrganizedBySections } = await getArtistsAlbumsData();
 
         // Create artist lookup
         const artistLookupMap = albumArtistLookupData.reduce(
@@ -74,6 +75,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
         updateArtistLookup(artistLookupMap);
         updateAlbumLookup(albumLookupMap);
+        updateArtistLookupOrganizedBySections(albumArtistLookupDataOrganizedBySections);
       }
     })();
   }, []);

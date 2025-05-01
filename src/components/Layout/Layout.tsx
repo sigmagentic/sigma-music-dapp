@@ -11,9 +11,11 @@ import {
   CursorArrowRippleIcon,
   PuzzlePieceIcon,
   UserIcon,
+  GlobeEuropeAfricaIcon,
 } from "@heroicons/react/24/outline";
 import { Toaster } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
+import { ENABLE_WSB_CAMPAIGN } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
@@ -23,9 +25,9 @@ import { Navbar } from "./Navbar";
 
 const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => {
   return (
-    <div className="relative group flex md:block">
+    <div className="relative group">
       {children}
-      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+      <div className="fixed transform -translate-y-full mt-5 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
         {text}
       </div>
     </div>
@@ -41,6 +43,8 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
   const removeArtistProfileParamFromUrl = () => {
     const currentParams = Object.fromEntries(searchParams.entries());
     delete currentParams["artist"];
+    delete currentParams["campaign"];
+    delete currentParams["tab"];
     setSearchParams(currentParams);
   };
 
@@ -59,15 +63,15 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
           <div
             className={`side-panel-menu md:min-h-[calc(100vh-102px)] md:p-4 text-white transition-all duration-300 relative w-full ${isMenuCollapsed ? "md:w-20" : "md:w-52"} ${isLoginRoute || isRemixRoute ? "hidden" : ""}`}>
             <nav className={`flex flex-row md:flex-col md:space-y-6 ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""}`}>
-              <div className={`menu-section hidden md:flex ${isMenuCollapsed ? "" : "md:justify-center"} `}>
+              <div className={`menu-section hidden md:flex ${isMenuCollapsed ? "ml-[7px]" : "md:justify-center"} `}>
                 <button
                   onClick={() => setIsMenuCollapsed(!isMenuCollapsed)}
-                  className="py-3 px-4 text-white rounded-full transition-colors border-2 border-white">
-                  {isMenuCollapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
+                  className="py-2 px-3 text-white rounded-full transition-colors border-2 border-white">
+                  {isMenuCollapsed ? <ChevronRightIcon className="h-3 w-3" /> : <ChevronLeftIcon className="h-3 w-3" />}
                 </button>
               </div>
 
-              <div className="menu-section w-full">
+              <div className="menu-section w-full !mt-[10px]">
                 <div
                   className={`
                 flex md:flex-col 
@@ -95,7 +99,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <HomeIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Home</span>
+                      <span className="md:hidden w-max">Home</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Home</span>}
                     </button>
                   </Tooltip>
@@ -112,10 +116,9 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
-                      hover:text-black
                     `}>
                       <RadioIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Radio</span>
+                      <span className="md:hidden w-max">Radio</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Radio</span>}
                     </button>
                   </Tooltip>
@@ -131,10 +134,9 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
-                      hover:text-black
                     `}>
                       <UserGroupIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Artists</span>
+                      <span className="md:hidden w-max">Artists</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Artists</span>}
                     </button>
                   </Tooltip>
@@ -152,7 +154,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <Square3Stack3DIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Albums</span>
+                      <span className="md:hidden w-max">Albums</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Albums</span>}
                     </button>
                   </Tooltip>
@@ -169,7 +171,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <ChatBubbleOvalLeftEllipsisIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">AI Agent</span>
+                      <span className="md:hidden w-max">AI Agent</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Agent</span>}
                     </button>
                   </Tooltip>
@@ -186,7 +188,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">REMiX</span>
+                      <span className="md:hidden w-max">REMiX</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">REMiX</span>}
                     </button>
                   </Tooltip>
@@ -205,13 +207,32 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       hover:text-orange-500
                     `}>
                       <PuzzlePieceIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden">Games</span>
+                      <span className="md:hidden w-max">Games</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
+                    </button>
+                  </Tooltip>
+                  <Tooltip text="World Supremacy Battle Campaign: Buy tokenized versions of your favorite dance artists (coming soon)">
+                    <button
+                      onClick={() => {
+                        removeArtistProfileParamFromUrl();
+                        setHomeMode(`campaigns-wsb-${new Date().getTime()}`);
+                      }}
+                      disabled={homeMode.includes("campaigns-wsb") || ENABLE_WSB_CAMPAIGN === "0"}
+                      className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:text-orange-500
+                    `}>
+                      <GlobeEuropeAfricaIcon className="h-6 w-6 mr-1 md:mr-0" />
+                      <span className="md:hidden w-max">WSB</span>
+                      {!isMenuCollapsed && <span className="hidden md:inline">WSB</span>}
                     </button>
                   </Tooltip>
                   {isLoggedIn && (
                     <>
-                      <Tooltip text="Your Sigma NFT Collection">
+                      <Tooltip text="Your collection of Sigma NFTs">
                         <button
                           onClick={() => {
                             removeArtistProfileParamFromUrl();
@@ -226,7 +247,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                           hover:text-orange-500
                         `}>
                           <WalletIcon className="h-6 w-6 mr-1 md:mr-0" />
-                          <span className="md:hidden">Collect</span>
+                          <span className="md:hidden w-max">Collect</span>
                           {!isMenuCollapsed && <span className="hidden md:inline">Collect</span>}
                         </button>
                       </Tooltip>
@@ -245,7 +266,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                           hover:text-orange-500
                         `}>
                           <UserIcon className="h-6 w-6 mr-1 md:mr-0" />
-                          <span className="md:hidden">Profile</span>
+                          <span className="md:hidden w-max">Profile</span>
                           {!isMenuCollapsed && <span className="hidden md:inline">Profile</span>}
                         </button>
                       </Tooltip>
