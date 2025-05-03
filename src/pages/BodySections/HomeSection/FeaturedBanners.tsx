@@ -19,13 +19,20 @@ interface FeaturedAlbum {
   artistName: string;
 }
 
-export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedArtistDeepLinkSlug: (slug: string) => void }) => {
+export const FeaturedBanners = ({
+  onFeaturedArtistDeepLinkSlug,
+  onGenreUpdate,
+}: {
+  onFeaturedArtistDeepLinkSlug: (slug: string) => void;
+  onGenreUpdate: () => void;
+}) => {
   const [streamMetricData, setStreamMetricData] = useState<any[]>([]);
   const [isLoadingMostStreamedTracks, setIsLoadingMostStreamedTracks] = useState(true);
   const [featuredArtists, setFeaturedArtists] = useState<FeaturedArtist[]>([]);
   const [featuredAlbums, setFeaturedAlbums] = useState<FeaturedAlbum[]>([]);
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
-  const { musicTrackLookup, artistLookup, albumLookup } = useAppStore();
+  const { musicTrackLookup, artistLookup, albumLookup, radioGenres, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
   useEffect(() => {
     if (Object.keys(musicTrackLookup).length === 0 || Object.keys(artistLookup).length === 0 || Object.keys(albumLookup).length === 0) {
@@ -85,6 +92,33 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
     }
   }, [musicTrackLookup, artistLookup, albumLookup]);
 
+  // Load saved genres from session storage
+  useEffect(() => {
+    const savedGenres = sessionStorage.getItem("sig-pref-genres");
+    if (savedGenres) {
+      setSelectedGenres(JSON.parse(savedGenres));
+    } else {
+      // If no saved preferences, preselect "I LOVE EVERYTHING"
+      setSelectedGenres(["I LOVE EVERYTHING"]);
+    }
+  }, []);
+
+  // Handle genre selection/deselection
+  const toggleGenre = (genre: string) => {
+    setSelectedGenres((prev) => {
+      if (genre === "I LOVE EVERYTHING") {
+        // If "I LOVE EVERYTHING" is selected, clear all other selections and session storage
+        sessionStorage.removeItem("sig-pref-genres");
+        return ["I LOVE EVERYTHING"];
+      } else {
+        // If selecting a specific genre, remove "I LOVE EVERYTHING" if it exists
+        const newGenres = prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev.filter((g) => g !== "I LOVE EVERYTHING"), genre];
+        sessionStorage.setItem("sig-pref-genres", JSON.stringify(newGenres));
+        return newGenres;
+      }
+    });
+  };
+
   const handleOpenAlbum = (alid: string) => {
     // Extract album ID from alid (e.g., "ar24_a1-1" -> "ar24_a1")
     const albumId = alid.split("-")[0];
@@ -115,6 +149,9 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
+      <div></div>
+
+      {/* most streamed songs */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl xl:text-2xl cursor-pointer w-full">
           <span className="">Most Streamed Songs</span>
@@ -171,6 +208,94 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
         )}
       </div>
 
+      {/* Genre Selection Section */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+        <div className="text-xl xl:text-2xl cursor-pointer w-full">
+          <span>Music Genres I Like</span>
+        </div>
+        <div className="relative w-full">
+          <div
+            className="overflow-x-auto pb-4 mt-5
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+            <div className="flex space-x-4 min-w-max">
+              {/* I Love Everything Tile */}
+              <div
+                key="I LOVE EVERYTHING"
+                onClick={() => {
+                  toggleGenre("I LOVE EVERYTHING");
+                  onGenreUpdate();
+                }}
+                className={`flex-shrink-0 w-48 h-32 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group ${
+                  selectedGenres.includes("I LOVE EVERYTHING")
+                    ? "bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20"
+                    : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
+                }`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="text-center relative z-10">
+                  <div className={`text-lg font-bold mb-2 ${selectedGenres.includes("I LOVE EVERYTHING") ? "text-black" : "text-white"}`}>
+                    I LOVE EVERYTHING
+                  </div>
+                  <div className={`text-sm ${selectedGenres.includes("I LOVE EVERYTHING") ? "text-black/70" : "text-gray-400"}`}>
+                    {selectedGenres.includes("I LOVE EVERYTHING") ? "Selected" : "Click to select all"}
+                  </div>
+                </div>
+                {selectedGenres.includes("I LOVE EVERYTHING") && (
+                  <div className="absolute top-2 right-2 text-black/20">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              {radioGenres.map((genre) => (
+                <div
+                  key={genre}
+                  onClick={() => {
+                    toggleGenre(genre);
+                    onGenreUpdate();
+                  }}
+                  className={`flex-shrink-0 w-48 h-32 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group ${
+                    selectedGenres.includes(genre)
+                      ? "bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20"
+                      : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
+                  }`}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="text-center relative z-10">
+                    <div className={`text-lg font-bold mb-2 ${selectedGenres.includes(genre) ? "text-black" : "text-white"}`}>
+                      {genre.toLocaleUpperCase().trim()}
+                    </div>
+                    <div className={`text-sm ${selectedGenres.includes(genre) ? "text-black/70" : "text-gray-400"}`}>
+                      {selectedGenres.includes(genre) ? "Selected" : "Click to select"}
+                    </div>
+                  </div>
+                  {selectedGenres.includes(genre) && (
+                    <div className="absolute top-2 right-2 text-black/20">
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          {radioGenres.length > 3 && (
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+          )}
+        </div>
+      </div>
+
+      {/* featured albums */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl xl:text-2xl cursor-pointer w-full">
           <span className="">Featured Albums</span>
@@ -220,6 +345,7 @@ export const FeaturedBanners = ({ onFeaturedArtistDeepLinkSlug }: { onFeaturedAr
         )}
       </div>
 
+      {/* featured artists */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl xl:text-2xl cursor-pointer w-full">
           <span className="">Featured Artists</span>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useSearchParams } from "react-router-dom";
-import { DISABLE_BITZ_FEATURES } from "config";
+import { DISABLE_BITZ_FEATURES, FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP } from "config";
 import { BountyBitzSumMapping } from "libs/types";
 import { sleep } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
@@ -257,7 +257,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     <div id="myCollectedAlbums" className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
         <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
-          <span className="m-auto md:m-0">Artist albums</span>
+          <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+            Music NFTs
+          </span>
         </div>
 
         <div className="flex flex-col md:flex-row w-[100%] items-start">
@@ -459,12 +461,32 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                       </span>
                     </div>
                     <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border">
-                      {allOwnedFanMemberships.map((membership: any, index: number) => (
-                        <div key={index} className="flex flex-col items-center p-4 rounded-lg">
-                          <img src={membership.img} alt={membership.title} className="h-48 w-48 object-cover rounded-lg mb-4" />
-                          <h3 className="text-xl font-bold mb-2">{membership.title}</h3>
-                        </div>
-                      ))}
+                      {allOwnedFanMemberships.map((membership: any, index: number) => {
+                        const mapping =
+                          membership.solNftName in FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP
+                            ? FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP[membership.solNftName as keyof typeof FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP]
+                            : null;
+                        const handleClick = () => {
+                          if (mapping) {
+                            const params = new URLSearchParams();
+                            if ("campaignCode" in mapping) {
+                              params.set("campaign", mapping.campaignCode as string);
+                            }
+                            params.set("artist", mapping.slug);
+                            params.set("tab", "fan");
+                            window.location.href = `?${params.toString()}`;
+                          }
+                        };
+                        return (
+                          <div
+                            key={index}
+                            className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors"
+                            onClick={handleClick}>
+                            <img src={membership.img} alt={membership.desc} className="h-48 w-48 object-cover rounded-lg mb-4" />
+                            <div className="text-center max-w-[300px]">{membership.desc}</div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </>
                 )}

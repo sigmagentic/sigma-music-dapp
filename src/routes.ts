@@ -1,10 +1,10 @@
-import { Home, Remix } from "./pages";
+import { Home, StatusBoard } from "./pages";
 
 export const routeNames = {
   home: "/",
   login: "/login",
-  remix: "/remix",
   paymentSuccess: "/payment-success",
+  statusBoard: "/status-board",
 };
 
 interface RouteType {
@@ -24,8 +24,8 @@ export const routes: RouteWithTitleType[] = [
     component: Home,
   },
   {
-    path: routeNames.remix,
-    title: "Remix",
-    component: Remix,
+    path: routeNames.statusBoard,
+    title: "Status Board",
+    component: StatusBoard,
   },
 ];
