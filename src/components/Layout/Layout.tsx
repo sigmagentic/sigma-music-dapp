@@ -49,7 +49,6 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
   };
 
   const isLoginRoute = location.pathname === routeNames.login;
-  const isRemixRoute = location.pathname === routeNames.remix;
   const isLoggedIn = !!publicKeySol;
 
   return (
@@ -61,7 +60,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
       <div className="body mt-2 flex-1 md:mt-[72px] md:mb-[30px]">
         <div className="flex flex-col md:flex-row h-full">
           <div
-            className={`side-panel-menu md:min-h-[calc(100vh-102px)] md:p-4 text-white transition-all duration-300 relative w-full ${isMenuCollapsed ? "md:w-20" : "md:w-52"} ${isLoginRoute || isRemixRoute ? "hidden" : ""}`}>
+            className={`side-panel-menu md:min-h-[calc(100vh-102px)] md:p-4 text-white transition-all duration-300 relative w-full ${isMenuCollapsed ? "md:w-20" : "md:w-52"} ${isLoginRoute ? "hidden" : ""}`}>
             <nav className={`flex flex-row md:flex-col md:space-y-6 ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""}`}>
               <div className={`menu-section hidden md:flex ${isMenuCollapsed ? "ml-[7px]" : "md:justify-center"} `}>
                 <button
@@ -178,8 +177,10 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                   <Tooltip text="REMiX">
                     <button
                       onClick={() => {
-                        window.open(routeNames.remix, "_blank");
+                        removeArtistProfileParamFromUrl();
+                        setHomeMode(`remix`);
                       }}
+                      disabled={homeMode === "remix"}
                       className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 

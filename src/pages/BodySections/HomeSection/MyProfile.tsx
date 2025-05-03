@@ -38,7 +38,7 @@ export const MyProfile = () => {
     <div className="flex flex-col w-full px-4">
       {/* User Details Section */}
       <div className="bg-black rounded-lg p-6 mb-6">
-        <h2 className="text-2xl font-bold mb-4">Your Details</h2>
+        <h2 className="!text-2xl !md:text-2xl font-bold mb-4 text-center md:text-left">Your Details</h2>
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           {/* Profile Image */}
           <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-900 border-2 border-gray-700">
@@ -52,7 +52,7 @@ export const MyProfile = () => {
           </div>
 
           {/* User Information */}
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col space-y-2 overflow-x-auto w-full">
             <div>
               <label className="text-gray-400 text-sm">Name</label>
               <p className="text-lg">{userInfo.name || userWeb2AccountDetails.displayName || "Not provided"}</p>
@@ -126,7 +126,7 @@ export const MyProfile = () => {
       </div>
 
       <div className="bg-black rounded-lg p-6 mb-6">
-        <h2 className="text-2xl font-bold mb-4">Your App Preferences</h2>
+        <h2 className="!text-2xl !md:text-2xl font-bold mb-4 text-center md:text-left">Your App Preferences</h2>
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           <div className="flex flex-col space-y-2">
             <button

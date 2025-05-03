@@ -48,3 +48,34 @@ export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_ENV_STRIPE_PUBLISHABL
 export const ENABLE_WSB_CAMPAIGN = import.meta.env.VITE_ENV_ENABLE_WSB_CAMPAIGN || "0";
 
 export const LOG_STREAM_EVENT_METRIC_EVERY_SECONDS = 30;
+
+export const MINTER_WALLET = APP_NETWORK === "devnet" ? "5QrQzQk5nnTJbBhdnwwwmQr94AQUkMEaZkDbU5HsvKMY" : "33iDRaAJCFY8GVTCFhnhfHMvtMqfMbTxcCgEkr6eRQnT";
+
+export const FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP = {
+  "FANG10-LLLUNA01-T1": {
+    slug: "llluna01",
+  },
+  "FANG1-YFGP-T1": {
+    slug: "yfgp",
+  },
+  "FANG8-WsbFgcKayleigh-T1": {
+    slug: "wsb-zaf-fgc-kayleigh",
+    campaignCode: "wsb",
+  },
+  "FANG9-WsbVubVishwas-T1": {
+    slug: "wsb-ind-vub-vishwas",
+    campaignCode: "wsb",
+  },
+  "FANG6-JusticeCrew-T1": {
+    slug: "justice-crew",
+  },
+  "FANG7-JusticeCrew-T2": {
+    slug: "justice-crew",
+  },
+  "FANG4-7g0Strike-T2": {
+    slug: "7g0strike",
+  },
+  "FANG5-Loonyo-T1": {
+    slug: "dj-loonyo",
+  },
+};

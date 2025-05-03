@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "libComponents/Button";
 import { useAppStore } from "store/app";
+import { GenreSelector } from "./GenreSelector";
 
 interface NFMePreferencesModalProps {
   isOpen: boolean;
@@ -56,23 +57,7 @@ export function NFMePreferencesModal({ isOpen, onClose, nfMeIdBrandingHide }: NF
             </p>
           )}
 
-          {/* Music Genres Section */}
-          <div className="mt-4">
-            <h4 className="text-white font-medium mb-3">Music Genres I Like</h4>
-            <div className="space-y-2 max-h-[300px] overflow-y-auto">
-              {Array.from(allGenres).map((genre) => (
-                <label key={genre} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedGenres.includes(genre)}
-                    onChange={() => toggleGenre(genre)}
-                    className="form-checkbox h-4 w-4 text-orange-500 rounded border-gray-600 bg-gray-700"
-                  />
-                  <span className="text-gray-300">{genre.toLocaleUpperCase().trim()}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+          <GenreSelector genres={Array.from(allGenres)} selectedGenres={selectedGenres} onGenreToggle={toggleGenre} />
 
           <div className="flex gap-4 justify-center mt-6">
             <Button onClick={onClose} className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg">

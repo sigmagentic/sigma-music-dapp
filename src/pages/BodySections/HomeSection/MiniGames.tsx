@@ -758,7 +758,9 @@ export const MiniGames = (props: MiniGamesProps) => {
         <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
           <div className="text-2xl xl:text-3xl cursor-pointer mb-6 w-full">
             <div className="flex flex-col md:flex-row justify-between w-full">
-              <span className="text-center md:text-left">Mini Games</span>
+              <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+                Mini Games
+              </span>
             </div>
           </div>
 
