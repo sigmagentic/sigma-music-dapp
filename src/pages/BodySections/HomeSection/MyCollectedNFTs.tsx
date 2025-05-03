@@ -59,8 +59,8 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
 
   useEffect(() => {
     (async () => {
-      const allArtistsAlbumsData = await getArtistsAlbumsData();
-      setArtistAlbumDataset(allArtistsAlbumsData);
+      const { albumArtistLookupData } = await getArtistsAlbumsData();
+      setArtistAlbumDataset(albumArtistLookupData);
     })();
   }, []);
 

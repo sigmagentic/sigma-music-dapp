@@ -63,7 +63,10 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
   useEffect(() => {
     const loadArtistData = async () => {
       try {
-        const [salesData, _streamsData] = await Promise.all([fetchArtistSalesViaAPI(creatorPaymentsWallet), fetchStreamsLeaderboardByArtistViaAPI(artistId)]);
+        const [salesData, _streamsData] = await Promise.all([
+          fetchArtistSalesViaAPI(creatorPaymentsWallet, artistId),
+          fetchStreamsLeaderboardByArtistViaAPI(artistId),
+        ]);
         setArtistSales(salesData);
 
         const streamsDataWithAlbumTitle = _streamsData.map((stream: StreamMetricData) => ({

@@ -463,20 +463,22 @@ export const getAlbumTracksFromDBViaAPI = async (artistId: string, albumId: stri
 
 const cache_creatorFanMembershipAvailability: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPaymentsWallet: string) => {
+export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPaymentsWallet: string, artistId: string) => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
-    const cacheEntry = cache_creatorFanMembershipAvailability[creatorPaymentsWallet];
+    const cacheEntry = cache_creatorFanMembershipAvailability[`${creatorPaymentsWallet}-${artistId}`];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
       console.log(
-        `fetchCreatorFanMembershipAvailabilityViaAPI: Getting fan membership availability for creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`
+        `fetchCreatorFanMembershipAvailabilityViaAPI: Getting fan membership availability for creatorPaymentsWallet: ${creatorPaymentsWallet} and artistId: ${artistId} from cache`
       );
       return cacheEntry.data as Record<string, any>;
     }
 
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintInnerCircleNFTCanBeMinted?creatorWallet=${creatorPaymentsWallet}`);
+    const response = await fetch(
+      `${getApiWeb2Apps()}/datadexapi/sigma/mintInnerCircleNFTCanBeMinted?creatorWallet=${creatorPaymentsWallet}&artistId=${artistId}`
+    );
 
     if (!response.ok) {
       throw new Error("Failed to fetch if creator has fan memberships");
@@ -498,7 +500,7 @@ export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPayment
       );
 
       // Update cache
-      cache_creatorFanMembershipAvailability[creatorPaymentsWallet] = {
+      cache_creatorFanMembershipAvailability[`${creatorPaymentsWallet}-${artistId}`] = {
         data: transformedData,
         timestamp: now,
       };
@@ -510,7 +512,7 @@ export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPayment
   } catch (error) {
     console.error("Error fetching membership data:", error);
 
-    cache_creatorFanMembershipAvailability[creatorPaymentsWallet] = {
+    cache_creatorFanMembershipAvailability[`${creatorPaymentsWallet}-${artistId}`] = {
       data: {},
       timestamp: now,
     };
@@ -521,12 +523,17 @@ export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPayment
 
 const cache_myFanMembershipsForThisArtist: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchMyFanMembershipsForArtistViaAPI = async (addressSol: string, creatorPaymentsWallet: string, bypassCacheAsNewDataAdded = false) => {
+export const fetchMyFanMembershipsForArtistViaAPI = async (
+  addressSol: string,
+  creatorPaymentsWallet: string,
+  artistId: string,
+  bypassCacheAsNewDataAdded = false
+) => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
-    const cacheEntry = cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`];
+    const cacheEntry = cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}-${artistId}`];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN && !bypassCacheAsNewDataAdded) {
       console.log(
         `fetchMyFanMembershipsForArtistViaAPI: Getting fan memberships for addressSol: ${addressSol} and creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`
@@ -536,14 +543,14 @@ export const fetchMyFanMembershipsForArtistViaAPI = async (addressSol: string, c
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
     const response = await fetch(
-      `${getApiWeb2Apps()}/datadexapi/sigma/getUserMintLogs?forSolAddr=${addressSol}&mintTemplateSearchString=fan-${creatorPaymentsWallet.trim().toLowerCase()}`
+      `${getApiWeb2Apps()}/datadexapi/sigma/getUserMintLogs?forSolAddr=${addressSol}&mintTemplateSearchString=fan-${creatorPaymentsWallet.trim().toLowerCase()}-${artistId.trim()}`
     );
 
     if (response.ok) {
       const data = await response.json();
 
       // Update cache
-      cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`] = {
+      cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}-${artistId}`] = {
         data: data,
         timestamp: now,
       };
@@ -551,7 +558,7 @@ export const fetchMyFanMembershipsForArtistViaAPI = async (addressSol: string, c
       return data;
     } else {
       // Update cache (with [] as data)
-      cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`] = {
+      cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}-${artistId}`] = {
         data: [],
         timestamp: now,
       };
@@ -562,7 +569,7 @@ export const fetchMyFanMembershipsForArtistViaAPI = async (addressSol: string, c
     console.error("fetchMyFanMembershipsForArtistViaAPI: Error fetching fan memberships:", error);
 
     // Update cache (with [] as data)
-    cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}`] = {
+    cache_myFanMembershipsForThisArtist[`${addressSol}-${creatorPaymentsWallet}-${artistId}`] = {
       data: [],
       timestamp: now,
     };
@@ -573,27 +580,27 @@ export const fetchMyFanMembershipsForArtistViaAPI = async (addressSol: string, c
 
 const cache_artistSales: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchArtistSalesViaAPI = async (creatorPaymentsWallet: string) => {
+export const fetchArtistSalesViaAPI = async (creatorPaymentsWallet: string, artistId: string) => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
-    const cacheEntry = cache_artistSales[`${creatorPaymentsWallet}`];
+    const cacheEntry = cache_artistSales[`${creatorPaymentsWallet}-${artistId}`];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
-      console.log(`fetchArtistSalesViaAPI: Getting artist sales for creatorPaymentsWallet: ${creatorPaymentsWallet} from cache`);
+      console.log(`fetchArtistSalesViaAPI: Getting artist sales for creatorPaymentsWallet: ${creatorPaymentsWallet} and artistId: ${artistId} from cache`);
       return cacheEntry.data;
     }
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
     const response = await fetch(
-      `${getApiWeb2Apps()}/datadexapi/sigma/paymentsByCreatorSales?creatorWallet=${creatorPaymentsWallet}&byCreatorSalesStatusFilter=success`
+      `${getApiWeb2Apps()}/datadexapi/sigma/paymentsByCreatorSales?creatorWallet=${creatorPaymentsWallet}&artistId=${artistId}&byCreatorSalesStatusFilter=success`
     );
 
     if (response.ok) {
       const data = await response.json();
 
       // Update cache
-      cache_artistSales[`${creatorPaymentsWallet}`] = {
+      cache_artistSales[`${creatorPaymentsWallet}-${artistId}`] = {
         data: data,
         timestamp: now,
       };
@@ -601,7 +608,7 @@ export const fetchArtistSalesViaAPI = async (creatorPaymentsWallet: string) => {
       return data;
     } else {
       // Update cache (with [] as data)
-      cache_artistSales[`${creatorPaymentsWallet}`] = {
+      cache_artistSales[`${creatorPaymentsWallet}-${artistId}`] = {
         data: [],
         timestamp: now,
       };
@@ -612,7 +619,7 @@ export const fetchArtistSalesViaAPI = async (creatorPaymentsWallet: string) => {
     console.error("fetchArtistSalesViaAPI: Error fetching artist sales:", error);
 
     // Update cache (with [] as data)
-    cache_artistSales[`${creatorPaymentsWallet}`] = {
+    cache_artistSales[`${creatorPaymentsWallet}-${artistId}`] = {
       data: [],
       timestamp: now,
     };

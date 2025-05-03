@@ -10,6 +10,7 @@ import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/s
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
 import { filterRadioTracksByUserPreferences, getAlbumTracksFromDBViaAPI } from "libs/utils/misc";
 import { toastClosableError } from "libs/utils/uiShared";
+import { CampaignHero } from "pages/Campaigns/CampaignHero";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -24,7 +25,13 @@ import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
 
-export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHomeMode: (homeMode: string) => void }) => {
+type HomeSectionProps = {
+  homeMode: string;
+  setHomeMode: (homeMode: string) => void;
+};
+
+export const HomeSection = (props: HomeSectionProps) => {
+  const { homeMode, setHomeMode } = props;
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
@@ -37,7 +44,6 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol } = useSolanaWallet();
-
   const [bitzGiftingMeta, setBitzGiftingMeta] = useState<{
     giveBitzToCampaignId: string;
     bountyBitzSum: number;
@@ -85,12 +91,23 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
   // Genres
   const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
 
+  //Campaigns
+  const [campaignCodeFilter, setCampaignCodeFilter] = useState<string | undefined>(undefined);
+
   useEffect(() => {
+    const isCampaignMode = searchParams.get("campaign");
+
+    if (isCampaignMode) {
+      setHomeMode(`campaigns-${isCampaignMode}-${new Date().getTime()}`);
+      return;
+    }
+
     const isFeaturedArtistDeepLink = searchParams.get("artist");
 
     if (isFeaturedArtistDeepLink) {
       // user reloaded into a artist deep link, all we need to do is set the home mode to artists, then the below home mode effect takes care of the rest
       setHomeMode(`artists-${new Date().getTime()}`);
+      return;
     }
 
     fetchAndUpdateRadioTracks();
@@ -102,7 +119,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
       setLoadRadioPlayerIntoDockedMode(true);
     }
 
-    if (homeMode.includes("artists")) {
+    if (homeMode.includes("artists") || homeMode.includes("campaigns")) {
       setLoadIntoTileView(true);
 
       const isFeaturedArtistDeepLink = searchParams.get("artist");
@@ -115,6 +132,12 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
 
     if (homeMode.includes("albums")) {
       setLoadIntoTileView(true);
+    }
+
+    if (homeMode.includes("campaigns")) {
+      const currentParams = Object.fromEntries(searchParams.entries());
+      currentParams["campaign"] = "wsb";
+      setSearchParams({ ...currentParams });
     }
 
     window.scrollTo({
@@ -452,7 +475,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                     </div>
                     <div className="flex flex-col flex-1 text-left bgx-red-500 align-center justify-center p-5">
                       <span className="text-center md:text-left font-[Clash-Medium] text-3xl xl:text-5xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
-                        Your Music Super App for Unique and Exclusive Fan Experiences
+                        Your Music Super App for Exclusive Fan Experiences
                       </span>
                     </div>
                   </div>
@@ -470,8 +493,13 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
             </div>
           )}
 
+          {/* <h2>campaignCodeFilter: {campaignCodeFilter}</h2>
+          <h2>homeMode: {homeMode}</h2> */}
+
+          {homeMode.includes("campaigns-wsb") && <CampaignHero handleCampaignCodeFilterChange={setCampaignCodeFilter} />}
+
           {/* Artists and their Albums */}
-          {(homeMode.includes("artists") || homeMode.includes("albums")) && (
+          {(homeMode.includes("artists") || homeMode.includes("albums") || homeMode.includes("campaigns-wsb")) && (
             <>
               <div className="w-full mt-5">
                 <FeaturedArtistsAndAlbums
@@ -518,6 +546,7 @@ export const HomeSection = ({ homeMode, setHomeMode }: { homeMode: string; setHo
                   loadIntoTileView={loadIntoTileView}
                   setLoadIntoTileView={setLoadIntoTileView}
                   isAllAlbumsMode={homeMode.includes("albums")}
+                  filterByArtistCampaignCode={homeMode.includes("campaigns-wsb") ? campaignCodeFilter : -1}
                 />
               </div>
             </>

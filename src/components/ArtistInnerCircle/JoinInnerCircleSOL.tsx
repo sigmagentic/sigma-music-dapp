@@ -20,6 +20,7 @@ export const JoinInnerCircleSOL = ({
   creatorPaymentsWallet,
   membershipId,
   creatorFanMembershipAvailability,
+  artistId,
 }: {
   onCloseModal: (isMintingSuccess: boolean) => void;
   artistName: string;
@@ -27,6 +28,7 @@ export const JoinInnerCircleSOL = ({
   creatorPaymentsWallet: string;
   membershipId: string;
   creatorFanMembershipAvailability: Record<string, any>;
+  artistId: string;
 }) => {
   const { connection } = useConnection();
   const { sendTransaction, signMessage } = useWallet();
@@ -36,7 +38,7 @@ export const JoinInnerCircleSOL = ({
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist=${artistSlug}&t=fan`)}&text=${encodeURIComponent(
+  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist=${artistSlug}&tab=fan`)}&text=${encodeURIComponent(
     `I just joined ${artistName}'s exclusive Inner Circle fan club on Sigma Music. Come and join me!`
   )}`;
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
@@ -198,6 +200,7 @@ export const JoinInnerCircleSOL = ({
         nftType: "fan",
         creatorWallet: creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         membershipId: membershipId,
+        artistId: artistId,
       });
 
       if (_mintNFTAfterPaymentResponse.error) {

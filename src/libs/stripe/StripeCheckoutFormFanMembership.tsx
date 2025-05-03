@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { PaymentElement, useStripe, useElements, AddressElement } from "@stripe/react-stripe-js";
 import { Loader } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
@@ -9,6 +10,7 @@ type StripeCheckoutFormFanMembershipProps = {
     artistSlug: string;
     artistName: string;
     membershipId: string;
+    artistId: string;
     tokenImg: string;
     membershipPriceUSD: number;
     membershipLabel: string;
@@ -20,6 +22,7 @@ type StripeCheckoutFormFanMembershipProps = {
 const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePaymentPopup }: StripeCheckoutFormFanMembershipProps) => {
   const { publicKey } = useSolanaWallet();
   const { userInfo } = useWeb3Auth();
+  const [searchParams] = useSearchParams();
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -73,6 +76,7 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePayment
     try {
       /* on the payment success page, we need some params so we can display the album purchase details and also redirect when it's done */
       const membershipId = membershipProfile.membershipId;
+      const artistId = membershipProfile.artistId;
       const artistSlug = membershipProfile.artistSlug;
       const albumImg = membershipProfile.tokenImg;
       const albumTitle = membershipProfile.membershipLabel;
@@ -80,11 +84,12 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePayment
       const creatorWallet = membershipProfile.creatorPaymentsWallet;
       const buyerSolAddress = publicKey?.toBase58();
       const priceInUSDString = membershipProfile.membershipPriceUSD.toString();
+      const campaignCode = searchParams.get("campaign") || "";
 
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}&billingEmail=${encodeURIComponent(email)}`,
+          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artistId=${artistId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}&billingEmail=${encodeURIComponent(email)}&campaignCode=${campaignCode}`,
           receipt_email: email,
         },
       });

@@ -59,7 +59,10 @@ export const PaymentSuccess = () => {
         const paymentIntentId = searchParams.get("payment_intent");
         const albumId = searchParams.get("albumId");
         const membershipId = searchParams.get("membershipId");
+        const artistId = searchParams.get("artistId");
         const artistSlug = searchParams.get("artist");
+        const campaignCode = searchParams.get("campaignCode");
+
         const _itemImg = searchParams.get("albumImg");
         const _albumTitle = searchParams.get("albumTitle");
         const _albumArtist = searchParams.get("albumArtist");
@@ -67,7 +70,7 @@ export const PaymentSuccess = () => {
         const _priceInUSD = searchParams.get("priceInUSD");
         const _billingEmail = searchParams.get("billingEmail");
 
-        if (!paymentIntentId || !_priceInUSD || (!albumId && !membershipId)) {
+        if (!paymentIntentId || !_priceInUSD || (!albumId && !membershipId && !artistId)) {
           throw new Error("Missing required parameters");
         }
 
@@ -84,6 +87,7 @@ export const PaymentSuccess = () => {
 
         console.log("albumId", albumId);
         console.log("membershipId", membershipId);
+        console.log("artistId", artistId);
         console.log("artistSlug", artistSlug);
         console.log("itemImg", _itemImg);
         console.log("itemTitle", _albumTitle);
@@ -118,6 +122,7 @@ export const PaymentSuccess = () => {
               paymentLogParams.albumId = albumId;
             } else {
               paymentLogParams.membershipId = membershipId;
+              paymentLogParams.artistId = artistId;
             }
 
             const _logPaymentToAPIResponse = await logPaymentToAPI(paymentLogParams);
@@ -172,6 +177,7 @@ export const PaymentSuccess = () => {
               mintParams.albumId = albumId;
             } else {
               mintParams.membershipId = membershipId;
+              mintParams.artistId = artistId;
             }
 
             const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI(mintParams);
@@ -202,7 +208,11 @@ export const PaymentSuccess = () => {
           let redirectUrl = `/?artist=${artistSlug}~${albumId}`;
 
           if (membershipId) {
-            redirectUrl += `/?artist=${artistSlug}&t=fan`;
+            redirectUrl = `/?artist=${artistSlug}&tab=fan`;
+
+            if (campaignCode && campaignCode !== "") {
+              redirectUrl += `&campaign=${campaignCode}`;
+            }
           }
 
           navigate(redirectUrl);
