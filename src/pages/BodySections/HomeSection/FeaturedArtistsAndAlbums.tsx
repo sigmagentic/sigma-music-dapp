@@ -433,7 +433,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             ) : (
               <>
                 {!filterByArtistCampaignCode ||
-                  (filterByArtistCampaignCode === -1 && <span className="text-center">{isAllAlbumsMode ? "Albums" : "Artists"}</span>)}
+                  (filterByArtistCampaignCode === -1 && (
+                    <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+                      {isAllAlbumsMode ? "Albums" : "Artists"}
+                    </span>
+                  ))}
               </>
             )}
           </div>

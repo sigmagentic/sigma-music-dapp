@@ -393,7 +393,10 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                       <div className="flex items-start gap-3">
                         {getPerkTypeIcon(perk.type)}
                         <div>
-                          <h4 className="font-medium">{perk.name}</h4>
+                          <h4 className="font-medium flex items-center gap-2">{perk.name}</h4>
+                          {perk.comingSoon && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/40">Launching Soon</span>
+                          )}
                           <p className="text-sm text-gray-400 mt-1">{perk.description}</p>
                         </div>
                       </div>
@@ -435,7 +438,10 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                       <div className="flex items-start gap-3">
                         {getPerkTypeIcon(perk.type)}
                         <div>
-                          <h4 className="font-medium">{perk.name}</h4>
+                          <h4 className="font-medium flex items-center gap-2">{perk.name}</h4>
+                          {perk.comingSoon && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/40">Launching Soon</span>
+                          )}
                           <p className="text-sm text-gray-400 mt-1">{perk.description}</p>
                         </div>
                       </div>
@@ -466,12 +472,12 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
               <p className="text-gray-400 mb-4">{selectedPerk.description}</p>
               {selectedPerk.howToClaim && (
                 <div className="text-sm text-gray-500 mt-4">
-                  <strong className="text-white">How to Claim:</strong> {selectedPerk.howToClaim}
+                  <strong className="text-white mr-1">How to Claim:</strong> {selectedPerk.howToClaim}
                 </div>
               )}
               {selectedPerk.terms && (
                 <div className="text-sm text-gray-500 mt-4">
-                  <strong className="text-white">Terms:</strong> {selectedPerk.terms}
+                  <strong className="text-white mr-1">Terms:</strong> {selectedPerk.terms}
                 </div>
               )}
               <button onClick={() => setSelectedPerk(null)} className="mt-6 w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">

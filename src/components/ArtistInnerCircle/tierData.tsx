@@ -8,6 +8,7 @@ export const perksData: Perk[] = [
     description: "If I drop a new EP or Single as a NFT, you get to own a copy (as a NFT) for free and stream all bonus tracks",
     terms: "Upto 10 EPs or Singles per year. Please note that I reserve the right to decide which EPs or Singles are eligible for this perk at any time",
     howToClaim: "Hold the inner circle fan membership NFT",
+    comingSoon: true,
   },
   {
     pid: "p2",
@@ -17,6 +18,7 @@ export const perksData: Perk[] = [
     terms:
       "Please note that my fans should join my group of the Sigma Discord server so we can coordinate the call. There may be months when this call may not happen if I'm busy or if there are not many fans who want to join",
     howToClaim: "Hold the inner circle fan membership NFT",
+    comingSoon: true,
   },
   {
     pid: "p3",
@@ -25,6 +27,7 @@ export const perksData: Perk[] = [
     description: "Help promote my music and grow my fanbase and you can share in the revenue. Share in my success and I'll share in yours",
     terms:
       "10% of total sales per month will be shared with all fans who hold this tier. You need to hold the inner circle fan membership NFT for a whole month to be eligible for a monthly split. All earnings will be split equally among all fans who hold this tier and you will be paid out monthly in USDC (a USD stable coin on Solana that is equal to $1 USD). All renevue splits are based on my discretion and are non negotiable.",
+    comingSoon: true,
   },
   {
     pid: "p4",
@@ -33,6 +36,7 @@ export const perksData: Perk[] = [
     description: "If I perform at an event, you can use your NFT to meet me",
     terms: "Note that this only applies to performances that have a meet and greet planned (which are most events with paid tickets)",
     howToClaim: "Hold and present the inner circle fan membership NFT to the artist's crew at the event",
+    comingSoon: true,
   },
   {
     pid: "p5",
@@ -41,6 +45,7 @@ export const perksData: Perk[] = [
     description: "If I perform at an event, you can use your NFT to chill at my VIP lounge",
     terms: "Note that this only applies to performances that have a VIP lounge planned",
     howToClaim: "Hold and present the inner circle fan membership NFT to the artist's crew at the event",
+    comingSoon: true,
   },
   {
     pid: "p6",
@@ -49,6 +54,7 @@ export const perksData: Perk[] = [
     description: "If I perform at an event, you can use your NFT to take a photo with me",
     terms: "Note that this only applies to performances that allow photo ops",
     howToClaim: "Hold and present the inner circle fan membership NFT to the artist's crew at the event",
+    comingSoon: true,
   },
   {
     pid: "p7",
@@ -56,6 +62,7 @@ export const perksData: Perk[] = [
     type: "physical" as const,
     description: "I'll record a personalized video message for you",
     terms: "Can be redeemed once a year. Please note that my fans should join my group of the Sigma Discord server so we can coordinate",
+    comingSoon: true,
   },
   {
     pid: "p8",
@@ -63,6 +70,7 @@ export const perksData: Perk[] = [
     type: "physical" as const,
     description: "I'll give you early access to ticket sales for my performances",
     howToClaim: "Hold a fan membership for access to a private link to purchase tickets before they go on sale to the public",
+    comingSoon: true,
   },
   {
     pid: "p9",
@@ -70,10 +78,11 @@ export const perksData: Perk[] = [
     type: "physical" as const,
     description: "I'll give you a private 1:1 call with me to chat about anything you want related to my music, my career, my life, etc",
     howToClaim: "Hold a fan membership to access a private link to schedule a call with me",
+    comingSoon: true,
   },
   {
     pid: "p10",
-    name: "10% of collected revenue is raffled off to 10 lucky fans",
+    name: "10% of revenue raffled off to 10 lucky fans",
     type: "physical" as const,
     description: "Help promote my work and grow my fanbase and you can share in the revenue. Share in my success and I'll share in yours",
     terms:

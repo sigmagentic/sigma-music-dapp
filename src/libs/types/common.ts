@@ -88,6 +88,7 @@ export interface Perk {
   description: string;
   terms?: string;
   howToClaim?: string;
+  comingSoon?: boolean;
 }
 
 export interface MyFanMembershipType {

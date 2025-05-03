@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
@@ -11,6 +11,7 @@ import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types
 import { filterRadioTracksByUserPreferences, getAlbumTracksFromDBViaAPI } from "libs/utils/misc";
 import { toastClosableError } from "libs/utils/uiShared";
 import { CampaignHero } from "pages/Campaigns/CampaignHero";
+import { Remix } from "pages/Remix";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -93,6 +94,30 @@ export const HomeSection = (props: HomeSectionProps) => {
 
   //Campaigns
   const [campaignCodeFilter, setCampaignCodeFilter] = useState<string | undefined>(undefined);
+
+  const [genreUpdateTimeout, setGenreUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const debouncedGenreUpdate = useCallback(() => {
+    if (genreUpdateTimeout) {
+      clearTimeout(genreUpdateTimeout);
+    }
+
+    const timeout = setTimeout(() => {
+      updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(true);
+      setGenreUpdateTimeout(null);
+    }, 5000); // 5 seconds delay
+
+    setGenreUpdateTimeout(timeout);
+  }, [genreUpdateTimeout]);
+
+  // Cleanup timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (genreUpdateTimeout) {
+        clearTimeout(genreUpdateTimeout);
+      }
+    };
+  }, [genreUpdateTimeout]);
 
   useEffect(() => {
     const isCampaignMode = searchParams.get("campaign");
@@ -482,6 +507,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
                   <div className="featuredBanners flex-1">
                     <FeaturedBanners
+                      onGenreUpdate={debouncedGenreUpdate}
                       onFeaturedArtistDeepLinkSlug={(slug: string) => {
                         setHomeMode(`artists-${new Date().getTime()}`);
                         setSearchParams({ "artist": slug });
@@ -639,14 +665,20 @@ export const HomeSection = (props: HomeSectionProps) => {
           )}
 
           {homeMode === "games" && (
-            <div className="w-full mt-10">
+            <div className="w-full mt-5">
               <MiniGames radioTracks={radioTracksSorted} appMusicPlayerIsPlaying={launchMusicPlayer || launchRadioPlayer} />
             </div>
           )}
 
           {homeMode === "profile" && (
-            <div className="w-full mt-10">
+            <div className="w-full mt-5">
               <MyProfile />
+            </div>
+          )}
+
+          {homeMode === "remix" && (
+            <div className="w-full mt-5">
+              <Remix />
             </div>
           )}
 
@@ -679,7 +711,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
           {/* The radio player footer bar */}
           {launchRadioPlayer && (
-            <div className="w-full fixed left-0 bottom-0 z-40">
+            <div className="w-full fixed left-0 bottom-0 z-50">
               <MusicPlayer
                 trackList={radioTracksSorted}
                 trackListFromDb={false}
