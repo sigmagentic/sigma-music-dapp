@@ -310,7 +310,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                         <div className="">
                           <Button
                             disabled={bitBalanceOnChain < minBitzValNeeded || bitzValToGift < 1 || poweringUpInProgress}
-                            className="!text-white text-lg bg-gradient-to-br from-[#737373] from-5% via-[#A76262] via-30% to-[#5D3899] to-95% cursor-pointer w-[200px] md:w-[300px] md:h-[50px]"
+                            className="!text-black text-lg bg-gradient-to-br from-yellow-300 to-orange-500 cursor-pointer w-[200px] md:w-[300px] md:h-[50px]"
                             onClick={() => {
                               sendPowerUpSol();
                             }}>

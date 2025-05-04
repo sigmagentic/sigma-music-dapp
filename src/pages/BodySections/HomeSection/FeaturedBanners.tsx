@@ -31,7 +31,7 @@ export const FeaturedBanners = ({
   const [featuredArtists, setFeaturedArtists] = useState<FeaturedArtist[]>([]);
   const [featuredAlbums, setFeaturedAlbums] = useState<FeaturedAlbum[]>([]);
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
-  const { musicTrackLookup, artistLookup, albumLookup, radioGenres, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
+  const { musicTrackLookup, artistLookup, albumLookup, radioGenres } = useAppStore();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
   useEffect(() => {
@@ -229,7 +229,7 @@ export const FeaturedBanners = ({
                 }}
                 className={`flex-shrink-0 w-48 h-32 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group ${
                   selectedGenres.includes("I LOVE EVERYTHING")
-                    ? "bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20"
+                    ? "bg-gradient-to-br from-yellow-300 to-orange-500 shadow-lg shadow-orange-500/20"
                     : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
                 }`}>
                 <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -262,7 +262,7 @@ export const FeaturedBanners = ({
                   }}
                   className={`flex-shrink-0 w-48 h-32 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group ${
                     selectedGenres.includes(genre)
-                      ? "bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20"
+                      ? "bg-gradient-to-br from-yellow-300 to-orange-500 shadow-lg shadow-orange-500/20"
                       : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
                   }`}>
                   <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
