@@ -289,7 +289,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     const artistDataToUse =
       filterByArtistCampaignCode && filterByArtistCampaignCode !== -1
-        ? albumArtistLookupDataOrganizedBySections[filterByArtistCampaignCode].filteredItems
+        ? albumArtistLookupDataOrganizedBySections[filterByArtistCampaignCode]?.filteredItems || []
         : albumArtistLookupData;
 
     allAlbumsData = artistDataToUse.flatMap((artist: Artist) =>
@@ -383,7 +383,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       const url = new URL(imageUrl);
       const pos = url.searchParams.get(metaKey);
 
-      if (metaKey === "pcolor") {
+      if (metaKey === "pcolor" || metaKey === "tcolor") {
         return `#${pos}` || "intial";
       } else {
         return pos || "intial";
@@ -455,7 +455,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                   </div>
                 </div>
               ) : (
-                <div className="m-auto min-h-6">⚠️ Artist section is unavailable. We are working on it!</div>
+                <div className="m-auto min-h-6">⚠️ Artist section is unavailable. Check back later!</div>
               )}
             </div>
           ) : (
@@ -477,7 +477,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               onFeaturedArtistDeepLinkSlug(artist.slug);
 
                               setUserInteractedWithTabs(true);
-                              // setInArtistProfileView(true);
                               setLoadIntoTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
                               scrollToTopOnMainContentArea();
@@ -519,7 +518,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               onFeaturedArtistDeepLinkSlug(album.artistSlug, album.albumId);
 
                               setUserInteractedWithTabs(true);
-                              // setInArtistProfileView(true);
                               setLoadIntoTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
                               scrollToTopOnMainContentArea();

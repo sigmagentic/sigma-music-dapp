@@ -83,9 +83,9 @@ const SCREEN_STYLES = {
     },
   },
   normal: {
-    container: "flex-row items-center justify-center h-[200px]",
+    container: "flex-row items-center justify-center h-[100px]",
     songInfo: "w-[500px] px-10 flex-row items-center mt-5 md:mt-0",
-    image: "w-[100px] h-[100px]",
+    image: "w-[70px] h-[70px]",
     textWrapper: "xl:w-[60%] ml-2",
     title: "!text-sm !text-muted-foreground truncate md:text-left",
     artist: "text-sm text-white truncate md:text-left",
@@ -130,7 +130,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("00:00");
-  const [displayTrackList, setDisplayTrackList] = useState(window.innerWidth >= 768 && !playerExplicitlyDockedByUser);
+  // const [displayTrackList, setDisplayTrackList] = useState(window.innerWidth >= 768 && !playerExplicitlyDockedByUser && !isRadioPlayer);
+  const [displayTrackList, setDisplayTrackList] = useState(false);
   const [musicPlayerAudio] = useState(new Audio());
   const [musicPlayerVideo] = useState(() => {
     const video = document.createElement("video");
@@ -179,7 +180,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     ],
   };
   const [imgLoading, setImgLoading] = useState(false);
-  const [isFullScreen, setIsFullScreen] = useState(!playerExplicitlyDockedByUser && window.innerWidth >= 768);
+  // const [isFullScreen, setIsFullScreen] = useState(!playerExplicitlyDockedByUser && window.innerWidth >= 768);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [showBonusTrackModal, setShowBonusTrackModal] = useState(false);
   const [loggedStreamMetricForTrack, setLoggedStreamMetricForTrack] = useState(0); // a simple 1 or 0 that is linked to the logic of logging a stream event to the backend so in the UI we can reflect this for debugging
 
