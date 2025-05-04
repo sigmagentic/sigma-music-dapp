@@ -233,7 +233,7 @@ export const FeaturedBanners = ({
                     : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
                 }`}>
                 <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="text-center relative z-10">
+                <div className="text-center relative z-2">
                   <div className={`text-lg font-bold mb-2 ${selectedGenres.includes("I LOVE EVERYTHING") ? "text-black" : "text-white"}`}>
                     I LOVE EVERYTHING
                   </div>
@@ -266,7 +266,7 @@ export const FeaturedBanners = ({
                       : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
                   }`}>
                   <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="text-center relative z-10">
+                  <div className="text-center relative z-2">
                     <div className={`text-lg font-bold mb-2 ${selectedGenres.includes(genre) ? "text-black" : "text-white"}`}>
                       {genre.toLocaleUpperCase().trim()}
                     </div>

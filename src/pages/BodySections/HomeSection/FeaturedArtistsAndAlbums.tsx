@@ -394,6 +394,20 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     }
   }
 
+  function showTargettedArtistImg(imageUrl: string, fanToken3DGifTeaser?: string): string {
+    try {
+      // if user is on the fan tab and there is a fan token 3d gif teaser, then return the gif teaser
+      if ((!inArtistProfileView || activeTab === "fan") && fanToken3DGifTeaser && fanToken3DGifTeaser !== "") {
+        return `https://api.itheumcloud.com/app_nftunes/assets/token_img/${fanToken3DGifTeaser}.gif`;
+      } else {
+        return imageUrl;
+      }
+    } catch {
+      // Return default if URL is invalid
+      return imageUrl;
+    }
+  }
+
   function handleBackToArtistTileView() {
     playPausePreview(); // with no params wil always go into the stop logic
 
@@ -483,13 +497,26 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             }
                           }}>
                           <div
-                            className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer"
+                            className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer group"
                             style={{
                               "backgroundImage": `url(${artist.img})`,
                               "backgroundPosition": getImagePositionMeta(artist.img, "tpos"),
                               "backgroundColor": getImagePositionMeta(artist.img, "tcolor"),
                               "backgroundSize": getImagePositionMeta(artist.img, "tsize"),
                             }}>
+                            {artist.fanToken3DGifTeaser && artist.fanToken3DGifTeaser !== "" && (
+                              <>
+                                <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-[80%] transition-opacity duration-300 rounded-lg" />
+                                <div
+                                  className="absolute inset-0 bg-no-repeat bg-cover rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                  style={{
+                                    "backgroundImage": `url(https://api.itheumcloud.com/app_nftunes/assets/token_img/${artist.fanToken3DGifTeaser}.gif)`,
+                                    "backgroundPosition": "center",
+                                    "backgroundSize": "contain",
+                                  }}
+                                />
+                              </>
+                            )}
                             {!filterByArtistCampaignCode ||
                               (filterByArtistCampaignCode === -1 && (
                                 <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
@@ -556,10 +583,16 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           <div
                             className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] flex-1 bg-no-repeat bg-cover rounded-lg"
                             style={{
-                              "backgroundImage": `url(${artistProfile.img})`,
-                              "backgroundPosition": getImagePositionMeta(artistProfile.img, "ppos"),
+                              "backgroundImage": `url(${showTargettedArtistImg(artistProfile.img, artistProfile.fanToken3DGifTeaser)})`,
+                              "backgroundPosition":
+                                artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== ""
+                                  ? "center"
+                                  : getImagePositionMeta(artistProfile.img, "ppos"),
                               "backgroundColor": getImagePositionMeta(artistProfile.img, "pcolor"),
-                              "backgroundSize": getImagePositionMeta(artistProfile.img, "psize"),
+                              "backgroundSize":
+                                artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== ""
+                                  ? "contain"
+                                  : getImagePositionMeta(artistProfile.img, "psize"),
                             }}></div>
                         </div>
 
