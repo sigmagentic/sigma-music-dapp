@@ -102,4 +102,112 @@ export const FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP = {
     slug: "wsb-zaf-fgc-thabang",
     campaignCode: "wsb",
   },
+  "FANG17-WsbVubAakash-T1": {
+    slug: "wsb-ind-vub-aakash",
+    campaignCode: "wsb",
+  },
+  "FANG18-WsbVubAjay-T1": {
+    slug: "wsb-ind-vub-ajay",
+    campaignCode: "wsb",
+  },
+  "FANG19-WsbVubAkash-T1": {
+    slug: "wsb-ind-vub-akash-1",
+    campaignCode: "wsb",
+  },
+  "FANG20-WsbVubAkash-T1": {
+    slug: "wsb-ind-vub-akash-2",
+    campaignCode: "wsb",
+  },
+  "FANG21-WsbVubAkash-T1": {
+    slug: "wsb-ind-vub-akash-3",
+    campaignCode: "wsb",
+  },
+  "FANG22-WsbVubAnju-T1": {
+    slug: "wsb-ind-vub-anju",
+    campaignCode: "wsb",
+  },
+  "FANG23-WsbVubAshish-T1": {
+    slug: "wsb-ind-vub-ashish",
+    campaignCode: "wsb",
+  },
+  "FANG24-WsbVubAyush-T1": {
+    slug: "wsb-ind-vub-ayush",
+    campaignCode: "wsb",
+  },
+  "FANG25-WsbVubBittu-T1": {
+    slug: "wsb-ind-vub-bittu",
+    campaignCode: "wsb",
+  },
+  "FANG26-WsbVubGaurav-T1": {
+    slug: "wsb-ind-vub-gaurav",
+    campaignCode: "wsb",
+  },
+  "FANG27-WsbVubLaxman-T1": {
+    slug: "wsb-ind-vub-laxman",
+    campaignCode: "wsb",
+  },
+  "FANG28-WsbVubMohit-T1": {
+    slug: "wsb-ind-vub-mohit",
+    campaignCode: "wsb",
+  },
+  "FANG29-WsbVubNaresh-T1": {
+    slug: "wsb-ind-vub-naresh",
+    campaignCode: "wsb",
+  },
+  "FANG30-WsbVubPrakash-T1": {
+    slug: "wsb-ind-vub-prakash",
+    campaignCode: "wsb",
+  },
+  "FANG31-WsbVubPrem-T1": {
+    slug: "wsb-ind-vub-prem",
+    campaignCode: "wsb",
+  },
+  "FANG32-WsbVubRaj-T1": {
+    slug: "wsb-ind-vub-raj",
+    campaignCode: "wsb",
+  },
+  "FANG33-WsbVubRamesh-T1": {
+    slug: "wsb-ind-vub-ramesh",
+    campaignCode: "wsb",
+  },
+  "FANG34-WsbVubRohan-T1": {
+    slug: "wsb-ind-vub-rohan",
+    campaignCode: "wsb",
+  },
+  "FANG35-WsbVubSahil-T1": {
+    slug: "wsb-ind-vub-sahil",
+    campaignCode: "wsb",
+  },
+  "FANG36-WsbVubShiva-T1": {
+    slug: "wsb-ind-vub-shiva",
+    campaignCode: "wsb",
+  },
+  "FANG37-WsbVubSohan-T1": {
+    slug: "wsb-ind-vub-sohan",
+    campaignCode: "wsb",
+  },
+  "FANG38-WsbVubSonu-T1": {
+    slug: "wsb-ind-vub-sonu",
+    campaignCode: "wsb",
+  },
+  "FANG39-WsbVubSudharma-T1": {
+    slug: "wsb-ind-vub-sudharma",
+    campaignCode: "wsb",
+  },
+  "FANG40-WsbVubSumit-T1": {
+    slug: "wsb-ind-vub-sumit",
+    campaignCode: "wsb",
+  },
+  "FANG41-WsbVubSuraj-T1": {
+    slug: "wsb-ind-vub-suraj",
+    campaignCode: "wsb",
+  },
+  "FANG42-WsbVubTirth-T1": {
+    slug: "wsb-ind-vub-tirth",
+    campaignCode: "wsb",
+  },
+  "FANG43-WsbVubVishal-T1": {
+    slug: "wsb-ind-vub-vishal",
+    campaignCode: "wsb",
+  },
 };
