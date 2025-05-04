@@ -71,6 +71,10 @@ export interface Artist {
   otherLink1: string;
   isArtistFeatured: string;
   creatorPaymentsWallet: string;
+  artistCampaignCode?: string;
+  artistSubGroup1Code?: string;
+  artistSubGroup2Code?: string;
+  fanToken3DGifTeaser?: string;
   albums: Album[];
 }
 
