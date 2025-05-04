@@ -21,18 +21,18 @@ import { FeaturedBanners } from "./FeaturedBanners";
 import { MiniGames } from "./MiniGames";
 import { MyCollectedNFTs } from "./MyCollectedNFTs";
 import { MyProfile } from "./MyProfile";
-import { RadioBgCanvas } from "./RadioBgCanvas";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
 
 type HomeSectionProps = {
   homeMode: string;
+  triggerToggleRadioPlayback: string;
   setHomeMode: (homeMode: string) => void;
 };
 
 export const HomeSection = (props: HomeSectionProps) => {
-  const { homeMode, setHomeMode } = props;
+  const { homeMode, setHomeMode, triggerToggleRadioPlayback } = props;
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
@@ -105,7 +105,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     const timeout = setTimeout(() => {
       updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(true);
       setGenreUpdateTimeout(null);
-    }, 5000); // 5 seconds delay
+    }, 3000); // 3 seconds delay
 
     setGenreUpdateTimeout(timeout);
   }, [genreUpdateTimeout]);
@@ -172,10 +172,10 @@ export const HomeSection = (props: HomeSectionProps) => {
   }, [homeMode]);
 
   useEffect(() => {
-    if (launchRadioPlayer) {
-      setHomeMode("radio");
+    if (triggerToggleRadioPlayback !== "") {
+      setLaunchRadioPlayer(!launchRadioPlayer);
     }
-  }, [launchRadioPlayer]);
+  }, [triggerToggleRadioPlayback]);
 
   useEffect(() => {
     if (publicKeySol && solNfts.length > 0) {
@@ -579,7 +579,7 @@ export const HomeSection = (props: HomeSectionProps) => {
           )}
 
           {/* Radio */}
-          {homeMode === "radio" && (
+          {/* {homeMode === "radio" && (
             <>
               <div className="w-full mt-5">
                 <RadioBgCanvas
@@ -590,7 +590,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                 />
               </div>
             </>
-          )}
+          )} */}
 
           {/* Ny Collected Music Data NFTs */}
           {homeMode === "wallet" && (

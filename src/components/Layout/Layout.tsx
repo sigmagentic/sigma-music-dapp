@@ -27,14 +27,24 @@ const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }
   return (
     <div className="relative group">
       {children}
-      <div className="fixed transform -translate-y-full mt-5 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+      <div className="absolute transform -translate-y-full mt-5 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 peer-hover:opacity-100 peer-hover:fixed transition-opacity whitespace-nowrap z-50">
         {text}
       </div>
     </div>
   );
 };
 
-export const Layout = ({ children, homeMode, setHomeMode }: { children: React.ReactNode; homeMode: string; setHomeMode: (homeMode: string) => void }) => {
+export const Layout = ({
+  children,
+  homeMode,
+  setHomeMode,
+  setTriggerToggleRadioPlayback,
+}: {
+  children: React.ReactNode;
+  homeMode: string;
+  setHomeMode: (homeMode: string) => void;
+  setTriggerToggleRadioPlayback: (triggerToggleRadioPlayback: string) => void;
+}) => {
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const { publicKey: publicKeySol } = useSolanaWallet();
@@ -96,17 +106,18 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
+                      peer
                     `}>
                       <HomeIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Home</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Home</span>}
                     </button>
                   </Tooltip>
-                  <Tooltip text="Radio">
+                  <Tooltip text="Toggle Radio">
                     <button
                       onClick={() => {
                         removeArtistProfileParamFromUrl();
-                        setHomeMode("radio");
+                        setTriggerToggleRadioPlayback("radio-" + new Date().getTime().toString());
                       }}
                       disabled={homeMode === "radio"}
                       className={`
@@ -115,6 +126,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
+                      peer
                     `}>
                       <RadioIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Radio</span>
@@ -133,6 +145,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
+                      peer
                     `}>
                       <UserGroupIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Artists</span>
@@ -151,6 +164,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
+                      peer
                     `}>
                       <Square3Stack3DIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Albums</span>
@@ -168,6 +182,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
+                      peer
                     `}>
                       <ChatBubbleOvalLeftEllipsisIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">AI Agent</span>
@@ -187,6 +202,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
+                      peer
                     `}>
                       <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">REMiX</span>
@@ -206,13 +222,14 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
+                      peer
                     `}>
                       <PuzzlePieceIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Games</span>
                       {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
                     </button>
                   </Tooltip>
-                  <Tooltip text="World Supremacy Battle Campaign: Buy tokenized versions of your favorite dance artists (coming soon)">
+                  <Tooltip text="World Supremacy Battle Campaign">
                     <button
                       onClick={() => {
                         removeArtistProfileParamFromUrl();
@@ -225,6 +242,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                       py-3 px-4 rounded-lg transition-colors text-lg 
                       disabled:opacity-50 disabled:cursor-not-allowed
                       hover:text-orange-500
+                      peer
                     `}>
                       <GlobeEuropeAfricaIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">WSB</span>
@@ -246,6 +264,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                           py-3 px-4 rounded-lg transition-colors text-lg 
                           disabled:opacity-50 disabled:cursor-not-allowed
                           hover:text-orange-500
+                          peer
                         `}>
                           <WalletIcon className="h-6 w-6 mr-1 md:mr-0" />
                           <span className="md:hidden w-max">Collect</span>
@@ -265,6 +284,7 @@ export const Layout = ({ children, homeMode, setHomeMode }: { children: React.Re
                           py-3 px-4 rounded-lg transition-colors text-lg 
                           disabled:opacity-50 disabled:cursor-not-allowed
                           hover:text-orange-500
+                          peer
                         `}>
                           <UserIcon className="h-6 w-6 mr-1 md:mr-0" />
                           <span className="md:hidden w-max">Profile</span>
