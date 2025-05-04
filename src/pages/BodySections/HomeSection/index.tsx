@@ -737,7 +737,7 @@ export const HomeSection = (props: HomeSectionProps) => {
           {albumPlayIsQueued && (
             <div className="fixed left-0 bottom-0 w-full z-50">
               <div className="w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black">
-                <div className="h-[200px] flex flex-col items-center justify-center px-2">
+                <div className="h-[100px] flex flex-col items-center justify-center px-2">
                   <Loader className="animate-spin" />
                   <p className="text-foreground text-xs mt-3">hold tight, queuing album for playback</p>
                 </div>
