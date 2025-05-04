@@ -78,4 +78,28 @@ export const FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP = {
   "FANG5-Loonyo-T1": {
     slug: "dj-loonyo",
   },
+  "FANG11-WsbFgcAbdul-T1": {
+    slug: "wsb-zaf-fgc-abdul",
+    campaignCode: "wsb",
+  },
+  "FANG12-WsbFgcIsabella-T1": {
+    slug: "wsb-zaf-fgc-isabella",
+    campaignCode: "wsb",
+  },
+  "FANG13-WsbFgcKatia-T1": {
+    slug: "wsb-zaf-fgc-katia",
+    campaignCode: "wsb",
+  },
+  "FANG14-WsbFgcKatiso-T1": {
+    slug: "wsb-zaf-fgc-katiso",
+    campaignCode: "wsb",
+  },
+  "FANG15-WsbFgcLinda-T1": {
+    slug: "wsb-zaf-fgc-linda",
+    campaignCode: "wsb",
+  },
+  "FANG16-WsbFgcThabang-T1": {
+    slug: "wsb-zaf-fgc-thabang",
+    campaignCode: "wsb",
+  },
 };
