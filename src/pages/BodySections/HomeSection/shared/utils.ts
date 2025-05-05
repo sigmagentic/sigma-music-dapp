@@ -29,12 +29,15 @@ export async function getArtistsAlbumsData() {
 
       const organizedBySectionsDataset = organizeArtistsByCampaignCodes(cloneDataset);
 
-      // if we are in live demo mode, we need to filter the dataset to only include the live demo artists
       if (!IS_LIVE_DEMO_MODE) {
-        dataset = dataset.filter((artist: any) => !artist.name.includes("(DEMO)"));
+        // if we are in live demo mode, we need to filter the dataset to only include the live demo artists
+        // .. and only keep items in dataset that have no campaign code
+        dataset = dataset.filter(
+          (artist: any) => !artist.name.includes("(DEMO)") && (artist.artistCampaignCode === "" || typeof artist.artistCampaignCode === "undefined")
+        );
       } else {
         // only keep items in dataset that have no campaign code
-        dataset = dataset.filter((artist: any) => artist.artistCampaignCode === "" || artist.artistCampaignCode === undefined);
+        dataset = dataset.filter((artist: any) => artist.artistCampaignCode === "" || typeof artist.artistCampaignCode === "undefined");
 
         // First process the demo items and mark them
         dataset = dataset.map((artist: any) => {
