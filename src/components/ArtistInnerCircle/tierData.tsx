@@ -105,7 +105,7 @@ export const tierData: Record<string, MembershipType> = {
   t1: {
     id: "t1",
     label: "Base",
-    defaultPriceUSD: 0.5,
+    defaultPriceUSD: 9.99,
     term: "lifetime" as const,
     perks: [],
   },
