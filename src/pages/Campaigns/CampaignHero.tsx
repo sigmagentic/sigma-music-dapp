@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import CAMPAIGN_WSB_HERO from "assets/img/campaigns/campaign-wsb-hero.png";
 import { COUNTRIES } from "libs/constants/countries";
@@ -11,14 +12,21 @@ type CampaignHeroProps = {
 
 export const CampaignHero = (props: CampaignHeroProps) => {
   const { handleCampaignCodeFilterChange } = props;
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(searchParams.get("country"));
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(searchParams.get("team"));
 
   useEffect(() => {
     handleCampaignCodeFilterChange("wsb");
 
     return () => {
       handleCampaignCodeFilterChange(undefined);
+      // Clear URL parameters when component unmounts
+      const currentParams = Object.fromEntries(searchParams.entries());
+      delete currentParams["campaign"];
+      delete currentParams["country"];
+      delete currentParams["team"];
+      setSearchParams(currentParams);
     };
   }, []);
 
@@ -42,6 +50,9 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                       key={country.code}
                       onClick={() => {
                         setSelectedCountry(country.code);
+                        const currentParams = Object.fromEntries(searchParams.entries());
+                        currentParams["country"] = country.code;
+                        setSearchParams(currentParams);
                         handleCampaignCodeFilterChange("wsb-" + country.code);
                       }}
                       className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
@@ -57,6 +68,9 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                   <button
                     onClick={() => {
                       setSelectedCountry(null);
+                      const currentParams = Object.fromEntries(searchParams.entries());
+                      delete currentParams["country"];
+                      setSearchParams(currentParams);
                       handleCampaignCodeFilterChange("wsb");
                     }}
                     className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
@@ -69,6 +83,9 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                       key={team.teamCode}
                       onClick={() => {
                         setSelectedTeam(team.teamCode);
+                        const currentParams = Object.fromEntries(searchParams.entries());
+                        currentParams["team"] = team.teamCode;
+                        setSearchParams(currentParams);
                         handleCampaignCodeFilterChange("wsb-" + selectedCountry + "-" + team.teamCode);
                       }}
                       className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
@@ -89,6 +106,9 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                   <button
                     onClick={() => {
                       setSelectedTeam(null);
+                      const currentParams = Object.fromEntries(searchParams.entries());
+                      delete currentParams["team"];
+                      setSearchParams(currentParams);
                       handleCampaignCodeFilterChange("wsb-" + selectedCountry);
                     }}
                     className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">

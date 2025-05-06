@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { routeNames } from "routes";
 
 interface FAQSection {
   title: string;
@@ -259,7 +260,7 @@ const faqSections: FAQSection[] = [
                   <p className="font-semibold mb-2">Of the supply the team buys:</p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>
-                      80% will be locked with a 3 month cliff and 18-month linear vesting schedule on Streamflow (we’ll share the vesting links at launch).
+                      80% will be locked with a 3 month cliff followed by a linear vesting schedule on Streamflow (we'll share the vesting links at launch).
                     </li>
                     <li>10% will be used for public distribution, directly for airdrops to sigmamusic.fm app users</li>
                     <li>10% will be used for liquidity support for new DEX/CEX listings.</li>
@@ -325,7 +326,14 @@ export const FAQ = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-white">Frequently Asked Questions</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+        <h1 className="text-2xl font-bold text-white">Frequently Asked Questions</h1>
+        <button
+          onClick={() => (window.location.href = `${routeNames.home}`)}
+          className="mt-4 sm:mt-0 px-4 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-300 transition-colors">
+          Back to App
+        </button>
+      </div>
 
       {/* Table of Contents */}
       <div className="mb-12 bg-gray-800 p-6 rounded-lg">
