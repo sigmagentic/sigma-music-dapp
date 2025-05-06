@@ -5,19 +5,20 @@ declare const window: {
 import React, { useEffect, useState } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Menu } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import sigmaLogo from "assets/img/sigma-header-logo.png";
 import { SolBitzDropdown } from "components/BitzDropdown/SolBitzDropdown";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuSeparator, DropdownMenuTrigger } from "libComponents/DropdownMenu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuTrigger } from "libComponents/DropdownMenu";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libComponents/NavigationMenu";
 import { sleep } from "libs/utils";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
 import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
+import { ProductTour } from "../ProductTour/ProductTour";
 
 export const Navbar = () => {
   const { publicKey: publicKeySol, walletType, disconnect, isConnected } = useSolanaWallet();
@@ -25,7 +26,9 @@ export const Navbar = () => {
   const isLoggedInSol = !!addressSol;
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState<boolean>(false);
+  const [showProductTour, setShowProductTour] = useState<boolean>(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { solBitzNfts } = useNftsStore();
 
   useEffect(() => {
@@ -45,13 +48,31 @@ export const Navbar = () => {
     }
   }, [addressSol, isConnected, location.pathname]);
 
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get("g") === "1") {
+      setShowProductTour(true);
+    }
+  }, [location.search]);
+
+  const handleCloseProductTour = () => {
+    setShowProductTour(false);
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.has("g")) {
+      searchParams.delete("g");
+      const newSearch = searchParams.toString();
+      const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+      navigate(newPath, { replace: true });
+    }
+  };
+
   return (
     <>
-      <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-full bg-[#171717]">
-        <div className="flex flex-col items-left text-xl">
+      <div className="flex flex-col md:flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-full bg-[#171717]">
+        <div className="flex mb-2 md:mb-0 flex-col items-left text-xl">
           <Link className="flex flex-row items-center" to={routeNames.home}>
             <div className="flex flex-row leading-none">
-              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[160px] md:w-[230px] mt-[10px]" />
+              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[200px] md:w-[230px] mt-[10px]" />
             </div>
           </Link>
         </div>
@@ -59,13 +80,26 @@ export const Navbar = () => {
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Button
-                className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-md h-[48px] hover:text-yellow-400"
-                onClick={() => {
-                  window.location.href = `${routeNames.faq}`;
-                }}>
-                $SIGMA FAQ
-              </Button>
+              <div className="bg-gradient-to-r from-gray-300 to-gray-500 p-[1px] px-[2px] rounded-lg justify-center">
+                <Button
+                  className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[48px]"
+                  variant="outline"
+                  onClick={() => {
+                    window.location.href = `${routeNames.faq}`;
+                  }}>
+                  $SIGMA TOKEN FAQ
+                </Button>
+              </div>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
+                <Button
+                  className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[48px]"
+                  variant="outline"
+                  onClick={() => setShowProductTour(true)}>
+                  Tour
+                </Button>
+              </div>
             </NavigationMenuItem>
             {/* XP Button */}
             {!DISABLE_BITZ_FEATURES && isLoggedInSol && solBitzNfts.length > 0 && (
@@ -154,8 +188,14 @@ export const Navbar = () => {
                   onClick={() => {
                     window.location.href = `${routeNames.faq}`;
                   }}>
-                  $SIGAM <br />
+                  $SIGMA <br />
                   FAQ
+                </Button>
+                <Button
+                  className="bg-background text-foreground hover:bg-background/90 border-0 !text-xs hover:text-yellow-400 ml-2"
+                  onClick={() => setShowProductTour(true)}>
+                  Product <br />
+                  Tour
                 </Button>
               </div>
               <DropdownMenuContent className="w-56">
@@ -218,6 +258,9 @@ export const Navbar = () => {
           </div>
         </div>
       )}
+
+      {/* Product Tour Modal */}
+      <ProductTour isOpen={showProductTour} onClose={handleCloseProductTour} />
     </>
   );
 };
