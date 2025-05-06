@@ -119,7 +119,7 @@ const faqSections: FAQSection[] = [
         answer: (
           <div className="space-y-6">
             <p className="mb-4">
-              The utility of $SIGMA is ambitious—yet simple.
+              The utility of $SIGMA is powerful—yet simple.
               <br />
               Sigma Music is unique in how it shares value. By holding the $SIGMA token, fans become true participants in the music economy.
             </p>
@@ -127,7 +127,7 @@ const faqSections: FAQSection[] = [
             <div className="space-y-4">
               <div>
                 <h4 className="text-lg font-semibold mb-2">1. Revenue Sharing for Fans</h4>
-                <p className="mb-2">Sigma shares up to 10% of all platform revenue back with die-hard fans through weekly raffles. To enter, you need:</p>
+                <p className="mb-2">Sigma shares up to 10% of all platform revenue back with die-hard fans through raffles. To enter, you need:</p>
                 <ul className="list-disc pl-6 space-y-1">
                   <li>A "inner circle" fan membership or music NFT (your raffle ticket)</li>
                   <li>At least $9.99 worth of $SIGMA (each multiple gives you more chances)</li>
@@ -258,8 +258,11 @@ const faqSections: FAQSection[] = [
                 <div className="pl-4 border-l-2 border-gray-600">
                   <p className="font-semibold mb-2">Of the supply the team buys:</p>
                   <ul className="list-disc pl-6 space-y-2">
-                    <li>60% will be locked with a 12-month vesting schedule on Streamflow (we'll share the vesting links at launch)</li>
-                    <li>40% will be used for app growth incentives — including airdrops, fan rewards, and liquidity support for future DEX/CEX listings</li>
+                    <li>
+                      80% will be locked with a 3 month cliff and 18-month linear vesting schedule on Streamflow (we’ll share the vesting links at launch).
+                    </li>
+                    <li>10% will be used for public distribution, directly for airdrops to sigmamusic.fm app users</li>
+                    <li>10% will be used for liquidity support for new DEX/CEX listings.</li>
                   </ul>
                 </div>
               </div>
