@@ -247,13 +247,13 @@ const faqSections: FAQSection[] = [
               <h4 className="text-lg font-semibold mb-2">Token Distribution at Launch:</h4>
 
               <div className="bg-gray-800 p-4 rounded-lg mb-4">
-                <h5 className="font-semibold mb-2">Market Distribution:</h5>
+                <h5 className="font-semibold mb-2">Public Distribution:</h5>
                 <p>50% of total supply will be available on the open market (Auto.Fun and Raydium).</p>
               </div>
 
               <div className="bg-gray-800 p-4 rounded-lg mb-4">
-                <h5 className="font-semibold mb-2">Team Allocation:</h5>
-                <p className="mb-3">The Sigma team will buy 50% of the total supply directly from the market to support platform growth.</p>
+                <h5 className="font-semibold mb-2">Project Distribution:</h5>
+                <p className="mb-3">The Sigma project team will buy 50% of the total supply directly directly from the market to support platform growth.</p>
 
                 <div className="pl-4 border-l-2 border-gray-600">
                   <p className="font-semibold mb-2">Of the supply the team buys:</p>
