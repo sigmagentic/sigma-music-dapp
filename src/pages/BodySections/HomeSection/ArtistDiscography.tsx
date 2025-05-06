@@ -437,7 +437,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                             <span className="ml-2">
                               {checkOwnershipOfAlbum(album) > -1
                                 ? "Buy More Album Copies Now"
-                                : `${addressSol ? `Buy Now $ ${album._buyNowMeta?.priceInUSD} USD` : " Login to Buy Now"}`}
+                                : `${addressSol ? `Buy Now $ ${album._buyNowMeta?.priceInUSD} USD` : `Login to Buy Now $ ${album._buyNowMeta?.priceInUSD} USD`}`}
                             </span>
                           </>
                         </Button>

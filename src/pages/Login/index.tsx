@@ -83,19 +83,24 @@ const LoginPage = () => {
       if (userLoggedInCallData?.error) {
         console.error("User account login call failed");
       } else {
-        let isTriggerFreeGift = ""; // should we trigger the "free gift" for new users?
+        let isTriggerProductTour = ""; // should we trigger the "free gift" for new users?
         const celebrateEmojis = ["🥳", "🎊", "🍾", "🥂", "🍻", "🍾"];
 
         if (userLoggedInCallData?.newUserAccountCreated) {
-          toast.success("Welcome New User! Its Great To Have You Here.", {
+          toast.success("Welcome New Music Fan! Its Great To Have You Here.", {
             position: "bottom-center",
             duration: 6000,
             icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
+            style: {
+              background: "#1a1a1a",
+              color: "#fff",
+              border: "1px solid #333",
+            },
           });
 
           updateUserWeb2AccountDetails(userLoggedInCallData);
 
-          isTriggerFreeGift = "g=1";
+          isTriggerProductTour = "g=1";
         } else {
           console.log("userLoggedInCallData", userLoggedInCallData);
           updateUserWeb2AccountDetails(userLoggedInCallData);
@@ -112,17 +117,17 @@ const LoginPage = () => {
         window.history.replaceState({}, "", newUrl);
 
         if (fromWhere.includes("?")) {
-          if (isTriggerFreeGift !== "") {
-            isTriggerFreeGift = `&${isTriggerFreeGift}`;
+          if (isTriggerProductTour !== "") {
+            isTriggerProductTour = `&${isTriggerProductTour}`;
           }
 
-          fromWhere = `${fromWhere}${isTriggerFreeGift}`;
+          fromWhere = `${fromWhere}${isTriggerProductTour}`;
         } else {
-          if (isTriggerFreeGift !== "") {
-            isTriggerFreeGift = `?${isTriggerFreeGift}`;
+          if (isTriggerProductTour !== "") {
+            isTriggerProductTour = `?${isTriggerProductTour}`;
           }
 
-          fromWhere = `${fromWhere}${isTriggerFreeGift}`;
+          fromWhere = `${fromWhere}${isTriggerProductTour}`;
         }
 
         navigate(fromWhere);
