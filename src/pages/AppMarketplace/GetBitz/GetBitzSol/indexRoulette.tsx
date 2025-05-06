@@ -71,7 +71,7 @@ const GetBitzSol = (props: any) => {
 
   const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm`)}&text=${encodeURIComponent(
     viewDataRes?.data.gamePlayResult.bitsWon > 0
-      ? "I just played the XP Game on Sigma Music and won " + viewDataRes?.data.gamePlayResult.bitsWon + " XP 🙌 Play now and get your own XP!"
+      ? "I just played the XP Game on @SigmaXMusic and won " + viewDataRes?.data.gamePlayResult.bitsWon + " XP 🙌 Play now and get your own XP!"
       : "Oh no, I got rugged getting XP this time. Maybe you will have better luck?"
   )}`;
 
