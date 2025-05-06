@@ -1,10 +1,11 @@
-import { Home, StatusBoard } from "./pages";
+import { Home, StatusBoard, FAQ } from "./pages";
 
 export const routeNames = {
   home: "/",
   login: "/login",
   paymentSuccess: "/payment-success",
   statusBoard: "/status-board",
+  faq: "/faq",
 };
 
 interface RouteType {
@@ -27,5 +28,10 @@ export const routes: RouteWithTitleType[] = [
     path: routeNames.statusBoard,
     title: "Status Board",
     component: StatusBoard,
+  },
+  {
+    path: routeNames.faq,
+    title: "FAQ",
+    component: FAQ,
   },
 ];

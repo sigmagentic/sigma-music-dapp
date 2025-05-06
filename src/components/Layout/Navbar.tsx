@@ -51,13 +51,22 @@ export const Navbar = () => {
         <div className="flex flex-col items-left text-xl">
           <Link className="flex flex-row items-center" to={routeNames.home}>
             <div className="flex flex-row leading-none">
-              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[230px] mt-[10px]" />
+              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[160px] md:w-[230px] mt-[10px]" />
             </div>
           </Link>
         </div>
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
           <NavigationMenuList>
+            <NavigationMenuItem>
+              <Button
+                className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-md h-[48px] hover:text-yellow-400"
+                onClick={() => {
+                  window.location.href = `${routeNames.faq}`;
+                }}>
+                $SIGMA FAQ
+              </Button>
+            </NavigationMenuItem>
             {/* XP Button */}
             {!DISABLE_BITZ_FEATURES && isLoggedInSol && solBitzNfts.length > 0 && (
               <>
@@ -140,6 +149,14 @@ export const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                 )}
+                <Button
+                  className="bg-background text-foreground hover:bg-background/90 border-0 !text-xs hover:text-yellow-400"
+                  onClick={() => {
+                    window.location.href = `${routeNames.faq}`;
+                  }}>
+                  $SIGAM <br />
+                  FAQ
+                </Button>
               </div>
               <DropdownMenuContent className="w-56">
                 {isLoggedInSol && (
