@@ -89,7 +89,7 @@ const faqSections: FAQSection[] = [
                 <ul className="list-disc pl-6 space-y-2 mt-2">
                   <li>🎵 Music NFTs</li>
                   <li>🌟 Inner Circle Fan Membership NFTs</li>
-                  <li>💰 $SIGMA tokens worth at least $9.99 (the price of a fan membership)</li>
+                  <li>💰 $FAN tokens worth at least $9.99 (the price of a fan membership)</li>
                 </ul>
               </div>
 
@@ -112,17 +112,17 @@ const faqSections: FAQSection[] = [
     ],
   },
   {
-    title: "$SIGMA Token",
+    title: "$FAN Token",
     questions: [
       {
         id: "sigma-token-utility",
-        question: "$SIGMA Token Utility",
+        question: "$FAN Token Utility",
         answer: (
           <div className="space-y-6">
             <p className="mb-4">
-              The utility of $SIGMA is powerful—yet simple.
+              The utility of $FAN is powerful—yet simple.
               <br />
-              Sigma Music is unique in how it shares value. By holding the $SIGMA token, fans become true participants in the music economy.
+              Sigma Music is unique in how it shares value. By holding the $FAN token, fans become true participants in the music economy.
             </p>
 
             <div className="space-y-4">
@@ -131,7 +131,7 @@ const faqSections: FAQSection[] = [
                 <p className="mb-2">Sigma shares up to 10% of all platform revenue back with die-hard fans through raffles. To enter, you need:</p>
                 <ul className="list-disc pl-6 space-y-1">
                   <li>A "inner circle" fan membership or music NFT (your raffle ticket)</li>
-                  <li>At least $9.99 worth of $SIGMA (each multiple gives you more chances)</li>
+                  <li>At least $9.99 worth of $FAN (each multiple gives you more chances)</li>
                 </ul>
                 <p className="mt-2">This creates a model where fans are incentivized to support artists—and win alongside them.</p>
               </div>
@@ -145,7 +145,7 @@ const faqSections: FAQSection[] = [
 
               <div>
                 <h4 className="text-lg font-semibold mb-2">2. Token-Gated Features & Access</h4>
-                <p className="mb-2">Holding $SIGMA unlocks powerful perks and gated features:</p>
+                <p className="mb-2">Holding $FAN unlocks powerful perks and gated features:</p>
                 <ul className="list-disc pl-6 space-y-1">
                   <li>Generation of longer tracks in Sigma REMiX, our AI-powered remixing tool</li>
                   <li>Exclusive discounts on platform-wide music subscriptions</li>
@@ -156,7 +156,7 @@ const faqSections: FAQSection[] = [
               <div>
                 <h4 className="text-lg font-semibold mb-2">3. Governance & Community-Led Growth</h4>
                 <p>
-                  Our aim is to evolve $SIGMA into a governance token as well. Token holders can vote on reward distribution rules, platform direction, and
+                  Our aim is to evolve $FAN into a governance token as well. Token holders can vote on reward distribution rules, platform direction, and
                   incentive structures—ensuring that artists, fans, and creators grow together in a fair, community-owned ecosystem.
                 </p>
               </div>
@@ -166,10 +166,10 @@ const faqSections: FAQSection[] = [
       },
       {
         id: "sigma-tokenomics",
-        question: "$SIGMA Token – Tokenomics",
+        question: "$FAN Token – Tokenomics",
         answer: (
           <div className="space-y-6">
-            <p className="text-lg font-semibold">Total Supply: 1,000,000,000 $SIGMA</p>
+            <p className="text-lg font-semibold">Total Supply: 1,000,000,000 $FAN</p>
 
             <div className="space-y-4">
               <p>
@@ -177,7 +177,7 @@ const faqSections: FAQSection[] = [
                 survive.
               </p>
               <p>
-                Too many Web3 projects dump tokens for revenue. That's a short-term play and a long-term loss—for everyone. Instead, $SIGMA is designed to grow
+                Too many Web3 projects dump tokens for revenue. That's a short-term play and a long-term loss—for everyone. Instead, $FAN is designed to grow
                 our fanbase and power the world's largest music distribution network.
               </p>
               <p>
@@ -207,7 +207,7 @@ const faqSections: FAQSection[] = [
                   <h5 className="text-md font-semibold flex items-center gap-2">
                     <span>💧</span> Token Growth via Liquidity
                   </h5>
-                  <p className="mt-2">To expand $SIGMA across more DEXs and eventually CEXs, we'll need to build strong liquidity pools.</p>
+                  <p className="mt-2">To expand $FAN across more DEXs and eventually CEXs, we'll need to build strong liquidity pools.</p>
                 </div>
               </div>
 
@@ -220,14 +220,14 @@ const faqSections: FAQSection[] = [
       },
       {
         id: "token-burning",
-        question: "Will there be $SIGMA token burning?",
+        question: "Will there be $FAN token burning?",
         answer: (
           <div className="space-y-4">
-            <p className="mb-4">Yes, $SIGMA implements a deflationary mechanism through:</p>
+            <p className="mb-4">Yes, $FAN implements a deflationary mechanism through:</p>
             <div className="space-y-3">
               <p>
                 Sigma is a revenue-generating platform. Every album sold and every "inner circle" fan membership contributes to platform income. This revenue
-                covers tech, operations, and infrastructure—but a portion will also go toward buybacks and burning $SIGMA from the market.
+                covers tech, operations, and infrastructure—but a portion will also go toward buybacks and burning $FAN from the market.
               </p>
               <p className="font-semibold">It's a long-term loop: real revenue → real utility → real value.</p>
             </div>
@@ -236,7 +236,7 @@ const faqSections: FAQSection[] = [
       },
       {
         id: "token-locks",
-        question: "Will there be $SIGMA token locks for the project supply?",
+        question: "Will there be $FAN token locks for the project supply?",
         answer: (
           <div className="space-y-4">
             <p className="mb-4">
@@ -249,20 +249,27 @@ const faqSections: FAQSection[] = [
 
               <div className="bg-gray-800 p-4 rounded-lg mb-4">
                 <h5 className="font-semibold mb-2">Public Distribution:</h5>
-                <p>50% of total supply will be available on the open market (Auto.Fun and Raydium).</p>
+                <p>over 50% of total supply will be available on the open market (Auto.Fun and Raydium).</p>
               </div>
 
               <div className="bg-gray-800 p-4 rounded-lg mb-4">
                 <h5 className="font-semibold mb-2">Project Distribution:</h5>
-                <p className="mb-3">The Sigma project team will buy 50% of the total supply directly directly from the market to support platform growth.</p>
+                <p className="mb-3">
+                  The Sigma project team will buy around 25-35% of the total supply directly to support platform growth. (the exact amount is not yet
+                  determined)
+                </p>
 
                 <div className="pl-4 border-l-2 border-gray-600">
                   <p className="font-semibold mb-2">Of the supply the team buys:</p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>
-                      80% will be locked with a 3 month cliff followed by a linear vesting schedule on Streamflow (we'll share the vesting links at launch).
+                      we intend to lock 80% of the supply with a 3 month cliff followed by a linear vesting schedule on Streamflow. More details will be shared
+                      a few days after launch once we confirm the exact amount we were able to secure for the project initiatives.
                     </li>
-                    <li>10% will be used for public distribution, directly for airdrops to sigmamusic.fm app users</li>
+                    <li>
+                      10% will be used for public distribution, directly for airdrops to sigmamusic.fm app users! airdrops will commence by the 3rd - 4th week
+                      of June 2025
+                    </li>
                     <li>10% will be used for liquidity support for new DEX/CEX listings.</li>
                   </ul>
                 </div>
