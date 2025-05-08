@@ -45,7 +45,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
   const [paymentTx, setPaymentTx] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerified, setIsVerified] = useState(true);
+  const [isVerified, setIsVerified] = useState(false);
   const [verificationError, setVerificationError] = useState("");
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -238,24 +238,24 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     return sendBackOnlyText ? tweetText : `https://twitter.com/intent/tweet?text=${tweetText}`;
   };
 
-  // const handleVerifyInviteCode = async () => {
-  //   setIsVerifying(true);
-  //   setVerificationError("");
+  const handleVerifyInviteCode = async () => {
+    setIsVerifying(true);
+    setVerificationError("");
 
-  //   try {
-  //     const response = await axios.get(`${getApiWeb2Apps()}/itheumapi/check-invitation/${inviteCode}`);
-  //     if (response.data.exists && !response.data.isUsed) {
-  //       setIsVerified(true);
-  //       toastSuccess("Invite code verified!", true);
-  //     } else {
-  //       setVerificationError("Invite code cannot be used, are you sure it's good?");
-  //     }
-  //   } catch (error) {
-  //     setVerificationError("Error verifying invite code. Please try again.");
-  //   } finally {
-  //     setIsVerifying(false);
-  //   }
-  // };
+    try {
+      const response = await axios.get(`${getApiWeb2Apps()}/itheumapi/check-invitation/${inviteCode}`);
+      if (response.data.exists && !response.data.isUsed) {
+        setIsVerified(true);
+        toastSuccess("Invite code verified!", true);
+      } else {
+        setVerificationError("Invite code cannot be used, are you sure it's good?");
+      }
+    } catch (error) {
+      setVerificationError("Error verifying invite code. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const MusicStyleSelector = () => (
     <div className="space-y-3">
@@ -344,8 +344,13 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
           </div>
 
           <div className="space-y-4">
-            {/* <div>
-              <label className="block text-sm font-medium mb-2">Invite Code</label>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Invite Code (Request one from Sigma Telegram "App Help" channel -{" "}
+                <a href="https://t.me/SigmaXMusicOfficial" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                  https://t.me/SigmaXMusicOfficial
+                </a>
+              </label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -369,7 +374,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
                 </Button>
               </div>
               {verificationError && <p className="text-red-500 text-sm mt-1">{verificationError}</p>}
-            </div> */}
+            </div>
 
             <div className={`flex flex-col gap-4 ${!isVerified ? "opacity-50" : ""} ${promptGenerated ? "opacity-50 cursor-not-allowed" : ""}`}>
               <div>
@@ -426,11 +431,12 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
 
         {/* Right Column - Instructions */}
         <div className="bg-cyan-900 bg-opacity-20 rounded-lg flex flex-col gap-2 p-8">
-          <p className="text-xl font-bold mb-4">How it works?</p>
-          <ul className="space-y-3 list-none">
+          <p className="text-lg font-bold mb-4">How it works?</p>
+          <ul className="space-y-3 list-none text-sm">
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">1.</span>
-              Hold over $99 USD worth of $FAN tokens in your wallet
+              Hold over $49 USD worth of $FAN tokens in your wallet. All music you generate will be original and sold as royalty-free NFTs with your and the
+              original artist's name on them artists sharing the earnings.
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">2.</span>
