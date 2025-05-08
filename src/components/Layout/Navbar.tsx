@@ -87,7 +87,7 @@ export const Navbar = () => {
                   onClick={() => {
                     window.location.href = `${routeNames.faq}`;
                   }}>
-                  $SIGMA TOKEN FAQ
+                  $FAN TOKEN FAQ
                 </Button>
               </div>
             </NavigationMenuItem>
@@ -188,7 +188,7 @@ export const Navbar = () => {
                   onClick={() => {
                     window.location.href = `${routeNames.faq}`;
                   }}>
-                  $SIGMA <br />
+                  $FAN <br />
                   FAQ
                 </Button>
                 <Button

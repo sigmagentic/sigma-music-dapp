@@ -45,7 +45,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
   const [paymentTx, setPaymentTx] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerified, setIsVerified] = useState(true);
   const [verificationError, setVerificationError] = useState("");
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -138,7 +138,8 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         type: "sol",
         amount: requiredSolAmount.toString(),
         prompt: getTweetUrl(true, signature),
-        inviteCodeUsed: inviteCode,
+        // inviteCodeUsed: inviteCode,
+        inviteCodeUsed: "na",
       });
 
       toastSuccess("Payment Successful!", true);
@@ -237,24 +238,24 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
     return sendBackOnlyText ? tweetText : `https://twitter.com/intent/tweet?text=${tweetText}`;
   };
 
-  const handleVerifyInviteCode = async () => {
-    setIsVerifying(true);
-    setVerificationError("");
+  // const handleVerifyInviteCode = async () => {
+  //   setIsVerifying(true);
+  //   setVerificationError("");
 
-    try {
-      const response = await axios.get(`${getApiWeb2Apps()}/itheumapi/check-invitation/${inviteCode}`);
-      if (response.data.exists && !response.data.isUsed) {
-        setIsVerified(true);
-        toastSuccess("Invite code verified!", true);
-      } else {
-        setVerificationError("Invite code cannot be used, are you sure it's good?");
-      }
-    } catch (error) {
-      setVerificationError("Error verifying invite code. Please try again.");
-    } finally {
-      setIsVerifying(false);
-    }
-  };
+  //   try {
+  //     const response = await axios.get(`${getApiWeb2Apps()}/itheumapi/check-invitation/${inviteCode}`);
+  //     if (response.data.exists && !response.data.isUsed) {
+  //       setIsVerified(true);
+  //       toastSuccess("Invite code verified!", true);
+  //     } else {
+  //       setVerificationError("Invite code cannot be used, are you sure it's good?");
+  //     }
+  //   } catch (error) {
+  //     setVerificationError("Error verifying invite code. Please try again.");
+  //   } finally {
+  //     setIsVerifying(false);
+  //   }
+  // };
 
   const MusicStyleSelector = () => (
     <div className="space-y-3">
@@ -343,7 +344,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
           </div>
 
           <div className="space-y-4">
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium mb-2">Invite Code</label>
               <div className="flex gap-2">
                 <input
@@ -368,7 +369,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
                 </Button>
               </div>
               {verificationError && <p className="text-red-500 text-sm mt-1">{verificationError}</p>}
-            </div>
+            </div> */}
 
             <div className={`flex flex-col gap-4 ${!isVerified ? "opacity-50" : ""} ${promptGenerated ? "opacity-50 cursor-not-allowed" : ""}`}>
               <div>
@@ -429,7 +430,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
           <ul className="space-y-3 list-none">
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">1.</span>
-              Enter an invite code and fill the form for your music meme preferences
+              Hold over $99 USD worth of $FAN tokens in your wallet
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">2.</span>
@@ -437,7 +438,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
               <span className="text-orange-600 contents">
                 {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD} USD)
               </span>{" "}
-              to Sigma's wallet. This is used to pay for music AI LLM usage and tokenization of your music NFT
+              to Sigma's wallet. This is used to protect against spam and for music AI LLM usage and tokenization of your music NFT
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">3.</span>
