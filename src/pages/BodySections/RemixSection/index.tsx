@@ -828,13 +828,13 @@ const RemixSectionContent = () => {
               }}>
               <div>
                 {DISABLE_REMIX_LAUNCH_BUTTON ? (
-                  <div>Launch AI Music Meme Coin! (Offline For Now!)</div>
+                  <div>Launch AI Music Memes! (Offline For Now!)</div>
                 ) : !addressSol ? (
-                  <div>Launch AI Music Meme Coin! Login First</div>
+                  <div>Launch AI Music Memes! Login First</div>
                 ) : walletType !== "phantom" ? (
-                  <div>Launch AI Music Meme Coin! (Currently only Phantom Wallet is supported)</div>
+                  <div>Launch AI Music Memes! (Currently only Phantom Wallet is supported)</div>
                 ) : (
-                  <div>Launch AI Music Meme Coin!</div>
+                  <div>Launch AI Music Memes!</div>
                 )}
               </div>
             </Button>
