@@ -190,7 +190,7 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline">Agent</span>}
                     </button>
                   </Tooltip>
-                  <Tooltip text="REMiX">
+                  <Tooltip text="AI REMiX : Generate & Own Royalty-Free Viral AI Music">
                     <button
                       onClick={() => {
                         removeArtistProfileParamFromUrl();

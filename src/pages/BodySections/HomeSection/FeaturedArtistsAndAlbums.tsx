@@ -149,6 +149,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       previewTrackAudio.removeEventListener("ended", eventToAttachEnded);
       previewTrackAudio.removeEventListener("timeupdate", eventToAttachTimeUpdate);
       previewTrackAudio.removeEventListener("canplaythrough", eventToAttachCanPlayThrough);
+
+      handleBackToArtistTileView(); // user is leaving the page so we need to reset the view to prestine tile for the next entry
     };
   }, []);
 

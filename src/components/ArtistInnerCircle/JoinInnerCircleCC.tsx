@@ -51,7 +51,10 @@ export const JoinInnerCircleCC = ({
 
     const intentExtraParams: Record<string, any> = {
       amountToPay: tierData[membershipId].defaultPriceUSD.toString(),
-      creatorAndMembershipTierId: `fan-${creatorPaymentsWallet.trim().toLowerCase()}-${membershipId}`,
+      type: "fan",
+      creatorAndMembershipTierId: `fan-${creatorPaymentsWallet.trim().toLowerCase()}-${artistId.trim()}-${membershipId}`,
+      artistSlug,
+      artistName,
       buyerSolAddress: publicKey.toBase58(),
     };
 
