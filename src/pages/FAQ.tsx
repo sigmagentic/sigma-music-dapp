@@ -68,6 +68,101 @@ const faqSections: FAQSection[] = [
         ),
       },
       {
+        id: "mission-statement",
+        question: "What are the features on this music app and platform?",
+        answer: (
+          <div className="space-y-6">
+            <p className="text-lg font-semibold mb-4">
+              Sigma Music is where artists, fans, and AI come together to change the music game. Here's what's already live on the app:
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>🎵</span> Launch Music, No Strings Attached
+                </h4>
+                <p>
+                  Artists can drop full albums, singles, or samples—for free. Want to sell your work? Set your own prices. Whether it's pay-what-you-want or
+                  premium drops, it's all up to the artist. No label middlemen. No gatekeepers.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>🎧</span> Listen Free, Unlock Premium with NFTs
+                </h4>
+                <p>Anyone can stream music freely. But if you want exclusive tracks, hidden content, or premium perks—you'll need to buy Music NFTs.</p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>⚡</span> Power-Up System (Yep, Like a Game)
+                </h4>
+                <p>
+                  Fans collect free XP every 6 hours and can use it to "power up" artists and albums. That not only supports artists—it unlocks rewards and
+                  drives discovery.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>💎</span> Inner Circle Fan Memberships
+                </h4>
+                <p>
+                  Buy a one-time or monthly membership to support your fav artists. You'll get exclusive access, perks, shoutouts—and a chance to win in
+                  platform raffles.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>🤖</span> Sigma REMiX: Co-Create Music with AI
+                </h4>
+                <p>
+                  With Sigma REMiX, fans can use AI to remix real music from artists. The remix gets minted into a Music NFT—and both the artist and the fan
+                  earn revenue from sales.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>🧠</span> Sigma: Your AI Music Agent
+                </h4>
+                <p>
+                  Sigma isn't just an AI. She knows every track, album, and artist on the platform—and helps fans discover music or remix it. You can even chat
+                  with her on X to make music.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>💰</span> Revenue Sharing
+                </h4>
+                <p>
+                  Starting with raffles for holders, and soon expanding to include reward systems based on your social reach and referrals. Promote your fav
+                  artists, grow the platform, and get rewarded.
+                </p>
+              </div>
+
+              <div className="bg-gray-800 p-4 rounded-lg mt-6">
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>👾</span> Try It Out Now
+                </h4>
+                <p>Want to see how it all works? Launch tour mode now:</p>
+                <a
+                  href="https://sigmamusic.fm?g=tour"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-yellow-400 hover:text-yellow-300 transition-colors inline-block mt-2">
+                  👉 https://sigmamusic.fm?g=tour
+                </a>
+              </div>
+            </div>
+          </div>
+        ),
+      },
+
+      {
         id: "fan-revenue-share",
         question: "How Does the Fan Revenue Share Work?",
         answer: (

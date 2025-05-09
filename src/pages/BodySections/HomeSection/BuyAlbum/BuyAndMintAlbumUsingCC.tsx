@@ -42,7 +42,10 @@ export const BuyAndMintAlbumUsingCC = ({
 
     const intentExtraParams: Record<string, any> = {
       amountToPay: albumToBuyAndMint._buyNowMeta?.priceInUSD,
+      type: "album",
       albumId: albumToBuyAndMint.albumId,
+      artistSlug: artistProfile.slug,
+      artistName: artistProfile.name,
       buyerSolAddress: publicKey.toBase58(),
     };
 
