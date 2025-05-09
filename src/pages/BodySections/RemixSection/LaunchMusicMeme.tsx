@@ -138,7 +138,8 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         type: "sol",
         amount: requiredSolAmount.toString(),
         prompt: getTweetUrl(true, signature),
-        inviteCodeUsed: inviteCode,
+        // inviteCodeUsed: inviteCode,
+        inviteCodeUsed: "na",
       });
 
       toastSuccess("Payment Successful!", true);
@@ -344,7 +345,12 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Invite Code</label>
+              <label className="block text-sm font-medium mb-2">
+                Invite Code (Request one from Sigma Telegram "App Help" channel -{" "}
+                <a href="https://t.me/SigmaXMusicOfficial" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                  https://t.me/SigmaXMusicOfficial
+                </a>
+              </label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -425,11 +431,12 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
 
         {/* Right Column - Instructions */}
         <div className="bg-cyan-900 bg-opacity-20 rounded-lg flex flex-col gap-2 p-8">
-          <p className="text-xl font-bold mb-4">How it works?</p>
-          <ul className="space-y-3 list-none">
+          <p className="text-lg font-bold mb-4">How it works?</p>
+          <ul className="space-y-3 list-none text-sm">
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">1.</span>
-              Enter an invite code and fill the form for your music meme preferences
+              Hold over $49 USD worth of $FAN tokens in your wallet. All music you generate will be original and sold as royalty-free NFTs with your and the
+              original artist's name on them artists sharing the earnings.
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">2.</span>
@@ -437,7 +444,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
               <span className="text-orange-600 contents">
                 {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD} USD)
               </span>{" "}
-              to Sigma's wallet. This is used to pay for music AI LLM usage and tokenization of your music NFT
+              to Sigma's wallet. This is used to protect against spam and for music AI LLM usage and tokenization of your music NFT
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">3.</span>

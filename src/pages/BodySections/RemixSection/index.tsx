@@ -132,7 +132,7 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
 };
 
 const RemixSectionContent = () => {
-  const { publicKey: publicKeySol } = useSolanaWallet();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -797,43 +797,44 @@ const RemixSectionContent = () => {
     return tokenGraduated;
   };
 
-  const isWalletWhitelisted = (wallet: string | undefined) => {
-    if (!wallet || !SIGMA_MEME_FEATURE_WHITELIST) return false;
-    const whitelistedAddresses = SIGMA_MEME_FEATURE_WHITELIST.split(",").map((addr) => addr.trim());
-    return whitelistedAddresses.includes(wallet);
-  };
+  // const isWalletWhitelisted = (wallet: string | undefined) => {
+  //   if (!wallet || !SIGMA_MEME_FEATURE_WHITELIST) return false;
+  //   const whitelistedAddresses = SIGMA_MEME_FEATURE_WHITELIST.split(",").map((addr) => addr.trim());
+  //   return whitelistedAddresses.includes(wallet);
+  // };
 
   return (
     <>
       <div className="flex flex-col min-h-screen w-full">
         <div className="flex flex-col md:flex-row items-center justify-between mb-5">
-          <h1 className="!text-2xl md:!text-3xl font-semibold text-center md:text-left">
-            <span className="text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">Sigma REMiX</span> : Launch AI
-            Music Meme Coins!
+          <h1 className="!text-2xl font-semibold text-center md:text-left">
+            <span className="text-2xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">Sigma REMiX</span> : Launch AI
+            Music Meme Coins! <span className="text-xs text-gray-500">(Beta)</span>
           </h1>
+
           <div className="flex flex-col md:flex-row md:gap-4 gap-2">
-            {myJobsPayments.length > 0 && (
+            {myJobsPayments.length > 0 && walletType === "phantom" && (
               <Button
-                className="bg-gradient-to-r from-purple-500 to-blue-500 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg"
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-sm text-center p-2 md:p-4 rounded-lg"
                 onClick={() => setIsJobsModalOpen(true)}>
                 Your Jobs
               </Button>
             )}
             <Button
-              disabled={!addressSol || DISABLE_REMIX_LAUNCH_BUTTON || !isWalletWhitelisted(addressSol)}
-              className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm md:text-xl text-center p-2 md:p-4 rounded-lg"
+              disabled={!addressSol || DISABLE_REMIX_LAUNCH_BUTTON || walletType !== "phantom"}
+              className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm text-center p-2 md:p-4 rounded-lg"
               onClick={() => {
                 setLaunchMusicMemeModalOpen(true);
               }}>
               <div>
                 {DISABLE_REMIX_LAUNCH_BUTTON ? (
-                  <div>Launch AI Music Meme Coin! (Offline For Now!)</div>
+                  <div>Launch AI Music Memes! (Offline For Now!)</div>
                 ) : !addressSol ? (
-                  <div>Launch AI Music Meme Coin! Login First</div>
-                ) : !isWalletWhitelisted(addressSol) ? (
-                  <div>Launch AI Music Meme Coin! (Whitelisted Users Only)</div>
+                  <div>Launch AI Music Memes! Login First</div>
+                ) : walletType !== "phantom" ? (
+                  <div>Launch AI Music Memes! (Currently only Phantom Wallet is supported)</div>
                 ) : (
-                  <div>Launch AI Music Meme Coin!</div>
+                  <div>Launch AI Music Memes!</div>
                 )}
               </div>
             </Button>

@@ -50,7 +50,7 @@ export const Navbar = () => {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get("g") === "1") {
+    if (searchParams.get("g") === "1" || searchParams.get("g") === "tour") {
       setShowProductTour(true);
     }
   }, [location.search]);
@@ -87,7 +87,7 @@ export const Navbar = () => {
                   onClick={() => {
                     window.location.href = `${routeNames.faq}`;
                   }}>
-                  $SIGMA TOKEN FAQ
+                  $FAN / APP FAQ
                 </Button>
               </div>
             </NavigationMenuItem>
@@ -188,7 +188,7 @@ export const Navbar = () => {
                   onClick={() => {
                     window.location.href = `${routeNames.faq}`;
                   }}>
-                  $SIGMA <br />
+                  $FAN / APP <br />
                   FAQ
                 </Button>
                 <Button
