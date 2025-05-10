@@ -519,9 +519,6 @@ export const HomeSection = (props: HomeSectionProps) => {
             </div>
           )}
 
-          {/* <h2>campaignCodeFilter: {campaignCodeFilter}</h2>
-          <h2>homeMode: {homeMode}</h2> */}
-
           {homeMode.includes("campaigns-wsb") && <CampaignHero handleCampaignCodeFilterChange={setCampaignCodeFilter} />}
 
           {/* Artists and their Albums */}

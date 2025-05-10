@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LuFlaskRound } from "react-icons/lu";
+import { LuSpeaker } from "react-icons/lu";
 import GetBitz from "pages/AppMarketplace/GetBitz";
 import useSolBitzStore from "store/solBitz";
 type PathwaysModalProps = {
@@ -23,7 +23,7 @@ export const PlayBitzModal: React.FC<PathwaysModalProps> = (props) => {
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mr-auto">Play To Win Sigma XP</h3>
             <div className="flex flex-row text-gray-900 dark:text-white">
               {bitzBalance === -2 ? <span>...</span> : <>{bitzBalance === -1 ? <div>0</div> : <div>{bitzBalance}</div>}</>}
-              <LuFlaskRound fontSize={"1.4rem"} fill="#f97316" />
+              <LuSpeaker fontSize="1.4rem" />
             </div>
             <div>
               <button

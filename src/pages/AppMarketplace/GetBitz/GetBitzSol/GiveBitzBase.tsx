@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
-import { FlaskRound } from "lucide-react";
+import { Speaker } from "lucide-react";
 import bounty from "assets/img/getbitz/givebitz/bountyMain.png";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -345,7 +345,7 @@ const GiveBitzBase = () => {
               {publicKeySol && (
                 <>
                   {bitzBalance === -2 ? `...` : <>{bitzBalance === -1 ? "0" : `${bitzBalance}`}</>}
-                  <FlaskRound className=" w-10 h-10 fill-[#f97316]" />
+                  <Speaker className=" w-10 h-10" />
                 </>
               )}
             </div>
