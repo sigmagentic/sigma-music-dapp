@@ -605,6 +605,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       onSendBitzForMusicBounty({
         creatorIcon: song.cover_art_url,
         creatorName: `${song.artist}'s ${song.album}`,
+        creatorSlug: undefined,
         giveBitzToWho: bitzGiftingMeta.creatorWallet,
         giveBitzToCampaignId: bitzGiftingMeta.giveBitzToCampaignId,
         isLikeMode: true,

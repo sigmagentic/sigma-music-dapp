@@ -69,10 +69,11 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [giveBitzForMusicBountyConfig, setGiveBitzForMusicBountyConfig] = useState<{
     creatorIcon: string | undefined;
     creatorName: string | undefined;
+    creatorSlug: string | undefined;
     giveBitzToWho: string;
     giveBitzToCampaignId: string;
     isLikeMode?: boolean | undefined;
-  }>({ creatorIcon: undefined, creatorName: undefined, giveBitzToWho: "", giveBitzToCampaignId: "", isLikeMode: undefined });
+  }>({ creatorIcon: undefined, creatorName: undefined, creatorSlug: undefined, giveBitzToWho: "", giveBitzToCampaignId: "", isLikeMode: undefined });
 
   // this is a copy of the bitz balances bounties are getting (inside FeaturedArtistsAndAlbums.tsx) during the users ui session
   // ... but it only get progressively loaded as the user moves between tabs to see the artist and their albums (so its not a complete state)
@@ -446,12 +447,14 @@ export const HomeSection = (props: HomeSectionProps) => {
   function handleSendBitzForMusicBounty({
     creatorIcon,
     creatorName,
+    creatorSlug,
     giveBitzToWho,
     giveBitzToCampaignId,
     isLikeMode,
   }: {
     creatorIcon: string;
     creatorName: string;
+    creatorSlug: string | undefined;
     giveBitzToWho: string;
     giveBitzToCampaignId: string;
     isLikeMode?: boolean;
@@ -459,6 +462,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     setGiveBitzForMusicBountyConfig({
       creatorIcon,
       creatorName,
+      creatorSlug,
       giveBitzToWho,
       giveBitzToCampaignId,
       isLikeMode,
@@ -751,6 +755,7 @@ export const HomeSection = (props: HomeSectionProps) => {
               setGiveBitzForMusicBountyConfig({
                 creatorIcon: undefined,
                 creatorName: undefined,
+                creatorSlug: undefined,
                 giveBitzToWho: "",
                 giveBitzToCampaignId: "",
                 isLikeMode: undefined,

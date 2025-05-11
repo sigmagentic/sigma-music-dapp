@@ -618,6 +618,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                       onSendBitzForMusicBounty({
                                         creatorIcon: artistProfile.img,
                                         creatorName: artistProfile.name,
+                                        creatorSlug: artistProfile.slug,
                                         giveBitzToWho: artistProfile.creatorWallet,
                                         giveBitzToCampaignId: artistProfile.bountyId,
                                       });
@@ -661,6 +662,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                         onSendBitzForMusicBounty({
                                           creatorIcon: artistProfile.img,
                                           creatorName: artistProfile.name,
+                                          creatorSlug: artistProfile.slug,
                                           giveBitzToWho: artistProfile.creatorWallet,
                                           giveBitzToCampaignId: artistProfile.bountyId,
                                         });
