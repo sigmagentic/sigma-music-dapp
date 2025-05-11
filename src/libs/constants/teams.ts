@@ -27,4 +27,7 @@ export const TEAMS: Record<string, Team[]> = {
     { teamName: "Teen Gboyz JRS", teamCode: "12" },
     { teamName: "Open AMK Rocknation", teamCode: "12" },
   ],
+  sin: [],
+  aus: [],
+  ida: [],
 };
