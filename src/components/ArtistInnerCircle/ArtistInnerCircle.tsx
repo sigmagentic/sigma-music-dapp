@@ -48,9 +48,16 @@ interface ArtistInnerCircleProps {
   artistSlug: string;
   creatorPaymentsWallet: string;
   artistId: string;
+  filterByArtistCampaignCode?: string | number;
 }
 
-export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName, artistSlug, creatorPaymentsWallet, artistId }) => {
+export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
+  artistName,
+  artistSlug,
+  creatorPaymentsWallet,
+  artistId,
+  filterByArtistCampaignCode,
+}) => {
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [isLoading, setIsLoading] = useState(true);
@@ -112,9 +119,12 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
 
   useEffect(() => {
     if (!isLoading) {
-      scrollToTopOnMainContentArea(300);
+      // -1 means we are NOT in a campaign mode, only do this if we are in a campaign mode
+      if (filterByArtistCampaignCode !== -1) {
+        scrollToTopOnMainContentArea(300);
+      }
     }
-  }, [isLoading]);
+  }, [isLoading, filterByArtistCampaignCode]);
 
   // Add new useEffect for handling action=buy URL parameter
   useEffect(() => {

@@ -856,6 +856,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistSlug={artistProfile.slug}
                               creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
                               artistId={artistProfile.artistId}
+                              filterByArtistCampaignCode={filterByArtistCampaignCode}
                             />
                           </div>
                         )}
