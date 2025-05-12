@@ -5,7 +5,8 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
 import { fetchCreatorFanMembershipAvailabilityViaAPI, fetchMyFanMembershipsForArtistViaAPI, fetchSolPrice } from "libs/utils/misc";
-import { convertTokenImageUrl } from "libs/utils/ui";
+import { convertTokenImageUrl, scrollToTopOnMainContentArea } from "libs/utils/ui";
+import { routeNames } from "routes";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
 import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
 import { tierData, perksData } from "./tierData";
@@ -47,9 +48,16 @@ interface ArtistInnerCircleProps {
   artistSlug: string;
   creatorPaymentsWallet: string;
   artistId: string;
+  filterByArtistCampaignCode?: string | number;
 }
 
-export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName, artistSlug, creatorPaymentsWallet, artistId }) => {
+export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
+  artistName,
+  artistSlug,
+  creatorPaymentsWallet,
+  artistId,
+  filterByArtistCampaignCode,
+}) => {
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [isLoading, setIsLoading] = useState(true);
@@ -108,6 +116,30 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
       fetchMyFanMembershipsForThisArtist();
     }
   }, [addressSol, artistsMembershipOptions, creatorFanMembershipAvailability]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      // -1 means we are NOT in a campaign mode, only do this if we are in a campaign mode
+      if (filterByArtistCampaignCode !== -1) {
+        scrollToTopOnMainContentArea(300);
+      }
+    }
+  }, [isLoading, filterByArtistCampaignCode]);
+
+  // Add new useEffect for handling action=buy URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get("action");
+
+    if (action === "buy" && addressSol) {
+      // Wait for 1 second before opening the modal
+      const timer = setTimeout(() => {
+        setJoinInnerCircleModalOpen(true);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [addressSol]); // Only re-run if addressSol changes
 
   const fetchPriceInSol = async () => {
     try {
@@ -256,17 +288,21 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
         {/* Animated border background */}
         <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
         <Button
-          disabled={!addressSol}
-          onClick={() => setJoinInnerCircleModalOpen(true)}
+          onClick={() => {
+            if (addressSol) {
+              setJoinInnerCircleModalOpen(true);
+            } else {
+              window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search + "&action=buy")}`;
+            }
+          }}
           className={`relative z-2 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100`}>
           <>
             <ShoppingCart />
-            <span className="ml-2"> Subscribe Now</span>
+            <span className="ml-2">{addressSol ? "Subscribe Now" : "Login to Subscribe"}</span>
           </>
         </Button>
       </div>
 
-      {!addressSol && <p className="text-gray-400 text-sm mt-2 text-center md:text-left">Login first to subscribe</p>}
       {addressSol && requiredSolAmount && (
         <p className="text-gray-400 text-sm mt-2 text-center md:text-left">
           Amount to pay: {requiredSolAmount.toFixed(4)} SOL (${artistsMembershipOptions?.[selectedArtistMembership]?.defaultPriceUSD} USD)
@@ -274,6 +310,17 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
       )}
     </>
   );
+
+  const cleanupActionBuyParam = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("action");
+    window.history.replaceState({}, "", url.toString());
+  };
+
+  const closeJoinModal = () => {
+    setJoinInnerCircleModalOpen(false);
+    cleanupActionBuyParam();
+  };
 
   if (isLoading) {
     return (
@@ -514,8 +561,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                 artistId={artistId}
                 creatorFanMembershipAvailability={creatorFanMembershipAvailability || {}}
                 onCloseModal={(isMintingSuccess: boolean) => {
-                  setJoinInnerCircleModalOpen(false);
-
+                  closeJoinModal();
                   if (isMintingSuccess) {
                     fetchMyFanMembershipsForThisArtist(true);
                   }
@@ -530,7 +576,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({ artistName
                 artistId={artistId}
                 creatorFanMembershipAvailability={creatorFanMembershipAvailability || {}}
                 onCloseModal={() => {
-                  setJoinInnerCircleModalOpen(false);
+                  closeJoinModal();
                 }}
               />
             )}

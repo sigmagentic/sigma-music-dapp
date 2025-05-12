@@ -211,4 +211,53 @@ export const FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP = {
     slug: "wsb-ind-vub-vishal",
     campaignCode: "wsb",
   },
+
+  "FANG45-WsbPhlJhuven-T1": {
+    slug: "wsb-phl-mrw-jhuvenl",
+    campaignCode: "wsb",
+  },
+  "FANG46-WsbPhlMarlouie-T1": {
+    slug: "wsb-phl-mrw-marlouie",
+    campaignCode: "wsb",
+  },
+  "FANG47-WsbPhlMelchor-T1": {
+    slug: "wsb-phl-mrw-melchor",
+    campaignCode: "wsb",
+  },
+  "FANG48-WsbPhlDavid-T1": {
+    slug: "wsb-phl-mrw-david",
+    campaignCode: "wsb",
+  },
+  "FANG49-WsbPhlLoonyo-T1": {
+    slug: "wsb-phl-mrw-loonyo",
+    campaignCode: "wsb",
+  },
+  "FANG50-WsbPhlAira-T1": {
+    slug: "wsb-phl-mrw-aira",
+    campaignCode: "wsb",
+  },
+  "FANG51-WsbPhlJade-T1": {
+    slug: "wsb-phl-mrw-jade",
+    campaignCode: "wsb",
+  },
+  "FANG52-WsbPhlRichard-T1": {
+    slug: "wsb-phl-mrw-richard",
+    campaignCode: "wsb",
+  },
+  "FANG53-WsbPhlRd-T1": {
+    slug: "wsb-phl-mrw-rd",
+    campaignCode: "wsb",
+  },
+  "FANG54-WsbPhlRalph-T1": {
+    slug: "wsb-phl-mrw-ralph",
+    campaignCode: "wsb",
+  },
+  "FANG55-WsbPhlMannex-T1": {
+    slug: "wsb-phl-mrw-mannex",
+    campaignCode: "wsb",
+  },
+  "FANG56-WsbPhlKliff-T1": {
+    slug: "wsb-phl-mrw-kliff",
+    campaignCode: "wsb",
+  },
 };

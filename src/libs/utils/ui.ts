@@ -78,11 +78,11 @@ export function timeSince(unixTimestamp: number): string {
   return `${count} ${unit}`;
 }
 
-export const scrollToTopOnMainContentArea = () => {
+export const scrollToTopOnMainContentArea = (addMoreOffset?: number) => {
   const mainContent = document.querySelector(".main-content");
   if (mainContent) {
     mainContent.scrollTo({
-      top: 0,
+      top: 0 + (addMoreOffset || 0),
       behavior: "smooth",
     });
   }

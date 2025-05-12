@@ -200,6 +200,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         onSendBitzForMusicBounty({
                           creatorIcon: album.img,
                           creatorName: `${artistProfile.name}'s ${album.title}`,
+                          creatorSlug: artistProfile.slug,
                           giveBitzToWho: artistProfile.creatorWallet,
                           giveBitzToCampaignId: album.bountyId,
                           isLikeMode: true,
@@ -217,6 +218,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                             onSendBitzForMusicBounty({
                               creatorIcon: album.img,
                               creatorName: `${artistProfile.name}'s ${album.title}`,
+                              creatorSlug: artistProfile.slug,
                               giveBitzToWho: artistProfile.creatorWallet,
                               giveBitzToCampaignId: album.bountyId,
                               isLikeMode: true,

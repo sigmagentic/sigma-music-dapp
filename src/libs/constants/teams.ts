@@ -21,10 +21,13 @@ export const TEAMS: Record<string, Team[]> = {
     { teamName: "Cell GFam", teamCode: "10" },
   ],
   phl: [
-    { teamName: "Monster Rockwell", teamCode: "11" },
+    { teamName: "Monster Rockwell", teamCode: "mrw" },
     { teamName: "Teen The Alive One", teamCode: "12" },
     { teamName: "Monster LCDC", teamCode: "12" },
     { teamName: "Teen Gboyz JRS", teamCode: "12" },
     { teamName: "Open AMK Rocknation", teamCode: "12" },
   ],
+  sin: [],
+  aus: [],
+  ida: [],
 };

@@ -55,6 +55,7 @@ export const Layout = ({
     delete currentParams["artist"];
     delete currentParams["campaign"];
     delete currentParams["tab"];
+    delete currentParams["action"];
     setSearchParams(currentParams);
   };
 
@@ -252,7 +253,7 @@ export const Layout = ({
                   </Tooltip>
                   {isLoggedIn && (
                     <>
-                      <Tooltip text="Your collection of Sigma NFTs">
+                      <Tooltip text="Your NFT Wallet">
                         <button
                           onClick={() => {
                             removeArtistProfileParamFromUrl();

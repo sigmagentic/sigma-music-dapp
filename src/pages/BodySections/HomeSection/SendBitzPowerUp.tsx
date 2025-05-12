@@ -17,6 +17,7 @@ type SendBitzPowerUpProps = {
   giveBitzForMusicBountyConfig: {
     creatorIcon?: string | undefined;
     creatorName?: string | undefined;
+    creatorSlug?: string | undefined;
     giveBitzToWho: string;
     giveBitzToCampaignId: string;
     isLikeMode?: boolean;
@@ -26,7 +27,7 @@ type SendBitzPowerUpProps = {
 
 export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { giveBitzForMusicBountyConfig, onCloseModal } = props;
-  const { creatorIcon, creatorName, giveBitzToWho, giveBitzToCampaignId, isLikeMode } = giveBitzForMusicBountyConfig;
+  const { creatorIcon, creatorName, creatorSlug, giveBitzToWho, giveBitzToCampaignId, isLikeMode } = giveBitzForMusicBountyConfig;
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol } = useSolanaWallet();
   const [giftBitzWorkflow, setGiftBitzWorkflow] = useState<boolean>(false);
@@ -40,6 +41,10 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
 
   const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
+
+  const tweetText = `url=${encodeURIComponent(`${creatorSlug ? `https://sigmamusic.fm?artist=${creatorSlug}` : `https://sigmamusic.fm`}`)}&text=${encodeURIComponent(
+    `I just supported ${creatorName} on @SigmaXMusic by giving them ${bitzValToGift} of my XP!`
+  )}`;
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -260,10 +265,25 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                   )}
 
                   {powerUpSuccessfullyDone && (
-                    <div className="h-[100px] text-lg mt-3">
+                    <div className="h-[100px] text-lg mt-1">
                       <div>Success! thank you for supporting this creator.</div>
+                      <div className="bg-black mt-1 rounded-full p-[10px] -z-1 w-[269px]">
+                        <a
+                          className="z-1 bg-black text-white text-sm rounded-3xl gap-2 flex flex-row justify-center items-center"
+                          href={"https://twitter.com/intent/tweet?" + tweetText}
+                          data-size="large"
+                          target="_blank"
+                          rel="noreferrer">
+                          <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                              <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                            </svg>
+                          </span>
+                          <p className="z-10">Share this news on X</p>
+                        </a>
+                      </div>
                       <Button
-                        className="text-sm mt-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                        className="text-sm mt-2 mb-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
                         variant="secondary"
                         onClick={() => {
                           onCloseModal(powerUpSuccessfullyDone ? { bitzValToGift, giveBitzToCampaignId } : undefined);
