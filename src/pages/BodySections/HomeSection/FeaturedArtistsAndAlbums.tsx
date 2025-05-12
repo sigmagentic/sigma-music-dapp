@@ -419,6 +419,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     const currentParams = Object.fromEntries(searchParams.entries());
     delete currentParams["artist"];
     delete currentParams["tab"];
+    delete currentParams["action"];
     setSearchParams(currentParams);
 
     // reset the featuredArtistDeepLinkSlug
@@ -495,7 +496,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               setUserInteractedWithTabs(true);
                               setLoadIntoTileView(false); // notify the parent that we are in the artist profile view (so that when we click on main Artists menu, we go back to the artist tile view)
 
-                              scrollToTopOnMainContentArea();
+                              if (filterByArtistCampaignCode === -1) {
+                                scrollToTopOnMainContentArea();
+                              }
                             }
                           }}>
                           <div
@@ -615,6 +618,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                       onSendBitzForMusicBounty({
                                         creatorIcon: artistProfile.img,
                                         creatorName: artistProfile.name,
+                                        creatorSlug: artistProfile.slug,
                                         giveBitzToWho: artistProfile.creatorWallet,
                                         giveBitzToCampaignId: artistProfile.bountyId,
                                       });
@@ -658,6 +662,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                         onSendBitzForMusicBounty({
                                           creatorIcon: artistProfile.img,
                                           creatorName: artistProfile.name,
+                                          creatorSlug: artistProfile.slug,
                                           giveBitzToWho: artistProfile.creatorWallet,
                                           giveBitzToCampaignId: artistProfile.bountyId,
                                         });
@@ -853,6 +858,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistSlug={artistProfile.slug}
                               creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
                               artistId={artistProfile.artistId}
+                              filterByArtistCampaignCode={filterByArtistCampaignCode}
                             />
                           </div>
                         )}

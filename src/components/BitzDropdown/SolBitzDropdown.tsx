@@ -1,6 +1,6 @@
 import React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
-import { FlaskRound, Gift } from "lucide-react";
+import { Speaker } from "lucide-react";
 import Countdown from "react-countdown";
 import { Link } from "react-router-dom";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -56,7 +56,7 @@ export const SolBitzDropdown = (props: any) => {
                 <div className="flex flex-col justify-center p-3 w-full">
                   <div className="flex justify-center w-full py-4">
                     <div className="flex w-16 h-16 justify-center items-center rounded-sm border-yellow-500 border-[1px]">
-                      <FlaskRound className="w-7 h-7 fill-[#f97316]" />
+                      <Speaker className="w-7 h-7" />
                     </div>
                   </div>
                   <p className="text-xl md:text-2xl text-center font-[Clash-Medium]">What is Sigma XP?</p>
@@ -105,8 +105,7 @@ export const ClaimBitzButton = (props: any) => {
                 return (
                   <PopoverPrimitive.PopoverClose asChild>
                     <div className="flex flex-row justify-center items-center">
-                      <Gift className="mx-2 text-[#fde047]" />
-                      <span className="text-[12px] md:text-sm"> Collect Your {`Sigma`} XP </span>
+                      <span className="text-[12px] md:text-sm"> Collect Your Sigma XP </span>
                     </div>
                   </PopoverPrimitive.PopoverClose>
                 );
@@ -126,8 +125,7 @@ export const ClaimBitzButton = (props: any) => {
         ) : (
           <PopoverPrimitive.PopoverClose asChild>
             <div className="flex flex-row justify-center items-center">
-              <Gift className="mx-2 text-[#fde047]" />
-              <span className="text-[12px] md:text-sm"> Collect Your {`Sigma`} XP </span>
+              <span className="text-[12px] md:text-sm"> Collect Your Sigma XP </span>
             </div>
           </PopoverPrimitive.PopoverClose>
         )}
@@ -152,7 +150,7 @@ export const FlaskBottleAnimation = (props: any) => {
           <div className="absolute rounded-full w-1 h-1 top-[-5px] left-[13px] bg-[#fde047] animate-ping-slow"></div>
         </>
       )}
-      <FlaskRound className="fill-[#f97316]" />
+      <Speaker className="" />
     </div>
   );
 };

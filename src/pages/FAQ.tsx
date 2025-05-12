@@ -161,7 +161,6 @@ const faqSections: FAQSection[] = [
           </div>
         ),
       },
-
       {
         id: "fan-revenue-share",
         question: "How Does the Fan Revenue Share Work?",
@@ -264,7 +263,65 @@ const faqSections: FAQSection[] = [
         question: "$FAN Token – Tokenomics",
         answer: (
           <div className="space-y-6">
-            <p className="text-lg font-semibold">Total Supply: 1,000,000,000 $FAN</p>
+            <p className="text-lg font-semibold mb-4">Total Supply: 1,000,000,000 $FAN</p>
+
+            <div className="bg-gray-800 p-6 rounded-lg mb-6">
+              <p className="mb-4">
+                Based on the amount of tokens we purchased for the project during the fair launch on 8 May 2025, here is the breakdown of the token distribution
+                buckets and vesting schedules:
+              </p>
+
+              <p className="text-yellow-400 font-semibold mb-6">
+                We were able to secure 42% of the total supply for the project, with 34% (Foundation) locked (for details see below for details of the lock)
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-black/50 p-6 rounded-lg border border-gray-700">
+                  <h4 className="text-lg font-semibold mb-4 text-yellow-400">Foundation</h4>
+                  <div className="space-y-3">
+                    <p>
+                      <span className="text-gray-400">TGE:</span> <span className="text-white">34%</span>
+                    </p>
+                    <p>
+                      <span className="text-gray-400">Cliff:</span> <span className="text-white">3 months</span>
+                    </p>
+                    <p>
+                      <span className="text-gray-400">Vesting:</span> <span className="text-white">12 months</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-black/50 p-6 rounded-lg border border-gray-700">
+                  <h4 className="text-lg font-semibold mb-4 text-yellow-400">Airdrop</h4>
+                  <div className="space-y-3">
+                    <p>
+                      <span className="text-gray-400">TGE:</span> <span className="text-white">4%</span>
+                    </p>
+                    <p>
+                      <span className="text-gray-400">Cliff:</span> <span className="text-white">0 months</span>
+                    </p>
+                    <p>
+                      <span className="text-gray-400">Vesting:</span> <span className="text-white">6 months</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-black/50 p-6 rounded-lg border border-gray-700">
+                  <h4 className="text-lg font-semibold mb-4 text-yellow-400">Liquidity</h4>
+                  <div className="space-y-3">
+                    <p>
+                      <span className="text-gray-400">TGE:</span> <span className="text-white">4%</span>
+                    </p>
+                    <p>
+                      <span className="text-gray-400">Cliff:</span> <span className="text-white">0 months</span>
+                    </p>
+                    <p>
+                      <span className="text-gray-400">Vesting:</span> <span className="text-white">6 months</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div className="space-y-4">
               <p>
@@ -304,10 +361,6 @@ const faqSections: FAQSection[] = [
                   </h5>
                   <p className="mt-2">To expand $FAN across more DEXs and eventually CEXs, we'll need to build strong liquidity pools.</p>
                 </div>
-              </div>
-
-              <div className="bg-gray-800 p-4 rounded-lg mt-6">
-                <p className="text-gray-300">Once our token sale wraps up and we have a better picture of allocations, we'll share full tokenomics details.</p>
               </div>
             </div>
           </div>
@@ -349,22 +402,23 @@ const faqSections: FAQSection[] = [
 
               <div className="bg-gray-800 p-4 rounded-lg mb-4">
                 <h5 className="font-semibold mb-2">Project Distribution:</h5>
-                <p className="mb-3">
-                  The Sigma project team will buy around 25-35% of the total supply directly to support platform growth. (the exact amount is not yet
-                  determined)
-                </p>
+                <p className="mb-3">The Sigma project team managed to secure 42% of the total supply during the fair launch on 8 May 2025.</p>
 
                 <div className="pl-4 border-l-2 border-gray-600">
                   <p className="font-semibold mb-2">Of the supply the team buys:</p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>
-                      we intend to lock 80% of the supply with a 3 month cliff followed by a linear vesting schedule on Streamflow. More details will be shared
-                      a few days after launch once we confirm the exact amount we were able to secure for the project initiatives.
+                      80% of the supply we secured will be locked with a 3 month cliff followed by a linear vesting schedule on Streamflow for 12 months. The
+                      Streamflow lock contract{" "}
+                      <a
+                        className="text-yellow-400 hover:text-yellow-300 transition-colors"
+                        href="https://app.streamflow.finance/contract/solana/mainnet/dL8G6VNhdP1XhUrrvwE8W7JVKbbH6hSuwwSFEQGCgJ7"
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        can be found here
+                      </a>
                     </li>
-                    <li>
-                      10% will be used for public distribution, directly for airdrops to sigmamusic.fm app users! airdrops will commence by the 3rd - 4th week
-                      of June 2025
-                    </li>
+                    <li>10% will be used for public distribution, directly for airdrops to sigmamusic.fm app users!</li>
                     <li>10% will be used for liquidity support for new DEX/CEX listings.</li>
                   </ul>
                 </div>
