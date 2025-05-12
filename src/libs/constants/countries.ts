@@ -1,14 +1,15 @@
 export interface Country {
   label: string;
   code: string;
+  emoji: string;
 }
 
 export const COUNTRIES: Country[] = [
-  { label: "India", code: "ind" },
-  { label: "Philippines", code: "phl" },
-  { label: "Indonesia", code: "ida" },
-  { label: "Australia", code: "aus" },
-  { label: "New Zealand", code: "nzw" },
-  { label: "South Africa", code: "zaf" },
-  { label: "Singapore", code: "sin" },
+  { label: "India", code: "ind", emoji: "🇮🇳" },
+  { label: "Philippines", code: "phl", emoji: "🇵🇭" },
+  { label: "Indonesia", code: "ida", emoji: "🇮🇩" },
+  { label: "Australia", code: "aus", emoji: "🇦🇺" },
+  { label: "New Zealand", code: "nzw", emoji: "🇳🇿" },
+  { label: "South Africa", code: "zaf", emoji: "🇿🇦" },
+  { label: "Singapore", code: "sin", emoji: "🇸🇬" },
 ];
