@@ -116,11 +116,18 @@ const faqSections: FAQSection[] = [
               <li>Over 70K music album NFTs launched</li>
               <li>25 artists onboarded, with at least one new album released weekly</li>
               <li>Deep Forest, a Grammy-winning artist, launched on the platform</li>
+              <li>Discussions ongoing to onboard more prominent artists like Justice Crew, and more.</li>
               <li>
-                Discussions ongoing to onboard more prominent artists like Justice Crew Exclusive music partnership with worldsupremacybattlegrounds.com for the
-                first IRL music competition in Dubai in April 2025
+                Exclusive music partnership with{" "}
+                <a
+                  href="https://worldsupremacybattlegrounds.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                  worldsupremacybattlegrounds.com
+                </a>{" "}
+                for the first IRL music competition in Dubai in April 2025
               </li>
-              worldsupremacybattlegrounds.com for the first IRL music competition in Dubai in April 2025
             </ul>
           </div>
         ),
@@ -326,12 +333,20 @@ const faqSections: FAQSection[] = [
 
               <div>
                 <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <span>🤖</span> Sigma AI Agent (EliaOS-Powered)
+                  <span>🤖</span> Sigma AI Agent (ElizaOS-Powered)
                 </h4>
                 <p>
-                  Sigma's AI agent, also called "Sigma," is built on the EliaOS framework and customized for the music domain. It interacts with users via
-                  social platforms, accesses and streams NFT-based content, and collaborates with artists and fans to co-create music. It can even tokenize new
-                  creations as NFTs directly from conversations or remix sessions.
+                  Sigma's AI agent, also called "Sigma," is built on the{" "}
+                  <a
+                    href="https://www.elizaos.ai/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                    ElizaOS
+                  </a>{" "}
+                  framework and customized for the music domain. It interacts with users via social platforms, accesses and streams NFT-based content, and
+                  collaborates with artists and fans to co-create music. It can even tokenize new creations as NFTs directly from conversations or remix
+                  sessions.
                 </p>
               </div>
 
