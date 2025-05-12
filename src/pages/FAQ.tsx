@@ -12,7 +12,7 @@ interface FAQSection {
 
 const faqSections: FAQSection[] = [
   {
-    title: "App & Project",
+    title: "Project Overview",
     questions: [
       {
         id: "about-sigma-music",
@@ -68,7 +68,70 @@ const faqSections: FAQSection[] = [
         ),
       },
       {
-        id: "mission-statement",
+        id: "pitch-deck",
+        question: "Do you have an investor or partner pitch deck?",
+        answer: (
+          <div>
+            <p>
+              Yes, you can find our pitch deck{" "}
+              <a
+                href="https://sigmamusic.fm/deck"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                here
+              </a>
+              .
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: "how-to-get-started",
+        question: "I am a music artist, how can I get started with Sigma Music?",
+        answer: (
+          <div>
+            <p>
+              We provide a red-carpet experience for artists and give you all the support your need to launch your music and fan memberships on Sigma Music. If
+              you're interested in joining us, please reach out to us on the dedicated{" "}
+              <a
+                href="https://t.me/SigmaXMusicOfficial"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                Telegram channel for Musicans
+              </a>
+              .
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: "traction",
+        question: "What is the traction of Sigma Music?",
+        answer: (
+          <div>
+            <p className="mb-4">We are growing fast, here are some highlights (which may already be outdated when you read this):</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Over 70K music album NFTs launched</li>
+              <li>25 artists onboarded, with at least one new album released weekly</li>
+              <li>Deep Forest, a Grammy-winning artist, launched on the platform</li>
+              <li>
+                Discussions ongoing to onboard more prominent artists like Justice Crew Exclusive music partnership with worldsupremacybattlegrounds.com for the
+                first IRL music competition in Dubai in April 2025
+              </li>
+              worldsupremacybattlegrounds.com for the first IRL music competition in Dubai in April 2025
+            </ul>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    title: "App & Technology",
+    questions: [
+      {
+        id: "features-on-the-app",
         question: "What are the features on this music app and platform?",
         answer: (
           <div className="space-y-6">
@@ -197,6 +260,88 @@ const faqSections: FAQSection[] = [
                 <p className="mt-2">
                   We're aiming to run our first revenue share raffle in the last week of May 2025. As Sigma grows, we'll evolve the model based on community
                   feedback — but our core belief stays the same: Fans should win when the platform wins.
+                </p>
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "technology-overview",
+        question: "Technology Overview",
+        answer: (
+          <div className="space-y-6">
+            <p className="text-lg font-semibold mb-4">
+              Sigma Music is built as a Web3-native platform with a fully Web2-style user experience. This hybrid approach is central to our strategy for
+              widespread adoption.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>🔗</span> Solana Blockchain Integration
+                </h4>
+                <p>
+                  Sigma is deeply integrated with the Solana blockchain. Solana's high-speed, low-cost transactions allow us to tokenize music assets and user
+                  accounts efficiently, enabling scalable on-chain interactions with minimal latency.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>🎵</span> Compressed NFT Technology
+                </h4>
+                <p>
+                  All assets on Sigma are implemented using Solana's compressed NFT (cNFT) standard. This innovation allows us to mint and distribute millions
+                  of NFTs affordably, making it feasible to tokenize everything from music tracks to fan engagement events.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>💾</span> Itheum Protocol: Data NFTs
+                </h4>
+                <p>
+                  Sigma utilizes the{" "}
+                  <a href="http://x.com/itheum" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                    Itheum protocol
+                  </a>{" "}
+                  to issue Data NFTs — a powerful extension of compressed NFTs that support mutable "data streams." This allows for flexible and updatable NFTs,
+                  such as dynamic music albums, evolving artist metadata, or unlockable fan experiences. Sigma is proudly incubated by Itheum and is a flagship
+                  use case of this technology.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>🔐</span> Frictionless Onboarding: Email Wallets & Credit Card Payments
+                </h4>
+                <p>
+                  Sigma users can sign up using just an email address. Upon registration, a secure custodial wallet is provisioned automatically, abstracting
+                  away blockchain complexity. NFTs can be purchased with credit cards and are minted on-demand to the user's wallet. Users retain full
+                  ownership, and Sigma does not hold custody of any user assets. This Web2-friendly experience ensures accessibility without compromising on
+                  Web3 principles.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>🤖</span> Sigma AI Agent (EliaOS-Powered)
+                </h4>
+                <p>
+                  Sigma's AI agent, also called "Sigma," is built on the EliaOS framework and customized for the music domain. It interacts with users via
+                  social platforms, accesses and streams NFT-based content, and collaborates with artists and fans to co-create music. It can even tokenize new
+                  creations as NFTs directly from conversations or remix sessions.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <span>🎨</span> REMiX and Multimodal AI
+                </h4>
+                <p>
+                  Our REMiX feature harnesses multiple AI models across language, image, and music generation. Coordinated through our backend orchestration
+                  system, these models enable real-time collaboration between humans and AI to produce, remix, and distribute music seamlessly.
                 </p>
               </div>
             </div>
@@ -483,7 +628,7 @@ export const FAQ = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-        <h1 className="text-2xl font-bold text-white">Frequently Asked Questions</h1>
+        <h1 className="text-2xl font-bold text-white">{window.location.pathname === routeNames.whitepaper ? "Whitepaper" : "Frequently Asked Questions"}</h1>
         <button
           onClick={() => (window.location.href = `${routeNames.home}`)}
           className="mt-4 sm:mt-0 px-4 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-300 transition-colors">
