@@ -85,7 +85,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [albumsDataset, setAlbumsDataset] = useState<AlbumWithArtist[]>([]);
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState("discography");
-  const { updateAlbumMasterLookup } = useAppStore();
+  const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan"]);
 
   function eventToAttachEnded() {
@@ -180,9 +180,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       // -1 means we are NOT in a campaign mode so we clear any data if the filterByArtistCampaignCode was not given
       if (filterByArtistCampaignCode !== -1) {
         setArtistAlbumDataLoading(true);
+        updateTileDataCollectionLoadingInProgress(true);
         setArtistAlbumDataset([]);
         setAlbumsDataset([]);
         setArtistAlbumDataLoading(false);
+        updateTileDataCollectionLoadingInProgress(false);
       }
     }
   }, [filterByArtistCampaignCode]);
@@ -280,6 +282,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
   async function fetchAndUpdateArtistAlbumDataIntoView() {
     setArtistAlbumDataLoading(true);
+    updateTileDataCollectionLoadingInProgress(true);
 
     await sleep(2);
 
@@ -305,12 +308,16 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       )
     );
 
+    // in some views, we make directly be ina  profile page and then we move out (e.g. "Back to Countries" in WSB camoaign).
+    // In this situation it's best we double check if we are in a profile view and if so, we go back to the tile view
+    if (inArtistProfileView) {
+      handleBackToArtistTileView();
+    }
+
     // await sleep(2);
 
     setArtistAlbumDataset(artistDataToUse);
     setAlbumsDataset(allAlbumsData);
-
-    setArtistAlbumDataLoading(false);
 
     // update the album master lookup
     updateAlbumMasterLookup(
@@ -322,6 +329,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         {} as Record<string, AlbumWithArtist>
       )
     );
+
+    setArtistAlbumDataLoading(false);
+    updateTileDataCollectionLoadingInProgress(false);
   }
 
   async function playPausePreview(previewStreamUrl?: string, albumId?: string) {
@@ -472,7 +482,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                   </div>
                 </div>
               ) : (
-                <div className="m-auto min-h-6">⚠️ Artist section is unavailable. Check back later!</div>
+                <>
+                  {filterByArtistCampaignCode && filterByArtistCampaignCode !== -1 ? (
+                    <div className="m-auto min-h-6">
+                      Artist collection is coming very soon! Await ammouncement on{" "}
+                      <a href="https://x.com/SigmaMusic" target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:text-yellow-600">
+                        Sigma Music's X Account
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="m-auto min-h-6">⚠️ Artist section is unavailable. Check back later!</div>
+                  )}
+                </>
               )}
             </div>
           ) : (
