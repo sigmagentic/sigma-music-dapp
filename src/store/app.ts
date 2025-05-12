@@ -10,6 +10,7 @@ type State = {
   artistLookup: Record<string, any>;
   albumLookup: Record<string, any>;
   artistLookupOrganizedBySections: Record<string, { sectionCode: string; filteredItems: any[] }>;
+  tileDataCollectionLoadingInProgress: boolean;
 };
 
 type Action = {
@@ -21,6 +22,7 @@ type Action = {
   updateArtistLookup: (artistLookup: Record<string, any>) => void;
   updateAlbumLookup: (albumLookup: Record<string, any>) => void;
   updateArtistLookupOrganizedBySections: (artistLookupOrganizedBySections: Record<string, { sectionCode: string; filteredItems: any[] }>) => void;
+  updateTileDataCollectionLoadingInProgress: (tileDataCollectionLoadingInProgress: boolean) => void;
 };
 
 export const useAppStore = create<State & Action>((set) => ({
@@ -32,6 +34,7 @@ export const useAppStore = create<State & Action>((set) => ({
   artistLookup: {},
   albumLookup: {},
   artistLookupOrganizedBySections: {},
+  tileDataCollectionLoadingInProgress: false,
   updateRadioGenres: (genres: string[]) => set(() => ({ radioGenres: genres })),
   updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh: (updated: boolean) =>
     set(() => ({ radioGenresUpdatedByUserSinceLastRadioTracksRefresh: updated })),
@@ -42,4 +45,5 @@ export const useAppStore = create<State & Action>((set) => ({
   updateAlbumLookup: (albumLookup: Record<string, any>) => set(() => ({ albumLookup })),
   updateArtistLookupOrganizedBySections: (artistLookupOrganizedBySections: Record<string, { sectionCode: string; filteredItems: any[] }>) =>
     set(() => ({ artistLookupOrganizedBySections })),
+  updateTileDataCollectionLoadingInProgress: (tileDataCollectionLoadingInProgress: boolean) => set(() => ({ tileDataCollectionLoadingInProgress })),
 }));

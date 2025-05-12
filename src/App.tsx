@@ -33,6 +33,7 @@ export const App = () => {
                   />
                   <Route path={routeNames.paymentSuccess} element={<PaymentSuccess />} />
                   <Route path={routeNames.faq} element={<FAQ />} />
+                  <Route path={routeNames.whitepaper} element={<FAQ />} />
                   <Route path={routeNames.statusBoard} element={<StatusBoard />} />
                   <Route path="*" element={<PageNotFound />} />
                 </Routes>
