@@ -112,6 +112,7 @@ export interface MembershipType {
   label: string;
   defaultPriceUSD: number;
   term: "lifetime" | "annual" | "monthly";
+  maxMints?: number;
   perks: Perk[];
 }
 

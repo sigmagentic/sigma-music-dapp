@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "libComponents/Button";
 import { StreamMetricData } from "libs/types/common";
-import { fetchStreamsLeaderboardAllTracksByMonthViaAPI } from "libs/utils/misc";
+import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestInnerCircleNFTOptionsViaAPI } from "libs/utils/misc";
+import { convertTokenImageUrl } from "libs/utils/ui";
 import { useAppStore } from "store/app";
 
 interface FeaturedArtist {
@@ -19,6 +20,19 @@ interface FeaturedAlbum {
   artistName: string;
 }
 
+interface InnerCircleOption {
+  tokenId: string;
+  timestampAdded: string;
+  priceInUSD: string;
+  artistId: string;
+  membershipId: string;
+  perkIdsOffered: string[];
+  maxMints: string;
+  tokenImg: string;
+  tokenName: string;
+  metadataOnIpfsUrl: string;
+}
+
 export const FeaturedBanners = ({
   onFeaturedArtistDeepLinkSlug,
   onGenreUpdate,
@@ -31,8 +45,10 @@ export const FeaturedBanners = ({
   const [featuredArtists, setFeaturedArtists] = useState<FeaturedArtist[]>([]);
   const [featuredAlbums, setFeaturedAlbums] = useState<FeaturedAlbum[]>([]);
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
-  const { musicTrackLookup, artistLookup, albumLookup, radioGenres } = useAppStore();
+  const { musicTrackLookup, artistLookup, albumLookup, radioGenres, artistLookupEverything } = useAppStore();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [innerCircleOptions, setInnerCircleOptions] = useState<InnerCircleOption[]>([]);
+  const [isLoadingInnerCircleOptions, setIsLoadingInnerCircleOptions] = useState(true);
 
   useEffect(() => {
     if (Object.keys(musicTrackLookup).length === 0 || Object.keys(artistLookup).length === 0 || Object.keys(albumLookup).length === 0) {
@@ -91,6 +107,27 @@ export const FeaturedBanners = ({
       loadStreamsData();
     }
   }, [musicTrackLookup, artistLookup, albumLookup]);
+
+  useEffect(() => {
+    const loadInnerCircleOptions = async () => {
+      try {
+        const data = await fetchLatestInnerCircleNFTOptionsViaAPI();
+        const formattedOptions = data.map(([tokenId, option]: [string, any]) => ({
+          tokenId,
+          ...option,
+        }));
+        setInnerCircleOptions(formattedOptions);
+      } catch (error) {
+        console.error("Error fetching inner circle options:", error);
+      } finally {
+        setIsLoadingInnerCircleOptions(false);
+      }
+    };
+
+    if (Object.keys(artistLookupEverything).length > 0) {
+      loadInnerCircleOptions();
+    }
+  }, [artistLookupEverything]);
 
   // Load saved genres from session storage
   useEffect(() => {
@@ -202,6 +239,75 @@ export const FeaturedBanners = ({
               </div>
             </div>
             {streamMetricData.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* show latest inner circle NFT options */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+        <div className="text-xl xl:text-2xl cursor-pointer w-full">
+          <span className="">New Inner Circle Fan Memberships</span>
+        </div>
+        {isLoadingInnerCircleOptions ? (
+          <LoadingSkeleton />
+        ) : innerCircleOptions.length === 0 ? (
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new inner circle NFT options available</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-5
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {innerCircleOptions.map((option) => {
+                  const artistInfo = artistLookupEverything[option.artistId];
+                  return (
+                    <div
+                      key={option.tokenId}
+                      className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                      style={{
+                        backgroundImage: `url(${convertTokenImageUrl(option.tokenImg)})`,
+                        backgroundSize: "contain",
+                        backgroundPosition: "center",
+                        backgroundBlendMode: "multiply",
+                        backgroundRepeat: "no-repeat",
+                        backgroundColor: "#16161682",
+                      }}>
+                      <div className="text-center mt-4">
+                        <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
+                          {artistInfo?.name || "Unknown Artist"}
+                        </div>
+                        <Button
+                          className="mt-2 px-3 py-1 text-sm bg-orange-500/30 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors"
+                          onClick={() => {
+                            const campaign = artistInfo?.artistCampaignCode;
+                            const country = artistInfo?.artistSubGroup1Code;
+                            const team = artistInfo?.artistSubGroup2Code;
+
+                            let url = "?tab=fan&artist=" + artistInfo?.slug;
+
+                            if (campaign && country) {
+                              if (team) {
+                                url += `&campaign=${campaign}&country=${country}&team=${team}`;
+                              } else {
+                                url += `&campaign=${campaign}&country=${country}`;
+                              }
+                            }
+
+                            window.location.href = url;
+                          }}>
+                          Join Fan Club
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {innerCircleOptions.length > 3 && (
               <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
             )}
           </div>

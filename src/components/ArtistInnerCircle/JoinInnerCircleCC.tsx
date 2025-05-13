@@ -204,7 +204,7 @@ export const JoinInnerCircleCC = ({
             </p>
             <p>
               <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Proceed", you agree to these{" "}
-              <a className="underline" href="https://sigmamusic.fm/legal/terms-of-sale-music" target="_blank" rel="noopener noreferrer">
+              <a className="underline" href="https://sigmamusic.fm/legal#terms-of-sale" target="_blank" rel="noopener noreferrer">
                 Terms
               </a>
               .

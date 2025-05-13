@@ -8,6 +8,7 @@ import { fetchBitSumAndGiverCountsSol } from "pages/AppMarketplace/GetBitz/GetBi
 
 // get and cache the artists and albums data locally
 let _artistsAlbumsDataCachedOnWindow: any[] = [];
+let _artistsAlbumsDataEverythingCachedOnWindow: any[] = [];
 let _artistsAlbumsDataOrganizedBySectionsCachedOnWindow: Record<string, { sectionCode: string; filteredItems: any[] }> = {};
 let _artistsAlbumsDataCachedOn: number = 0;
 
@@ -18,6 +19,7 @@ export async function getArtistsAlbumsData() {
       console.log(`getArtistsAlbumsData: [cache]`);
       return {
         albumArtistLookupData: _artistsAlbumsDataCachedOnWindow,
+        albumArtistLookupDataEverything: _artistsAlbumsDataEverythingCachedOnWindow,
         albumArtistLookupDataOrganizedBySections: _artistsAlbumsDataOrganizedBySectionsCachedOnWindow,
       };
     } else {
@@ -26,6 +28,7 @@ export async function getArtistsAlbumsData() {
       const dataRes = await axios.get(getArtistsAlbumsAPI);
       let dataset = dataRes.data;
       let cloneDataset = [...dataset];
+      let cloneDatasetEverything = [...dataset];
 
       const organizedBySectionsDataset = organizeArtistsByCampaignCodes(cloneDataset);
 
@@ -60,12 +63,14 @@ export async function getArtistsAlbumsData() {
         });
       }
 
-      _artistsAlbumsDataCachedOnWindow = dataset;
-      _artistsAlbumsDataOrganizedBySectionsCachedOnWindow = organizedBySectionsDataset;
+      _artistsAlbumsDataCachedOnWindow = dataset; // this filters our demo artists and artists in campaigns etc
+      _artistsAlbumsDataEverythingCachedOnWindow = cloneDatasetEverything; // this has EVERY artists we had in the master list
+      _artistsAlbumsDataOrganizedBySectionsCachedOnWindow = organizedBySectionsDataset; // this creates a map of artists based on campaign segments
       _artistsAlbumsDataCachedOn = Date.now();
 
       return {
         albumArtistLookupData: _artistsAlbumsDataCachedOnWindow,
+        albumArtistLookupDataEverything: _artistsAlbumsDataEverythingCachedOnWindow,
         albumArtistLookupDataOrganizedBySections: _artistsAlbumsDataOrganizedBySectionsCachedOnWindow,
       };
     }
@@ -73,6 +78,7 @@ export async function getArtistsAlbumsData() {
     console.error(e);
     return {
       albumArtistLookupData: [],
+      albumArtistLookupDataEverything: [],
       albumArtistLookupDataOrganizedBySections: {},
     };
   }

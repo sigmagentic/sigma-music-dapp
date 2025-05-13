@@ -179,11 +179,11 @@ const LoginPage = () => {
 
               <p className="text-sm text-muted-foreground mt-8">
                 By "Logging in", you agree to these{" "}
-                <a className="underline" href="https://sigmamusic.fm/legal/terms-of-use" target="_blank" rel="noopener noreferrer">
+                <a className="underline" href="https://sigmamusic.fm/legal#terms-of-use" target="_blank" rel="noopener noreferrer">
                   Terms of Use
                 </a>{" "}
                 and{" "}
-                <a className="underline" href="https://sigmamusic.fm/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
+                <a className="underline" href="https://sigmamusic.fm/legal#privacy-policy" target="_blank" rel="noopener noreferrer">
                   Privacy Policy
                 </a>
                 .
