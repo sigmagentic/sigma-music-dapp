@@ -6,6 +6,7 @@ export const routeNames = {
   paymentSuccess: "/payment-success",
   statusBoard: "/status-board",
   faq: "/faq",
+  legal: "/legal",
   whitepaper: "/whitepaper",
 };
 

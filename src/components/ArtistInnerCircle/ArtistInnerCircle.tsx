@@ -627,12 +627,36 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
       {selectedTokenImg && (
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
           <div className="relative max-w-4xl w-full">
-            <img src={selectedTokenImg} alt="Membership Token" className="w-[90%] h-auto m-auto rounded-lg" />
-            <button
-              onClick={() => setSelectedTokenImg(null)}
-              className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
-              Close
-            </button>
+            <img src={selectedTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
+            <div>
+              <div className="bg-black rounded-full p-[10px] -z-1 mt-4">
+                <a
+                  className="z-1 bg-black text-white  rounded-3xl gap-2 flex flex-row justify-center items-center"
+                  href={"https://twitter.com/intent/tweet?" + tweetText}
+                  data-size="large"
+                  target="_blank"
+                  rel="noreferrer">
+                  <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                      <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                    </svg>
+                  </span>
+                  <p className="z-10">Share this news on X</p>
+                </a>
+              </div>
+              <button
+                onClick={() => {
+                  // remove action from the url (as it may have action=justjoined and we dont want them share that on X for e.g)
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete("action");
+                  window.history.replaceState({}, "", url.toString());
+
+                  setSelectedTokenImg(null);
+                }}
+                className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

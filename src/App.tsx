@@ -3,6 +3,7 @@ import { Route, Routes, BrowserRouter as Router } from "react-router-dom";
 import { Layout } from "components";
 import { SolContextProvider } from "contexts/sol/SolContextProvider";
 import { PageNotFound, Login, Home, PaymentSuccess, StatusBoard, FAQ } from "pages";
+import { Legal } from "pages/Legal";
 import { routeNames } from "routes";
 import { Web3AuthProvider } from "./contexts/sol/Web3AuthProvider";
 import { ThemeProvider } from "./contexts/ThemeProvider";
@@ -33,6 +34,7 @@ export const App = () => {
                   />
                   <Route path={routeNames.paymentSuccess} element={<PaymentSuccess />} />
                   <Route path={routeNames.faq} element={<FAQ />} />
+                  <Route path={routeNames.legal} element={<Legal />} />
                   <Route path={routeNames.whitepaper} element={<FAQ />} />
                   <Route path={routeNames.statusBoard} element={<StatusBoard />} />
                   <Route path="*" element={<PageNotFound />} />

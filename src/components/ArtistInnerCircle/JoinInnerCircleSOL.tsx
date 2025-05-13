@@ -212,7 +212,11 @@ export const JoinInnerCircleSOL = ({
 
       toastSuccess("Minting Successful!", true);
       setMintingStatus("confirmed");
-      await showSuccessConfetti();
+
+      // need to pull it out of the ui thread of for some reason the confetti goes first
+      setTimeout(() => {
+        showSuccessConfetti();
+      }, 500);
     } catch (error) {
       console.error("Minting failed:", error);
       alert("Error: Minting seems to have failed");
@@ -238,7 +242,11 @@ export const JoinInnerCircleSOL = ({
 
       toastSuccess("Minting Successful!", true);
       setMintingStatus("confirmed");
-      await showSuccessConfetti();
+
+      // need to pull it out of the ui thread of for some reason the confetti goes first
+      setTimeout(() => {
+        showSuccessConfetti();
+      }, 500);
     } catch (error) {
       console.error("Minting failed:", error);
       setMintingStatus("failed");
