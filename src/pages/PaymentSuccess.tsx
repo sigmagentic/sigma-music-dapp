@@ -208,7 +208,7 @@ export const PaymentSuccess = () => {
           let redirectUrl = `/?artist=${artistSlug}~${albumId}`;
 
           if (membershipId) {
-            redirectUrl = `/?artist=${artistSlug}&tab=fan`;
+            redirectUrl = `/?artist=${artistSlug}&tab=fan&action=justjoined`;
 
             if (campaignCode && campaignCode !== "") {
               redirectUrl += `&campaign=${campaignCode}`;

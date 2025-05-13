@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { SparklesIcon, ComputerDesktopIcon, UserGroupIcon } from "@heroicons/react/24/solid";
+import { confetti } from "@tsparticles/confetti";
 import { Loader, ShoppingCart } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
-import { fetchCreatorFanMembershipAvailabilityViaAPI, fetchMyFanMembershipsForArtistViaAPI, fetchSolPrice } from "libs/utils/misc";
+import { fetchCreatorFanMembershipAvailabilityViaAPI, fetchMyFanMembershipsForArtistViaAPI, fetchSolPrice, sleep } from "libs/utils/misc";
 import { convertTokenImageUrl, scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
@@ -209,6 +210,24 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
         return augmentedMembership;
       });
 
+      // if there is a url param called action=justjoined, then find the latest item from augmentedData (using the createdOnTS) and then show some confettit and
+      // ... so this so the token img loads in big view:  setSelectedTokenImg(convertTokenImageUrl(membership.tokenImg))
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get("action");
+
+      if (action === "justjoined" && augmentedData.length > 0) {
+        const latestMembership = augmentedData.sort((a, b) => new Date(b.createdOnTS).getTime() - new Date(a.createdOnTS).getTime())[0];
+
+        if (latestMembership) {
+          setSelectedTokenImg(convertTokenImageUrl(latestMembership.tokenImg));
+
+          // need to pull it out of the ui thread of for some reason the confetti goes first
+          setTimeout(() => {
+            showSuccessConfetti();
+          }, 500);
+        }
+      }
+
       setMyActiveFanMembershipsForArtist(augmentedData);
     } catch (error) {
       console.error("Error fetching my fan memberships data for artist:", error);
@@ -234,7 +253,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
     }
   };
 
-  const fetchMembershipData = async (fanMembershipAvailabilityData: Record<string, { tokenImg: string; perkIdsOffered: string[] }> | null) => {
+  const fetchMembershipData = async (
+    fanMembershipAvailabilityData: Record<string, { tokenImg: string; perkIdsOffered: string[]; maxMints?: string }> | null
+  ) => {
     try {
       if (fanMembershipAvailabilityData) {
         // Create a deep copy of tierData to avoid mutating the original
@@ -251,6 +272,15 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
           // Update the tier with the perks
           if (extendedTierData[membershipId]) {
             extendedTierData[membershipId].perks = perks;
+          }
+
+          // Update the tier with the maxMints
+          if (extendedTierData[membershipId]) {
+            if (item.maxMints) {
+              extendedTierData[membershipId].maxMints = parseInt(item.maxMints);
+            } else {
+              extendedTierData[membershipId].maxMints = 0; // 0 means unlimited
+            }
           }
         });
 
@@ -322,6 +352,32 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
     cleanupActionBuyParam();
   };
 
+  const showSuccessConfetti = async () => {
+    const animation = await confetti({
+      spread: 360,
+      ticks: 100,
+      gravity: 0,
+      decay: 0.94,
+      startVelocity: 30,
+      particleCount: 200,
+      scalar: 2,
+      shapes: ["emoji", "circle", "square"],
+      shapeOptions: {
+        emoji: {
+          value: ["💎", "⭐", "✨", "💫"],
+        },
+      },
+    });
+
+    if (animation) {
+      await sleep(10);
+      animation.stop();
+      if ((animation as any).destroy) {
+        (animation as any).destroy();
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="h-[100px] flex items-center justify-center">
@@ -342,6 +398,8 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   }
 
   const hasMultipleMemberships = artistsMembershipOptions && Object.keys(artistsMembershipOptions).length > 1;
+
+  console.log("artistsMembershipOptions", artistsMembershipOptions);
 
   return (
     <>
@@ -420,6 +478,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   <h3 className="text-xl font-semibold mb-2 capitalize">{data.label}</h3>
                   <div className="text-2xl font-bold mb-2">{formatPrice(data.defaultPriceUSD)} USD</div>
                   <div className="text-sm text-gray-400">{formatTerm(data.term)}</div>
+                  <div className="text-yellow-400">{data.maxMints && data.maxMints > 0 ? `Only ${data.maxMints.toLocaleString()} will be sold!` : ""}</div>
                 </div>
               ))}
             </div>
@@ -467,6 +526,19 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
             <div className="p-6 rounded-lg border-2 cursor-pointer transition-all border-yellow-500 bg-yellow-500/10 text-center">
               <div className="text-3xl font-bold mb-2">{formatPrice(artistsMembershipOptions?.t1.defaultPriceUSD || 0)} USD</div>
               <div className="text-gray-400">{formatTerm(artistsMembershipOptions?.t1.term || "")}</div>
+              <div className="text-yellow-400">
+                {artistsMembershipOptions?.t1.maxMints && artistsMembershipOptions?.t1.maxMints > 0 ? (
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    <span className="animate-pulse">🔥</span>
+                    <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">
+                      Only {artistsMembershipOptions?.t1.maxMints.toLocaleString()} will be sold!
+                    </span>
+                    <span className="animate-pulse">🔥</span>
+                  </div>
+                ) : (
+                  ""
+                )}
+              </div>
             </div>
 
             <div className="mt-8 text-center">

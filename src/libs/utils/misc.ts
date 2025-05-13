@@ -495,10 +495,11 @@ export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPayment
           acc[value.membershipId] = {
             tokenImg: value.tokenImg,
             perkIdsOffered: value.perkIdsOffered,
+            maxMints: value.maxMints,
           };
           return acc;
         },
-        {} as Record<string, { tokenImg: string; perkIdsOffered: string[] }>
+        {} as Record<string, { tokenImg: string; perkIdsOffered: string[]; maxMints?: string }>
       );
 
       // Update cache
