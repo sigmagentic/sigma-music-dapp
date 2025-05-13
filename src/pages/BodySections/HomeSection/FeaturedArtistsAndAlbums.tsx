@@ -291,7 +291,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     let allAlbumsData: AlbumWithArtist[] = [];
 
     console.log("filterByArtistCampaignCode", filterByArtistCampaignCode);
-    console.log("albumArtistLookupDataOrganizedBySections", albumArtistLookupDataOrganizedBySections);
 
     const artistDataToUse =
       filterByArtistCampaignCode && filterByArtistCampaignCode !== -1

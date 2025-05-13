@@ -8,6 +8,7 @@ type State = {
   paymentInProgress: boolean;
   musicTrackLookup: AlbumTrackCatalog;
   artistLookup: Record<string, any>;
+  artistLookupEverything: Record<string, any>;
   albumLookup: Record<string, any>;
   artistLookupOrganizedBySections: Record<string, { sectionCode: string; filteredItems: any[] }>;
   tileDataCollectionLoadingInProgress: boolean;
@@ -20,6 +21,7 @@ type Action = {
   updatePaymentInProgress: (paymentInProgress: boolean) => void;
   updateMusicTrackLookup: (musicTrackLookup: AlbumTrackCatalog) => void;
   updateArtistLookup: (artistLookup: Record<string, any>) => void;
+  updateArtistLookupEverything: (artistLookupEverything: Record<string, any>) => void;
   updateAlbumLookup: (albumLookup: Record<string, any>) => void;
   updateArtistLookupOrganizedBySections: (artistLookupOrganizedBySections: Record<string, { sectionCode: string; filteredItems: any[] }>) => void;
   updateTileDataCollectionLoadingInProgress: (tileDataCollectionLoadingInProgress: boolean) => void;
@@ -32,6 +34,7 @@ export const useAppStore = create<State & Action>((set) => ({
   paymentInProgress: false,
   musicTrackLookup: {},
   artistLookup: {},
+  artistLookupEverything: {},
   albumLookup: {},
   artistLookupOrganizedBySections: {},
   tileDataCollectionLoadingInProgress: false,
@@ -42,6 +45,7 @@ export const useAppStore = create<State & Action>((set) => ({
   updatePaymentInProgress: (paymentInProgress: boolean) => set(() => ({ paymentInProgress })),
   updateMusicTrackLookup: (musicTrackLookup: AlbumTrackCatalog) => set(() => ({ musicTrackLookup })),
   updateArtistLookup: (artistLookup: Record<string, any>) => set(() => ({ artistLookup })),
+  updateArtistLookupEverything: (artistLookupEverything: Record<string, any>) => set(() => ({ artistLookupEverything })),
   updateAlbumLookup: (albumLookup: Record<string, any>) => set(() => ({ albumLookup })),
   updateArtistLookupOrganizedBySections: (artistLookupOrganizedBySections: Record<string, { sectionCode: string; filteredItems: any[] }>) =>
     set(() => ({ artistLookupOrganizedBySections })),
