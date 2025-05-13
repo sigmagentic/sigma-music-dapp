@@ -495,10 +495,11 @@ export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPayment
           acc[value.membershipId] = {
             tokenImg: value.tokenImg,
             perkIdsOffered: value.perkIdsOffered,
+            maxMints: value.maxMints,
           };
           return acc;
         },
-        {} as Record<string, { tokenImg: string; perkIdsOffered: string[] }>
+        {} as Record<string, { tokenImg: string; perkIdsOffered: string[]; maxMints?: string }>
       );
 
       // Update cache
@@ -761,5 +762,57 @@ export const logStreamViaAPI = async (streamLogData: { streamerAddr: string; alb
   } catch (error) {
     console.error("Error logging stream:", error);
     throw error;
+  }
+};
+
+const cache_latestInnerCircleNFTOptions: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchLatestInnerCircleNFTOptionsViaAPI = async (limit: number = 15) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
+      console.log(`fetchLatestInnerCircleNFTOptionsViaAPI: Getting latest inner circle NFT options from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintInnerCircleNFTLatest`);
+
+    if (response.ok) {
+      let data = await response.json();
+
+      if (limit) {
+        data = data.slice(0, limit);
+      }
+
+      // Update cache
+      cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchLatestInnerCircleNFTOptionsViaAPI: Error fetching latest inner circle NFT options:", error);
+
+    // Update cache (with [] as data)
+    cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
   }
 };

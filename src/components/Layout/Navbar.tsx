@@ -70,7 +70,12 @@ export const Navbar = () => {
     <>
       <div className="flex flex-col md:flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-full bg-[#171717]">
         <div className="flex mb-2 md:mb-0 flex-col items-left text-xl">
-          <Link className="flex flex-row items-center" to={routeNames.home}>
+          <Link
+            className="flex flex-row items-center"
+            to={routeNames.home}
+            onClick={() => {
+              window.location.href = `${routeNames.home}`;
+            }}>
             <div className="flex flex-row leading-none">
               <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[200px] md:w-[230px] mt-[10px]" />
             </div>

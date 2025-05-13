@@ -163,6 +163,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       const currentParams = Object.fromEntries(searchParams.entries());
       delete currentParams["artist"];
       delete currentParams["tab"];
+      delete currentParams["action"];
       setSearchParams(currentParams);
     },
     []
@@ -290,7 +291,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     let allAlbumsData: AlbumWithArtist[] = [];
 
     console.log("filterByArtistCampaignCode", filterByArtistCampaignCode);
-    console.log("albumArtistLookupDataOrganizedBySections", albumArtistLookupDataOrganizedBySections);
 
     const artistDataToUse =
       filterByArtistCampaignCode && filterByArtistCampaignCode !== -1
@@ -761,6 +761,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   setActiveTab("discography");
                                   const currentParams = Object.fromEntries(searchParams.entries());
                                   delete currentParams["tab"];
+                                  delete currentParams["action"];
                                   setSearchParams(currentParams);
                                 }}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
@@ -797,6 +798,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   setActiveTab("leaderboard");
                                   const currentParams = Object.fromEntries(searchParams.entries());
                                   delete currentParams["tab"];
+                                  delete currentParams["action"];
                                   setSearchParams(currentParams);
                                 }}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
@@ -815,6 +817,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   setActiveTab("artistStats");
                                   const currentParams = Object.fromEntries(searchParams.entries());
                                   delete currentParams["tab"];
+                                  delete currentParams["action"];
                                   setSearchParams(currentParams);
                                 }}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative

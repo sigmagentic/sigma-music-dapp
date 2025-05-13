@@ -24,6 +24,7 @@ import { MyProfile } from "./MyProfile";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 
 type HomeSectionProps = {
   homeMode: string;
@@ -166,10 +167,11 @@ export const HomeSection = (props: HomeSectionProps) => {
       setSearchParams({ ...currentParams });
     }
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    // window.scrollTo({
+    //   top: 0,
+    //   behavior: "smooth",
+    // });
+    scrollToTopOnMainContentArea();
   }, [homeMode]);
 
   useEffect(() => {

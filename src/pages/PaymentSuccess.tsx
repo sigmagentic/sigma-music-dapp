@@ -201,14 +201,20 @@ export const PaymentSuccess = () => {
           setMintingStatus("confirmed");
 
           setStatus("success"); // everything was a success
-          await showSuccessConfetti();
+
+          // need to pull it out of the ui thread of for some reason the confetti goes first
+          setTimeout(() => {
+            showSuccessConfetti();
+          }, 500);
 
           useAppStore.getState().updatePaymentInProgress(false);
+
+          await sleep(3);
 
           let redirectUrl = `/?artist=${artistSlug}~${albumId}`;
 
           if (membershipId) {
-            redirectUrl = `/?artist=${artistSlug}&tab=fan`;
+            redirectUrl = `/?artist=${artistSlug}&tab=fan&action=justjoined`;
 
             if (campaignCode && campaignCode !== "") {
               redirectUrl += `&campaign=${campaignCode}`;

@@ -53,14 +53,17 @@ export const Layout = ({
   const removeArtistProfileParamFromUrl = () => {
     const currentParams = Object.fromEntries(searchParams.entries());
     delete currentParams["artist"];
-    delete currentParams["campaign"];
     delete currentParams["tab"];
     delete currentParams["action"];
+    delete currentParams["campaign"];
+    delete currentParams["country"];
+    delete currentParams["team"];
     setSearchParams(currentParams);
   };
 
   const isLoginRoute = location.pathname === routeNames.login;
-  const isFAQOrWhitepaperRoute = location.pathname === routeNames.faq || location.pathname === routeNames.whitepaper;
+  const isInSectionWeShouldNotShowSideMenu =
+    location.pathname === routeNames.faq || location.pathname === routeNames.whitepaper || location.pathname === routeNames.legal;
   const isLoggedIn = !!publicKeySol;
 
   return (
@@ -72,7 +75,7 @@ export const Layout = ({
       <div className="body mt-2 flex-1 md:mt-[72px] md:mb-[30px]">
         <div className="flex flex-col md:flex-row h-full">
           <div
-            className={`${isFAQOrWhitepaperRoute ? "hidden" : ""} side-panel-menu md:min-h-[calc(100vh-102px)] md:p-4 text-white transition-all duration-300 relative w-full ${isMenuCollapsed ? "md:w-20" : "md:w-52"} ${isLoginRoute ? "hidden" : ""}`}>
+            className={`${isInSectionWeShouldNotShowSideMenu ? "hidden" : ""} side-panel-menu md:min-h-[calc(100vh-102px)] md:p-4 text-white transition-all duration-300 relative w-full ${isMenuCollapsed ? "md:w-20" : "md:w-52"} ${isLoginRoute ? "hidden" : ""}`}>
             <nav className={`flex flex-row md:flex-col md:space-y-6 ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""}`}>
               <div className={`menu-section hidden md:flex ${isMenuCollapsed ? "ml-[7px]" : "md:justify-center"} `}>
                 <button
@@ -98,8 +101,12 @@ export const Layout = ({
                   <Tooltip text="Home">
                     <button
                       onClick={() => {
-                        removeArtistProfileParamFromUrl();
                         setHomeMode("home");
+
+                        // need to put it on a timer for some reason (otherwise seems the params come back to the url)
+                        setTimeout(() => {
+                          removeArtistProfileParamFromUrl();
+                        }, 1000);
                       }}
                       disabled={homeMode === "home"}
                       className={`

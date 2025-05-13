@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { SparklesIcon, ComputerDesktopIcon, UserGroupIcon } from "@heroicons/react/24/solid";
+import { confetti } from "@tsparticles/confetti";
 import { Loader, ShoppingCart } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
-import { fetchCreatorFanMembershipAvailabilityViaAPI, fetchMyFanMembershipsForArtistViaAPI, fetchSolPrice } from "libs/utils/misc";
+import { fetchCreatorFanMembershipAvailabilityViaAPI, fetchMyFanMembershipsForArtistViaAPI, fetchSolPrice, sleep } from "libs/utils/misc";
 import { convertTokenImageUrl, scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
@@ -69,6 +70,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [joinInnerCircleModalOpen, setJoinInnerCircleModalOpen] = useState<boolean>(false);
   const [selectedTokenImg, setSelectedTokenImg] = useState<string | null>(null);
+  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/${location.search}`)}&text=${encodeURIComponent(
+    `I am part of ${artistName}'s exclusive Inner Circle fan club on @SigmaXMusic. Come and join me!`
+  )}`;
 
   useEffect(() => {
     if (!creatorPaymentsWallet) {
@@ -209,6 +213,24 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
         return augmentedMembership;
       });
 
+      // if there is a url param called action=justjoined, then find the latest item from augmentedData (using the createdOnTS) and then show some confettit and
+      // ... so this so the token img loads in big view:  setSelectedTokenImg(convertTokenImageUrl(membership.tokenImg))
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get("action");
+
+      if (action === "justjoined" && augmentedData.length > 0) {
+        const latestMembership = augmentedData.sort((a, b) => new Date(b.createdOnTS).getTime() - new Date(a.createdOnTS).getTime())[0];
+
+        if (latestMembership) {
+          setSelectedTokenImg(convertTokenImageUrl(latestMembership.tokenImg));
+
+          // need to pull it out of the ui thread of for some reason the confetti goes first
+          setTimeout(() => {
+            showSuccessConfetti();
+          }, 500);
+        }
+      }
+
       setMyActiveFanMembershipsForArtist(augmentedData);
     } catch (error) {
       console.error("Error fetching my fan memberships data for artist:", error);
@@ -234,7 +256,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
     }
   };
 
-  const fetchMembershipData = async (fanMembershipAvailabilityData: Record<string, { tokenImg: string; perkIdsOffered: string[] }> | null) => {
+  const fetchMembershipData = async (
+    fanMembershipAvailabilityData: Record<string, { tokenImg: string; perkIdsOffered: string[]; maxMints?: string }> | null
+  ) => {
     try {
       if (fanMembershipAvailabilityData) {
         // Create a deep copy of tierData to avoid mutating the original
@@ -251,6 +275,15 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
           // Update the tier with the perks
           if (extendedTierData[membershipId]) {
             extendedTierData[membershipId].perks = perks;
+          }
+
+          // Update the tier with the maxMints
+          if (extendedTierData[membershipId]) {
+            if (item.maxMints) {
+              extendedTierData[membershipId].maxMints = parseInt(item.maxMints);
+            } else {
+              extendedTierData[membershipId].maxMints = 0; // 0 means unlimited
+            }
           }
         });
 
@@ -322,6 +355,32 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
     cleanupActionBuyParam();
   };
 
+  const showSuccessConfetti = async () => {
+    const animation = await confetti({
+      spread: 360,
+      ticks: 100,
+      gravity: 0,
+      decay: 0.94,
+      startVelocity: 30,
+      particleCount: 200,
+      scalar: 2,
+      shapes: ["emoji", "circle", "square"],
+      shapeOptions: {
+        emoji: {
+          value: ["💎", "⭐", "✨", "💫"],
+        },
+      },
+    });
+
+    if (animation) {
+      await sleep(10);
+      animation.stop();
+      if ((animation as any).destroy) {
+        (animation as any).destroy();
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="h-[100px] flex items-center justify-center">
@@ -389,6 +448,21 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   </div>
                 ))}
               </div>
+              <div className="bg-black rounded-full p-[10px] -z-1 mt-4">
+                <a
+                  className="z-1 bg-black text-white  rounded-3xl gap-2 flex flex-row justify-center items-center"
+                  href={"https://twitter.com/intent/tweet?" + tweetText}
+                  data-size="large"
+                  target="_blank"
+                  rel="noreferrer">
+                  <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                      <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                    </svg>
+                  </span>
+                  <p className="z-10">Share this news on X</p>
+                </a>
+              </div>
             </div>
           </div>
         )}
@@ -420,6 +494,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   <h3 className="text-xl font-semibold mb-2 capitalize">{data.label}</h3>
                   <div className="text-2xl font-bold mb-2">{formatPrice(data.defaultPriceUSD)} USD</div>
                   <div className="text-sm text-gray-400">{formatTerm(data.term)}</div>
+                  <div className="text-yellow-400">{data.maxMints && data.maxMints > 0 ? `Only ${data.maxMints.toLocaleString()} will be sold!` : ""}</div>
                 </div>
               ))}
             </div>
@@ -467,6 +542,19 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
             <div className="p-6 rounded-lg border-2 cursor-pointer transition-all border-yellow-500 bg-yellow-500/10 text-center">
               <div className="text-3xl font-bold mb-2">{formatPrice(artistsMembershipOptions?.t1.defaultPriceUSD || 0)} USD</div>
               <div className="text-gray-400">{formatTerm(artistsMembershipOptions?.t1.term || "")}</div>
+              <div className="text-yellow-400">
+                {artistsMembershipOptions?.t1.maxMints && artistsMembershipOptions?.t1.maxMints > 0 ? (
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    <span className="animate-pulse">🔥</span>
+                    <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">
+                      Only {artistsMembershipOptions?.t1.maxMints.toLocaleString()} will be sold!
+                    </span>
+                    <span className="animate-pulse">🔥</span>
+                  </div>
+                ) : (
+                  ""
+                )}
+              </div>
             </div>
 
             <div className="mt-8 text-center">
@@ -539,12 +627,36 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
       {selectedTokenImg && (
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
           <div className="relative max-w-4xl w-full">
-            <img src={selectedTokenImg} alt="Membership Token" className="w-[90%] h-auto m-auto rounded-lg" />
-            <button
-              onClick={() => setSelectedTokenImg(null)}
-              className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
-              Close
-            </button>
+            <img src={selectedTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
+            <div>
+              <div className="bg-black rounded-full p-[10px] -z-1 mt-4">
+                <a
+                  className="z-1 bg-black text-white  rounded-3xl gap-2 flex flex-row justify-center items-center"
+                  href={"https://twitter.com/intent/tweet?" + tweetText}
+                  data-size="large"
+                  target="_blank"
+                  rel="noreferrer">
+                  <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                      <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                    </svg>
+                  </span>
+                  <p className="z-10">Share this news on X</p>
+                </a>
+              </div>
+              <button
+                onClick={() => {
+                  // remove action from the url (as it may have action=justjoined and we dont want them share that on X for e.g)
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete("action");
+                  window.history.replaceState({}, "", url.toString());
+
+                  setSelectedTokenImg(null);
+                }}
+                className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
