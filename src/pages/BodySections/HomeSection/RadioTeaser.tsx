@@ -37,7 +37,7 @@ export const RadioTeaser = (props: RadioTeaserProps) => {
           {radioTracksLoading ? (
             <span className="text-xs">
               <Loader className="w-full text-center animate-spin hover:scale-105 mb-2" />
-              Free radio music service powering up...
+              radio service powering up...
             </span>
           ) : (
             <span className="text-xs">⚠️ Radio service unavailable</span>

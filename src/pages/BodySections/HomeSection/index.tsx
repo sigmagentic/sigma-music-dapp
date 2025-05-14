@@ -93,11 +93,9 @@ export const HomeSection = (props: HomeSectionProps) => {
 
   // Genres
   const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
-
-  //Campaigns
-  const [campaignCodeFilter, setCampaignCodeFilter] = useState<string | undefined>(undefined);
-
   const [genreUpdateTimeout, setGenreUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const [campaignCodeFilter, setCampaignCodeFilter] = useState<string | undefined>(undefined);
 
   const debouncedGenreUpdate = useCallback(() => {
     if (genreUpdateTimeout) {
@@ -136,11 +134,13 @@ export const HomeSection = (props: HomeSectionProps) => {
       setHomeMode(`artists-${new Date().getTime()}`);
       return;
     }
-
-    fetchAndUpdateRadioTracks();
   }, []);
 
   useEffect(() => {
+    if (homeMode === "home") {
+      fetchAndUpdateRadioTracks();
+    }
+
     if (homeMode === "radio" && !launchRadioPlayer) {
       setLaunchRadioPlayer(true);
       setLoadRadioPlayerIntoDockedMode(true);
@@ -167,10 +167,6 @@ export const HomeSection = (props: HomeSectionProps) => {
       setSearchParams({ ...currentParams });
     }
 
-    // window.scrollTo({
-    //   top: 0,
-    //   behavior: "smooth",
-    // });
     scrollToTopOnMainContentArea();
   }, [homeMode]);
 
