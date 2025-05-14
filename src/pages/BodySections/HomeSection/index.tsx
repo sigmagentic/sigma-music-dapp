@@ -9,6 +9,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
 import { filterRadioTracksByUserPreferences, getAlbumTracksFromDBViaAPI } from "libs/utils/misc";
+import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { CampaignHero } from "pages/Campaigns/CampaignHero";
 import { Remix } from "pages/Remix";
@@ -24,7 +25,6 @@ import { MyProfile } from "./MyProfile";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
-import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 
 type HomeSectionProps = {
   homeMode: string;
@@ -137,7 +137,9 @@ export const HomeSection = (props: HomeSectionProps) => {
   }, []);
 
   useEffect(() => {
-    if (homeMode === "home") {
+    // we do this here as if we dont, when the user is in a deep link and come bakc home, the radio player is stuck in a loading state
+    // ... but only do it if radio is not already playing
+    if (homeMode === "home" && !launchRadioPlayer) {
       fetchAndUpdateRadioTracks();
     }
 
@@ -576,20 +578,6 @@ export const HomeSection = (props: HomeSectionProps) => {
               </div>
             </>
           )}
-
-          {/* Radio */}
-          {/* {homeMode === "radio" && (
-            <>
-              <div className="w-full mt-5">
-                <RadioBgCanvas
-                  radioTracks={radioTracksSorted}
-                  radioTracksLoading={radioTracksLoading}
-                  launchRadioPlayer={launchRadioPlayer}
-                  setLaunchRadioPlayer={setLaunchRadioPlayer}
-                />
-              </div>
-            </>
-          )} */}
 
           {/* Ny Collected Music Data NFTs */}
           {homeMode === "wallet" && (
