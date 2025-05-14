@@ -493,7 +493,6 @@ export const HomeSection = (props: HomeSectionProps) => {
                 <div className="flex flex-col w-full gap-4">
                   <div className="flex flex-col-reverse md:flex-row gap-4">
                     <div className="radioTeaser flex flex-col md:mt-0 flex-1">
-                      <span>radioTracksLoading {radioTracksLoading.toString()}</span>
                       <RadioTeaser
                         radioTracks={radioTracksSorted}
                         radioTracksLoading={radioTracksLoading}
