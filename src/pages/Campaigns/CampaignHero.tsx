@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import CAMPAIGN_WSB_HERO from "assets/img/campaigns/campaign-wsb-hero.png";
 import { COUNTRIES } from "libs/constants/countries";
 import { TEAMS } from "libs/constants/teams";
+import { formatFriendlyDate } from "libs/utils/ui";
 import { useAppStore } from "store/app";
 
 // Featured teams configuration
@@ -36,7 +37,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCountry, setSelectedCountry] = useState<string | null>(searchParams.get("country"));
   const [selectedTeam, setSelectedTeam] = useState<string | null>(searchParams.get("team"));
-  const { tileDataCollectionLoadingInProgress } = useAppStore();
+  const { tileDataCollectionLoadingInProgress, mintsLeaderboard } = useAppStore();
 
   useEffect(() => {
     handleCampaignCodeFilterChange("wsb");
@@ -66,6 +67,8 @@ export const CampaignHero = (props: CampaignHeroProps) => {
       }
     }
   }, []);
+
+  const showFeaturedTeams = !selectedCountry && !selectedTeam && !location.search.includes("artist=");
 
   return (
     <>
@@ -168,9 +171,9 @@ export const CampaignHero = (props: CampaignHeroProps) => {
         </div>
       </div>
 
-      {!selectedCountry && !selectedTeam && (
+      {showFeaturedTeams && (
         <div className=" w-full">
-          <div className="w-full mt-5 ">
+          <div className="w-full mt-5">
             <h1 className="!text-2xl font-bold mb-4 !text-yellow-400 text-center md:text-left">Featured Teams</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -201,7 +204,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                         currentParams["team"] = team.teamCode;
                         setSearchParams(currentParams);
                       }}
-                      className="w-full bg-gradient-to-r from-yellow-300 to-orange-500 text-black font-bold py-3 px-6 rounded-lg hover:from-yellow-400 hover:to-orange-600 transition-all duration-300 transform hover:scale-[1.02]">
+                      className="w-[200px] bg-gradient-to-r from-yellow-300 to-orange-500 text-black font-bold py-3 px-6 rounded-lg hover:from-yellow-400 hover:to-orange-600 transition-all duration-300 transform hover:scale-[1.02]">
                       View Team
                     </button>
                   </div>
@@ -210,7 +213,106 @@ export const CampaignHero = (props: CampaignHeroProps) => {
             </div>
           </div>
 
-          <div className="w-full mt-5 relative top-[25px]">
+          <div className="w-full mt-[80px]">
+            <h1 className="!text-2xl font-bold mb-8 !text-yellow-400 text-center md:text-left">Top 3 Dancers By Collectibles Sold</h1>
+            {mintsLeaderboard
+              .filter((item) => item.nftType === "fan")
+              .filter((item) => {
+                const { artistLookupEverything } = useAppStore.getState();
+                const artistInfo = artistLookupEverything[item.arId];
+                return artistInfo && artistInfo.artistCampaignCode === "wsb";
+              })
+              .slice(0, 3).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10">
+                <div className="flex space-x-8 mb-4 animate-pulse">
+                  <div className="w-36 h-48 bg-gradient-to-t from-yellow-400 to-yellow-200 rounded-3xl flex flex-col items-center justify-end shadow-2xl">
+                    <span className="text-6xl">🥇</span>
+                  </div>
+                  <div className="w-32 h-40 bg-gradient-to-t from-gray-400 to-gray-200 rounded-3xl flex flex-col items-center justify-end shadow-2xl">
+                    <span className="text-5xl">🥈</span>
+                  </div>
+                  <div className="w-28 h-36 bg-gradient-to-t from-orange-400 to-orange-200 rounded-3xl flex flex-col items-center justify-end shadow-2xl">
+                    <span className="text-4xl">🥉</span>
+                  </div>
+                </div>
+                <div className="text-yellow-300 text-xl font-bold text-center">Leaderboard loading... Who's going to take gold? 🏅</div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center items-center mt-8">
+                {mintsLeaderboard
+                  .filter((item) => item.nftType === "fan")
+                  .filter((item) => {
+                    const { artistLookupEverything } = useAppStore.getState();
+                    const artistInfo = artistLookupEverything[item.arId];
+                    return artistInfo && artistInfo.artistCampaignCode === "wsb";
+                  })
+                  .slice(0, 3)
+                  .map((item, idx) => {
+                    const { artistLookupEverything } = useAppStore.getState();
+                    const artistInfo = artistLookupEverything[item.arId];
+                    const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+                    const boxHeight = idx === 0 ? "h-[420px]" : idx === 1 ? "h-[370px]" : "h-[340px]";
+                    const boxWidth = idx === 0 ? "w-[320px]" : idx === 1 ? "w-[270px]" : "w-[240px]";
+                    const fontSize = idx === 0 ? "text-3xl" : idx === 1 ? "text-2xl" : "text-xl";
+                    const imgUrl =
+                      item.nftType === "fan" && artistInfo?.fanToken3DGifTeaser && artistInfo.fanToken3DGifTeaser !== ""
+                        ? `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistInfo.fanToken3DGifTeaser}.gif`
+                        : artistInfo?.img;
+                    return (
+                      <div
+                        key={item.mintTemplatePrefix}
+                        className={`relative flex flex-col items-center justify-center rounded-[2.5rem] shadow-2xl ${boxHeight} ${boxWidth} p-4 group hover:scale-105 transition-transform duration-300`}
+                        style={{
+                          minWidth: 220,
+                          background: "#18181b",
+                          borderColor: idx === 0 ? "#FFD700" : idx === 1 ? "#C0C0C0" : "#cd7f32",
+                          borderWidth: "5px",
+                          borderStyle: "solid",
+                        }}>
+                        <div className="absolute top-3 right-4 z-10 text-5xl drop-shadow-lg">{medal}</div>
+                        <div className="flex-1 w-full flex items-center justify-center mb-2">
+                          <img
+                            src={imgUrl}
+                            alt={artistInfo?.name || "Artist"}
+                            className="object-contain cursor-pointer"
+                            style={{ width: "95%", height: idx === 0 ? "200px" : idx === 1 ? "150px" : "120px", maxHeight: "80%" }}
+                            onClick={() => {
+                              if (artistInfo?.slug) {
+                                if (item.nftType === "album") {
+                                  // Not expected for this leaderboard, but fallback
+                                  window.location.href = `?artist=${artistInfo.slug}`;
+                                } else {
+                                  const campaign = artistInfo?.artistCampaignCode;
+                                  const country = artistInfo?.artistSubGroup1Code;
+                                  const team = artistInfo?.artistSubGroup2Code;
+                                  let url = `?tab=fan&artist=${artistInfo.slug}`;
+                                  if (campaign && country) {
+                                    if (team) {
+                                      url += `&campaign=${campaign}&country=${country}&team=${team}`;
+                                    } else {
+                                      url += `&campaign=${campaign}&country=${country}`;
+                                    }
+                                  }
+                                  window.location.href = url;
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className={`font-bold text-center text-white ${fontSize} mb-2`}>{artistInfo?.name || "Unknown"}</div>
+                        <div className="text-yellow-300 font-extrabold text-2xl mb-1 flex items-center justify-center">
+                          <span className="mr-1">{item.mints}</span>
+                          <span className="text-xs font-bold text-yellow-200">sold</span>
+                        </div>
+                        <div className="text-xs text-white/80 font-semibold mb-1">Last Sold: {item.lastBought ? formatFriendlyDate(item.lastBought) : "-"}</div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+
+          <div className="w-full mt-[40px] relative top-[35px]">
             <h1 className="!text-2xl font-bold mb-4 !text-yellow-400 text-center md:text-left">Discover Dancers</h1>
           </div>
         </div>

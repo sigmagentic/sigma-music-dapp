@@ -14,6 +14,7 @@ import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
 import { useAppStore } from "./app";
 import { useNftsStore } from "./nfts";
+import { fetchMintsLeaderboardByMonth } from "libs/utils/misc";
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
   const { signMessage } = useWallet();
@@ -47,6 +48,8 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     updateAlbumLookup,
     updateArtistLookupOrganizedBySections,
     updateArtistLookupEverything,
+    updateMintsLeaderboard,
+    mintsLeaderboard,
   } = useAppStore();
 
   useEffect(() => {
@@ -94,6 +97,12 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
         updateAlbumLookup(albumLookupMap);
         updateArtistLookupOrganizedBySections(albumArtistLookupDataOrganizedBySections);
         updateArtistLookupEverything(artistLookupEverythingMap);
+      }
+
+      // lets so this here as it's used in many places in our app
+      if (mintsLeaderboard.length === 0) {
+        const _mintsLeaderboard = await fetchMintsLeaderboardByMonth("0_0");
+        updateMintsLeaderboard(_mintsLeaderboard);
       }
     })();
   }, []);
@@ -227,19 +236,6 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       }
     })();
   }, [publicKeySol, solBitzNfts, solPreaccessNonce, solPreaccessSignature, isSigmaWeb2XpSystem]);
-
-  // In your component or hook where you need to sign messages
-  // const signMessageViaWeb3Auth = async (message: Uint8Array) => {
-  //   // Convert Uint8Array to base58 string for Web3Auth
-  //   const messageString = bs58.encode(message);
-
-  //   let signedMessage = await web3auth?.provider?.request({
-  //     method: "solanaSignMessage",
-  //     params: ["test message"],
-  //   });
-
-  //   return signedMessage;
-  // };
 
   function resetBitzValsToZeroSOL() {
     updateBitzBalance(-1);

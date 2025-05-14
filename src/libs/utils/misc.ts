@@ -6,6 +6,7 @@ interface CacheEntry_DataWithTimestamp {
   timestamp: number;
 }
 
+const CACHE_DURATION_HALF_MIN = 30 * 1000; // 30 seconds in milliseconds
 const CACHE_DURATION_2_MIN = 2 * 60 * 1000; // 2 minutes in milliseconds
 const CACHE_DURATION_60_MIN = 1 * 60 * 1000; // 60 minutes in milliseconds
 
@@ -139,7 +140,7 @@ export const logPaymentToAPI = async (paymentData: any) => {
   }
 };
 
-export const udpateUserProfileOnBackEndAPI = async (userProfileData: any) => {
+export const updateUserProfileOnBackEndAPI = async (userProfileData: any) => {
   try {
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/userAccounts/userUpdate`, {
       method: "POST",
@@ -282,89 +283,6 @@ export const filterRadioTracksByUserPreferences = (allRadioTracks: MusicTrack[])
 
   return _allRadioTracksSorted;
 };
-
-export async function mergeImages(
-  baseImageUrl: string,
-  overlayImageUrl: string
-): Promise<{
-  base64ForApi: string; // base64 without data:image/png;base64, prefix
-  base64ForPreview: string; // complete base64 with data:image/png;base64, prefix for <img> tags
-}> {
-  // Create new Image objects
-  const loadImage = async (
-    url: string
-  ): Promise<{
-    element: HTMLImageElement;
-    base64: string;
-  }> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous"; // Enable CORS
-
-      // Create a canvas to get base64
-      const tempCanvas = document.createElement("canvas");
-      const tempCtx = tempCanvas.getContext("2d");
-
-      img.onload = () => {
-        if (tempCtx) {
-          tempCanvas.width = img.width;
-          tempCanvas.height = img.height;
-          tempCtx.drawImage(img, 0, 0);
-          const base64String = tempCanvas.toDataURL("image/png");
-          resolve({
-            element: img,
-            base64: base64String,
-          });
-        } else {
-          reject(new Error("Failed to get temporary canvas context"));
-        }
-      };
-      img.onerror = reject;
-      img.src = url;
-    });
-  };
-
-  try {
-    // Load both images
-    const [baseImage, overlayImage] = await Promise.all([loadImage(baseImageUrl), loadImage(overlayImageUrl)]);
-
-    // Create canvas
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) {
-      throw new Error("Failed to get canvas context");
-    }
-
-    // Set canvas size to base image dimensions
-    canvas.width = baseImage.element.width;
-    canvas.height = baseImage.element.height;
-
-    // Draw base image
-    ctx.drawImage(baseImage.element, 0, 0);
-
-    // Calculate position to center the overlay image
-    const x = (canvas.width - overlayImage.element.width) / 2;
-    const y = (canvas.height - overlayImage.element.height) / 2;
-
-    // Draw overlay image in the center
-    ctx.drawImage(overlayImage.element, x, y);
-
-    // Get base64 of the merged result
-    const fullBase64 = canvas.toDataURL("image/png", 1.0); // Using max quality
-
-    // For API: Remove the data:image/png;base64, prefix
-    const base64ForApi = fullBase64.replace(/^data:image\/png;base64,/, "");
-
-    return {
-      base64ForApi: base64ForApi, // Use this when sending to API
-      base64ForPreview: fullBase64, // Use this for <img> tags
-    };
-  } catch (error) {
-    console.error("Error merging images:", error);
-    throw error;
-  }
-}
 
 const cache_checkIfAlbumCanBeMinted: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
@@ -639,7 +557,7 @@ export const fetchStreamsLeaderboardByArtistViaAPI = async (artistId: string) =>
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_streamsLeaderboardByArtist[`${artistId}`];
-    if (cacheEntry && now - cacheEntry.timestamp < 10) {
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_HALF_MIN) {
       console.log(`fetchStreamsLeaderboardByArtistViaAPI: Getting streams leaderboard for artistId: ${artistId} from cache`);
       return cacheEntry.data;
     }
@@ -809,6 +727,109 @@ export const fetchLatestInnerCircleNFTOptionsViaAPI = async (limit: number = 15)
 
     // Update cache (with [] as data)
     cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
+const cache_mintsByTemplatePrefix: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchMintsByTemplatePrefix = async (templatePrefix: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_mintsByTemplatePrefix[`${templatePrefix}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_HALF_MIN) {
+      console.log(`fetchMintsByTemplatePrefix: Getting mints by template prefix: ${templatePrefix} from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintsByTemplatePrefix?templatePrefix=${templatePrefix}`);
+
+    if (response.ok) {
+      let data = await response.json();
+
+      // we should only get 1 item as the API is returing all time mints for this template.
+      if (data.length > 0) {
+        data = data[0];
+      } else {
+        data = [];
+      }
+
+      // Update cache
+      cache_mintsByTemplatePrefix[`${templatePrefix}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_mintsByTemplatePrefix[`${templatePrefix}`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchMintsByTemplatePrefix: Error fetching mints by template prefix:", error);
+
+    // Update cache (with [] as data)
+    cache_mintsByTemplatePrefix[`${templatePrefix}`] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
+const cache_mintsLeaderboardByMonth: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchMintsLeaderboardByMonth = async (MMYYString: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_mintsLeaderboardByMonth[`${MMYYString}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
+      console.log(`fetchMintsLeaderboardByMonth: Getting mints leaderboard for MMYYString: ${MMYYString} from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintsLeaderboardByMonth?MMYYString=${MMYYString}`);
+
+    if (response.ok) {
+      let data = await response.json();
+
+      // Update cache
+      cache_mintsLeaderboardByMonth[`${MMYYString}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_mintsLeaderboardByMonth[`${MMYYString}`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchMintsLeaderboardByMonth: Error fetching mints leaderboard:", error);
+
+    // Update cache (with [] as data)
+    cache_mintsLeaderboardByMonth[`${MMYYString}`] = {
       data: [],
       timestamp: now,
     };
