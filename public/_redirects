@@ -1,5 +1,5 @@
 /deck    https://www.canva.com/design/DAGiy2D-d2M/GMfktKGtpcyX1pr25GXgDQ/view    301
-/wsb  /?campaign=wsb  200
-/wsb/rockwell  /?campaign=wsb&country=phl&team=mrw  200
-/wsb/rockwell/loonyo  /?campaign=wsb&country=phl&team=mrw&artist=wsb-phl-mrw-loonyo  200
+/wsb  https://sigmamusic.fm?campaign=wsb  301
+/wsb/rockwell  https://sigmamusic.fm?campaign=wsb&country=phl&team=mrw  301
+/wsb/rockwell/loonyo  https://sigmamusic.fm?campaign=wsb&country=phl&team=mrw&artist=wsb-phl-mrw-loonyo  301
 /*  /index.html  200
