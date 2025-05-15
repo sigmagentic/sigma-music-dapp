@@ -12,6 +12,7 @@ import {
   PuzzlePieceIcon,
   UserIcon,
   GlobeEuropeAfricaIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 import { Toaster } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
@@ -50,14 +51,15 @@ export const Layout = ({
   const { publicKey: publicKeySol } = useSolanaWallet();
   const paymentInProgress = useAppStore((state) => state.paymentInProgress);
 
-  const removeArtistProfileParamFromUrl = () => {
+  const removeDeepSectionParamsFromUrl = () => {
     const currentParams = Object.fromEntries(searchParams.entries());
     delete currentParams["artist"];
     delete currentParams["tab"];
     delete currentParams["action"];
-    delete currentParams["campaign"];
     delete currentParams["country"];
     delete currentParams["team"];
+    delete currentParams["campaign"];
+    delete currentParams["section"];
     setSearchParams(currentParams);
   };
 
@@ -105,7 +107,7 @@ export const Layout = ({
 
                         // need to put it on a timer for some reason (otherwise seems the params come back to the url)
                         setTimeout(() => {
-                          removeArtistProfileParamFromUrl();
+                          removeDeepSectionParamsFromUrl();
                         }, 1000);
                       }}
                       disabled={homeMode === "home"}
@@ -125,7 +127,7 @@ export const Layout = ({
                   <Tooltip text="Toggle Radio">
                     <button
                       onClick={() => {
-                        removeArtistProfileParamFromUrl();
+                        removeDeepSectionParamsFromUrl();
                         setTriggerToggleRadioPlayback("radio-" + new Date().getTime().toString());
                       }}
                       disabled={homeMode === "radio"}
@@ -145,7 +147,7 @@ export const Layout = ({
                   <Tooltip text="Artists">
                     <button
                       onClick={() => {
-                        removeArtistProfileParamFromUrl();
+                        removeDeepSectionParamsFromUrl();
                         setHomeMode(`artists-${new Date().getTime()}`);
                       }}
                       className={`
@@ -164,8 +166,12 @@ export const Layout = ({
                   <Tooltip text="Albums">
                     <button
                       onClick={() => {
-                        removeArtistProfileParamFromUrl();
                         setHomeMode(`albums-${new Date().getTime()}`);
+
+                        // need to put it on a timer for some reason (otherwise seems the params come back to the url)
+                        setTimeout(() => {
+                          removeDeepSectionParamsFromUrl();
+                        }, 1000);
                       }}
                       className={`
                       flex items-center flex-shrink-0
@@ -201,7 +207,7 @@ export const Layout = ({
                   <Tooltip text="AI REMiX : Generate & Own Royalty-Free Viral AI Music">
                     <button
                       onClick={() => {
-                        removeArtistProfileParamFromUrl();
+                        removeDeepSectionParamsFromUrl();
                         setHomeMode(`remix`);
                       }}
                       disabled={homeMode === "remix"}
@@ -221,8 +227,12 @@ export const Layout = ({
                   <Tooltip text="Play Music Mini-Games">
                     <button
                       onClick={() => {
-                        removeArtistProfileParamFromUrl();
                         setHomeMode(`games`);
+
+                        // need to put it on a timer for some reason (otherwise seems the params come back to the url)
+                        setTimeout(() => {
+                          removeDeepSectionParamsFromUrl();
+                        }, 1000);
                       }}
                       disabled={homeMode === "games"}
                       className={`
@@ -238,10 +248,28 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
                     </button>
                   </Tooltip>
+                  <Tooltip text="Reward Pools">
+                    <button
+                      onClick={() => {
+                        setHomeMode(`reward-pools-${new Date().getTime()}`);
+                      }}
+                      disabled={homeMode.includes("reward-pools")}
+                      className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:text-orange-500
+                      peer
+                    `}>
+                      <CurrencyDollarIcon className="h-6 w-6 mr-1 md:mr-0" />
+                      <span className="md:hidden w-max">Reward Pools</span>
+                      {!isMenuCollapsed && <span className="hidden md:inline">Reward Pools</span>}
+                    </button>
+                  </Tooltip>
                   <Tooltip text="World Supremacy Battle Campaign">
                     <button
                       onClick={() => {
-                        removeArtistProfileParamFromUrl();
                         setHomeMode(`campaigns-wsb-${new Date().getTime()}`);
                       }}
                       disabled={homeMode.includes("campaigns-wsb") || ENABLE_WSB_CAMPAIGN === "0"}
@@ -260,11 +288,15 @@ export const Layout = ({
                   </Tooltip>
                   {isLoggedIn && (
                     <>
-                      <Tooltip text="Your NFT Wallet">
+                      <Tooltip text="Your Collectibles Wallet">
                         <button
                           onClick={() => {
-                            removeArtistProfileParamFromUrl();
                             setHomeMode("wallet");
+
+                            // need to put it on a timer for some reason (otherwise seems the params come back to the url)
+                            setTimeout(() => {
+                              removeDeepSectionParamsFromUrl();
+                            }, 1000);
                           }}
                           disabled={homeMode === "wallet"}
                           className={`
@@ -283,8 +315,12 @@ export const Layout = ({
                       <Tooltip text="Your Profile">
                         <button
                           onClick={() => {
-                            removeArtistProfileParamFromUrl();
                             setHomeMode("profile");
+
+                            // need to put it on a timer for some reason (otherwise seems the params come back to the url)
+                            setTimeout(() => {
+                              removeDeepSectionParamsFromUrl();
+                            }, 1000);
                           }}
                           disabled={homeMode === "profile"}
                           className={`

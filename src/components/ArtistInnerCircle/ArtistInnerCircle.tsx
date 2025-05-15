@@ -154,7 +154,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
 
   // we can do a live check of how many mints have been sold for the selected membership
   useEffect(() => {
-    if (selectedArtistMembership && artistId && creatorPaymentsWallet && artistsMembershipOptions) {
+    if (selectedArtistMembership && artistId && creatorPaymentsWallet && artistsMembershipOptions && Object.keys(artistsMembershipOptions).length > 0) {
       setLiveMintStats(null);
       const templatePrefix = `fan-${creatorPaymentsWallet.toLowerCase()}-${artistId}-${selectedArtistMembership}`;
 
@@ -638,6 +638,17 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                             <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/40">Launching Soon</span>
                           )}
                           <p className="text-sm text-gray-400 mt-1">{perk.description}</p>
+
+                          {perk.linkedRewardPool && (
+                            <div
+                              className="text-sm text-gray-400 mt-3"
+                              onClick={(e) => {
+                                window.open(`/?section=reward-pools&poolId=${perk.linkedRewardPool}`, "_blank");
+                                e.stopPropagation();
+                              }}>
+                              <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">View Live Reward Pool</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       {perk.terms && (

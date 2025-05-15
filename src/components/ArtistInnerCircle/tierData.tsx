@@ -82,11 +82,12 @@ export const perksData: Perk[] = [
   },
   {
     pid: "p10",
-    name: "10% of revenue raffled off to 10 lucky fans (3 months only)",
-    type: "physical" as const,
+    name: "10% of revenue raffled off to lucky fans (3 months only)",
+    type: "virtual" as const,
     description: "Help promote my work and grow my fanbase and you can share in the revenue. Share in my success and I'll share in yours",
+    linkedRewardPool: "rp1",
     terms:
-      "Each inner circle fan token = 1 raffle ticket. 10% of total sales per week will be shared with 10 lucky fans who hold the inner circle fan membership NFT. You need to hold the inner circle fan membership NFT for a whole week to be eligible for this competition. All winners are selected at random and are non negotiable. Note that holding this tier gives you this revenue share option for 3 months only (since your purchase date), if this artist has a 'Premium' tier memebership, this 3 months period does NOT apply, please check if a 'Premium' tier membership is available for this artist before purchasing this tier",
+      "Each inner circle fan token = 1 raffle ticket. 10% of total sales per week will be shared with lucky fans who hold the inner circle fan membership NFT. You need to hold the inner circle fan membership NFT for a whole week to be eligible for this competition. All winners are selected at random and are non negotiable.",
   },
 ];
 
