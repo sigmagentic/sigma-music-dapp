@@ -3,6 +3,7 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
+import CAMPAIGN_WSB_CTA from "assets/img/campaigns/campaign-wsb-home-cta.png";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
 import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -25,6 +26,7 @@ import { MyProfile } from "./MyProfile";
 import { RadioTeaser } from "./RadioTeaser";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import { Button } from "libComponents/Button";
 
 type HomeSectionProps = {
   homeMode: string;
@@ -502,8 +504,24 @@ export const HomeSection = (props: HomeSectionProps) => {
                         setLaunchRadioPlayer={setLaunchRadioPlayer}
                       />
                     </div>
+                    <div className="campaign-cta flex flex-col md:mt-0 flex-1">
+                      <div
+                        className={`select-none h-[200px] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/20 relative w-[100%] flex flex-col items-center justify-center rounded-lg mt-2 overflow-hidden`}>
+                        <img src={CAMPAIGN_WSB_CTA} alt="WSB Fan Collectibles Are Live!" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/50"></div>
+                        <Button
+                          onClick={() => {
+                            setHomeMode(`campaigns-wsb`);
+                          }}
+                          className="!text-black text-sm tracking-tight absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l">
+                          <>
+                            <span className="ml-2">WSB Collectibles Now Live!</span>
+                          </>
+                        </Button>
+                      </div>
+                    </div>
                     <div className="flex flex-col flex-1 text-left bgx-red-500 align-center justify-center p-5">
-                      <span className="text-center md:text-left font-[Clash-Medium] text-3xl xl:text-5xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
+                      <span className="text-center md:text-right font-[Clash-Medium] text-2xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
                         Your Music Super App for Exclusive Fan Experiences
                       </span>
                     </div>
@@ -528,7 +546,7 @@ export const HomeSection = (props: HomeSectionProps) => {
           {/* Artists and their Albums */}
           {(homeMode.includes("artists") || homeMode.includes("albums") || homeMode.includes("campaigns-wsb")) && (
             <>
-              <div className="w-full mt-5">
+              <div className={`w-full ${homeMode.includes("campaigns-wsb") ? "mt-0" : "mt-5"}`}>
                 <FeaturedArtistsAndAlbums
                   viewSolData={viewSolData}
                   stopPreviewPlayingNow={stopPreviewPlaying}
@@ -618,37 +636,6 @@ export const HomeSection = (props: HomeSectionProps) => {
                 </div>
               )}
             </>
-          )}
-
-          {/* Musican Onboarding Section */}
-          {homeMode === "home" && (
-            <div className="w-full mt-5 hidden">
-              <div id="join-sigma" className="flex flex-col md:flex-row 3xl:flex-col gap-4 py-[40px] px-[20px] text-center rounded-t-lg">
-                <div className="flex flex-col flex-1 text-left">
-                  <span className="text-center md:text-left font-[Clash-Medium] text-2xl xl:text-5xl bg-gradient-to-r from-orange-400 to-orange-500 dark:from-yellow-300 dark:to-orange-500 inline-block text-transparent bg-clip-text">
-                    Calling all Musicians!
-                  </span>
-                  <span className="text-center md:text-left xl:text-2xl">
-                    Launch your music with Sigma Music. Create die-hard fans that share in your success.
-                  </span>
-                </div>
-
-                <div className="flex flex-col flex-1 md:flex-row justify-center items-center">
-                  <Link
-                    to={`https://api.itheumcloud.com/app_nftunes/other/nf-tunes-bizdev-deck-V2.pdf`}
-                    target="_blank"
-                    className="mt-10 md:mx-3 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg md:max-w-[50%] !text-black transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100">
-                    Perks and Benefits
-                  </Link>
-                  <Link
-                    to={`https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform`}
-                    target="_blank"
-                    className="mt-10 md:mx-3 text-sm md:text-xl text-center p-2 md:p-4 bg-gradient-to-br from-yellow-300 to-orange-500 rounded-lg md:max-w-[50%] !text-black transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100">
-                    Launch Your Music!
-                  </Link>
-                </div>
-              </div>
-            </div>
           )}
 
           {homeMode === "games" && (

@@ -125,9 +125,9 @@ export const Navbar = () => {
                 {!publicKeySol ? (
                   <>
                     {/* Web3 Wallet Login Button */}
-                    <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
+                    <div className="">
                       <Button
-                        className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-lg h-[48px]"
+                        className="!text-black !text-lg px-[2.25rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer h-[48px]"
                         variant="outline"
                         onClick={() => {
                           window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;

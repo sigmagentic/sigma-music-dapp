@@ -8,7 +8,8 @@ import { toast } from "react-hot-toast";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI, mergeImages } from "libs/utils/misc";
+import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI } from "libs/utils/misc";
+import { mergeImages } from "libs/utils/ui";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 
 export const LaunchToPumpFun = ({

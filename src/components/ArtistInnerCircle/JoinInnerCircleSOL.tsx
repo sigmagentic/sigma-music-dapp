@@ -407,7 +407,7 @@ export const JoinInnerCircleSOL = ({
                 <>
                   <div className="flex flex-col gap-4 text-center">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Your Wallet Address (for receiving the Membership NFT)</label>
+                      <label className="block text-sm font-medium mb-2">Your Wallet Address (for receiving the Collectible NFT)</label>
                       <p className="text-sm">
                         <a
                           href={`https://solscan.io/account/${publicKey?.toBase58()}`}

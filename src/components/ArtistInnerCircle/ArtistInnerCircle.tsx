@@ -5,8 +5,14 @@ import { Loader, ShoppingCart } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
-import { fetchCreatorFanMembershipAvailabilityViaAPI, fetchMyFanMembershipsForArtistViaAPI, fetchSolPrice, sleep } from "libs/utils/misc";
-import { convertTokenImageUrl, scrollToTopOnMainContentArea } from "libs/utils/ui";
+import {
+  fetchCreatorFanMembershipAvailabilityViaAPI,
+  fetchMintsByTemplatePrefix,
+  fetchMyFanMembershipsForArtistViaAPI,
+  fetchSolPrice,
+  sleep,
+} from "libs/utils/misc";
+import { convertTokenImageUrl, formatFriendlyDate, scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
 import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
@@ -62,6 +68,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [isLoading, setIsLoading] = useState(true);
+  const [liveMintStats, setLiveMintStats] = useState<{ mints: number; lastBought: number; maxMints: number } | null>(null);
   const [artistsMembershipOptions, setArtistMembershipOptions] = useState<MembershipData | null>(null);
   const [creatorFanMembershipAvailability, setCreatorFanMembershipAvailability] = useState<Record<string, any> | null>(null);
   const [selectedArtistMembership, setSelectedArtistMembership] = useState<string>("t1");
@@ -145,6 +152,30 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
     }
   }, [addressSol]); // Only re-run if addressSol changes
 
+  // we can do a live check of how many mints have been sold for the selected membership
+  useEffect(() => {
+    if (selectedArtistMembership && artistId && creatorPaymentsWallet && artistsMembershipOptions) {
+      setLiveMintStats(null);
+      const templatePrefix = `fan-${creatorPaymentsWallet.toLowerCase()}-${artistId}-${selectedArtistMembership}`;
+
+      const maxMintsForSelectedMembership = artistsMembershipOptions[selectedArtistMembership].maxMints;
+
+      const fetchLiveMintStats = async () => {
+        const _liveMintStats: {
+          mintTemplatePrefix: string;
+          lastBought: number;
+          nftType: string;
+          mints: number;
+          maxMints: number;
+        } = await fetchMintsByTemplatePrefix(templatePrefix);
+
+        setLiveMintStats({ mints: _liveMintStats.mints || 0, lastBought: _liveMintStats.lastBought, maxMints: maxMintsForSelectedMembership || 0 });
+      };
+
+      fetchLiveMintStats();
+    }
+  }, [selectedArtistMembership, artistId, creatorPaymentsWallet, artistsMembershipOptions]);
+
   const fetchPriceInSol = async () => {
     try {
       if (!artistsMembershipOptions || !selectedArtistMembership) {
@@ -219,6 +250,11 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
       const action = urlParams.get("action");
 
       if (action === "justjoined" && augmentedData.length > 0) {
+        // remove action from the url (as we dont want them share that on X for e.g)
+        const url = new URL(window.location.href);
+        url.searchParams.delete("action");
+        window.history.replaceState({}, "", url.toString());
+
         const latestMembership = augmentedData.sort((a, b) => new Date(b.createdOnTS).getTime() - new Date(a.createdOnTS).getTime())[0];
 
         if (latestMembership) {
@@ -315,35 +351,6 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
     return term.charAt(0).toUpperCase() + term.slice(1);
   };
 
-  const SubscribeButton = () => (
-    <>
-      <div className={`relative group w-[200px] overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "cursor-not-allowed" : "cursor-pointer"}`}>
-        {/* Animated border background */}
-        <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
-        <Button
-          onClick={() => {
-            if (addressSol) {
-              setJoinInnerCircleModalOpen(true);
-            } else {
-              window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search + "&action=buy")}`;
-            }
-          }}
-          className={`relative z-2 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100`}>
-          <>
-            <ShoppingCart />
-            <span className="ml-2">{addressSol ? "Subscribe Now" : "Login to Subscribe"}</span>
-          </>
-        </Button>
-      </div>
-
-      {addressSol && requiredSolAmount && (
-        <p className="text-gray-400 text-sm mt-2 text-center md:text-left">
-          Amount to pay: {requiredSolAmount.toFixed(4)} SOL (${artistsMembershipOptions?.[selectedArtistMembership]?.defaultPriceUSD} USD)
-        </p>
-      )}
-    </>
-  );
-
   const cleanupActionBuyParam = () => {
     const url = new URL(window.location.href);
     url.searchParams.delete("action");
@@ -401,6 +408,49 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   }
 
   const hasMultipleMemberships = artistsMembershipOptions && Object.keys(artistsMembershipOptions).length > 1;
+
+  // some mints mave a max amount of mints, so we need to check if the mints are sold out
+  const isSoldOut = liveMintStats && liveMintStats.maxMints > 0 && liveMintStats.mints > 0 && liveMintStats.mints >= liveMintStats.maxMints;
+
+  const SubscribeButton = ({ isSingleBuy = false }: { isSingleBuy?: boolean }) => (
+    <>
+      <div
+        className={`${isSoldOut ? "opacity-50" : ""}  relative group w-[260px] md:w-[320px] overflow-hidden rounded-lg p-[2px] ${!addressSol ? "cursor-not-allowed" : "cursor-pointer"}`}>
+        <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
+        <Button
+          disabled={isSoldOut ? true : false}
+          onClick={() => {
+            if (addressSol) {
+              setJoinInnerCircleModalOpen(true);
+            } else {
+              window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search + "&action=buy")}`;
+            }
+          }}
+          className={`relative z-2 !text-black text-base font-semibold px-8 py-4 w-full h-14 md:h-[56px] bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100 flex items-center justify-center gap-2`}>
+          <>
+            <ShoppingCart className="w-6 h-6" />
+
+            {isSoldOut ? (
+              <span className="ml-2">Sold Out!</span>
+            ) : (
+              <span className="ml-2">{addressSol ? `${isSingleBuy ? "Buy" : "Subscribe"} Now` : `Login to ${isSingleBuy ? "Buy" : "Subscribe"}`}</span>
+            )}
+          </>
+        </Button>
+      </div>
+
+      {addressSol && requiredSolAmount && (
+        <p className="text-gray-400 text-sm mt-2 text-center md:text-left">
+          Amount to pay: {requiredSolAmount.toFixed(4)} SOL (${artistsMembershipOptions?.[selectedArtistMembership]?.defaultPriceUSD} USD)
+        </p>
+      )}
+    </>
+  );
+
+  console.log("------");
+  console.log("isSoldOut", isSoldOut);
+  console.log("liveMintStats", liveMintStats);
+  console.log("------");
 
   return (
     <>
@@ -495,6 +545,11 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   <div className="text-2xl font-bold mb-2">{formatPrice(data.defaultPriceUSD)} USD</div>
                   <div className="text-sm text-gray-400">{formatTerm(data.term)}</div>
                   <div className="text-yellow-400">{data.maxMints && data.maxMints > 0 ? `Only ${data.maxMints.toLocaleString()} will be sold!` : ""}</div>
+                  {liveMintStats && liveMintStats.mints && liveMintStats.mints > 0 ? (
+                    <div className="text-yellow-400 mt-2 text-sm">
+                      {liveMintStats.mints.toLocaleString()} sold so far. Last purchase: {formatFriendlyDate(liveMintStats.lastBought)}
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -554,11 +609,16 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                 ) : (
                   ""
                 )}
+                {liveMintStats && liveMintStats.mints && liveMintStats.mints > 0 ? (
+                  <div className="text-yellow-400 mt-2 text-sm">
+                    {liveMintStats.mints.toLocaleString()} sold so far. Last purchase: {formatFriendlyDate(liveMintStats.lastBought)}
+                  </div>
+                ) : null}
               </div>
             </div>
 
             <div className="mt-8 text-center">
-              <SubscribeButton />
+              <SubscribeButton isSingleBuy={true} />
             </div>
 
             <div>
@@ -646,11 +706,6 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
               </div>
               <button
                 onClick={() => {
-                  // remove action from the url (as it may have action=justjoined and we dont want them share that on X for e.g)
-                  const url = new URL(window.location.href);
-                  url.searchParams.delete("action");
-                  window.history.replaceState({}, "", url.toString());
-
                   setSelectedTokenImg(null);
                 }}
                 className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
