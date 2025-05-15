@@ -37,6 +37,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCountry, setSelectedCountry] = useState<string | null>(searchParams.get("country"));
   const [selectedTeam, setSelectedTeam] = useState<string | null>(searchParams.get("team"));
+  const [selectedArtist, setSelectedArtist] = useState<string | null>(searchParams.get("artist"));
   const { tileDataCollectionLoadingInProgress, mintsLeaderboard } = useAppStore();
 
   useEffect(() => {
@@ -68,15 +69,41 @@ export const CampaignHero = (props: CampaignHeroProps) => {
     }
   }, []);
 
+  // white a effect to listen to the url search params and find out the "artist=" param
+  useEffect(() => {
+    const artist = searchParams.get("artist");
+    if (artist) {
+      setSelectedArtist(artist);
+    }
+  }, [searchParams]);
+
   const showFeaturedTeams = !selectedCountry && !selectedTeam && !location.search.includes("artist=");
+
+  // dancer list heading to show
+  let dancerHeadingToShow = "Discover Dancers";
+
+  if (selectedCountry) {
+    dancerHeadingToShow = "Discover Dancers from " + COUNTRIES.find((c) => c.code === selectedCountry)?.label;
+  }
+  if (selectedCountry && selectedTeam) {
+    dancerHeadingToShow =
+      "Discover Dancers from " +
+      COUNTRIES.find((c) => c.code === selectedCountry)?.label +
+      " - " +
+      TEAMS[selectedCountry]?.find((t) => t.teamCode === selectedTeam)?.teamName;
+  }
+
+  const teamCodeIfSelectedArtist = selectedArtist?.split("-")[2];
+  const countryCodeIfSelectedArtist = selectedArtist?.split("-")[1];
 
   return (
     <>
+      {/* the hero and country and team selection */}
       <div className="w-full mt-5">
         <div className="flex flex-col md:flex-row justify-center items-center xl:items-start w-[100%] h-[100%] md:h-[350px]">
           <div className="flex flex-col w-full md:w-1/2 h-full">
             <div
-              className="campaign-wsb-banner h-[350px] md:h-full rounded-lg md:rounded-l-lg rounded-r-none bg-left md:bg-center bg-no-repeat"
+              className="campaign-wsb-banner h-[350px] md:h-full bg-left md:bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${CAMPAIGN_WSB_HERO})`, backgroundSize: "cover" }}
             />
           </div>
@@ -112,18 +139,6 @@ export const CampaignHero = (props: CampaignHeroProps) => {
               <>
                 <div className="flex flex-col-reverse md:flex-row justify-between mb-4 items-baseline">
                   <h2 className="!text-2xl font-bold mt-5 md:mt-0">Teams from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}</h2>
-                  <button
-                    disabled={tileDataCollectionLoadingInProgress}
-                    onClick={() => {
-                      setSelectedCountry(null);
-                      const currentParams = Object.fromEntries(searchParams.entries());
-                      delete currentParams["country"];
-                      setSearchParams(currentParams);
-                      handleCampaignCodeFilterChange("wsb");
-                    }}
-                    className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} !text-black font-bold px-4 py-2 text-sm rounded-lg bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 mx-2 cursor-pointer`}>
-                    Back to Countries
-                  </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {TEAMS[selectedCountry]?.map((team) => (
@@ -152,29 +167,92 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                       {TEAMS[selectedCountry]?.find((t) => t.teamCode === selectedTeam)?.teamName}
                     </span>
                   </h2>
-                  <button
-                    disabled={tileDataCollectionLoadingInProgress}
-                    onClick={() => {
-                      setSelectedTeam(null);
-                      const currentParams = Object.fromEntries(searchParams.entries());
-                      delete currentParams["team"];
-                      setSearchParams(currentParams);
-                      handleCampaignCodeFilterChange("wsb-" + selectedCountry);
-                    }}
-                    className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} !text-black font-bold px-4 py-2 text-sm rounded-lg bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 mx-2 cursor-pointer`}>
-                    Back to Teams from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}
-                  </button>
                 </div>
               </>
             )}
           </div>
         </div>
+
+        {/* the navigation menu */}
+        {!showFeaturedTeams && (
+          <div className="p-3 border-b border-gray-800 flex flex-col md:flex-row justify-start items-start md:items-center space-y-2 md:space-y-0 bg-black">
+            <div
+              className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
+              <button
+                disabled={tileDataCollectionLoadingInProgress}
+                onClick={() => {
+                  // just cleaner if we do this way (some boundary cases mess up the navigation ux)
+                  window.location.href = "/?campaign=wsb";
+                }}
+                className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[34px] px-[10px]`}>
+                Back Home
+              </button>
+            </div>
+
+            {selectedCountry && !selectedTeam && (
+              <div
+                className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
+                <button
+                  disabled={tileDataCollectionLoadingInProgress}
+                  onClick={() => {
+                    setSelectedCountry(null);
+                    setSelectedArtist(null);
+                    const currentParams = Object.fromEntries(searchParams.entries());
+                    delete currentParams["country"];
+                    delete currentParams["artist"];
+                    setSearchParams(currentParams);
+                    handleCampaignCodeFilterChange("wsb");
+                  }}
+                  className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[34px] px-[10px]`}>
+                  Back to Countries List
+                </button>
+              </div>
+            )}
+
+            {selectedTeam && (
+              <div
+                className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
+                <button
+                  disabled={tileDataCollectionLoadingInProgress}
+                  onClick={() => {
+                    setSelectedTeam(null);
+                    setSelectedArtist(null);
+                    const currentParams = Object.fromEntries(searchParams.entries());
+                    delete currentParams["team"];
+                    delete currentParams["artist"];
+                    setSearchParams(currentParams);
+                    handleCampaignCodeFilterChange("wsb-" + selectedCountry);
+                  }}
+                  className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[34px] px-[10px]`}>
+                  All Dancers from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}
+                </button>
+              </div>
+            )}
+
+            {/* if we have a selectedArtist that looks like this wsb-ind-vub-sonu, then we pull out the 3rd part in this (vub). this is the team code, and we then use it show a button called, view all from vub team */}
+            {selectedArtist && teamCodeIfSelectedArtist && countryCodeIfSelectedArtist && (
+              <div
+                className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
+                <button
+                  disabled={tileDataCollectionLoadingInProgress}
+                  onClick={() => {
+                    // just cleaner if we do this way (some boundary cases mess up the navigation ux)
+                    window.location.href = `?campaign=wsb&country=${countryCodeIfSelectedArtist}&team=${teamCodeIfSelectedArtist}`;
+                  }}
+                  className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[34px] px-[10px]">
+                  All Dancers from {TEAMS[countryCodeIfSelectedArtist]?.find((t) => t.teamCode === teamCodeIfSelectedArtist)?.teamName} Team
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
+      {/* special items for home page */}
       {showFeaturedTeams && (
-        <div className=" w-full">
+        <div className="w-full">
           <div className="w-full mt-5">
-            <h1 className="!text-2xl font-bold mb-4 !text-yellow-400 text-center md:text-left">Featured Teams</h1>
+            <h1 className="!text-2xl font-bold mb-4 !text-white text-center md:text-left">Featured Teams</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {FEATURED_TEAMS.map((team) => (
@@ -213,8 +291,8 @@ export const CampaignHero = (props: CampaignHeroProps) => {
             </div>
           </div>
 
-          <div className="w-full mt-[80px]">
-            <h1 className="!text-2xl font-bold mb-8 !text-yellow-400 text-center md:text-left">Top 3 Dancers By Collectibles Sold</h1>
+          <div className="w-full mt-[50px] mb-[80px]">
+            <h1 className="!text-2xl font-bold mb-8 !text-white text-center md:text-left">Top 3 Dancers By Collectibles Sold</h1>
             {mintsLeaderboard
               .filter((item) => item.nftType === "fan")
               .filter((item) => {
@@ -251,8 +329,8 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                     const { artistLookupEverything } = useAppStore.getState();
                     const artistInfo = artistLookupEverything[item.arId];
                     const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
-                    const boxHeight = idx === 0 ? "h-[420px]" : idx === 1 ? "h-[370px]" : "h-[340px]";
-                    const boxWidth = idx === 0 ? "w-[320px]" : idx === 1 ? "w-[270px]" : "w-[240px]";
+                    const boxHeight = idx === 0 ? "h-[400px]" : idx === 1 ? "h-[360px]" : "h-[330px]";
+                    const boxWidth = idx === 0 ? "w-[300px]" : idx === 1 ? "w-[260px]" : "w-[230px]";
                     const fontSize = idx === 0 ? "text-3xl" : idx === 1 ? "text-2xl" : "text-xl";
                     const imgUrl =
                       item.nftType === "fan" && artistInfo?.fanToken3DGifTeaser && artistInfo.fanToken3DGifTeaser !== ""
@@ -311,10 +389,13 @@ export const CampaignHero = (props: CampaignHeroProps) => {
               </div>
             )}
           </div>
+        </div>
+      )}
 
-          <div className="w-full mt-[40px] relative top-[35px]">
-            <h1 className="!text-2xl font-bold mb-4 !text-yellow-400 text-center md:text-left">Discover Dancers</h1>
-          </div>
+      {/* the heading for the dancers we are seeing in the view */}
+      {!selectedArtist && (
+        <div className="w-full mt-[20px] relative top-[10px]">
+          <h1 className="!text-2xl font-bold mb-4 !text-white text-center md:text-left">{dancerHeadingToShow}</h1>
         </div>
       )}
     </>

@@ -102,7 +102,6 @@ const LoginPage = () => {
 
           isTriggerProductTour = "g=1";
         } else {
-          console.log("userLoggedInCallData", userLoggedInCallData);
           updateUserWeb2AccountDetails(userLoggedInCallData);
         }
 

@@ -285,12 +285,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setArtistAlbumDataLoading(true);
     updateTileDataCollectionLoadingInProgress(true);
 
-    await sleep(2);
+    await sleep(0.5);
 
     const { albumArtistLookupData, albumArtistLookupDataOrganizedBySections } = await getArtistsAlbumsData();
     let allAlbumsData: AlbumWithArtist[] = [];
-
-    console.log("filterByArtistCampaignCode", filterByArtistCampaignCode);
 
     const artistDataToUse =
       filterByArtistCampaignCode && filterByArtistCampaignCode !== -1
@@ -447,7 +445,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
         <div className="text-2xl xl:text-3xl cursor-pointer mb-3 w-full">
           <div className="flex flex-col md:flex-row justify-between w-full">
-            {inArtistProfileView ? (
+            {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
               <Button
                 className="!text-black !text-lg px-[2.25rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
                 variant="outline"
@@ -543,14 +541,13 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                 />
                               </>
                             )}
-                            {!filterByArtistCampaignCode ||
-                              (filterByArtistCampaignCode === -1 && (
-                                <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
-                                  <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
-                                    {artist.name.replaceAll("_", " ")}
-                                  </h2>
-                                </div>
-                              ))}
+                            {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && (
+                              <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
+                                <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
+                                  {artist.name.replaceAll("_", " ")}
+                                </h2>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -862,6 +859,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               bountyId={artistProfile.bountyId}
                               creatorWallet={artistProfile.creatorWallet}
                               xpCollectionIdToUse={xpCollectionIdToUse}
+                              loggedInAddress={addressSol ? addressSol : ""}
                             />
                           </div>
                         )}

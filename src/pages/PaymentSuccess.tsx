@@ -85,15 +85,6 @@ export const PaymentSuccess = () => {
         setItemArtist(_albumArtist);
         setPriceInUSD(_priceInUSD);
 
-        console.log("albumId", albumId);
-        console.log("membershipId", membershipId);
-        console.log("artistId", artistId);
-        console.log("artistSlug", artistSlug);
-        console.log("itemImg", _itemImg);
-        console.log("itemTitle", _albumTitle);
-        console.log("itemArtist", _albumArtist);
-        console.log("creatorWallet", creatorWallet);
-
         // Verify payment with backend
         const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/paymentVerifyPayment`, {
           method: "POST",

@@ -258,8 +258,6 @@ export const filterRadioTracksByUserPreferences = (allRadioTracks: MusicTrack[])
   // let now check if the user has some preferences for genres (initially we get this from session storage, later we get this from the NFMe ID)
   const savedGenres = sessionStorage.getItem("sig-pref-genres");
 
-  console.log("savedGenres", savedGenres);
-
   // Reorder tracks based on user preferences if they exist
   if (savedGenres) {
     const userPreferences = JSON.parse(savedGenres) as string[];

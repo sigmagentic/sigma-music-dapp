@@ -91,8 +91,6 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
           {} as Record<string, any>
         );
 
-        console.log("artistLookupEverythingMap", artistLookupEverythingMap);
-
         updateArtistLookup(artistLookupMap);
         updateAlbumLookup(albumLookupMap);
         updateArtistLookupOrganizedBySections(albumArtistLookupDataOrganizedBySections);

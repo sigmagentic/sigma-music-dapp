@@ -73,7 +73,7 @@ export const RadioTeaser = (props: RadioTeaserProps) => {
                   setLaunchRadioPlayer(true);
                 }
               }}
-              className="!text-black text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100">
+              className="!text-black text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l">
               <>
                 {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : launchRadioPlayer ? <CircleStop /> : <Music2 />}
                 <span className="ml-2">{launchRadioPlayer ? "Stop Radio" : "Start Radio"}</span>
