@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { AlbumWithArtist, AlbumTrackCatalog } from "libs/types";
+import { AlbumWithArtist, AlbumTrackCatalog, MintLeaderboard } from "libs/types";
 
 type State = {
   radioGenres: string[];
@@ -12,6 +12,7 @@ type State = {
   albumLookup: Record<string, any>;
   artistLookupOrganizedBySections: Record<string, { sectionCode: string; filteredItems: any[] }>;
   tileDataCollectionLoadingInProgress: boolean;
+  mintsLeaderboard: MintLeaderboard[];
 };
 
 type Action = {
@@ -25,6 +26,7 @@ type Action = {
   updateAlbumLookup: (albumLookup: Record<string, any>) => void;
   updateArtistLookupOrganizedBySections: (artistLookupOrganizedBySections: Record<string, { sectionCode: string; filteredItems: any[] }>) => void;
   updateTileDataCollectionLoadingInProgress: (tileDataCollectionLoadingInProgress: boolean) => void;
+  updateMintsLeaderboard: (mintsLeaderboard: MintLeaderboard[]) => void;
 };
 
 export const useAppStore = create<State & Action>((set) => ({
@@ -38,6 +40,7 @@ export const useAppStore = create<State & Action>((set) => ({
   albumLookup: {},
   artistLookupOrganizedBySections: {},
   tileDataCollectionLoadingInProgress: false,
+  mintsLeaderboard: [],
   updateRadioGenres: (genres: string[]) => set(() => ({ radioGenres: genres })),
   updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh: (updated: boolean) =>
     set(() => ({ radioGenresUpdatedByUserSinceLastRadioTracksRefresh: updated })),
@@ -50,4 +53,5 @@ export const useAppStore = create<State & Action>((set) => ({
   updateArtistLookupOrganizedBySections: (artistLookupOrganizedBySections: Record<string, { sectionCode: string; filteredItems: any[] }>) =>
     set(() => ({ artistLookupOrganizedBySections })),
   updateTileDataCollectionLoadingInProgress: (tileDataCollectionLoadingInProgress: boolean) => set(() => ({ tileDataCollectionLoadingInProgress })),
+  updateMintsLeaderboard: (mintsLeaderboard: MintLeaderboard[]) => set(() => ({ mintsLeaderboard })),
 }));

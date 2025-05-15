@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "libComponents/Button";
 import { StreamMetricData } from "libs/types/common";
-import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestInnerCircleNFTOptionsViaAPI } from "libs/utils/misc";
+import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestInnerCircleNFTOptionsViaAPI, fetchMintsLeaderboardByMonth } from "libs/utils/misc";
 import { convertTokenImageUrl } from "libs/utils/ui";
 import { useAppStore } from "store/app";
 
@@ -45,7 +45,7 @@ export const FeaturedBanners = ({
   const [featuredArtists, setFeaturedArtists] = useState<FeaturedArtist[]>([]);
   const [featuredAlbums, setFeaturedAlbums] = useState<FeaturedAlbum[]>([]);
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
-  const { musicTrackLookup, artistLookup, albumLookup, radioGenres, artistLookupEverything } = useAppStore();
+  const { musicTrackLookup, artistLookup, albumLookup, radioGenres, artistLookupEverything, mintsLeaderboard } = useAppStore();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [innerCircleOptions, setInnerCircleOptions] = useState<InnerCircleOption[]>([]);
   const [isLoadingInnerCircleOptions, setIsLoadingInnerCircleOptions] = useState(true);
@@ -186,9 +186,105 @@ export const FeaturedBanners = ({
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
-      <div></div>
+      {/* Most purchased collectibles */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+        <div className="text-xl xl:text-2xl cursor-pointer w-full">
+          <span className="">Most Purchased Collectibles</span>
+        </div>
+        {isLoadingInnerCircleOptions ? (
+          <LoadingSkeleton />
+        ) : mintsLeaderboard.length === 0 ? (
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No collectibles purchased yet</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-5
+                [&::-webkit-scrollbar]:h-2
+                dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {mintsLeaderboard.map((item, idx) => {
+                  const artistInfo = artistLookupEverything[item.arId];
+                  return (
+                    <div
+                      key={item.mintTemplatePrefix}
+                      className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                      style={{
+                        backgroundImage: `url(${item.nftType === "fan" && artistInfo?.fanToken3DGifTeaser && artistInfo.fanToken3DGifTeaser !== "" ? `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistInfo.fanToken3DGifTeaser}.gif` : artistInfo?.img})`,
+                        backgroundSize: "contain",
+                        backgroundPosition: "center",
+                        backgroundBlendMode: "multiply",
+                        backgroundRepeat: "no-repeat",
+                        backgroundColor: "#16161682",
+                      }}>
+                      {/* NFT type label, rotated on the left */}
+                      <div className="absolute left-0 top-10 flex items-center" style={{ height: "100%" }}>
+                        <span
+                          className="text-xs font-bold text-orange-500 bg-black/40 px-2 py-1 rounded-r-lg"
+                          style={{
+                            writingMode: "vertical-rl",
+                            transform: "rotate(-180deg)",
+                            letterSpacing: "0.1em",
+                            marginLeft: "-0.5rem",
+                            opacity: 0.8,
+                          }}>
+                          {item.nftType === "fan" ? "Fan Collectible" : "Album Collectible"}
+                        </span>
+                      </div>
+                      {/* Ranking and Medal */}
+                      <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{idx + 1}</div>
+                      <div className="absolute top-2 right-4 text-4xl">
+                        {idx === 0 && <span>🥇</span>}
+                        {idx === 1 && <span>🥈</span>}
+                        {idx === 2 && <span>🥉</span>}
+                      </div>
+                      <div className="text-center mt-4">
+                        <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
+                          {artistInfo?.name || "Unknown Artist"}
+                        </div>
+                        <div className="text-3xl font-bold text-orange-500">{item.mints}</div>
+                        <div className="text-sm text-white/70 mb-2">Sold</div>
+                        <Button
+                          className="mt-2 px-3 py-1 text-sm bg-orange-500/30 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors"
+                          onClick={() => {
+                            if (artistInfo?.slug) {
+                              if (item.nftType === "album") {
+                                onFeaturedArtistDeepLinkSlug(artistInfo.slug);
+                              } else {
+                                const campaign = artistInfo?.artistCampaignCode;
+                                const country = artistInfo?.artistSubGroup1Code;
+                                const team = artistInfo?.artistSubGroup2Code;
 
-      {/* most streamed songs */}
+                                let url = "?tab=fan&artist=" + artistInfo?.slug;
+
+                                if (campaign && country) {
+                                  if (team) {
+                                    url += `&campaign=${campaign}&country=${country}&team=${team}`;
+                                  } else {
+                                    url += `&campaign=${campaign}&country=${country}`;
+                                  }
+                                }
+
+                                window.location.href = url;
+                              }
+                            }
+                          }}>
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {mintsLeaderboard.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Most streamed songs */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl xl:text-2xl cursor-pointer w-full">
           <span className="">Most Streamed Songs</span>
@@ -245,10 +341,10 @@ export const FeaturedBanners = ({
         )}
       </div>
 
-      {/* show latest inner circle NFT options */}
+      {/* Latest inner circle NFT options */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl xl:text-2xl cursor-pointer w-full">
-          <span className="">New Inner Circle Fan Memberships</span>
+          <span className="">Latest Fan Clubs To Join</span>
         </div>
         {isLoadingInnerCircleOptions ? (
           <LoadingSkeleton />
@@ -401,7 +497,7 @@ export const FeaturedBanners = ({
         </div>
       </div>
 
-      {/* featured albums */}
+      {/* Featured albums */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl xl:text-2xl cursor-pointer w-full">
           <span className="">Featured Albums</span>
@@ -451,7 +547,7 @@ export const FeaturedBanners = ({
         )}
       </div>
 
-      {/* featured artists */}
+      {/* Featured artists */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl xl:text-2xl cursor-pointer w-full">
           <span className="">Featured Artists</span>

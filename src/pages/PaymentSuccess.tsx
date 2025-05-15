@@ -5,7 +5,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { SOL_ENV_ENUM } from "config";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep, udpateUserProfileOnBackEndAPI } from "libs/utils/misc";
+import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep, updateUserProfileOnBackEndAPI } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
@@ -85,15 +85,6 @@ export const PaymentSuccess = () => {
         setItemArtist(_albumArtist);
         setPriceInUSD(_priceInUSD);
 
-        console.log("albumId", albumId);
-        console.log("membershipId", membershipId);
-        console.log("artistId", artistId);
-        console.log("artistSlug", artistSlug);
-        console.log("itemImg", _itemImg);
-        console.log("itemTitle", _albumTitle);
-        console.log("itemArtist", _albumArtist);
-        console.log("creatorWallet", creatorWallet);
-
         // Verify payment with backend
         const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/paymentVerifyPayment`, {
           method: "POST",
@@ -136,7 +127,7 @@ export const PaymentSuccess = () => {
             if (_billingEmail) {
               const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
 
-              const _updateUserBillingEmail = await udpateUserProfileOnBackEndAPI({ addr: buyerSolAddress, chainId, billingEmail: _billingEmail });
+              const _updateUserBillingEmail = await updateUserProfileOnBackEndAPI({ addr: buyerSolAddress, chainId, billingEmail: _billingEmail });
 
               if (_updateUserBillingEmail.error) {
                 console.error("Failed to update user billing email", _updateUserBillingEmail.errorMessage);
@@ -313,7 +304,7 @@ export const PaymentSuccess = () => {
                 {paymentLogStatus === "processing" && "Finalizing payment..."}
                 {mintingStatus === "processing" && (
                   <>
-                    <span>Minting {purchaseType === "album" ? "Music NFT" : "Membership NFT"} on the blockchain...</span>
+                    <span>Minting {purchaseType === "album" ? "Music Collectible" : "Fan Membership Collectible"} on the blockchain...</span>
                     <span className="text-gray-300 text-xs"> (This may take a few minutes)</span>
                   </>
                 )}

@@ -255,18 +255,19 @@ export async function getNFTuneFirstTrackBlobData(trackOne: MusicTrack) {
 }
 
 // Fisher-Yates shuffle algorithm
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
+// function shuffleArray<T>(array: T[]): T[] {
+//   const shuffled = [...array];
+//   for (let i = shuffled.length - 1; i > 0; i--) {
+//     const j = Math.floor(Math.random() * (i + 1));
+//     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+//   }
+//   return shuffled;
+// }
 
 export function organizeArtistsByCampaignCodes(dataset: any[]) {
   const sectionsMap: Record<string, { sectionCode: string; filteredItems: any[] }> = {};
-  const shuffledDataset = shuffleArray(dataset);
+  // const shuffledDataset = shuffleArray(dataset);
+  const shuffledDataset = dataset; // let's not shuffle the dataset for now as on the UI it does not have a predictable order
 
   // Process each artist
   shuffledDataset.forEach((artist) => {

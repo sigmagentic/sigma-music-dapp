@@ -84,7 +84,6 @@ export interface AlbumWithArtist extends Album {
   artistSlug: string;
 }
 
-// inner circle types
 export interface Perk {
   pid: string;
   name: string;
@@ -133,4 +132,12 @@ export interface StreamMetricData {
   streams: number;
   songTitle: string;
   coverArtUrl: string;
+}
+
+export interface MintLeaderboard {
+  mintTemplatePrefix: string;
+  lastBought: number;
+  nftType: string;
+  arId: string;
+  mints: number;
 }

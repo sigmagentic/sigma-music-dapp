@@ -22,9 +22,10 @@ interface ArtistXPLeaderboardProps {
   bountyId: string;
   creatorWallet: string;
   xpCollectionIdToUse: string;
+  loggedInAddress?: string;
 }
 
-export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bountyId, creatorWallet, xpCollectionIdToUse }) => {
+export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bountyId, creatorWallet, xpCollectionIdToUse, loggedInAddress }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
 
@@ -175,7 +176,13 @@ export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bounty
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{truncateAddress(entry.giverAddr)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {loggedInAddress && entry.giverAddr.toLowerCase() === loggedInAddress.toLowerCase() ? (
+                      <span className="text-yellow-400 font-bold">YOU! 🔥</span>
+                    ) : (
+                      truncateAddress(entry.giverAddr)
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-1">
                       <SparklesIcon className="h-4 w-4 text-yellow-400" />
