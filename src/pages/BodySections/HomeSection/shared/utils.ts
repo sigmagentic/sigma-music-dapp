@@ -311,5 +311,9 @@ export function organizeArtistsByCampaignCodes(dataset: any[]) {
     }
   });
 
+  // let remove wsb-phl and wsb-phl-mrw until we GO LIVE with the new campaign codes
+  delete sectionsMap["wsb-phl"];
+  delete sectionsMap["wsb-phl-mrw"];
+
   return sectionsMap;
 }
