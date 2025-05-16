@@ -6,8 +6,8 @@ export const rewardPools: RewardPool[] = [
     name: "Loonyo Fans win a share of 10% of total sales of the collectibles",
     description:
       "Only 200 Loonyo Fan membership collectibles will be sold, a collectible is your raffle ticket to win a share of 10% of total sales of the collectibles. Owning more than one collectible will increase your chances of winning.",
-    startDate: "2025-05-17",
-    endDate: "2025-05-24",
+    startDate: "2025-05-16",
+    endDate: "2025-05-23",
     featured: true,
     totalWinners: 7,
     walletAddress: "6WihiRvs5LW3zGmHze9cKbjmyAyorq2Bn18e8zfnJcNY",
@@ -44,7 +44,7 @@ export const rewardPools: RewardPool[] = [
     name: "Win 200 USDC For being a $FAN Holder who has given over 100 XP to creators",
     description:
       "We will randomly select $FAN holders who have > $9.99 USD worth of tokens and who have also joined the music app and given over 100 XP to creators. We only check if you have over $9.99 worth of $FAN tokens, having a lot more does not increase your chances of winning.",
-    startDate: "2025-05-24",
+    startDate: "2025-05-16",
     endDate: "2025-05-31",
     featured: false,
     totalWinners: 5,
