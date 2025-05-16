@@ -118,7 +118,7 @@ export const FeaturedBanners = ({
         }));
         setInnerCircleOptions(formattedOptions);
       } catch (error) {
-        console.error("Error fetching inner circle options:", error);
+        console.error("Error fetching Inner Circle collectible options:", error);
       } finally {
         setIsLoadingInnerCircleOptions(false);
       }
@@ -341,7 +341,7 @@ export const FeaturedBanners = ({
         )}
       </div>
 
-      {/* Latest inner circle NFT options */}
+      {/* Latest Inner Circle collectible options */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl xl:text-2xl cursor-pointer w-full">
           <span className="">Latest Fan Clubs To Join</span>
@@ -349,7 +349,7 @@ export const FeaturedBanners = ({
         {isLoadingInnerCircleOptions ? (
           <LoadingSkeleton />
         ) : innerCircleOptions.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new inner circle NFT options available</p>
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new Inner Circle collectible options available</p>
         ) : (
           <div className="relative w-full">
             <div

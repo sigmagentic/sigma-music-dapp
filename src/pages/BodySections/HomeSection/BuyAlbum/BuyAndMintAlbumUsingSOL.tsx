@@ -227,7 +227,7 @@ export const BuyAndMintAlbumUsingSOL = ({
     setMintingStatus("processing");
 
     try {
-      // Mint the NFT
+      // Mint the Collectible
       // await mintNFTAfterPaymentAPI({
       //   payer: publicKey.toBase58(),
       //   tx: signature,
@@ -383,7 +383,7 @@ export const BuyAndMintAlbumUsingSOL = ({
               {mintingStatus === "processing" && (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
                   <Loader className="w-full text-center animate-spin hover:scale-105" />
-                  <p className="text-yellow-500">NFT Minting in process... do not close this page</p>
+                  <p className="text-yellow-500">Collectible Minting in process... do not close this page</p>
                 </div>
               )}
 
@@ -398,8 +398,8 @@ export const BuyAndMintAlbumUsingSOL = ({
                   <div className="text-center">
                     <p className="bg-red-500 p-4 rounded-lg text-sm">
                       Error! Minting seems to have failed. We are looking into it. Please also wait a few minutes, return back to the artist profile and reload
-                      the page to check if the Music NFT has been minted (as sometime blockchain can be congested). If it still doesn't show up, please DM us on
-                      telegram:{" "}
+                      the page to check if the Music Collectible has been minted (as sometime blockchain can be congested). If it still doesn't show up, please
+                      DM us on telegram:{" "}
                       <a className="underline" href="http://t.me/SigmaXMusicOfficial" target="_blank" rel="noopener noreferrer">
                         http://t.me/SigmaXMusicOfficial
                       </a>

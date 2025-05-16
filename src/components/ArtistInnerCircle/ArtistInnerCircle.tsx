@@ -32,7 +32,7 @@ const getPerkTypeIcon = (type: "virtual" | "physical" | "virtual") => {
     case "virtual":
       return (
         <div className="relative group">
-          <ComputerDesktopIcon className="h-6 w-6 text-purple-400" />
+          <ComputerDesktopIcon className="h-6 w-6 text-orange-500" />
           <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
             Virtual Perk
           </div>
@@ -46,7 +46,7 @@ const getPerkTypeColor = (type: "virtual" | "physical" | "virtual") => {
     case "physical":
       return "border-green-500/20 hover:border-green-500/40";
     case "virtual":
-      return "border-purple-500/20 hover:border-purple-500/40";
+      return "border-orange-500/20 hover:border-orange-500/40";
   }
 };
 
@@ -458,7 +458,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
         <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
           Join {artistName}'s Inner Circle
         </h2>
-        <p className="text-gray-400 mb-8 text-center md:text-left">An exclusive fan membership program for hardcore fans</p>
+        <p className="text-gray-400 mb-8 text-center md:text-left">An exclusive fan membership program only for hardcore fans!</p>
 
         {myActiveFanMembershipsForArtist && myActiveFanMembershipsForArtist.length > 0 && (
           <div className="mb-12 p-6 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
@@ -467,7 +467,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                 🌟 Your Exclusive Inner Circle Access
               </h3>
               <p className="text-gray-300 mb-6 text-center md:text-left">
-                You're part of {artistName}'s exclusive inner circle! Here are your active memberships:
+                You're part of {artistName}'s exclusive Inner Circle! Here are your active memberships:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 {myActiveFanMembershipsForArtist.map((membership: MyFanMembershipType, index: number) => (
@@ -526,7 +526,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   Get additional memberships
                 </h2>
                 <div className="text-gray-300 text-center md:text-left">
-                  You are already a member of {artistName}'s inner circle! But you can buy more memberships if you choose to, as memberships are NFTs and you
+                  You are already a member of {artistName}'s Inner Circle! But you can buy more memberships if you choose to, as memberships are NFTs and you
                   can hold multiple of them or trade of gift them.
                 </div>
               </div>
@@ -572,7 +572,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                         <div>
                           <h4 className="font-medium flex items-center gap-2">{perk.name}</h4>
                           {perk.comingSoon && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/40">Launching Soon</span>
+                            <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-500 border border-orange-500/40">Launching Soon</span>
                           )}
                           <p className="text-sm text-gray-400 mt-1">{perk.description}</p>
                         </div>
@@ -635,7 +635,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                         <div>
                           <h4 className="font-medium flex items-center gap-2">{perk.name}</h4>
                           {perk.comingSoon && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/40">Launching Soon</span>
+                            <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-500 border border-orange-500/40">Launching Soon</span>
                           )}
                           <p className="text-sm text-gray-400 mt-1">{perk.description}</p>
 
@@ -646,7 +646,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                                 window.open(`/?section=reward-pools&poolId=${perk.linkedRewardPool}`, "_blank");
                                 e.stopPropagation();
                               }}>
-                              <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">View Live Reward Pool</span>
+                              <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">$ View Live Reward Pool</span>
                             </div>
                           )}
                         </div>
@@ -684,6 +684,16 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
               {selectedPerk.terms && (
                 <div className="text-sm text-gray-500 mt-4">
                   <strong className="text-white mr-1">Terms:</strong> {selectedPerk.terms}
+                </div>
+              )}
+              {selectedPerk.linkedRewardPool && (
+                <div
+                  className="text-sm text-gray-400 mt-3 cursor-pointer"
+                  onClick={(e) => {
+                    window.open(`/?section=reward-pools&poolId=${selectedPerk.linkedRewardPool}`, "_blank");
+                    e.stopPropagation();
+                  }}>
+                  <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">$ View Live Reward Pool</span>
                 </div>
               )}
               <button onClick={() => setSelectedPerk(null)} className="mt-6 w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">

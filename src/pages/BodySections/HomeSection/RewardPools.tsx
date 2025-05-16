@@ -6,7 +6,7 @@ import Countdown from "react-countdown";
 import { useSearchParams } from "react-router-dom";
 import { SOLANA_NETWORK_RPC } from "config";
 import { rewardPools } from "config/rewardPools";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { Button } from "libComponents/Button";
 
 interface PriceSplit {
   [key: string]: string;
@@ -23,6 +23,11 @@ export interface RewardPool {
   priceSplit: PriceSplit[];
   terms: string[];
   eligibility: string[];
+  cta: {
+    text: string;
+    link: string;
+    isNewWindow: boolean;
+  };
   walletAddress: string;
 }
 
@@ -43,7 +48,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+      <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -124,10 +129,10 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
     <>
       <div
         id={pool.id}
-        className={`w-full max-w-3xl bg-black/20 backdrop-blur-sm hover:bg-black/30 transition-all border border-gray-800 rounded-lg p-6 mb-6 border-b-4 ${status.color} ${isFeatured ? "scale-100" : "scale-100"}`}>
-        <div className="flex justify-between items-start mb-4">
+        className={`w-[98%] bg-black/20 backdrop-blur-sm hover:bg-black/30 transition-all border border-gray-800 rounded-lg p-6 mb-6 border-b-4 ${status.color} ${isFeatured ? "scale-100" : "scale-100"}`}>
+        <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2">{pool.name}</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">{pool.name}</h2>
             <p className="text-gray-300 mb-4">{pool.description}</p>
           </div>
           <span
@@ -136,6 +141,21 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
             } text-white`}>
             {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
           </span>
+        </div>
+
+        <div className="mb-10">
+          <Button
+            onClick={() => {
+              if (pool.cta.isNewWindow) {
+                window.open(pool.cta.link, "_blank");
+              } else {
+                window.location.href = pool.cta.link;
+              }
+            }}
+            variant="outline"
+            className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black hover:from-yellow-400 hover:to-orange-600 hover:text-black">
+            {pool.cta.text}
+          </Button>
         </div>
 
         <div className="mb-6">
@@ -158,7 +178,7 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
           <p className="text-gray-400">Total Pool Value</p>
         </div>
 
-        <div className="mb-6 p-4 bg-black/20 rounded-lg">
+        <div className="mb-6 p-4 md:pl-0 bg-black/20 rounded-lg">
           {now < start ? (
             <div className="space-y-2">
               <p className="text-gray-300">Pool starts in:</p>
@@ -200,15 +220,17 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
         </div>
 
         <div className="flex flex-wrap gap-4 mb-6">
-          <button onClick={() => setShowEligibility(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700">
+          <button
+            onClick={() => setShowEligibility(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-600 rounded-lg text-white hover:bg-orange-700">
             <Info size={16} />
             Eligibility Criteria
           </button>
-          <button onClick={() => setShowTerms(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700">
+          <button onClick={() => setShowTerms(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-600 rounded-lg text-white hover:bg-orange-700">
             <Info size={16} />
             Terms & Conditions
           </button>
-          <button onClick={() => setShowRewards(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700">
+          <button onClick={() => setShowRewards(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-600 rounded-lg text-white hover:bg-orange-700">
             <Award size={16} />
             View All Rewards
           </button>
@@ -217,12 +239,12 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
         <button
           onClick={() => setIsCheckingWinner(true)}
           disabled={status.status !== "closed"}
-          className={`w-full py-3 font-bold rounded-lg transition-all ${
+          className={`p-3 font-bold rounded-lg transition-all ${
             status.status === "closed"
               ? "bg-gradient-to-r from-yellow-300 to-orange-500 text-black hover:from-yellow-400 hover:to-orange-600"
-              : "bg-gray-600 text-gray-400 cursor-not-allowed"
+              : "bg-[#1A1A1A] text-gray-400 cursor-not-allowed"
           }`}>
-          {status.status === "closed" ? "Check if you are a winner" : "Winner check available after pool ends"}
+          {status.status === "closed" ? "Check if you are a winner" : "Check if you are a winner (available after pool ends)"}
         </button>
       </div>
 
@@ -250,7 +272,7 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
         <div className="space-y-4">
           {pool.priceSplit[0] &&
             Object.entries(pool.priceSplit[0]).map(([position, split]) => (
-              <div key={position} className="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+              <div key={position} className="flex justify-between items-center p-3 bg-black/40 rounded-lg">
                 <span className="font-bold text-white">{position}</span>
                 <span className="text-yellow-400">{split}</span>
               </div>
@@ -276,17 +298,20 @@ export const RewardPools = (props: RewardPoolsProps) => {
 
   useEffect(() => {
     if (poolId) {
-      const poolElement = document.getElementById("featured-pool");
-      if (poolElement) {
-        poolElement.scrollIntoView({ behavior: "smooth" });
-      }
+      setTimeout(() => {
+        const poolElement = document.getElementById("featured-pool");
+
+        if (poolElement) {
+          poolElement.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 1000);
     }
   }, [poolId]);
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-8 justify-center w-full">
-        <div className="mb-10">
+        <div className="mb-10 text-center md:text-left">
           <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
             Reward Pools
           </span>
@@ -297,7 +322,7 @@ export const RewardPools = (props: RewardPoolsProps) => {
 
         {featuredPool && (
           <div id="featured-pool" className="mb-12">
-            <h2 className="!text-3xl font-bold text-white mb-4">Featured Pool</h2>
+            <h2 className="!text-2xl font-bold text-white mb-4 text-center md:text-left">Featured Pool</h2>
             <div className="flex justify-center md:justify-start">
               <RewardPoolCard pool={featuredPool} isFeatured={true} />
             </div>
@@ -306,7 +331,7 @@ export const RewardPools = (props: RewardPoolsProps) => {
 
         {otherPools.length > 0 && (
           <div>
-            <h2 className="!text-2xl font-bold text-white mb-4">Other Pools</h2>
+            <h2 className="!text-2xl font-bold text-white mb-4 text-center md:text-left">Other Pools</h2>
             <div className="flex flex-col items-center md:items-start gap-6">
               {otherPools.map((pool) => (
                 <RewardPoolCard key={pool.id} pool={pool} />

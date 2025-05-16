@@ -68,8 +68,8 @@ export const Navbar = () => {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row justify-between items-center mx-[1rem] md:mx-[1rem] h-full bg-[#171717]">
-        <div className="flex mb-2 md:mb-0 flex-col items-left text-xl">
+      <div className="flex flex-row justify-between items-center mx-[1rem] h-full bg-[#171717]">
+        <div className="flex mb-0 flex-col items-left text-xl">
           <Link
             className="flex flex-row items-center"
             to={routeNames.home}
@@ -77,7 +77,7 @@ export const Navbar = () => {
               window.location.href = `${routeNames.home}`;
             }}>
             <div className="flex flex-row leading-none">
-              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[200px] md:w-[230px] mt-[10px]" />
+              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[180px] md:w-[220px] mt-[10px]" />
             </div>
           </Link>
         </div>
@@ -85,19 +85,31 @@ export const Navbar = () => {
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">
           <NavigationMenuList>
             <NavigationMenuItem>
-              <div className="bg-gradient-to-r from-gray-300 to-gray-500 p-[1px] px-[2px] rounded-lg justify-center">
+              <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
                 <Button
                   className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[48px]"
                   variant="outline"
                   onClick={() => {
                     window.location.href = `${routeNames.faq}`;
                   }}>
-                  $FAN / APP FAQ
+                  About
                 </Button>
               </div>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
+              <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
+                <Button
+                  className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[48px]"
+                  variant="outline"
+                  onClick={() => {
+                    window.open("https://localhost:8000/faq#where-to-buy", "_blank");
+                  }}>
+                  Get $FAN
+                </Button>
+              </div>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
                 <Button
                   className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[48px]"
                   variant="outline"
@@ -163,12 +175,20 @@ export const Navbar = () => {
             <DropdownMenu>
               <div className="flex flex-row">
                 {isLoggedInSol ? (
-                  <SolBitzDropdown
-                    handlePlayActionBtn={async () => {
-                      await sleep(0.2);
-                      setShowPlayBitzModal(true);
-                    }}
-                  />
+                  <>
+                    <SolBitzDropdown
+                      handlePlayActionBtn={async () => {
+                        await sleep(0.2);
+                        setShowPlayBitzModal(true);
+                      }}
+                    />
+
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="mr-2">
+                        <Menu />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </>
                 ) : (
                   <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] w-full rounded-lg justify-center">
                     <Button
@@ -181,38 +201,46 @@ export const Navbar = () => {
                     </Button>
                   </div>
                 )}
-                {isLoggedInSol && (
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="mr-2">
-                      <Menu />
-                    </Button>
-                  </DropdownMenuTrigger>
-                )}
-                <Button
-                  className="bg-background text-foreground hover:bg-background/90 border-0 !text-xs hover:text-yellow-400"
-                  onClick={() => {
-                    window.location.href = `${routeNames.faq}`;
-                  }}>
-                  $FAN / APP <br />
-                  FAQ
-                </Button>
-                <Button
-                  className="bg-background text-foreground hover:bg-background/90 border-0 !text-xs hover:text-yellow-400 ml-2"
-                  onClick={() => setShowProductTour(true)}>
-                  Product <br />
-                  Tour
-                </Button>
               </div>
-              <DropdownMenuContent className="w-56">
-                {isLoggedInSol && (
-                  <>
-                    <DropdownMenuGroup>
-                      <div className="phantom-manage-account-button text-center py-2">
+
+              <DropdownMenuContent className="w-56 mr-2">
+                <DropdownMenuGroup>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-400"
+                      onClick={() => {
+                        window.location.href = `${routeNames.faq}`;
+                      }}>
+                      About
+                    </Button>
+                    <Button
+                      className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-400"
+                      onClick={() => {
+                        window.open("https://localhost:8000/faq#where-to-buy", "_blank");
+                      }}>
+                      Get $FAN
+                    </Button>
+                    <Button
+                      className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-400"
+                      onClick={() => setShowProductTour(true)}>
+                      Tour
+                    </Button>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {/* Web3 Wallet Account Button */}
+                    {walletType === "web3auth" ? (
+                      <button
+                        className="p-2 mt-2 rounded-md border h-[50px] cursor-pointer border-orange-400 font-bold"
+                        onClick={() => setShowLogoutConfirmation(true)}>
+                        Logout
+                      </button>
+                    ) : (
+                      <div className="phantom-manage-account-button">
                         <WalletMultiButton className="w-full !m-0">Account</WalletMultiButton>
                       </div>
-                    </DropdownMenuGroup>
-                  </>
-                )}
+                    )}
+                  </div>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -241,7 +269,7 @@ export const Navbar = () => {
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[100]">
           <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold mb-4">Confirm Logout</h3>
             <div className="space-y-4">

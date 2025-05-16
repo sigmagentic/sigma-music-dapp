@@ -108,7 +108,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
             />
           </div>
           <div className="flex flex-col w-full md:w-1/2 h-full p-6 bg-black">
-            <h1 className="!text-3xl font-bold mb-4 !text-yellow-400">
+            <h1 className="!text-3xl font-bold md:mb-4 !text-yellow-400">
               WSB Collectibles <span className="ml-1">{tileDataCollectionLoadingInProgress && <Loader className="w-4 h-4 animate-spin inline-block" />}</span>
             </h1>
             {!selectedCountry ? (
@@ -138,7 +138,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
             ) : !selectedTeam ? (
               <>
                 <div className="flex flex-col-reverse md:flex-row justify-between mb-4 items-baseline">
-                  <h2 className="!text-2xl font-bold mt-5 md:mt-0">Teams from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}</h2>
+                  <h2 className="!text-2xl font-bold mt-0">Teams from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {TEAMS[selectedCountry]?.map((team) => (
@@ -175,7 +175,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
 
         {/* the navigation menu */}
         {!showFeaturedTeams && (
-          <div className="p-3 border-b border-gray-800 flex flex-col md:flex-row justify-start items-start md:items-center space-y-2 md:space-y-0 bg-black">
+          <div className="p-6 md:p-3 border-b border-gray-800 flex flex-col md:flex-row justify-start items-start md:items-center space-y-2 md:space-y-0 bg-black">
             <div
               className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
               <button
@@ -395,7 +395,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
       {/* the heading for the dancers we are seeing in the view */}
       {!selectedArtist && (
         <div className="w-full mt-[20px] relative top-[10px]">
-          <h1 className="!text-2xl font-bold mb-4 !text-white text-center md:text-left">{dancerHeadingToShow}</h1>
+          <h1 className="!text-2xl font-bold mb-4 !text-white text-left p-2">{dancerHeadingToShow}</h1>
         </div>
       )}
     </>

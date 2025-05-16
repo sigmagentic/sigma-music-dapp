@@ -384,7 +384,7 @@ const faqSections: FAQSection[] = [
                 <h4 className="text-lg font-semibold mb-2">1. Revenue Sharing for Fans</h4>
                 <p className="mb-2">Sigma shares up to 10% of all platform revenue back with die-hard fans through raffles. To enter, you need:</p>
                 <ul className="list-disc pl-6 space-y-1">
-                  <li>A "inner circle" fan membership or music NFT (your raffle ticket)</li>
+                  <li>A "Inner Circle" fan membership or music NFT (your raffle ticket)</li>
                   <li>At least $9.99 worth of $FAN (each multiple gives you more chances)</li>
                 </ul>
                 <p className="mt-2">This creates a model where fans are incentivized to support artists—and win alongside them.</p>
@@ -534,7 +534,7 @@ const faqSections: FAQSection[] = [
             <p className="mb-4">Yes, $FAN implements a deflationary mechanism through:</p>
             <div className="space-y-3">
               <p>
-                Sigma is a revenue-generating platform. Every album sold and every "inner circle" fan membership contributes to platform income. This revenue
+                Sigma is a revenue-generating platform. Every album sold and every "Inner Circle" fan membership contributes to platform income. This revenue
                 covers tech, operations, and infrastructure—but a portion will also go toward buybacks and burning $FAN from the market.
               </p>
               <p className="font-semibold">It's a long-term loop: real revenue → real utility → real value.</p>
@@ -542,6 +542,7 @@ const faqSections: FAQSection[] = [
           </div>
         ),
       },
+
       {
         id: "token-locks",
         question: "Will there be $FAN token locks for the project supply?",
@@ -582,6 +583,50 @@ const faqSections: FAQSection[] = [
                     <li>10% will be used for liquidity support for new DEX/CEX listings.</li>
                   </ul>
                 </div>
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "where-to-buy",
+        question: "Where can you buy $FAN tokens?",
+        answer: (
+          <div className="space-y-4">
+            <div className="space-y-4">
+              <div className="bg-gray-800 p-4 rounded-lg mb-4">
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>
+                    Buy for SOL on
+                    <a
+                      className="text-yellow-400 hover:text-yellow-300 transition-colors ml-2"
+                      href="https://raydium.io/swap/?inputMint=D7qqKEr7JFpAd82m9nvJL2psdPmU1oW54g1LHvDUYFAN&outputMint=sol"
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      Raydium
+                    </a>
+                  </li>
+                  <li>
+                    Buy for SOL on Auto.Fun
+                    <a
+                      className="text-yellow-400 hover:text-yellow-300 transition-colors ml-2"
+                      href="https://auto.fun/token/D7qqKEr7JFpAd82m9nvJL2psdPmU1oW54g1LHvDUYFAN"
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      Auto.Fun
+                    </a>
+                  </li>
+                  <li>
+                    Buy for USDC or swap any token for $FAN on
+                    <a
+                      className="text-yellow-400 hover:text-yellow-300 transition-colors ml-2"
+                      href="https://jup.ag/swap/USDC-D7qqKEr7JFpAd82m9nvJL2psdPmU1oW54g1LHvDUYFAN"
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      Jupiter
+                    </a>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>

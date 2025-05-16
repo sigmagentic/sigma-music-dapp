@@ -191,7 +191,7 @@ export const JoinInnerCircleSOL = ({
     setMintingStatus("processing");
 
     try {
-      // Mint the NFT
+      // Mint the Collectible
       const _mintNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI({
         solSignature,
         signatureNonce,
@@ -229,7 +229,7 @@ export const JoinInnerCircleSOL = ({
     setMintingStatus("processing");
 
     try {
-      // Mint the NFT
+      // Mint the Collectible
       // await mintNFTAfterPaymentAPI({
       //   payer: publicKey.toBase58(),
       //   tx: signature,
@@ -364,13 +364,13 @@ export const JoinInnerCircleSOL = ({
 
             <div className="space-y-2">
               <div className="flex justify-center items-center w-full mb-6">
-                <img src={tokenImg || ""} alt="Inner Circle NFT" className="w-32 h-32 md:w-72 md:h-72 object-cover rounded-lg" />
+                <img src={tokenImg || ""} alt="Inner Circle Fan Collectible" className="w-32 h-32 md:w-72 md:h-72 object-cover rounded-lg" />
               </div>
 
               {mintingStatus === "processing" && (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
                   <Loader className="w-full text-center animate-spin hover:scale-105" />
-                  <p className="text-yellow-500">NFT Minting in process... do not close this page</p>
+                  <p className="text-yellow-500">Fan Collectible Minting in process... do not close this page</p>
                 </div>
               )}
 
@@ -385,8 +385,8 @@ export const JoinInnerCircleSOL = ({
                   <div className="text-center">
                     <p className="bg-red-500 p-4 rounded-lg text-sm">
                       Error! Minting seems to have failed. We are looking into it. Please also wait a few minutes, return back to the artist profile and reload
-                      the page to check if the Music NFT has been minted (as sometime blockchain can be congested). If it still doesn't show up, please DM us on
-                      telegram:{" "}
+                      the page to check if the Music Collectible has been minted (as sometime blockchain can be congested). If it still doesn't show up, please
+                      DM us on telegram:{" "}
                       <a className="underline" href="http://t.me/SigmaXMusicOfficial" target="_blank" rel="noopener noreferrer">
                         http://t.me/SigmaXMusicOfficial
                       </a>
@@ -407,7 +407,7 @@ export const JoinInnerCircleSOL = ({
                 <>
                   <div className="flex flex-col gap-4 text-center">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Your Wallet Address (for receiving the Collectible NFT)</label>
+                      <label className="block text-sm font-medium mb-2">Your Wallet Address (for receiving the Fan Collectible)</label>
                       <p className="text-sm">
                         <a
                           href={`https://solscan.io/account/${publicKey?.toBase58()}`}
@@ -431,7 +431,7 @@ export const JoinInnerCircleSOL = ({
                     onClick={handlePaymentAndMint}
                     className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
                     disabled={isSolPaymentsDisabled}>
-                    Make Payment and Mint NFT
+                    Make Payment and Mint Fan Collectible
                   </Button>
                 </>
               )}
@@ -479,8 +479,8 @@ export const JoinInnerCircleSOL = ({
           <div className="bg-cyan-900 bg-opacity-20 rounded-lg flex flex-col gap-2 p-8">
             <p className="text-xl font-bold mb-4">How it works?</p>
             <p className="text-md mb-4">
-              The inner circle fan membership is powered by NFT technology to ensure that it's fraud proof (no one can fake a membership) and it's shareable and
-              tradable (i.e. you can give it to your friends or sell it).
+              The Inner Circle Fan Collectible is powered by Blockchain NFT technology to ensure that it's fraud proof (no one can fake a membership) and it's
+              shareable and tradable (i.e. you can give it to your friends or sell it).
             </p>
             <ul className="space-y-3 list-none">
               <li className="flex gap-2">
