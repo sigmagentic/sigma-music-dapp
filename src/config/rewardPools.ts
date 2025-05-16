@@ -41,7 +41,7 @@ export const rewardPools: RewardPool[] = [
   },
   {
     id: "rp2",
-    name: "Win 200 USDC For being a $FAN Holder who has given over 100 XP to creators",
+    name: "Win USDC For being a $FAN Holder who has given over 100 XP to creators",
     description:
       "We will randomly select $FAN holders who have > $9.99 USD worth of tokens and who have also joined the music app and given over 100 XP to creators. We only check if you have over $9.99 worth of $FAN tokens, having a lot more does not increase your chances of winning.",
     startDate: "2025-05-16",
