@@ -189,7 +189,7 @@ export const mintAlbumOrFanNFTAfterPaymentViaAPI = async (mintData: any) => {
 
     return data;
   } catch (error) {
-    console.error("Error minting NFT after payment:", error);
+    console.error("Error minting collectible after payment:", error);
     throw error;
   }
 };
@@ -690,7 +690,7 @@ export const fetchLatestInnerCircleNFTOptionsViaAPI = async (limit: number = 15)
     // Check if we have a valid cache entry
     const cacheEntry = cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
-      console.log(`fetchLatestInnerCircleNFTOptionsViaAPI: Getting latest inner circle NFT options from cache`);
+      console.log(`fetchLatestInnerCircleNFTOptionsViaAPI: Getting latest Inner Circle collectible options from cache`);
       return cacheEntry.data;
     }
 
@@ -721,7 +721,7 @@ export const fetchLatestInnerCircleNFTOptionsViaAPI = async (limit: number = 15)
       return [];
     }
   } catch (error) {
-    console.error("fetchLatestInnerCircleNFTOptionsViaAPI: Error fetching latest inner circle NFT options:", error);
+    console.error("fetchLatestInnerCircleNFTOptionsViaAPI: Error fetching latest Inner Circle collectible options:", error);
 
     // Update cache (with [] as data)
     cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"] = {

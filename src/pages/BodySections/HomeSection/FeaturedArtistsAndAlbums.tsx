@@ -446,15 +446,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         <div className="text-2xl xl:text-3xl cursor-pointer mb-3 w-full">
           <div className="flex flex-col md:flex-row justify-between w-full">
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
-              <Button
-                className="!text-black !text-lg px-[2.25rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mx-2 cursor-pointer"
-                variant="outline"
-                onClick={handleBackToArtistTileView}>
-                <>
-                  <CircleArrowLeft />
-                  <span className="ml-2">Back to All {isAllAlbumsMode ? "Albums" : "Artists"}</span>
-                </>
-              </Button>
+              <div className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
+                <Button
+                  className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[46px] px-[10px]`}
+                  variant="outline"
+                  onClick={handleBackToArtistTileView}>
+                  <>
+                    <CircleArrowLeft />
+                    <span className="ml-2">Back to All {isAllAlbumsMode ? "Albums" : "Artists"}</span>
+                  </>
+                </Button>
+              </div>
             ) : (
               <>
                 {!filterByArtistCampaignCode ||
@@ -470,7 +472,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
         <div id="artist-profile" className="flex flex-col md:flex-row w-[100%] items-start">
           {artistAlbumDataLoading || artistAlbumDataset.length === 0 ? (
-            <div className="flex flex-col gap-4 p-2 items-start bg-background rounded-lg min-h-[350px] w-full">
+            <div className="flex flex-col gap-4 p-2 items-start bg-background rounded-lg min-h-[250px] w-full">
               {artistAlbumDataLoading ? (
                 <div className="m-auto w-full">
                   <div className="w-full flex flex-col items-center h-[250px] md:h-[100%] md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px]">
@@ -482,14 +484,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               ) : (
                 <>
                   {filterByArtistCampaignCode && filterByArtistCampaignCode !== -1 ? (
-                    <div className="m-auto min-h-6">
+                    <div className="min-h-6">
                       Artist collection is coming very soon! Await ammouncement on{" "}
                       <a href="https://x.com/SigmaMusic" target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:text-yellow-600">
                         Sigma Music's X Account
                       </a>
                     </div>
                   ) : (
-                    <div className="m-auto min-h-6">⚠️ Artist section is unavailable. Check back later!</div>
+                    <div className="min-h-6">⚠️ Artist section is unavailable. Check back later!</div>
                   )}
                 </>
               )}

@@ -92,6 +92,7 @@ export interface Perk {
   terms?: string;
   howToClaim?: string;
   comingSoon?: boolean;
+  linkedRewardPool?: string;
 }
 
 export interface MyFanMembershipType {

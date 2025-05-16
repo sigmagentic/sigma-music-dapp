@@ -708,7 +708,7 @@ export const MiniGames = (props: MiniGamesProps) => {
               setShowPlayBitzModal(true);
             } else {
               alert(
-                "You need to claim your free Sigma XP NFT to play XP Roulette, if you already have it, make sure you have connected your wallet and signed the login message"
+                "You need to claim your free Sigma XP to play XP Roulette, if you already have it, make sure you have connected your wallet and signed the login message"
               );
             }
           }}

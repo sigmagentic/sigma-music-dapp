@@ -22,15 +22,19 @@ const slides: Slide[] = [
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-c-buy-premium-albums-as-nfts.png",
-    text: "Love an album? Buy a limited edition premium album with bonus tracks as a Music NFT (pay via Solana or Credit Card!)",
+    text: "Love an album? Buy a limited edition premium album with bonus tracks as a Music Collectible (pay via Solana or Credit Card!)",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-3-join-fan-membership.png",
-    text: "Love a musician? Join their inner circle fan membership and get a unique membership NFT, perks, and share in revenue!",
+    text: "Love a musician? Join their Inner Circle fan membership and get a unique fan collectible, perks, and share in revenue!",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4-join-live-campaigns-for-irl-collectibles.png",
     text: "Join Real World Events via Campaigns like the World Supremacy Battleground Dance Competition, collect unique collectibles, support artists, and share in revenue!",
+  },
+  {
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4a-reward-pools.png",
+    text: "Participate in Reward Pools and win a share of app revenue!",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-5-collect-free-xp.png",
@@ -108,7 +112,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose }) => 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-[100]">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-3xl w-full mx-4 relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
           <X size={24} />

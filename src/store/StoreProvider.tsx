@@ -9,12 +9,12 @@ import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
 import { AlbumTrackCatalog } from "libs/types";
 import { computeRemainingCooldown } from "libs/utils/functions";
+import { fetchMintsLeaderboardByMonth } from "libs/utils/misc";
 import { getAlbumTrackCatalogData, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
 import { useAppStore } from "./app";
 import { useNftsStore } from "./nfts";
-import { fetchMintsLeaderboardByMonth } from "libs/utils/misc";
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
   const { signMessage } = useWallet();
