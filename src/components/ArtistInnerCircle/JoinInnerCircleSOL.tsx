@@ -144,6 +144,7 @@ export const JoinInnerCircleSOL = ({
         amount: requiredSolAmount.toString(),
         creatorWallet: creatorPaymentsWallet,
         membershipId: membershipId,
+        artistId: artistId,
       });
 
       if (_logPaymentToAPIResponse.error) {
