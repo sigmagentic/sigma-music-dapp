@@ -185,7 +185,6 @@ const LoginPage = () => {
                 <a className="underline" href="https://sigmamusic.fm/legal#privacy-policy" target="_blank" rel="noopener noreferrer">
                   Privacy Policy
                 </a>
-                .
               </p>
             </div>
           )}

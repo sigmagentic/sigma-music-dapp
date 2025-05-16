@@ -2,11 +2,12 @@ import React, { useEffect, useState, useCallback } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import CAMPAIGN_WSB_CTA from "assets/img/campaigns/campaign-wsb-home-cta.png";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
 import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
 import { filterRadioTracksByUserPreferences, getAlbumTracksFromDBViaAPI } from "libs/utils/misc";
@@ -24,9 +25,9 @@ import { MiniGames } from "./MiniGames";
 import { MyCollectedNFTs } from "./MyCollectedNFTs";
 import { MyProfile } from "./MyProfile";
 import { RadioTeaser } from "./RadioTeaser";
+import { RewardPools } from "./RewardPools";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
-import { Button } from "libComponents/Button";
 
 type HomeSectionProps = {
   homeMode: string;
@@ -58,15 +59,14 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [musicPlayerTrackListFromDb, setMusicPlayerTrackListFromDb] = useState<boolean>(false);
   const { albumPlayIsQueued } = useAudioPlayerStore();
   const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
+  const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
+  const [campaignCodeFilter, setCampaignCodeFilter] = useState<string | undefined>(undefined);
+  const [launchMusicPlayer, setLaunchMusicPlayer] = useState<boolean>(false); // control the visibility base level music player model
+  const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
-
-  const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
-
-  // control the visibility base level music player model
-  const [launchMusicPlayer, setLaunchMusicPlayer] = useState<boolean>(false);
 
   // give bits to a bounty (power up or like)
   const [giveBitzForMusicBountyConfig, setGiveBitzForMusicBountyConfig] = useState<{
@@ -82,8 +82,6 @@ export const HomeSection = (props: HomeSectionProps) => {
   // ... but it only get progressively loaded as the user moves between tabs to see the artist and their albums (so its not a complete state)
   const [bountyBitzSumGlobalMapping, setMusicBountyBitzSumGlobalMapping] = useState<any>({});
 
-  const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
-
   // Radio Player state
   const [radioTracksSorted, setRadioTracksSorted] = useState<MusicTrack[]>([]);
   const [radioTracksOriginal, setRadioTracksOriginal] = useState<MusicTrack[]>([]);
@@ -96,8 +94,6 @@ export const HomeSection = (props: HomeSectionProps) => {
   // Genres
   const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
   const [genreUpdateTimeout, setGenreUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
-
-  const [campaignCodeFilter, setCampaignCodeFilter] = useState<string | undefined>(undefined);
 
   const debouncedGenreUpdate = useCallback(() => {
     if (genreUpdateTimeout) {
@@ -136,6 +132,13 @@ export const HomeSection = (props: HomeSectionProps) => {
       setHomeMode(`artists-${new Date().getTime()}`);
       return;
     }
+
+    const isRewardPoolsMode = searchParams.get("section");
+
+    if (isRewardPoolsMode && isRewardPoolsMode === "reward-pools") {
+      setHomeMode(`reward-pools-${new Date().getTime()}`);
+      return;
+    }
   }, []);
 
   useEffect(() => {
@@ -168,6 +171,20 @@ export const HomeSection = (props: HomeSectionProps) => {
     if (homeMode.includes("campaigns")) {
       const currentParams = Object.fromEntries(searchParams.entries());
       currentParams["campaign"] = "wsb";
+      delete currentParams["section"];
+      delete currentParams["poolId"];
+      setSearchParams({ ...currentParams });
+    }
+
+    if (homeMode.includes("reward-pools")) {
+      const currentParams = Object.fromEntries(searchParams.entries());
+      currentParams["section"] = "reward-pools";
+      delete currentParams["campaign"];
+      delete currentParams["artist"];
+      delete currentParams["tab"];
+      delete currentParams["action"];
+      delete currentParams["country"];
+      delete currentParams["team"];
       setSearchParams({ ...currentParams });
     }
 
@@ -521,7 +538,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                       </div>
                     </div>
                     <div className="flex flex-col flex-1 text-left bgx-red-500 align-center justify-center p-5">
-                      <span className="text-center md:text-right font-[Clash-Medium] text-2xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
+                      <span className="text-center font-[Clash-Medium] text-2xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
                         Your Music Super App for Exclusive Fan Experiences
                       </span>
                     </div>
@@ -641,6 +658,12 @@ export const HomeSection = (props: HomeSectionProps) => {
           {homeMode === "games" && (
             <div className="w-full mt-5">
               <MiniGames radioTracks={radioTracksSorted} appMusicPlayerIsPlaying={launchMusicPlayer || launchRadioPlayer} />
+            </div>
+          )}
+
+          {homeMode.includes("reward-pools") && (
+            <div className="w-full mt-5">
+              <RewardPools />
             </div>
           )}
 

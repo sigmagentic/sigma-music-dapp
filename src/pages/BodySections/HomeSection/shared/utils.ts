@@ -311,5 +311,12 @@ export function organizeArtistsByCampaignCodes(dataset: any[]) {
     }
   });
 
+  // USE THIS TO HIDE SCTIONS IF NEEDED : let remove wsb-phl and wsb-phl-mrw until we GO LIVE with the new campaign codes
+  // delete sectionsMap["wsb-phl"];
+  // delete sectionsMap["wsb-phl-mrw"];
+  // sectionsMap["wsb"].filteredItems = sectionsMap["wsb"].filteredItems.filter((i: any) => i.artistSubGroup1Code !== "phl");
+
+  // console.log(sectionsMap);
+
   return sectionsMap;
 }

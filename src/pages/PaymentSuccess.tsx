@@ -141,7 +141,7 @@ export const PaymentSuccess = () => {
           setPaymentLogStatus("confirmed");
           setMintingStatus("processing");
 
-          // Mint the NFT
+          // Mint the collectible
           try {
             const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
               solPreaccessNonce,
@@ -185,7 +185,7 @@ export const PaymentSuccess = () => {
           // sleep for an extra 20 seconds after success to the RPC indexing can update
           await sleep(20);
 
-          // update the NFT store now as we have a new NFT
+          // update the NFT store now as we have a new collectible
           const _allDataNfts: DasApiAsset[] = await fetchSolNfts(buyerSolAddress!);
           updateSolNfts(_allDataNfts);
 
@@ -350,7 +350,7 @@ export const PaymentSuccess = () => {
                 )}
                 {mintingStatus === "failed" && (
                   <p>
-                    <span className="text-red-500">✕</span> NFT minting failed
+                    <span className="text-red-500">✕</span> Collectible minting failed
                   </p>
                 )}
               </p>

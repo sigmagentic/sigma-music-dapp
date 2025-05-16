@@ -199,8 +199,8 @@ export const JoinInnerCircleCC = ({
 
           <div className="flex flex-col gap-2 text-sm lg:mt-5">
             <p>
-              <span className="font-bold text-yellow-400">What are you buying?</span> Access to join the inner circle fan membership of {artistName} and receive
-              exclusive content and perks.
+              <span className="font-bold text-yellow-400">What are you buying?</span> Access to join the Inner Circle fan collectible of {artistName} and
+              receive exclusive content and perks.
             </p>
             <p>
               <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Proceed", you agree to these{" "}

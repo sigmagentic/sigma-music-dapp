@@ -56,5 +56,5 @@ export interface GiveBitzLowerCardProps {
   setIsSendingPowerUp: any;
 }
 
-export const BIT_GAME_WINDOW_HOURS = "6"; // how often we can play the game, need to match logic inside Data NFT
+export const BIT_GAME_WINDOW_HOURS = "6"; // how often we can play the game
 export const BIT_GAME_TOP_LEADER_BOARD_GROUP = "5"; // top X leaderboard winners for the monthly price
