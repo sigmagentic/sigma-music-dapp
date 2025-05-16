@@ -313,7 +313,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                     <span className="text-4xl">🥉</span>
                   </div>
                 </div>
-                <div className="text-white text-lg font-bold text-center">Leaderboard loading... Who's going to take gold? 🏅</div>
+                <div className="text-white text-md font-bold text-center mt-2">Leaderboard charging, come back later... Who's going to take gold? 🏅</div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center items-center mt-8">
