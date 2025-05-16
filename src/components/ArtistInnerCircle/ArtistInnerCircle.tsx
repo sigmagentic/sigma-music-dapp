@@ -56,6 +56,7 @@ interface ArtistInnerCircleProps {
   creatorPaymentsWallet: string;
   artistId: string;
   filterByArtistCampaignCode?: string | number;
+  nftMarketplaceLink?: string; // for fan memberships, we use the artists otherLink1 to put the nft marketplace link in (not ideal, as artist can have more fan tiers and they are all seperate links)
 }
 
 export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
@@ -64,6 +65,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   creatorPaymentsWallet,
   artistId,
   filterByArtistCampaignCode,
+  nftMarketplaceLink,
 }) => {
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
@@ -433,7 +435,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
             {isSoldOut ? (
               <span className="ml-2">Sold Out!</span>
             ) : (
-              <span className="ml-2">{addressSol ? `${isSingleBuy ? "Buy" : "Subscribe"} Now` : `Login to ${isSingleBuy ? "Buy" : "Subscribe"}`}</span>
+              <span className="ml-2">{addressSol ? `${isSingleBuy ? "Buy" : "Subscribe"} Now` : `Login to ${isSingleBuy ? "Buy" : "Subscribe"} Now`}</span>
             )}
           </>
         </Button>
@@ -619,6 +621,24 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
 
             <div className="mt-8 text-center">
               <SubscribeButton isSingleBuy={true} />
+            </div>
+
+            <div className="!mt-[10px] opacity-80">
+              {nftMarketplaceLink && nftMarketplaceLink !== "" && (
+                <div>
+                  <Button
+                    className="text-sm cursor-pointer !text-orange-500 dark:!text-yellow-300 mr-2"
+                    variant="outline"
+                    onClick={() => {
+                      window.open(nftMarketplaceLink)?.focus();
+                    }}>
+                    <>
+                      <ShoppingCart />
+                      <span className="ml-2">Or Find On External NFT Market</span>
+                    </>
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div>
