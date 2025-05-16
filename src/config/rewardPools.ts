@@ -48,7 +48,7 @@ export const rewardPools: RewardPool[] = [
     endDate: "2025-05-31",
     featured: false,
     totalWinners: 5,
-    walletAddress: "6WihiRvs5LW3zGmHze9cKbjmyAyorq2Bn18e8zfnJcNY",
+    walletAddress: "3TBJxt6Xm41iiYKkuq2JGiYTsfvsrWgTEvaE6KTmU36U",
     priceSplit: [
       {
         "1st": "40% (e.g. if 200 USDC is total pool, 80 USDC is your share)",
