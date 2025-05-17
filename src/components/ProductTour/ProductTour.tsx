@@ -135,7 +135,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose, handl
               <div className="text-center py-8">
                 <h2 className="text-2xl font-bold mb-4">Ready to Get Started!</h2>
                 <p className="text-lg mb-8">OK, let's get you using Sigma Music.</p>
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-4 justify-center">
                   <Button onClick={onClose} className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-2 rounded-lg">
                     Let Me Try It Out!
                   </Button>
