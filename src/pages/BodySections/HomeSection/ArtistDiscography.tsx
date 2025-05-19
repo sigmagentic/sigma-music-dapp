@@ -182,7 +182,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     ) : (
                       ""
                     )}
-                    <span className="text-sm text-gray-500 ml-2">id: {album.albumId}</span>
                   </span>
                   {album.isExplicit && album.isExplicit === "1" && (
                     <img className="max-h-[20px] ml-[10px] dark:bg-white" src={ratingR} alt="Warning: Explicit Content" title="Warning: Explicit Content" />
@@ -481,6 +480,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 )}
               </>
             </div>
+
+            <span className="text-xs text-gray-700 ml-2 text-right">id: {album.albumId}</span>
           </div>
         ))}
 

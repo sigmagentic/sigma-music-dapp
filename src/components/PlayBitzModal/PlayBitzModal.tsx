@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { LuSpeaker } from "react-icons/lu";
 import GetBitz from "pages/AppMarketplace/GetBitz";
 import useSolBitzStore from "store/solBitz";
+
 type PathwaysModalProps = {
   showPlayBitzModel?: boolean;
   handleHideBitzModel?: any;

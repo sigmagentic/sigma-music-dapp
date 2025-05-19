@@ -105,6 +105,8 @@ export interface MyFanMembershipType {
   membershipLabel?: string;
   tokenImg?: string | null;
   expiresInDays?: number;
+  totalQuantityInBatch?: number; // was bought as part of a batch
+  totalQtySentFlag?: number; // 0 means we have not yet sent individual collectibles, 1 means we have sent them
 }
 
 export interface MembershipType {
