@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { StreamMetricData } from "libs/types/common";
 import { fetchArtistSalesViaAPI, fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/misc";
 import { useAppStore } from "store/app";
@@ -10,6 +9,7 @@ interface ArtistSale {
   createdOn: number;
   albumId?: string;
   amount: string;
+  totalQuantity?: number;
 }
 
 interface ArtistStatsProps {
@@ -43,7 +43,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
     const filteredSales = sales.filter((sale) => sale.task === task);
 
     return {
-      totalCount: filteredSales.length,
+      totalCount: filteredSales.reduce((sum, sale) => sum + (sale.totalQuantity || 1), 0),
       totalAmount: filteredSales.reduce((sum, sale) => sum + parseFloat(sale.amount), 0),
       last7Days: {
         count: filteredSales.filter((sale) => sale.createdOn >= sevenDaysAgo).length,
@@ -67,6 +67,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
           fetchArtistSalesViaAPI(creatorPaymentsWallet, artistId),
           fetchStreamsLeaderboardByArtistViaAPI(artistId),
         ]);
+
         setArtistSales(salesData);
 
         const streamsDataWithAlbumTitle = _streamsData.map((stream: StreamMetricData) => ({
