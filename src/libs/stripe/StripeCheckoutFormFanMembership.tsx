@@ -15,6 +15,7 @@ type StripeCheckoutFormFanMembershipProps = {
     membershipPriceUSD: number;
     membershipLabel: string;
     creatorPaymentsWallet: string;
+    totalQuantity?: number | 1;
   };
   closeStripePaymentPopup: () => void;
 };
@@ -85,11 +86,12 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePayment
       const buyerSolAddress = publicKey?.toBase58();
       const priceInUSDString = membershipProfile.membershipPriceUSD.toString();
       const campaignCode = searchParams.get("campaign") || "";
+      const totalQuantity = membershipProfile.totalQuantity || 1;
 
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artistId=${artistId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}&billingEmail=${encodeURIComponent(email)}&campaignCode=${campaignCode}`,
+          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artistId=${artistId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}&billingEmail=${encodeURIComponent(email)}&campaignCode=${campaignCode}&totalQuantity=${totalQuantity}`,
           receipt_email: email,
         },
       });
