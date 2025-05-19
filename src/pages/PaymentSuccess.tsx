@@ -25,6 +25,7 @@ export const PaymentSuccess = () => {
   const [error, setError] = useState<string | null>(null); // the error message if the process fails
   const { updateSolNfts } = useNftsStore();
   const [priceInUSD, setPriceInUSD] = useState<string | null>(null);
+  const [quantityToBuy, setQuantityToBuy] = useState<number | null>(1);
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -62,6 +63,7 @@ export const PaymentSuccess = () => {
         const artistId = searchParams.get("artistId");
         const artistSlug = searchParams.get("artist");
         const campaignCode = searchParams.get("campaignCode");
+        const totalQuantity = parseInt(searchParams.get("totalQuantity") || "1");
 
         const _itemImg = searchParams.get("albumImg");
         const _albumTitle = searchParams.get("albumTitle");
@@ -84,6 +86,7 @@ export const PaymentSuccess = () => {
         setItemTitle(_albumTitle);
         setItemArtist(_albumArtist);
         setPriceInUSD(_priceInUSD);
+        setQuantityToBuy(totalQuantity);
 
         // Verify payment with backend
         const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/paymentVerifyPayment`, {
@@ -107,6 +110,7 @@ export const PaymentSuccess = () => {
               type: "cc",
               amount: _priceInUSD,
               creatorWallet: creatorWallet,
+              totalQuantity: totalQuantity,
             };
 
             if (albumId) {
@@ -162,6 +166,7 @@ export const PaymentSuccess = () => {
               nftType: albumId ? "album" : "fan",
               creatorWallet: creatorWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
               isCCPayment: "1",
+              totalQuantity: totalQuantity,
             };
 
             if (albumId) {
@@ -288,6 +293,7 @@ export const PaymentSuccess = () => {
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">$ {priceInUSD} USD</span>
+                    {quantityToBuy && quantityToBuy > 1 && <span className="text-xs text-gray-400">for {quantityToBuy} items</span>}
                   </div>
                 </div>
               </div>

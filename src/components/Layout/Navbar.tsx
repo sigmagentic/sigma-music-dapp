@@ -293,7 +293,7 @@ export const Navbar = () => {
       )}
 
       {/* Product Tour Modal */}
-      <ProductTour isOpen={showProductTour} onClose={handleCloseProductTour} />
+      <ProductTour isOpen={showProductTour} onClose={handleCloseProductTour} handleShowBitzModel={() => setShowPlayBitzModal(true)} />
     </>
   );
 };

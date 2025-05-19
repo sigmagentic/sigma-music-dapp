@@ -239,7 +239,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                     // just cleaner if we do this way (some boundary cases mess up the navigation ux)
                     window.location.href = `?campaign=wsb&country=${countryCodeIfSelectedArtist}&team=${teamCodeIfSelectedArtist}`;
                   }}
-                  className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[34px] px-[10px]">
+                  className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-auto md:h-[34px] min-h-[34px] px-[10px] text-left md:text-center">
                   All Dancers from {TEAMS[countryCodeIfSelectedArtist]?.find((t) => t.teamCode === teamCodeIfSelectedArtist)?.teamName} Team
                 </button>
               </div>

@@ -443,8 +443,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   return (
     <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
-        <div className="text-2xl xl:text-3xl cursor-pointer mb-3 w-full">
-          <div className="flex flex-col md:flex-row justify-between w-full">
+        <div className="text-2xl xl:text-3xl cursor-pointer mb-3 mr-auto ml-[8px]">
+          <div className="flex flex-col md:flex-row justify-between">
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
               <div className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
                 <Button
@@ -883,6 +883,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
                               artistId={artistProfile.artistId}
                               filterByArtistCampaignCode={filterByArtistCampaignCode}
+                              nftMarketplaceLink={artistProfile.otherLink1 || ""}
                             />
                           </div>
                         )}

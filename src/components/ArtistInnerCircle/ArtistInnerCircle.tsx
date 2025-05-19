@@ -56,6 +56,7 @@ interface ArtistInnerCircleProps {
   creatorPaymentsWallet: string;
   artistId: string;
   filterByArtistCampaignCode?: string | number;
+  nftMarketplaceLink?: string; // for fan memberships, we use the artists otherLink1 to put the nft marketplace link in (not ideal, as artist can have more fan tiers and they are all seperate links)
 }
 
 export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
@@ -64,6 +65,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   creatorPaymentsWallet,
   artistId,
   filterByArtistCampaignCode,
+  nftMarketplaceLink,
 }) => {
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
@@ -433,7 +435,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
             {isSoldOut ? (
               <span className="ml-2">Sold Out!</span>
             ) : (
-              <span className="ml-2">{addressSol ? `${isSingleBuy ? "Buy" : "Subscribe"} Now` : `Login to ${isSingleBuy ? "Buy" : "Subscribe"}`}</span>
+              <span className="ml-2">{addressSol ? `${isSingleBuy ? "Buy" : "Subscribe"} Now` : `Login to ${isSingleBuy ? "Buy" : "Subscribe"} Now`}</span>
             )}
           </>
         </Button>
@@ -473,9 +475,19 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                 {myActiveFanMembershipsForArtist.map((membership: MyFanMembershipType, index: number) => (
                   <div
                     key={index}
-                    className="p-4 rounded-lg bg-black/40 border border-yellow-500/20 hover:border-yellow-500/40 transition-all cursor-pointer"
+                    className="relative p-4 rounded-lg bg-black/40 border border-yellow-500/20 hover:border-yellow-500/40 transition-all cursor-pointer"
                     onClick={() => membership.tokenImg && setSelectedTokenImg(convertTokenImageUrl(membership.tokenImg))}>
                     <div className="flex items-center gap-4">
+                      {membership.totalQuantityInBatch && membership.totalQuantityInBatch > 1 && membership.totalQtySentFlag === 0 && (
+                        <div className="group">
+                          <div className="absolute top-1 right-1 flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500 text-black text-xs font-bold">
+                            {membership.totalQuantityInBatch}
+                          </div>
+                          <div className="absolute top-8 right-0 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            The collectible has {membership.totalQuantityInBatch} copies
+                          </div>
+                        </div>
+                      )}
                       {membership.tokenImg && (
                         <div className="w-24 h-24 rounded-lg overflow-hidden">
                           <img
@@ -486,7 +498,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                         </div>
                       )}
                       <div>
-                        <h4 className="font-semibold capitalize">{membership.membershipLabel} Membership</h4>
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xl font-bold">{membership.membershipLabel}</h3>
+                        </div>
                         <p className="text-sm text-gray-400">Joined {new Date(membership.createdOnTS).toLocaleDateString()}</p>
                         {membership.expiresInDays !== undefined && (
                           <p className="text-sm mt-1">
@@ -621,6 +635,24 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
               <SubscribeButton isSingleBuy={true} />
             </div>
 
+            <div className="!mt-[10px] opacity-80">
+              {nftMarketplaceLink && nftMarketplaceLink !== "" && (
+                <div>
+                  <Button
+                    className="text-sm cursor-pointer !text-orange-500 dark:!text-yellow-300 mr-2"
+                    variant="outline"
+                    onClick={() => {
+                      window.open(nftMarketplaceLink)?.focus();
+                    }}>
+                    <>
+                      <ShoppingCart />
+                      <span className="ml-2">Or Find On External NFT Market</span>
+                    </>
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <div>
               <h3 className="text-xl font-semibold mb-4">Perks</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -666,6 +698,10 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
             </div>
           </div>
         )}
+
+        <span className="text-xs text-gray-700 ml-2 text-left mt-10">
+          id: {`fan-${creatorPaymentsWallet.toLowerCase()}-${artistId}-${selectedArtistMembership}`}
+        </span>
 
         {/* Perk Details Modal */}
         {selectedPerk && (
