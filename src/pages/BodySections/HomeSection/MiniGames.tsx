@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Gift, Dice1, Music2, X, Volume2, VolumeX, ChevronLeft, ChevronRight, Play, Pause, ArrowUp, ArrowDown, CheckCircle2, XCircle } from "lucide-react";
 import Countdown from "react-countdown";
-import { PlayBitzModal } from "components/PlayBitzModal/PlayBitzModal";
+import { PlayXPGameModal } from "components/XPSystem/PlayXPGameModal";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { MusicTrack } from "libs/types";
@@ -773,7 +773,7 @@ export const MiniGames = (props: MiniGamesProps) => {
       </div>
 
       {!DISABLE_BITZ_FEATURES && showPlayBitzModal && (
-        <PlayBitzModal showPlayBitzModel={showPlayBitzModal} handleHideBitzModel={() => setShowPlayBitzModal(false)} />
+        <PlayXPGameModal showPlayBitzModel={showPlayBitzModal} handleHideBitzModel={() => setShowPlayBitzModal(false)} />
       )}
 
       {showMemoryModal && <MemoryGame onClose={() => setShowMemoryModal(false)} tracks={radioTracks} appMusicPlayerIsPlaying={appMusicPlayerIsPlaying} />}

@@ -736,7 +736,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                     </div>
                                   </a>
                                 )}
-                                {artistProfile.otherLink1 && (
+                                {artistProfile.otherLink1 && filterByArtistCampaignCode === -1 && (
                                   <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.otherLink1} target="_blank">
                                     <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
                                       <Link2 className="m-auto w-5" />

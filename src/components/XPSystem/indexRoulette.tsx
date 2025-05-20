@@ -15,7 +15,6 @@ import { cn, sleep } from "libs/utils";
 import { computeRemainingCooldown } from "libs/utils/functions";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
-import "../common/GetBitz.css";
 import useSolBitzStore from "store/solBitz";
 
 const rouletteData = [

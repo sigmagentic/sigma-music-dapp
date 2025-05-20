@@ -30,7 +30,7 @@ export const BuyAndMintAlbumUsingSOL = ({
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/?artist=${artistProfile.slug}`)}&text=${encodeURIComponent(
+  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm?artist=${artistProfile.slug}`)}&text=${encodeURIComponent(
     `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on @SigmaXMusic and I'm excited to stream it!`
   )}`;
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);

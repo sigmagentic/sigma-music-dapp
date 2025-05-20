@@ -835,3 +835,33 @@ export const fetchMintsLeaderboardByMonth = async (MMYYString: string) => {
     return [];
   }
 };
+
+export async function fetchBitSumAndGiverCountsViaAPI({
+  getterAddr,
+  campaignId,
+  collectionId,
+}: {
+  getterAddr: string;
+  campaignId: string;
+  collectionId: string;
+}): Promise<any> {
+  const callConfig = {
+    headers: {
+      "fwd-tokenid": collectionId,
+    },
+  };
+
+  try {
+    const res = await fetch(
+      `${getApiWeb2Apps()}/datadexapi/xpGamePrivate/getterBitSumAndGiverCounts?getterAddr=${getterAddr}&campaignId=${campaignId}`,
+      callConfig
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    const message = "Getting sum and giver count failed :" + getterAddr + "  " + campaignId + err.message;
+    console.error(message);
+    return false;
+  }
+}

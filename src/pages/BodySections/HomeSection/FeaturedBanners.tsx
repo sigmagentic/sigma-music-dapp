@@ -36,9 +36,11 @@ interface InnerCircleOption {
 export const FeaturedBanners = ({
   onFeaturedArtistDeepLinkSlug,
   onGenreUpdate,
+  navigateToDeepAppView,
 }: {
   onFeaturedArtistDeepLinkSlug: (slug: string) => void;
   onGenreUpdate: () => void;
+  navigateToDeepAppView: (logicParams: any) => void;
 }) => {
   const [streamMetricData, setStreamMetricData] = useState<any[]>([]);
   const [isLoadingMostStreamedTracks, setIsLoadingMostStreamedTracks] = useState(true);
@@ -256,17 +258,25 @@ export const FeaturedBanners = ({
                                   const country = artistInfo?.artistSubGroup1Code;
                                   const team = artistInfo?.artistSubGroup2Code;
 
-                                  let url = "?tab=fan&artist=" + artistInfo?.slug;
+                                  // let url = "?tab=fan&artist=" + artistInfo?.slug;
 
-                                  if (campaign && country) {
-                                    if (team) {
-                                      url += `&campaign=${campaign}&country=${country}&team=${team}`;
-                                    } else {
-                                      url += `&campaign=${campaign}&country=${country}`;
-                                    }
-                                  }
+                                  // if (campaign && country) {
+                                  //   if (team) {
+                                  //     url += `&campaign=${campaign}&country=${country}&team=${team}`;
+                                  //   } else {
+                                  //     url += `&campaign=${campaign}&country=${country}`;
+                                  //   }
+                                  // }
 
-                                  window.location.href = url;
+                                  // window.location.href = url;
+
+                                  navigateToDeepAppView({
+                                    artistCampaignCode: campaign,
+                                    artistSubGroup1Code: country,
+                                    artistSubGroup2Code: team,
+                                    artistSlug: artistInfo?.slug,
+                                    artistProfileTab: "fan",
+                                  });
                                 }
                               }
                             }}>
@@ -385,17 +395,25 @@ export const FeaturedBanners = ({
                             const country = artistInfo?.artistSubGroup1Code;
                             const team = artistInfo?.artistSubGroup2Code;
 
-                            let url = "?tab=fan&artist=" + artistInfo?.slug;
+                            // let url = "?tab=fan&artist=" + artistInfo?.slug;
 
-                            if (campaign && country) {
-                              if (team) {
-                                url += `&campaign=${campaign}&country=${country}&team=${team}`;
-                              } else {
-                                url += `&campaign=${campaign}&country=${country}`;
-                              }
-                            }
+                            // if (campaign && country) {
+                            //   if (team) {
+                            //     url += `&campaign=${campaign}&country=${country}&team=${team}`;
+                            //   } else {
+                            //     url += `&campaign=${campaign}&country=${country}`;
+                            //   }
+                            // }
 
-                            window.location.href = url;
+                            // window.location.href = url;
+
+                            navigateToDeepAppView({
+                              artistCampaignCode: campaign,
+                              artistSubGroup1Code: country,
+                              artistSubGroup2Code: team,
+                              artistSlug: artistInfo?.slug,
+                              artistProfileTab: "fan",
+                            });
                           }}>
                           Join Fan Club
                         </Button>

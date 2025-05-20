@@ -40,28 +40,17 @@ export const Layout = ({
   homeMode,
   setHomeMode,
   setTriggerToggleRadioPlayback,
+  removeDeepSectionParamsFromUrl,
 }: {
   children: React.ReactNode;
   homeMode: string;
   setHomeMode: (homeMode: string) => void;
   setTriggerToggleRadioPlayback: (triggerToggleRadioPlayback: string) => void;
+  removeDeepSectionParamsFromUrl: () => void;
 }) => {
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(true);
-  const [searchParams, setSearchParams] = useSearchParams();
   const { publicKey: publicKeySol } = useSolanaWallet();
   const paymentInProgress = useAppStore((state) => state.paymentInProgress);
-
-  const removeDeepSectionParamsFromUrl = () => {
-    const currentParams = Object.fromEntries(searchParams.entries());
-    delete currentParams["artist"];
-    delete currentParams["tab"];
-    delete currentParams["action"];
-    delete currentParams["country"];
-    delete currentParams["team"];
-    delete currentParams["campaign"];
-    delete currentParams["section"];
-    setSearchParams(currentParams);
-  };
 
   const isLoginRoute = location.pathname === routeNames.login;
   const isInSectionWeShouldNotShowSideMenu =
