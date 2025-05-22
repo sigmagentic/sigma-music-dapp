@@ -15,7 +15,9 @@ import {
   CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 import { Toaster } from "react-hot-toast";
+import offlineAnimeHeroImage from "assets/img/offline-anime-hero.jpg";
 import { ENABLE_WSB_CAMPAIGN } from "config";
+import { ENABLE_APP_OFFLINE } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
@@ -58,6 +60,14 @@ export const Layout = ({
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
+      {ENABLE_APP_OFFLINE === "1" && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+          <div className="text-center">
+            <img src={offlineAnimeHeroImage} alt="Offline" className="mx-auto mb-6 max-w-[300px] rounded-lg" />
+            <h1 className="!text-2xl font-bold text-white mb-2">App is Currently Offline for Maintenance</h1>
+          </div>
+        </div>
+      )}
       <div className={`header ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""} md:fixed md:top-0 md:left-0 md:right-0 md:z-10`}>
         <Navbar />
       </div>

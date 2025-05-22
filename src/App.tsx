@@ -37,17 +37,16 @@ export const App = () => {
   }) => {
     /*
     routes we support navigation to:
-    campaign=wsb&country=phl&team=mrw&tab=fan&artist=wsb-phl-mrw-aira
-    campaign=wsb&country=phl&team=mrw
-    campaign=wsb
+    ?campaign=wsb&country=phl&team=mrw&tab=fan&artist=wsb-phl-mrw-aira
+    ?campaign=wsb&country=phl&team=mrw
+    ?campaign=wsb
+
+    ?artist=7g0strike&tab=fan
     */
 
     navigateToDeepAppViewLogic();
 
     function navigateToDeepAppViewLogic() {
-      let artistSlugStateUpdateLogicAlreadyDone = false;
-
-      // we do this logic hee and reuse it below, the idea being that we keep all the state update logic together for the if logic blocks
       function artistSlugStateUpdateLogic() {
         if (artistSlug) {
           let slugToUse = artistSlug;
@@ -58,8 +57,6 @@ export const App = () => {
 
           setFeaturedArtistDeepLinkSlug(slugToUse);
         }
-
-        artistSlugStateUpdateLogicAlreadyDone = true;
       }
 
       if (artistCampaignCode) {
@@ -130,18 +127,19 @@ export const App = () => {
             setHomeMode(`campaigns-wsb-${new Date().getTime()}`);
           }, 100);
         }
+      } else {
+        if (artistSlug) {
+          const currentParams = Object.fromEntries(searchParams.entries());
+          currentParams["artist"] = artistSlug;
 
-        // if we are ONLY changing to artist / album, and have not already handled the artist/album logic above then do it here
-        if (!artistSlugStateUpdateLogicAlreadyDone) {
-          artistSlugStateUpdateLogic();
+          if (artistProfileTab) {
+            currentParams["tab"] = artistProfileTab;
+          }
+
+          setFeaturedArtistDeepLinkSlug(artistSlug);
+          setHomeMode(`artists-${new Date().getTime()}`);
+          setSearchParams(currentParams);
         }
-
-        // TODO: ideally also group this logic like above artistSlugStateUpdateLogic state update grouping
-        // if (artistProfileTab) {
-        //   const currentParams = Object.fromEntries(searchParams.entries());
-        //   currentParams["tab"] = artistProfileTab;
-        //   setSearchParams(currentParams);
-        // }
       }
     }
   };
