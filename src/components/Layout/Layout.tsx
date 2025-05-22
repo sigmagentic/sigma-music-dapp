@@ -15,7 +15,6 @@ import {
   CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 import { Toaster } from "react-hot-toast";
-import { useSearchParams } from "react-router-dom";
 import { ENABLE_WSB_CAMPAIGN } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
