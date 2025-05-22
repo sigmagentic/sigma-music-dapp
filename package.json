@@ -1,7 +1,7 @@
 {
   "name": "sigma-music-dapp",
   "description": "Web3 music service",
-  "version": "2.27.0",
+  "version": "2.27.1",
   "author": "sigmagentic",
   "license": "GPL-3.0-or-later",
   "dependencies": {
