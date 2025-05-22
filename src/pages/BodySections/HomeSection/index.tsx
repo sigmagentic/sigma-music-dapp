@@ -203,7 +203,10 @@ export const HomeSection = (props: HomeSectionProps) => {
       setSearchParams({ ...currentParams });
     }
 
-    scrollToTopOnMainContentArea();
+    // dont do this if there is country or team in the search params as those sub pages look janky
+    if (!searchParams.get("country") && !searchParams.get("team")) {
+      scrollToTopOnMainContentArea();
+    }
   }, [homeMode]);
 
   useEffect(() => {
