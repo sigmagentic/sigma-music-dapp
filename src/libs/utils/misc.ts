@@ -295,7 +295,7 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
       return cacheEntry.data;
     }
 
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumNFTCanBeMinted?albumId=${albumId}`);
+    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/mintAlbumNFTCanBeMinted?albumId=${albumId}`);
 
     if (response.ok) {
       const data = await response.json();
@@ -695,7 +695,7 @@ export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "
     }
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/latestCollectiblesAvailable?nftType=${nftType}`);
+    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/latestCollectiblesAvailable?nftType=${nftType}`);
 
     if (response.ok) {
       let data = await response.json();
