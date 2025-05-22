@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader } from "lucide-react";
+import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
+import TikTokIcon from "assets/img/icons/tiktok-icon.png";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
 import ArtistStats from "components/ArtistStats/ArtistStats";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
@@ -703,7 +704,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistProfile.xLink !== "" ||
                               artistProfile.webLink !== "" ||
                               artistProfile.ytLink !== "" ||
-                              artistProfile.otherLink1 !== "") && (
+                              artistProfile.otherLink1 !== "" ||
+                              artistProfile.instaLink !== "" ||
+                              artistProfile.tikTokLink !== "") && (
                               <div className="flex flex-row mt-5 flex-wrap">
                                 {artistProfile.dripLink && (
                                   <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.dripLink} target="_blank">
@@ -736,7 +739,23 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                     </div>
                                   </a>
                                 )}
-                                {artistProfile.otherLink1 && (
+                                {artistProfile.instaLink && (
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.instaLink} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
+                                      <Instagram className="m-auto w-5" />
+                                      Instagram
+                                    </div>
+                                  </a>
+                                )}
+                                {artistProfile.tikTokLink && (
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.tikTokLink} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
+                                      <img src={TikTokIcon} alt="TikTok" className="m-auto w-[24px] h-[24px]" />
+                                      TikTok
+                                    </div>
+                                  </a>
+                                )}
+                                {artistProfile.otherLink1 && filterByArtistCampaignCode === -1 && (
                                   <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.otherLink1} target="_blank">
                                     <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
                                       <Link2 className="m-auto w-5" />

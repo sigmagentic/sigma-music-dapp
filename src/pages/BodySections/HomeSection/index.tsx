@@ -31,12 +31,26 @@ import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGl
 
 type HomeSectionProps = {
   homeMode: string;
+  campaignCodeFilter: string | undefined;
   triggerToggleRadioPlayback: string;
+  featuredArtistDeepLinkSlug: string | undefined;
+  setFeaturedArtistDeepLinkSlug: (featuredArtistDeepLinkSlug: string | undefined) => void;
   setHomeMode: (homeMode: string) => void;
+  setCampaignCodeFilter: (campaignCodeFilter: string | undefined) => void;
+  navigateToDeepAppView: (logicParams: any) => void;
 };
 
 export const HomeSection = (props: HomeSectionProps) => {
-  const { homeMode, setHomeMode, triggerToggleRadioPlayback } = props;
+  const {
+    homeMode,
+    setHomeMode,
+    triggerToggleRadioPlayback,
+    campaignCodeFilter,
+    setCampaignCodeFilter,
+    navigateToDeepAppView,
+    featuredArtistDeepLinkSlug,
+    setFeaturedArtistDeepLinkSlug,
+  } = props;
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
@@ -44,7 +58,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [firstSongBlobUrl, setFirstSongBlobUrl] = useState<string | undefined>();
   const { solNfts, solBitzNfts } = useNftsStore();
   const [stopPreviewPlaying, setStopPreviewPlaying] = useState<boolean>(false);
-  const [featuredArtistDeepLinkSlug, setFeaturedArtistDeepLinkSlug] = useState<string | undefined>();
+  // const [featuredArtistDeepLinkSlug, setFeaturedArtistDeepLinkSlug] = useState<string | undefined>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
   const { signMessage } = useWallet();
@@ -60,7 +74,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const { albumPlayIsQueued } = useAudioPlayerStore();
   const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
-  const [campaignCodeFilter, setCampaignCodeFilter] = useState<string | undefined>(undefined);
+  // const [campaignCodeFilter, setCampaignCodeFilter] = useState<string | undefined>(undefined);
   const [launchMusicPlayer, setLaunchMusicPlayer] = useState<boolean>(false); // control the visibility base level music player model
   const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
 
@@ -117,6 +131,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     };
   }, [genreUpdateTimeout]);
 
+  // Here, when a deep link is hard reloaded, we look for search params and then call back the setHomeMode to load the local view
   useEffect(() => {
     const isCampaignMode = searchParams.get("campaign");
 
@@ -188,7 +203,10 @@ export const HomeSection = (props: HomeSectionProps) => {
       setSearchParams({ ...currentParams });
     }
 
-    scrollToTopOnMainContentArea();
+    // dont do this if there is country or team in the search params as those sub pages look janky
+    if (!searchParams.get("country") && !searchParams.get("team")) {
+      scrollToTopOnMainContentArea();
+    }
   }, [homeMode]);
 
   useEffect(() => {
@@ -528,7 +546,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                         <div className="absolute inset-0 bg-black/50"></div>
                         <Button
                           onClick={() => {
-                            setHomeMode(`campaigns-wsb`);
+                            setHomeMode(`campaigns-wsb-${new Date().getTime()}`);
                           }}
                           className="!text-black text-sm tracking-tight absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l">
                           <>
@@ -551,6 +569,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                         setHomeMode(`artists-${new Date().getTime()}`);
                         setSearchParams({ "artist": slug });
                       }}
+                      navigateToDeepAppView={navigateToDeepAppView}
                     />
                   </div>
                 </div>
@@ -558,7 +577,7 @@ export const HomeSection = (props: HomeSectionProps) => {
             </div>
           )}
 
-          {homeMode.includes("campaigns-wsb") && <CampaignHero handleCampaignCodeFilterChange={setCampaignCodeFilter} />}
+          {homeMode.includes("campaigns-wsb") && <CampaignHero setCampaignCodeFilter={setCampaignCodeFilter} navigateToDeepAppView={navigateToDeepAppView} />}
 
           {/* Artists and their Albums */}
           {(homeMode.includes("artists") || homeMode.includes("albums") || homeMode.includes("campaigns-wsb")) && (

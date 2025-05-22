@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { LuSpeaker } from "react-icons/lu";
-import GetBitz from "pages/AppMarketplace/GetBitz";
 import useSolBitzStore from "store/solBitz";
+import GetXPGame from "./GetXPGame";
 
-type PathwaysModalProps = {
+type PlayXPGameModalProps = {
   showPlayBitzModel?: boolean;
   handleHideBitzModel?: any;
 };
 
-export const PlayBitzModal: React.FC<PathwaysModalProps> = (props) => {
+export const PlayXPGameModal: React.FC<PlayXPGameModalProps> = (props) => {
   const { showPlayBitzModel, handleHideBitzModel } = props;
   const bitzBalance = useSolBitzStore((state: any) => state.bitzBalance);
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(false);
@@ -40,7 +40,7 @@ export const PlayBitzModal: React.FC<PathwaysModalProps> = (props) => {
             </div>
           </div>
           <div className="p-1 md:p-1">
-            <GetBitz
+            <GetXPGame
               modalMode={true}
               onIsDataMarshalFetching={(isFetching: boolean) => {
                 setIsFetchingDataMarshal(isFetching);

@@ -29,11 +29,12 @@ const FEATURED_TEAMS = [
 
 type CampaignHeroProps = {
   filterByArtistCampaignCode?: string | undefined;
-  handleCampaignCodeFilterChange: (campaignCode: string | undefined) => void;
+  setCampaignCodeFilter: (campaignCode: string | undefined) => void;
+  navigateToDeepAppView: (logicParams: any) => void;
 };
 
 export const CampaignHero = (props: CampaignHeroProps) => {
-  const { handleCampaignCodeFilterChange } = props;
+  const { setCampaignCodeFilter, navigateToDeepAppView } = props;
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCountry, setSelectedCountry] = useState<string | null>(searchParams.get("country"));
   const [selectedTeam, setSelectedTeam] = useState<string | null>(searchParams.get("team"));
@@ -41,10 +42,10 @@ export const CampaignHero = (props: CampaignHeroProps) => {
   const { tileDataCollectionLoadingInProgress, mintsLeaderboard } = useAppStore();
 
   useEffect(() => {
-    handleCampaignCodeFilterChange("wsb");
+    setCampaignCodeFilter("wsb");
 
     return () => {
-      handleCampaignCodeFilterChange(undefined);
+      setCampaignCodeFilter(undefined);
       // Clear URL parameters when component unmounts
       const currentParams = Object.fromEntries(searchParams.entries());
       delete currentParams["campaign"];
@@ -54,7 +55,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
     };
   }, []);
 
-  // onpage load we can have a URL paramters like "campaign=wsb&country=phl&team=mrw", we need to detect this and use handleCampaignCodeFilterChange accordingly
+  // onpage load we can have a URL paramters like "campaign=wsb&country=phl&team=mrw", we need to detect this and use setCampaignCodeFilter accordingly
   useEffect(() => {
     const campaign = searchParams.get("campaign");
     const country = searchParams.get("country");
@@ -62,9 +63,9 @@ export const CampaignHero = (props: CampaignHeroProps) => {
 
     if (campaign && country) {
       if (team) {
-        handleCampaignCodeFilterChange(campaign + "-" + country + "-" + team);
+        setCampaignCodeFilter(campaign + "-" + country + "-" + team);
       } else {
-        handleCampaignCodeFilterChange(campaign + "-" + country);
+        setCampaignCodeFilter(campaign + "-" + country);
       }
     }
   }, []);
@@ -124,7 +125,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                         const currentParams = Object.fromEntries(searchParams.entries());
                         currentParams["country"] = country.code;
                         setSearchParams(currentParams);
-                        handleCampaignCodeFilterChange("wsb-" + country.code);
+                        setCampaignCodeFilter("wsb-" + country.code);
                       }}
                       className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors`}>
                       <span className="text-sm md:text-md">
@@ -150,7 +151,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                         const currentParams = Object.fromEntries(searchParams.entries());
                         currentParams["team"] = team.teamCode;
                         setSearchParams(currentParams);
-                        handleCampaignCodeFilterChange("wsb-" + selectedCountry + "-" + team.teamCode);
+                        setCampaignCodeFilter("wsb-" + selectedCountry + "-" + team.teamCode);
                       }}
                       className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors`}>
                       <span className="text-sm md:text-lg">{team.teamName}</span>
@@ -181,33 +182,19 @@ export const CampaignHero = (props: CampaignHeroProps) => {
               <button
                 disabled={tileDataCollectionLoadingInProgress}
                 onClick={() => {
-                  // just cleaner if we do this way (some boundary cases mess up the navigation ux)
-                  window.location.href = "/?campaign=wsb";
+                  // reset these as we go back to navigateToDeepAppView to load a deep link
+                  setSelectedCountry(null);
+                  setSelectedTeam(null);
+                  setSelectedArtist(null);
+
+                  navigateToDeepAppView({
+                    artistCampaignCode: "wsb",
+                  });
                 }}
                 className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[34px] px-[10px]`}>
                 Back Home
               </button>
             </div>
-
-            {selectedCountry && !selectedTeam && !selectedArtist && (
-              <div
-                className={`${tileDataCollectionLoadingInProgress ? "opacity-30" : ""} bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
-                <button
-                  disabled={tileDataCollectionLoadingInProgress}
-                  onClick={() => {
-                    setSelectedCountry(null);
-                    setSelectedArtist(null);
-                    const currentParams = Object.fromEntries(searchParams.entries());
-                    delete currentParams["country"];
-                    delete currentParams["artist"];
-                    setSearchParams(currentParams);
-                    handleCampaignCodeFilterChange("wsb");
-                  }}
-                  className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[34px] px-[10px]`}>
-                  Back to Countries List
-                </button>
-              </div>
-            )}
 
             {selectedTeam && (
               <div
@@ -221,7 +208,8 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                     delete currentParams["team"];
                     delete currentParams["artist"];
                     setSearchParams(currentParams);
-                    handleCampaignCodeFilterChange("wsb-" + selectedCountry);
+
+                    setCampaignCodeFilter("wsb-" + selectedCountry);
                   }}
                   className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[34px] px-[10px]`}>
                   All Dancers from {COUNTRIES.find((c) => c.code === selectedCountry)?.label}
@@ -236,8 +224,25 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                 <button
                   disabled={tileDataCollectionLoadingInProgress}
                   onClick={() => {
-                    // just cleaner if we do this way (some boundary cases mess up the navigation ux)
-                    window.location.href = `?campaign=wsb&country=${countryCodeIfSelectedArtist}&team=${teamCodeIfSelectedArtist}`;
+                    setSelectedArtist(null);
+                    setSelectedCountry(countryCodeIfSelectedArtist);
+                    setSelectedTeam(teamCodeIfSelectedArtist);
+
+                    // below we need to first MOVE one level back (i.e. no teamCodeIfSelectedArtist) and then wait a bit and move back to the team
+                    // ... if we dont do this the EFFECT in FeaturedArtistsAndAlbums.tsx is not triggered that we need for the team to reload, as moving from a
+                    // ... dancer in a team back to a country will not trigger the effect (same state)
+                    navigateToDeepAppView({
+                      artistCampaignCode: "wsb",
+                      artistSubGroup1Code: countryCodeIfSelectedArtist,
+                    });
+
+                    setTimeout(() => {
+                      navigateToDeepAppView({
+                        artistCampaignCode: "wsb",
+                        artistSubGroup1Code: countryCodeIfSelectedArtist,
+                        artistSubGroup2Code: teamCodeIfSelectedArtist,
+                      });
+                    }, 100);
                   }}
                   className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-auto md:h-[34px] min-h-[34px] px-[10px] text-left md:text-center">
                   All Dancers from {TEAMS[countryCodeIfSelectedArtist]?.find((t) => t.teamCode === teamCodeIfSelectedArtist)?.teamName} Team
@@ -274,7 +279,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                     </div>
                     <button
                       onClick={() => {
-                        handleCampaignCodeFilterChange("wsb-" + team.countryCode + "-" + team.teamCode);
+                        setCampaignCodeFilter("wsb-" + team.countryCode + "-" + team.teamCode);
                         setSelectedCountry(team.countryCode);
                         setSelectedTeam(team.teamCode);
                         const currentParams = Object.fromEntries(searchParams.entries());
@@ -356,22 +361,23 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                             style={{ width: "95%", height: idx === 0 ? "200px" : idx === 1 ? "150px" : "120px", maxHeight: "80%" }}
                             onClick={() => {
                               if (artistInfo?.slug) {
-                                if (item.nftType === "album") {
-                                  // Not expected for this leaderboard, but fallback
-                                  window.location.href = `?artist=${artistInfo.slug}`;
-                                } else {
+                                if (item.nftType !== "album") {
                                   const campaign = artistInfo?.artistCampaignCode;
                                   const country = artistInfo?.artistSubGroup1Code;
                                   const team = artistInfo?.artistSubGroup2Code;
-                                  let url = `?tab=fan&artist=${artistInfo.slug}`;
-                                  if (campaign && country) {
-                                    if (team) {
-                                      url += `&campaign=${campaign}&country=${country}&team=${team}`;
-                                    } else {
-                                      url += `&campaign=${campaign}&country=${country}`;
-                                    }
-                                  }
-                                  window.location.href = url;
+
+                                  // reset these as we go back to navigateToDeepAppView to load a deep link
+                                  setSelectedCountry(null);
+                                  setSelectedTeam(null);
+                                  setSelectedArtist(null);
+
+                                  navigateToDeepAppView({
+                                    artistCampaignCode: campaign,
+                                    artistSubGroup1Code: country,
+                                    artistSubGroup2Code: team,
+                                    artistSlug: artistInfo.slug,
+                                    artistProfileTab: "fan",
+                                  });
                                 }
                               }
                             }}
