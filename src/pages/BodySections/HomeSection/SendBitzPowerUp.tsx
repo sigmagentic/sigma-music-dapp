@@ -27,7 +27,7 @@ type SendBitzPowerUpProps = {
 
 export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { giveBitzForMusicBountyConfig, onCloseModal } = props;
-  const { creatorIcon, creatorName, creatorSlug, giveBitzToWho, giveBitzToCampaignId, isLikeMode } = giveBitzForMusicBountyConfig;
+  const { creatorIcon, creatorName, giveBitzToWho, giveBitzToCampaignId, isLikeMode } = giveBitzForMusicBountyConfig;
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol } = useSolanaWallet();
   const [giftBitzWorkflow, setGiftBitzWorkflow] = useState<boolean>(false);
@@ -42,7 +42,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
 
-  const tweetText = `url=${encodeURIComponent(`${creatorSlug ? `https://sigmamusic.fm?artist=${creatorSlug}` : `https://sigmamusic.fm`}`)}&text=${encodeURIComponent(
+  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
     `I just supported ${creatorName} on @SigmaXMusic by giving them ${bitzValToGift} of my XP!`
   )}`;
 

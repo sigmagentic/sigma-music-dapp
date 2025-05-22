@@ -1,4 +1,6 @@
-import { Home, StatusBoard, FAQ } from "./pages";
+// import { HomeSection } from "./pages/BodySections/HomeSection";
+// import { StatusBoard } from "./pages/StatusBoard";
+// import { FAQ } from "./pages/FAQ";
 
 export const routeNames = {
   home: "/",
@@ -10,30 +12,30 @@ export const routeNames = {
   whitepaper: "/whitepaper",
 };
 
-interface RouteType {
-  path: string;
-  component: any;
-  authenticatedRoute?: boolean;
-}
+// interface RouteType {
+//   path: string;
+//   component: any;
+//   authenticatedRoute?: boolean;
+// }
 
-interface RouteWithTitleType extends RouteType {
-  title: string;
-}
+// interface RouteWithTitleType extends RouteType {
+//   title: string;
+// }
 
-export const routes: RouteWithTitleType[] = [
-  {
-    path: routeNames.home,
-    title: "Home",
-    component: Home,
-  },
-  {
-    path: routeNames.statusBoard,
-    title: "Status Board",
-    component: StatusBoard,
-  },
-  {
-    path: routeNames.faq,
-    title: "FAQ",
-    component: FAQ,
-  },
-];
+// export const routes: RouteWithTitleType[] = [
+//   {
+//     path: routeNames.home,
+//     title: "Home",
+//     component: HomeSection,
+//   },
+//   {
+//     path: routeNames.statusBoard,
+//     title: "Status Board",
+//     component: StatusBoard,
+//   },
+//   {
+//     path: routeNames.faq,
+//     title: "FAQ",
+//     component: FAQ,
+//   },
+// ];

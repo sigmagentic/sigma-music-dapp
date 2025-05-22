@@ -68,6 +68,8 @@ export interface Artist {
   creatorWallet: string;
   webLink: string;
   ytLink: string;
+  tikTokLink?: string;
+  instaLink?: string;
   otherLink1: string;
   isArtistFeatured: string;
   creatorPaymentsWallet: string;

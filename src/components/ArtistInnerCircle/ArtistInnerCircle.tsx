@@ -79,7 +79,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [joinInnerCircleModalOpen, setJoinInnerCircleModalOpen] = useState<boolean>(false);
   const [selectedTokenImg, setSelectedTokenImg] = useState<string | null>(null);
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm/${location.search}`)}&text=${encodeURIComponent(
+  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
     `I am part of ${artistName}'s exclusive Inner Circle fan club on @SigmaXMusic. Come and join me!`
   )}`;
 

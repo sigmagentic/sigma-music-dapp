@@ -295,7 +295,7 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
       return cacheEntry.data;
     }
 
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumNFTCanBeMinted?albumId=${albumId}`);
+    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/mintAlbumNFTCanBeMinted?albumId=${albumId}`);
 
     if (response.ok) {
       const data = await response.json();
@@ -683,29 +683,25 @@ export const logStreamViaAPI = async (streamLogData: { streamerAddr: string; alb
 
 const cache_latestInnerCircleNFTOptions: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchLatestInnerCircleNFTOptionsViaAPI = async (limit: number = 15) => {
+export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "fan") => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
-    const cacheEntry = cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"];
+    const cacheEntry = cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}`];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
-      console.log(`fetchLatestInnerCircleNFTOptionsViaAPI: Getting latest Inner Circle collectible options from cache`);
+      console.log(`fetchLatestCollectiblesAvailableViaAPI-${nftType}: Getting data from cache`);
       return cacheEntry.data;
     }
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintInnerCircleNFTLatest`);
+    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/latestCollectiblesAvailable?nftType=${nftType}`);
 
     if (response.ok) {
       let data = await response.json();
 
-      if (limit) {
-        data = data.slice(0, limit);
-      }
-
       // Update cache
-      cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"] = {
+      cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}`] = {
         data: data,
         timestamp: now,
       };
@@ -713,7 +709,7 @@ export const fetchLatestInnerCircleNFTOptionsViaAPI = async (limit: number = 15)
       return data;
     } else {
       // Update cache (with [] as data)
-      cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"] = {
+      cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}`] = {
         data: [],
         timestamp: now,
       };
@@ -721,10 +717,10 @@ export const fetchLatestInnerCircleNFTOptionsViaAPI = async (limit: number = 15)
       return [];
     }
   } catch (error) {
-    console.error("fetchLatestInnerCircleNFTOptionsViaAPI: Error fetching latest Inner Circle collectible options:", error);
+    console.error("fetchLatestCollectiblesAvailableViaAPI: Error fetching latest Inner Circle collectible options:", error);
 
     // Update cache (with [] as data)
-    cache_latestInnerCircleNFTOptions["latestInnerCircleNFTOptions"] = {
+    cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}`] = {
       data: [],
       timestamp: now,
     };
@@ -835,3 +831,33 @@ export const fetchMintsLeaderboardByMonth = async (MMYYString: string) => {
     return [];
   }
 };
+
+export async function fetchBitSumAndGiverCountsViaAPI({
+  getterAddr,
+  campaignId,
+  collectionId,
+}: {
+  getterAddr: string;
+  campaignId: string;
+  collectionId: string;
+}): Promise<any> {
+  const callConfig = {
+    headers: {
+      "fwd-tokenid": collectionId,
+    },
+  };
+
+  try {
+    const res = await fetch(
+      `${getApiWeb2Apps()}/datadexapi/xpGamePrivate/getterBitSumAndGiverCounts?getterAddr=${getterAddr}&campaignId=${campaignId}`,
+      callConfig
+    );
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    const message = "Getting sum and giver count failed :" + getterAddr + "  " + campaignId + err.message;
+    console.error(message);
+    return false;
+  }
+}

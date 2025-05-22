@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "libComponents/Button";
 import { StreamMetricData } from "libs/types/common";
-import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestInnerCircleNFTOptionsViaAPI, fetchMintsLeaderboardByMonth } from "libs/utils/misc";
+import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestCollectiblesAvailableViaAPI } from "libs/utils/misc";
 import { convertTokenImageUrl } from "libs/utils/ui";
 import { useAppStore } from "store/app";
 
@@ -20,8 +20,8 @@ interface FeaturedAlbum {
   artistName: string;
 }
 
-interface InnerCircleOption {
-  tokenId: string;
+interface LatestFanCollectibleOption {
+  collectibleId: string;
   timestampAdded: string;
   priceInUSD: string;
   artistId: string;
@@ -33,12 +33,20 @@ interface InnerCircleOption {
   metadataOnIpfsUrl: string;
 }
 
+interface LatestAlbumCollectibleOption {
+  collectibleId: string;
+  timestampAdded: string;
+  priceInUSD: string;
+}
+
 export const FeaturedBanners = ({
   onFeaturedArtistDeepLinkSlug,
   onGenreUpdate,
+  navigateToDeepAppView,
 }: {
   onFeaturedArtistDeepLinkSlug: (slug: string) => void;
   onGenreUpdate: () => void;
+  navigateToDeepAppView: (logicParams: any) => void;
 }) => {
   const [streamMetricData, setStreamMetricData] = useState<any[]>([]);
   const [isLoadingMostStreamedTracks, setIsLoadingMostStreamedTracks] = useState(true);
@@ -47,8 +55,10 @@ export const FeaturedBanners = ({
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
   const { musicTrackLookup, artistLookup, albumLookup, radioGenres, artistLookupEverything, mintsLeaderboard } = useAppStore();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [innerCircleOptions, setInnerCircleOptions] = useState<InnerCircleOption[]>([]);
-  const [isLoadingInnerCircleOptions, setIsLoadingInnerCircleOptions] = useState(true);
+  const [latestInnerCircleOptions, setLatestInnerCircleOptions] = useState<LatestFanCollectibleOption[]>([]);
+  const [latestAlbumOptions, setLatestAlbumOptions] = useState<LatestAlbumCollectibleOption[]>([]);
+  const [isLoadingLatestInnerCircleOptions, setIsLoadingLatestInnerCircleOptions] = useState(true);
+  const [isLoadingLatestAlbumOptions, setIsLoadingLatestAlbumOptions] = useState(true);
 
   useEffect(() => {
     if (Object.keys(musicTrackLookup).length === 0 || Object.keys(artistLookup).length === 0 || Object.keys(albumLookup).length === 0) {
@@ -111,16 +121,16 @@ export const FeaturedBanners = ({
   useEffect(() => {
     const loadInnerCircleOptions = async () => {
       try {
-        const data = await fetchLatestInnerCircleNFTOptionsViaAPI();
-        const formattedOptions = data.map(([tokenId, option]: [string, any]) => ({
-          tokenId,
-          ...option,
-        }));
-        setInnerCircleOptions(formattedOptions);
+        const latestInnerCircleOptionsData = await fetchLatestCollectiblesAvailableViaAPI("fan");
+        setLatestInnerCircleOptions(latestInnerCircleOptionsData);
+
+        const latestAlbumOptionsData = await fetchLatestCollectiblesAvailableViaAPI("album");
+        setLatestAlbumOptions(latestAlbumOptionsData);
       } catch (error) {
         console.error("Error fetching Inner Circle collectible options:", error);
       } finally {
-        setIsLoadingInnerCircleOptions(false);
+        setIsLoadingLatestInnerCircleOptions(false);
+        setIsLoadingLatestAlbumOptions(false);
       }
     };
 
@@ -186,13 +196,13 @@ export const FeaturedBanners = ({
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
-      {/* Most purchased collectibles */}
+      {/* Most sold collectibles */}
       {mintsLeaderboard.length > 0 && (
         <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-          <div className="text-xl xl:text-2xl cursor-pointer w-full">
-            <span className="">Most Purchased Collectibles</span>
+          <div className="text-xl cursor-pointer w-full">
+            <span className="">Most Sold Collectibles</span>
           </div>
-          {isLoadingInnerCircleOptions ? (
+          {isLoadingLatestInnerCircleOptions ? (
             <LoadingSkeleton />
           ) : mintsLeaderboard.length === 0 ? (
             <p className="text-xl mb-10 text-center md:text-left opacity-50">No collectibles purchased yet</p>
@@ -215,7 +225,6 @@ export const FeaturedBanners = ({
                           backgroundSize: "contain",
                           backgroundPosition: "center",
                           backgroundBlendMode: "multiply",
-                          backgroundRepeat: "no-repeat",
                           backgroundColor: "#16161682",
                         }}>
                         {/* NFT type label, rotated on the left */}
@@ -256,17 +265,12 @@ export const FeaturedBanners = ({
                                   const country = artistInfo?.artistSubGroup1Code;
                                   const team = artistInfo?.artistSubGroup2Code;
 
-                                  let url = "?tab=fan&artist=" + artistInfo?.slug;
-
-                                  if (campaign && country) {
-                                    if (team) {
-                                      url += `&campaign=${campaign}&country=${country}&team=${team}`;
-                                    } else {
-                                      url += `&campaign=${campaign}&country=${country}`;
-                                    }
-                                  }
-
-                                  window.location.href = url;
+                                  navigateToDeepAppView({
+                                    artistCampaignCode: campaign,
+                                    artistSubGroup1Code: country,
+                                    artistSubGroup2Code: team,
+                                    artistSlug: artistInfo?.slug,
+                                  });
                                 }
                               }
                             }}>
@@ -288,7 +292,7 @@ export const FeaturedBanners = ({
 
       {/* Most streamed songs */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-xl xl:text-2xl cursor-pointer w-full">
+        <div className="text-xl cursor-pointer w-full">
           <span className="">Most Streamed Songs</span>
         </div>
         {isLoadingMostStreamedTracks || Object.keys(musicTrackLookup).length === 0 ? (
@@ -343,15 +347,15 @@ export const FeaturedBanners = ({
         )}
       </div>
 
-      {/* Latest Inner Circle collectible options */}
+      {/* Latest Artist Fan Clubs For Sale */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-xl xl:text-2xl cursor-pointer w-full">
-          <span className="">Latest Fan Clubs To Join</span>
+        <div className="text-xl cursor-pointer w-full">
+          <span className="">Latest Artist Fan Clubs For Sale</span>
         </div>
-        {isLoadingInnerCircleOptions ? (
+        {isLoadingLatestInnerCircleOptions ? (
           <LoadingSkeleton />
-        ) : innerCircleOptions.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new Inner Circle collectible options available</p>
+        ) : latestInnerCircleOptions.length === 0 ? (
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new Inner Circle collectible available</p>
         ) : (
           <div className="relative w-full">
             <div
@@ -360,11 +364,11 @@ export const FeaturedBanners = ({
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
               <div className="flex space-x-4 min-w-max">
-                {innerCircleOptions.map((option) => {
+                {latestInnerCircleOptions.map((option) => {
                   const artistInfo = artistLookupEverything[option.artistId];
                   return (
                     <div
-                      key={option.tokenId}
+                      key={option.collectibleId}
                       className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
                       style={{
                         backgroundImage: `url(${convertTokenImageUrl(option.tokenImg)})`,
@@ -377,25 +381,30 @@ export const FeaturedBanners = ({
                       <div className="text-center mt-4">
                         <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
                           {artistInfo?.name || "Unknown Artist"}
+                          <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
                         </div>
                         <Button
                           className="mt-2 px-3 py-1 text-sm bg-orange-500/30 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors"
                           onClick={() => {
-                            const campaign = artistInfo?.artistCampaignCode;
-                            const country = artistInfo?.artistSubGroup1Code;
-                            const team = artistInfo?.artistSubGroup2Code;
+                            if (artistInfo?.slug) {
+                              if (artistInfo?.artistCampaignCode && artistInfo?.artistCampaignCode !== "0") {
+                                const campaign = artistInfo?.artistCampaignCode;
+                                const country = artistInfo?.artistSubGroup1Code;
+                                const team = artistInfo?.artistSubGroup2Code;
 
-                            let url = "?tab=fan&artist=" + artistInfo?.slug;
-
-                            if (campaign && country) {
-                              if (team) {
-                                url += `&campaign=${campaign}&country=${country}&team=${team}`;
+                                navigateToDeepAppView({
+                                  artistCampaignCode: campaign,
+                                  artistSubGroup1Code: country,
+                                  artistSubGroup2Code: team,
+                                  artistSlug: artistInfo?.slug,
+                                });
                               } else {
-                                url += `&campaign=${campaign}&country=${country}`;
+                                navigateToDeepAppView({
+                                  artistSlug: artistInfo?.slug,
+                                  artistProfileTab: "fan",
+                                });
                               }
                             }
-
-                            window.location.href = url;
                           }}>
                           Join Fan Club
                         </Button>
@@ -405,7 +414,68 @@ export const FeaturedBanners = ({
                 })}
               </div>
             </div>
-            {innerCircleOptions.length > 3 && (
+            {latestInnerCircleOptions.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Latest Music Collectible For Sale */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="">Latest Music Collectibles For Sale</span>
+        </div>
+        {isLoadingLatestAlbumOptions ? (
+          <LoadingSkeleton />
+        ) : latestAlbumOptions.length === 0 ? (
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new music collectibles available</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-5
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {latestAlbumOptions.map((option) => {
+                  const [artistId] = option.collectibleId.split("_");
+                  const artistInfo = artistLookupEverything[artistId];
+                  const albumInfo = artistInfo?.albums?.find((album: { albumId: string }) => album.albumId === option.collectibleId);
+
+                  return (
+                    <div
+                      key={option.collectibleId}
+                      className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                      style={{
+                        backgroundImage: `url(${albumInfo?.img})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundBlendMode: "multiply",
+                        backgroundColor: "#161616d4",
+                      }}>
+                      <div className="text-center">
+                        <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
+                          {albumInfo?.title || "Unknown Album"}
+                        </div>
+                        <div className="text-sm text-white/70 mb-2">By {artistInfo?.name || "Unknown Artist"}</div>
+                        <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
+                        <Button
+                          className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors"
+                          onClick={() => {
+                            if (artistInfo?.slug) {
+                              onFeaturedArtistDeepLinkSlug(`${artistInfo.slug}~${option.collectibleId}`);
+                            }
+                          }}>
+                          Listen & Collect
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {latestAlbumOptions.length > 3 && (
               <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
             )}
           </div>
@@ -414,7 +484,7 @@ export const FeaturedBanners = ({
 
       {/* Genre Selection Section */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-xl xl:text-2xl cursor-pointer w-full">
+        <div className="text-xl cursor-pointer w-full">
           <span>Music Genres I Like</span>
         </div>
         <div className="relative w-full">
@@ -501,7 +571,7 @@ export const FeaturedBanners = ({
 
       {/* Featured albums */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-xl xl:text-2xl cursor-pointer w-full">
+        <div className="text-xl cursor-pointer w-full">
           <span className="">Featured Albums</span>
         </div>
         {isLoadingFeaturedAlbumsAndArtists ? (
@@ -551,7 +621,7 @@ export const FeaturedBanners = ({
 
       {/* Featured artists */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-xl xl:text-2xl cursor-pointer w-full">
+        <div className="text-xl cursor-pointer w-full">
           <span className="">Featured Artists</span>
         </div>
         {isLoadingFeaturedAlbumsAndArtists ? (

@@ -3,8 +3,7 @@ import { IS_LIVE_DEMO_MODE } from "appsConfig";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { AlbumTrackCatalog, GiftBitzToArtistMeta, MusicTrack } from "libs/types";
-import { getApiWeb2Apps } from "libs/utils/misc";
-import { fetchBitSumAndGiverCountsSol } from "pages/AppMarketplace/GetBitz/GetBitzSol/GiveBitzBase";
+import { getApiWeb2Apps, fetchBitSumAndGiverCountsViaAPI } from "libs/utils/misc";
 
 // get and cache the artists and albums data locally
 let _artistsAlbumsDataCachedOnWindow: any[] = [];
@@ -153,7 +152,7 @@ export async function fetchBitzPowerUpsAndLikesForSelectedArtist({
 
     collectionIdToUseOnSol = userHasNoBitzDataNftYet ? DEFAULT_BITZ_COLLECTION_SOL : solBitzNfts[0].grouping[0].group_value;
 
-    response = await fetchBitSumAndGiverCountsSol({
+    response = await fetchBitSumAndGiverCountsViaAPI({
       getterAddr: giftBitzToArtistMeta?.creatorWallet || "",
       campaignId: giftBitzToArtistMeta?.bountyId || "",
       collectionId: collectionIdToUseOnSol,
@@ -184,7 +183,7 @@ export async function fetchBitzPowerUpsAndLikesForSelectedArtist({
           ) {
             console.log(`fetchBitzPowerUpsAndLikesForSelectedArtist: ${albumBounty} - is album ${isSingleAlbumBounty} [no-cache]`);
 
-            return fetchBitSumAndGiverCountsSol({
+            return fetchBitSumAndGiverCountsViaAPI({
               getterAddr: giftBitzToArtistMeta?.creatorWallet || "",
               campaignId: albumBounty || "",
               collectionId: collectionIdToUseOnSol,

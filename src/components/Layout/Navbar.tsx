@@ -17,8 +17,8 @@ import { sleep } from "libs/utils";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
 import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
-import { PlayBitzModal } from "../PlayBitzModal/PlayBitzModal";
 import { ProductTour } from "../ProductTour/ProductTour";
+import { PlayXPGameModal } from "../XPSystem/PlayXPGameModal";
 
 export const Navbar = () => {
   const { publicKey: publicKeySol, walletType, disconnect, isConnected } = useSolanaWallet();
@@ -248,7 +248,7 @@ export const Navbar = () => {
 
         {/* Inline Game For Play Bitz Modal */}
         {!DISABLE_BITZ_FEATURES && showPlayBitzModal && (
-          <PlayBitzModal
+          <PlayXPGameModal
             showPlayBitzModel={showPlayBitzModal}
             handleHideBitzModel={() => {
               setShowPlayBitzModal(false);

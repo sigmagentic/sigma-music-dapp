@@ -15,8 +15,9 @@ import {
   CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 import { Toaster } from "react-hot-toast";
-import { useSearchParams } from "react-router-dom";
+import offlineAnimeHeroImage from "assets/img/offline-anime-hero.jpg";
 import { ENABLE_WSB_CAMPAIGN } from "config";
+import { ENABLE_APP_OFFLINE } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
@@ -40,28 +41,17 @@ export const Layout = ({
   homeMode,
   setHomeMode,
   setTriggerToggleRadioPlayback,
+  removeDeepSectionParamsFromUrl,
 }: {
   children: React.ReactNode;
   homeMode: string;
   setHomeMode: (homeMode: string) => void;
   setTriggerToggleRadioPlayback: (triggerToggleRadioPlayback: string) => void;
+  removeDeepSectionParamsFromUrl: () => void;
 }) => {
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(true);
-  const [searchParams, setSearchParams] = useSearchParams();
   const { publicKey: publicKeySol } = useSolanaWallet();
   const paymentInProgress = useAppStore((state) => state.paymentInProgress);
-
-  const removeDeepSectionParamsFromUrl = () => {
-    const currentParams = Object.fromEntries(searchParams.entries());
-    delete currentParams["artist"];
-    delete currentParams["tab"];
-    delete currentParams["action"];
-    delete currentParams["country"];
-    delete currentParams["team"];
-    delete currentParams["campaign"];
-    delete currentParams["section"];
-    setSearchParams(currentParams);
-  };
 
   const isLoginRoute = location.pathname === routeNames.login;
   const isInSectionWeShouldNotShowSideMenu =
@@ -70,6 +60,14 @@ export const Layout = ({
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
+      {ENABLE_APP_OFFLINE === "1" && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+          <div className="text-center">
+            <img src={offlineAnimeHeroImage} alt="Offline" className="mx-auto mb-6 max-w-[300px] rounded-lg" />
+            <h1 className="!text-2xl font-bold text-white mb-2">App is Currently Offline for Maintenance</h1>
+          </div>
+        </div>
+      )}
       <div className={`header ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""} md:fixed md:top-0 md:left-0 md:right-0 md:z-10`}>
         <Navbar />
       </div>
