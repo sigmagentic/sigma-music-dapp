@@ -263,7 +263,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
         </div>
 
         <div className="flex flex-col md:flex-row w-[100%] items-start">
-          <div className="flex flex-col gap-4 items-start bg-background min-h-[350px] w-[100%]">
+          <div className="flex flex-col gap-4 items-start bg-background min-h-[200px] w-[100%]">
             <>
               <div className="flex flex-col justify-center w-[100%]">
                 {isLoadingSol ? (
@@ -346,7 +346,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
           </div>
 
           <div className="flex flex-col md:flex-row w-[100%] items-start">
-            <div className="flex flex-col gap-4 items-start bg-background min-h-[350px] w-[100%]">
+            <div className="flex flex-col gap-4 items-start bg-background min-h-[200px] w-[100%]">
               <>
                 <div className="flex flex-col justify-center w-[100%]">
                   {isLoadingSol ? (
@@ -442,7 +442,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
           </div>
 
           <div className="flex flex-col md:flex-row w-[100%] items-start">
-            <div className="flex flex-col gap-4 items-start bg-background min-h-[350px] w-[100%]">
+            <div className="flex flex-col gap-4 items-start bg-background min-h-[200px] w-[100%]">
               <div className="flex flex-col justify-center w-[100%]">
                 {isLoadingSol ? (
                   <div className="m-auto w-full">
