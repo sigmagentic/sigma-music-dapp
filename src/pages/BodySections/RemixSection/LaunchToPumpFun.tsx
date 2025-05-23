@@ -181,7 +181,7 @@ export const LaunchToPumpFun = ({
           SystemProgram.transfer({
             fromPubkey: publicKey,
             toPubkey: new PublicKey(SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS),
-            lamports: requiredSolAmount * 1e9, // Convert SOL to lamports
+            lamports: Math.round(requiredSolAmount * 1e9), // Convert SOL to lamports and ensure integer
           })
         );
 

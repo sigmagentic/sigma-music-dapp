@@ -114,7 +114,7 @@ export const JoinInnerCircleSOL = ({
         SystemProgram.transfer({
           fromPubkey: publicKey,
           toPubkey: new PublicKey(SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS),
-          lamports: requiredSolAmount * 1e9, // Convert SOL to lamports
+          lamports: Math.round(requiredSolAmount * 1e9), // Convert SOL to lamports and ensure integer
         })
       );
 
@@ -377,7 +377,7 @@ export const JoinInnerCircleSOL = ({
 
               {backendErrorMessage && (
                 <div className="flex flex-col gap-4">
-                  <p className="bg-red-600 p-4 rounded-lg text-sm">⚠️ {backendErrorMessage}</p>
+                  <p className="bg-red-500 p-4 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
                 </div>
               )}
 
@@ -423,7 +423,7 @@ export const JoinInnerCircleSOL = ({
                   </div>
 
                   {isSolPaymentsDisabled && (
-                    <div className="flex gap-4 bg-red-600 p-4 rounded-lg text-sm">
+                    <div className="flex gap-4 bg-red-500 p-4 rounded-lg text-sm">
                       <p className="text-white">SOL payments are currently disabled. Please try again later.</p>
                     </div>
                   )}
