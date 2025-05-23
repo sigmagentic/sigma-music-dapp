@@ -149,7 +149,7 @@ const StripeCheckoutFormAlbum = ({ artistProfile, albumToBuyAndMint, priceInUSD,
 
       {error && (
         <div className="flex flex-col gap-4 mt-2">
-          <p className="bg-red-600 p-2 rounded-lg text-sm">⚠️ {error}</p>
+          <p className="bg-red-500 p-2 rounded-lg text-sm">⚠️ {error}</p>
         </div>
       )}
     </form>

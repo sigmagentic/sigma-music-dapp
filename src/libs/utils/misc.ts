@@ -395,7 +395,7 @@ export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPayment
     }
 
     const response = await fetch(
-      `${getApiWeb2Apps()}/datadexapi/sigma/mintInnerCircleNFTCanBeMinted?creatorWallet=${creatorPaymentsWallet}&artistId=${artistId}`
+      `${getApiWeb2Apps(true)}/datadexapi/sigma/mintInnerCircleNFTCanBeMinted?creatorWallet=${creatorPaymentsWallet}&artistId=${artistId}`
     );
 
     if (!response.ok) {
