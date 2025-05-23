@@ -102,7 +102,7 @@ export const Navbar = () => {
                   className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[48px]"
                   variant="outline"
                   onClick={() => {
-                    window.open("https://localhost:8000/faq#where-to-buy", "_blank");
+                    window.open("https://sigmamusic.fm/faq#where-to-buy", "_blank");
                   }}>
                   Get $FAN
                 </Button>
@@ -216,7 +216,7 @@ export const Navbar = () => {
                     <Button
                       className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-400"
                       onClick={() => {
-                        window.open("https://localhost:8000/faq#where-to-buy", "_blank");
+                        window.open("https://sigmamusic.fm/faq#where-to-buy", "_blank");
                       }}>
                       Get $FAN
                     </Button>
