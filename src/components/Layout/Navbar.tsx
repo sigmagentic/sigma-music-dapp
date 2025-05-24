@@ -90,7 +90,7 @@ export const Navbar = () => {
                   className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[48px]"
                   variant="outline"
                   onClick={() => {
-                    window.location.href = `${routeNames.faq}`;
+                    window.open("https://sigmamusic.fm/faq", "_blank");
                   }}>
                   About
                 </Button>

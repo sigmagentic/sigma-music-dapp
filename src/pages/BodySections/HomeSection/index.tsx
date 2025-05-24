@@ -555,7 +555,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                         </Button>
                       </div>
                     </div>
-                    <div className="flex flex-col flex-1 text-left bgx-red-500 align-center justify-center p-5">
+                    <div className="flex flex-col flex-1 text-left align-center justify-center p-5">
                       <span className="text-center font-[Clash-Medium] text-2xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
                         Your Music Super App for Exclusive Fan Experiences
                       </span>
