@@ -15,7 +15,7 @@ import { Button } from "libComponents/Button";
 import { GiftBitzToArtistMeta } from "libs/types";
 import { Artist, Album, AlbumWithArtist } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
-import { sleep, scrollToTopOnMainContentArea } from "libs/utils";
+import { sleep, scrollToTopOnMainContentArea, isMostLikelyMobile } from "libs/utils";
 import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
@@ -88,6 +88,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [activeTab, setActiveTab] = useState("discography");
   const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan"]);
+  const [selectedLargeSizeProfileImg, setSelectedLargeSizeProfileImg] = useState<string | null>(null);
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -205,6 +206,13 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       } else {
         setTabsOrdered(["discography", "leaderboard", "artistStats", "fan"]);
       }
+
+      // on mobile, we scroll to the top of the page as the user navigates to the various artist profile pages
+      if (isMostLikelyMobile())
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
     }
   }, [featuredArtistDeepLinkSlug]);
 
@@ -603,9 +611,20 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                   {!artistProfile ? (
                     <div>Loading</div>
                   ) : (
-                    <div className="flex flex-col md:flex-row gap-4 w-full bgx-red-500">
-                      <div className="artist-bio md:w-[700px] flex flex-col bgx-blue-500">
-                        <div className="img-container">
+                    <div className="flex flex-col md:flex-row gap-4 w-full">
+                      <div className="artist-bio md:w-[700px] flex flex-col md:sticky md:top-4 md:self-start">
+                        <div
+                          className={`img-container relative ${activeTab === "fan" && artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== "" ? "cursor-pointer" : ""}`}
+                          onClick={() => {
+                            // if the artist has a 3D gif teaser, allow the user to click on the image to see the full size image
+                            if (activeTab === "fan" && artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== "") {
+                              setSelectedLargeSizeProfileImg(
+                                `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistProfile.fanToken3DGifTeaser}.gif`
+                              );
+                            } else {
+                              return;
+                            }
+                          }}>
                           <div
                             className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] flex-1 bg-no-repeat bg-cover rounded-lg"
                             style={{
@@ -769,7 +788,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         </div>
                       </div>
 
-                      <div className="artist-tabs flex flex-col p-2 items-start bgx-green-600 w-full">
+                      <div className="artist-tabs flex flex-col p-2 items-start w-full">
                         {/* Tabs Navigation */}
                         <div className="tabs-menu w-full border-b border-gray-600 overflow-y-auto pb-5 md:pb-0">
                           <div className="flex space-x-8">
@@ -914,6 +933,24 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             </div>
           )}
         </div>
+
+        {/* Show larger profile or token image modal */}
+        {selectedLargeSizeProfileImg && (
+          <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+            <div className="relative max-w-4xl w-full">
+              <img src={selectedLargeSizeProfileImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
+              <div>
+                <button
+                  onClick={() => {
+                    setSelectedLargeSizeProfileImg(null);
+                  }}
+                  className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -700,6 +700,11 @@ export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "
     if (response.ok) {
       let data = await response.json();
 
+      if (data.length > 0 && nftType === "album") {
+        // remove items from data have that have a .isDemo property
+        data = data.filter((item: any) => !item.isDemo);
+      }
+
       // Update cache
       cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}`] = {
         data: data,

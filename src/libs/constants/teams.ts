@@ -23,9 +23,9 @@ export const TEAMS: Record<string, Team[]> = {
   ],
   phl: [
     { teamName: "ROCK*WELLPH", teamCode: "mrw" },
+    { teamName: "GBOYZ JUNIORS", teamCode: "gbj" },
     { teamName: "Teen The Alive One", teamCode: "12" },
     { teamName: "Monster LCDC", teamCode: "13" },
-    { teamName: "Teen Gboyz JRS", teamCode: "14" },
     { teamName: "Open AMK Rocknation", teamCode: "15" },
   ],
   sin: [],
