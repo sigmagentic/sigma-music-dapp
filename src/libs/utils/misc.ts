@@ -597,14 +597,14 @@ export const fetchStreamsLeaderboardByArtistViaAPI = async (artistId: string) =>
 
 const cache_streamsLeaderboardAllTracksByMonth: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchStreamsLeaderboardAllTracksByMonthViaAPI = async (MMYYString: string) => {
+export const fetchStreamsLeaderboardAllTracksByMonthViaAPI = async (MMYYString: string, limit: number = 20) => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
-    const cacheEntry = cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`];
+    const cacheEntry = cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}-${limit}`];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
-      console.log(`fetchStreamsLeaderboardAllTracksViaAPI: Getting streams leaderboard for MMYYString: ${MMYYString} from cache`);
+      console.log(`fetchStreamsLeaderboardAllTracksViaAPI: Getting streams leaderboard for MMYYString: ${MMYYString} and limit: ${limit} from cache`);
       return cacheEntry.data;
     }
 
@@ -612,10 +612,12 @@ export const fetchStreamsLeaderboardAllTracksByMonthViaAPI = async (MMYYString: 
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/streamsLeaderboardByMonthAllTracks?MMYYString=${MMYYString}`);
 
     if (response.ok) {
-      const data = await response.json();
+      let data = await response.json();
+
+      data = data.slice(0, limit);
 
       // Update cache
-      cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`] = {
+      cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}-${limit}`] = {
         data: data,
         timestamp: now,
       };
@@ -623,7 +625,7 @@ export const fetchStreamsLeaderboardAllTracksByMonthViaAPI = async (MMYYString: 
       return data;
     } else {
       // Update cache (with [] as data)
-      cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`] = {
+      cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}-${limit}`] = {
         data: [],
         timestamp: now,
       };
@@ -634,7 +636,7 @@ export const fetchStreamsLeaderboardAllTracksByMonthViaAPI = async (MMYYString: 
     console.error("fetchStreamsLeaderboardByArtistViaAPI: Error fetching streams leaderboard:", error);
 
     // Update cache (with [] as data)
-    cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}`] = {
+    cache_streamsLeaderboardAllTracksByMonth[`${MMYYString}-${limit}`] = {
       data: [],
       timestamp: now,
     };
@@ -683,14 +685,14 @@ export const logStreamViaAPI = async (streamLogData: { streamerAddr: string; alb
 
 const cache_latestInnerCircleNFTOptions: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "fan") => {
+export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "fan", limit: number = 20) => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
-    const cacheEntry = cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}`];
+    const cacheEntry = cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}-${limit}`];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
-      console.log(`fetchLatestCollectiblesAvailableViaAPI-${nftType}: Getting data from cache`);
+      console.log(`fetchLatestCollectiblesAvailableViaAPI-${nftType}-${limit}: Getting data from cache`);
       return cacheEntry.data;
     }
 
@@ -705,8 +707,10 @@ export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "
         data = data.filter((item: any) => !item.isDemo);
       }
 
+      data = data.slice(0, limit);
+
       // Update cache
-      cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}`] = {
+      cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}-${limit}`] = {
         data: data,
         timestamp: now,
       };
@@ -714,7 +718,7 @@ export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "
       return data;
     } else {
       // Update cache (with [] as data)
-      cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}`] = {
+      cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}-${limit}`] = {
         data: [],
         timestamp: now,
       };
@@ -725,7 +729,7 @@ export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "
     console.error("fetchLatestCollectiblesAvailableViaAPI: Error fetching latest Inner Circle collectible options:", error);
 
     // Update cache (with [] as data)
-    cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}`] = {
+    cache_latestInnerCircleNFTOptions[`fetchLatestCollectiblesAvailableViaAPI-${nftType}-${limit}`] = {
       data: [],
       timestamp: now,
     };

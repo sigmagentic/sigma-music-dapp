@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useSearchParams } from "react-router-dom";
-import { DISABLE_BITZ_FEATURES, FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP } from "config";
+import { DISABLE_BITZ_FEATURES } from "config";
 import { BountyBitzSumMapping } from "libs/types";
 import { sleep } from "libs/utils/misc";
 import { scrollToSection } from "libs/utils/ui";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
+import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
 
@@ -30,6 +31,7 @@ type MyCollectedNFTsProps = {
   viewSolData: (e: number) => void;
   onCloseMusicPlayer: () => void;
   setHomeMode: (e: any) => any;
+  navigateToDeepAppView: (e: any) => any;
 };
 
 export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
@@ -47,6 +49,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     viewSolData,
     onCloseMusicPlayer,
     setHomeMode,
+    navigateToDeepAppView,
   } = props;
   const { isLoadingSol, solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
@@ -56,6 +59,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   const [allOwnedFanMemberships, setAllOwnedFanMemberships] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [isFreeDropSampleWorkflow, setIsFreeDropSampleWorkflow] = useState(false);
+  const { artistLookupEverything } = useAppStore();
 
   useEffect(() => {
     (async () => {
@@ -63,18 +67,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
       setArtistAlbumDataset(albumArtistLookupData);
     })();
   }, []);
-
-  useEffect(() => {
-    (async () => {
-      if (DISABLE_BITZ_FEATURES) {
-        return;
-      }
-
-      if (allOwnedAlbums.length > 0) {
-        queueBitzPowerUpsAndLikesForAllOwnedAlbums();
-      }
-    })();
-  }, [allOwnedAlbums]);
 
   useEffect(() => {
     if (allOwnedAlbums.length > 0) {
@@ -96,10 +88,20 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
         setIsFreeDropSampleWorkflow(true);
       }
     }
+
+    (async () => {
+      if (DISABLE_BITZ_FEATURES) {
+        return;
+      }
+
+      if (allOwnedAlbums.length > 0) {
+        queueBitzPowerUpsAndLikesForAllOwnedAlbums();
+      }
+    })();
   }, [allOwnedAlbums]);
 
   useEffect(() => {
-    if (artistAlbumDataset && artistAlbumDataset.length > 0) {
+    if (artistAlbumDataset && artistAlbumDataset.length > 0 && Object.keys(artistLookupEverything).length > 0) {
       if (shownSolAppDataNfts.length > 0) {
         (async () => {
           let _allOwnedAlbums: any[] = [];
@@ -160,29 +162,40 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                   return {
                     solNftName: nft.content.metadata.name,
                     creatorWallet: nft.ownership.owner,
-                    img: metadata.image || "https://placeholder.com/300x300",
+                    img: metadata.image,
                     title: metadata.name || nft.content.metadata.name,
                     desc: metadata.description || "Fan Membership",
                     bountyId: "fan_membership",
                     albumId: "fan_membership",
                     isFanMembership: true,
+                    tryExtractFanToken3DGifTeaser: tryExtractFanToken3DGifTeaserFromTokenImgUrl(metadata.image) || null,
                   };
                 } catch (error) {
                   console.error("Error fetching metadata for fan NFT:", error);
-                  return {
-                    solNftName: nft.content.metadata.name,
-                    creatorWallet: nft.ownership.owner,
-                    img: "https://placeholder.com/300x300",
-                    title: nft.content.metadata.name,
-                    desc: "Fan Membership",
-                    bountyId: "",
-                    albumId: nft.content.metadata.name.replaceAll(" ", "_"),
-                    isFanMembership: true,
-                  };
                 }
               })
             );
-            setAllOwnedFanMemberships(fanMembershipsWithMetadata);
+
+            // let's pull out the attributed slug and artistCampaignCode from artistLookupEverything by matching on tryExtractFanToken3DGifTeaser and fanToken3DGifTeaser from artistLookupEverything
+            const fanMembershipsWithAttributedSlugAndArtistCampaignCode = fanMembershipsWithMetadata.map((fanMembership) => {
+              if (!fanMembership.tryExtractFanToken3DGifTeaser) {
+                return fanMembership;
+              }
+
+              const matchedItem = Object.values(artistLookupEverything).find(
+                (artist) => artist.fanToken3DGifTeaser === fanMembership.tryExtractFanToken3DGifTeaser
+              );
+
+              if (!matchedItem) {
+                return fanMembership;
+              }
+
+              const artistSlug = matchedItem.slug;
+              const artistCampaignCode = matchedItem.artistCampaignCode;
+              return { ...fanMembership, slug: artistSlug, campaignCode: artistCampaignCode };
+            });
+
+            setAllOwnedFanMemberships(fanMembershipsWithAttributedSlugAndArtistCampaignCode);
           }
 
           if (remainingUnmatchedNfts.length > 0) {
@@ -236,7 +249,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
         })();
       }
     }
-  }, [artistAlbumDataset, shownSolAppDataNfts]);
+  }, [artistAlbumDataset, shownSolAppDataNfts, artistLookupEverything]);
 
   async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {
     // we throttle this so that we don't overwhelm the server and also, the local state updates dont fire if they are all too close together
@@ -250,6 +263,22 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
       });
 
       await sleep(2);
+    }
+  }
+
+  function tryExtractFanToken3DGifTeaserFromTokenImgUrl(imgUrl: string) {
+    // imgUrl will be like this: https://gateway.lighthouse.storage/ipfs/bafybeidn4zspev7ewj3zjuaxlt6masdl4kdzt2os2lfgog6riaytfwjvy4/925_WsbFgcThabangT1.gif
+    // we need to extract WsbFgcThabangT1 out of it
+
+    try {
+      const match = imgUrl.match(/(\d+)_(.*)\.gif/);
+      if (match) {
+        return match[2];
+      }
+      return null;
+    } catch (error) {
+      console.error("Error extracting fan token 3D gif teaser from token img url:", error);
+      return null;
     }
   }
 
@@ -415,20 +444,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                     </>
                   )}
                 </div>
-
-                {/* {myCollectedArtistsAlbums.length === 0 && (
-                  <Button
-                    className="text-lg mb-2 cursor-pointer"
-                    variant="outline"
-                    onClick={() => {
-                      scrollToSection("artist-profile");
-                    }}>
-                    <>
-                      <LibraryBig />
-                      <span className="ml-2">{isMostLikelyMobile() ? "View All Artists" : "View All Artists & Collect More Albums"}</span>
-                    </>
-                  </Button>
-                )} */}
               </>
             </div>
           </div>
@@ -462,19 +477,21 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                     </div>
                     <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border">
                       {allOwnedFanMemberships.map((membership: any, index: number) => {
-                        const mapping =
-                          membership.solNftName in FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP
-                            ? FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP[membership.solNftName as keyof typeof FAN_MEMBERHSIP_NFT_NAME_TO_ARTIST_SLUG_MAP]
-                            : null;
                         const handleClick = () => {
-                          if (mapping) {
-                            const params = new URLSearchParams();
-                            if ("campaignCode" in mapping) {
-                              params.set("campaign", mapping.campaignCode as string);
+                          if (membership.slug) {
+                            if (membership.campaignCode) {
+                              navigateToDeepAppView({
+                                artistCampaignCode: membership.campaignCode,
+                                artistSlug: membership.slug,
+                              });
+                            } else {
+                              navigateToDeepAppView({
+                                artistSlug: membership.slug,
+                                artistProfileTab: "fan",
+                              });
                             }
-                            params.set("artist", mapping.slug);
-                            params.set("tab", "fan");
-                            window.location.href = `?${params.toString()}`;
+                          } else {
+                            alert("Unable to find the artists page associated with this fan membership, please navigate via the artists page from the menu");
                           }
                         };
                         return (

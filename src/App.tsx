@@ -40,6 +40,7 @@ export const App = () => {
     ?campaign=wsb&country=phl&team=mrw&tab=fan&artist=wsb-phl-mrw-aira
     ?campaign=wsb&country=phl&team=mrw
     ?campaign=wsb
+    ?campaign=wsb&artist=wsb-phl-mrw-loonyo
 
     ?artist=7g0strike&tab=fan
     */
