@@ -98,7 +98,7 @@ export const FeaturedBanners = ({
   useEffect(() => {
     const loadStreamsData = async () => {
       try {
-        const data = await fetchStreamsLeaderboardAllTracksByMonthViaAPI("0_0");
+        const data = await fetchStreamsLeaderboardAllTracksByMonthViaAPI("0_0", 20);
         const streamsDataWithAlbumTitle = data.map((stream: StreamMetricData) => ({
           ...stream,
           songTitle: musicTrackLookup[stream.alid]?.title,
@@ -121,10 +121,10 @@ export const FeaturedBanners = ({
   useEffect(() => {
     const loadInnerCircleOptions = async () => {
       try {
-        const latestInnerCircleOptionsData = await fetchLatestCollectiblesAvailableViaAPI("fan");
+        const latestInnerCircleOptionsData = await fetchLatestCollectiblesAvailableViaAPI("fan", 20);
         setLatestInnerCircleOptions(latestInnerCircleOptionsData);
 
-        const latestAlbumOptionsData = await fetchLatestCollectiblesAvailableViaAPI("album");
+        const latestAlbumOptionsData = await fetchLatestCollectiblesAvailableViaAPI("album", 20);
         setLatestAlbumOptions(latestAlbumOptionsData);
       } catch (error) {
         console.error("Error fetching Inner Circle collectible options:", error);
