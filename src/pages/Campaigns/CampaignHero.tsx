@@ -18,7 +18,7 @@ const FEATURED_TEAMS = [
     description: "The Philippines' Hottest Dance Crew",
   },
   {
-    teamName: "V-Unbeatables",
+    teamName: "V-Unbeatable",
     country: "India",
     countryCode: "ind",
     teamCode: "vub",

@@ -668,6 +668,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                     onCloseMusicPlayer={resetAudioPlayerState}
                     isMusicPlayerOpen={launchMusicPlayer}
                     setHomeMode={setHomeMode}
+                    navigateToDeepAppView={navigateToDeepAppView}
                   />
                 </div>
               )}
