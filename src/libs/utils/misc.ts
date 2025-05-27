@@ -870,3 +870,22 @@ export async function fetchBitSumAndGiverCountsViaAPI({
     return false;
   }
 }
+
+export async function getMusicTracksByGenreViaAPI({ genre, pageSize = 50, pageToken }: { genre: string; pageSize?: number; pageToken?: string }): Promise<any> {
+  try {
+    let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/musicTracks/byGenre/${genre}?pageSize=${pageSize}`;
+
+    if (pageToken) {
+      callUrl += `&pageToken=${pageToken}`;
+    }
+
+    const res = await fetch(callUrl);
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    const message = "Getting music tracks by genre failed :" + genre + "  " + err.message;
+    console.error(message);
+    return false;
+  }
+}

@@ -5,12 +5,12 @@ import { Loader } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import CAMPAIGN_WSB_CTA from "assets/img/campaigns/campaign-wsb-home-cta.png";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
-import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS } from "config";
+import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
-import { filterRadioTracksByUserPreferences, getAlbumTracksFromDBViaAPI } from "libs/utils/misc";
+import { filterRadioTracksByUserPreferences, getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/misc";
 import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { CampaignHero } from "pages/Campaigns/CampaignHero";
@@ -27,7 +27,7 @@ import { MyProfile } from "./MyProfile";
 import { RadioTeaser } from "./RadioTeaser";
 import { RewardPools } from "./RewardPools";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
-import { getNFTuneFirstTrackBlobData, getRadioStreamsData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import { getNFTuneFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
 
 type HomeSectionProps = {
   homeMode: string;
@@ -58,7 +58,6 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [firstSongBlobUrl, setFirstSongBlobUrl] = useState<string | undefined>();
   const { solNfts, solBitzNfts } = useNftsStore();
   const [stopPreviewPlaying, setStopPreviewPlaying] = useState<boolean>(false);
-  // const [featuredArtistDeepLinkSlug, setFeaturedArtistDeepLinkSlug] = useState<string | undefined>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
   const { signMessage } = useWallet();
@@ -74,7 +73,6 @@ export const HomeSection = (props: HomeSectionProps) => {
   const { albumPlayIsQueued } = useAudioPlayerStore();
   const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
-  // const [campaignCodeFilter, setCampaignCodeFilter] = useState<string | undefined>(undefined);
   const [launchMusicPlayer, setLaunchMusicPlayer] = useState<boolean>(false); // control the visibility base level music player model
   const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
 
@@ -106,7 +104,8 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [loadIntoTileView, setLoadIntoTileView] = useState(false);
 
   // Genres
-  const { updateRadioGenres, radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
+  const { radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh, artistLookupEverything } =
+    useAppStore();
   const [genreUpdateTimeout, setGenreUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const debouncedGenreUpdate = useCallback(() => {
@@ -157,11 +156,11 @@ export const HomeSection = (props: HomeSectionProps) => {
   }, []);
 
   useEffect(() => {
-    // we do this here as if we dont, when the user is in a deep link and come bakc home, the radio player is stuck in a loading state
-    // ... but only do it if radio is not already playing
-    if (homeMode === "home" && !launchRadioPlayer) {
-      fetchAndUpdateRadioTracks();
-    }
+    // // we do this here as if we dont, when the user is in a deep link and come bakc home, the radio player is stuck in a loading state
+    // // ... but only do it if radio is not already playing
+    // if (homeMode === "home" && !launchRadioPlayer) {
+    //   fetchAndUpdateRadioTracks();
+    // }
 
     if (homeMode === "radio" && !launchRadioPlayer) {
       setLaunchRadioPlayer(true);
@@ -210,10 +209,12 @@ export const HomeSection = (props: HomeSectionProps) => {
   }, [homeMode]);
 
   useEffect(() => {
-    if (triggerToggleRadioPlayback !== "") {
-      setLaunchRadioPlayer(!launchRadioPlayer);
+    // we do this here as if we dont, when the user is in a deep link and come bakc home, the radio player is stuck in a loading state
+    // ... but only do it if radio is not already playing
+    if (homeMode === "home" && !launchRadioPlayer && Object.keys(artistLookupEverything).length > 0) {
+      fetchAndUpdatePersonalizedRadioTracks();
     }
-  }, [triggerToggleRadioPlayback]);
+  }, [homeMode, artistLookupEverything, launchRadioPlayer]);
 
   useEffect(() => {
     if (publicKeySol && solNfts.length > 0) {
@@ -254,52 +255,105 @@ export const HomeSection = (props: HomeSectionProps) => {
   }, [solBitzNfts]);
 
   // user changed their radio genres, so we need to reorder the radio tracks
-  useEffect(() => {
-    if (radioGenresUpdatedByUserSinceLastRadioTracksRefresh) {
-      (async () => {
-        setRadioTracksLoading(true);
-        setRadioTracksSorted([]);
-        setNfTunesRadioFirstTrackCachedBlob("");
+  // useEffect(() => {
+  //   if (radioGenresUpdatedByUserSinceLastRadioTracksRefresh) {
+  //     (async () => {
+  //       setRadioTracksLoading(true);
+  //       setRadioTracksSorted([]);
+  //       setNfTunesRadioFirstTrackCachedBlob("");
 
-        // we always reorder the master list of radio tracks (not the already sorted previous list)
-        const _radioTracksSorted: MusicTrack[] = await reorderRadioTracksAndCacheFirstTrackBlob(radioTracksOriginal);
-        setRadioTracksSorted(_radioTracksSorted);
-        setRadioTracksLoading(false);
-        updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(false);
-      })();
-    }
-  }, [radioGenresUpdatedByUserSinceLastRadioTracksRefresh]);
+  //       // we always reorder the master list of radio tracks (not the already sorted previous list)
+  //       const _radioTracksSorted: MusicTrack[] = await reorderRadioTracksAndCacheFirstTrackBlob(radioTracksOriginal);
+  //       setRadioTracksSorted(_radioTracksSorted);
+  //       setRadioTracksLoading(false);
+  //       updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(false);
+  //     })();
+  //   }
+  // }, [radioGenresUpdatedByUserSinceLastRadioTracksRefresh]);
 
-  /*
-    when the app boots, we get the master radio tracks from the server
-    we then create a list of available genres from the master list
-    we then check if the user has some preference in session storage and then sort the list based on the user's preferences
-  */
-  async function fetchAndUpdateRadioTracks() {
+  async function fetchAndUpdatePersonalizedRadioTracks() {
     try {
       setRadioTracksLoading(true);
       setRadioTracksSorted([]);
       setNfTunesRadioFirstTrackCachedBlob("");
 
-      const allRadioTracks = (await getRadioStreamsData()) as MusicTrack[];
-      setRadioTracksOriginal([...allRadioTracks]); // this is the master list of radio tracks as we got from the server
+      // Step 1: Get saved genres from session storage
+      const savedGenres = sessionStorage.getItem("sig-pref-genres");
+      let userSelectedGenre: string;
 
-      // Extract and normalize unique categories
-      const uniqueGenres = new Set<string>();
-      allRadioTracks.forEach((track: MusicTrack) => {
-        if (track.category) {
-          // Split by comma and trim each category
-          const categories = track.category.split(",").map((cat: string) => cat.trim().toLowerCase());
-          categories.forEach((cat: string) => uniqueGenres.add(cat));
-        }
-      });
+      if (savedGenres) {
+        const parsedGenres = JSON.parse(savedGenres) as string[];
+        console.log("Saved genres:", parsedGenres);
 
-      // Convert Set to array and update store for available radio stream genres
-      updateRadioGenres(Array.from(uniqueGenres));
+        // Get a random genre from the saved genres
+        userSelectedGenre = parsedGenres[Math.floor(Math.random() * parsedGenres.length)];
+        console.log("Random selected genre from saved genres:", userSelectedGenre);
+      } else {
+        // Step 2: If no saved genres, get random genre from Tier1 of ALL_MUSIC_GENRES
+        const tier1Genres = ALL_MUSIC_GENRES.filter((genre) => genre.category === GenreTier.TIER1);
+        userSelectedGenre = tier1Genres[Math.floor(Math.random() * tier1Genres.length)].code;
+        console.log("All available genres:", tier1Genres);
+        console.log("Random selected genre from tier1Genres:", userSelectedGenre);
+      }
 
-      const _radioTracksSorted: MusicTrack[] = await reorderRadioTracksAndCacheFirstTrackBlob(allRadioTracks);
+      // Step 3: Get all tracks
+      const allTracksRes = await getMusicTracksByGenreViaAPI({ genre: "all", pageSize: 20 });
+      const allTracks = allTracksRes.tracks || [];
+      console.log("All tracks:", allTracks);
 
-      setRadioTracksSorted(_radioTracksSorted);
+      // Step 4: Get tracks for selected genre
+      const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: userSelectedGenre, pageSize: 20 });
+      const genreTracks = genreTracksRes.tracks || [];
+      console.log("Genre tracks:", genreTracks);
+
+      // Step 5: Merge tracks with genre tracks having priority
+      const mergedTracks = [...genreTracks, ...allTracks.filter((track: any) => !genreTracks.some((genreTrack: any) => genreTrack.alId === track.alId))];
+      console.log("Merged tracks:", mergedTracks);
+
+      // Step 6: Augment tracks with artist data
+      const augmentedTracks = mergedTracks
+        .map((track: any, index: number) => {
+          const artistId = track.arId;
+          const albumId = track.alId.split("-")[0]; // Extract albumId from alId (e.g., "ar24_a1-2" -> "ar24_a1")
+
+          const artistData = artistLookupEverything[artistId];
+          if (!artistData) {
+            console.warn(`No artist data found for artistId: ${artistId}`);
+            return null;
+          }
+
+          const albumData = artistData.albums.find((album: any) => album.albumId === albumId);
+          if (!albumData) {
+            console.warn(`No album data found for albumId: ${albumId}`);
+            return null;
+          }
+
+          const musicTrack: MusicTrack = {
+            idx: (index + 1).toString(),
+            artist: artistData.name,
+            category: track.category,
+            album: albumData.title,
+            cover_art_url: track.cover_art_url,
+            title: track.title,
+            stream: track.file,
+            creatorWallet: artistData.creatorPaymentsWallet,
+            bountyId: albumData.bountyId,
+            isExplicit: albumData.isExplicit,
+            albumTrackId: track.alId,
+          };
+
+          return musicTrack;
+        })
+        .filter((track): track is MusicTrack => track !== null);
+
+      console.log("Augmented tracks:", augmentedTracks);
+
+      // Set the tracks and cache the first track
+      setRadioTracksSorted(augmentedTracks);
+      if (augmentedTracks.length > 0) {
+        const blobUrl = await getNFTuneFirstTrackBlobData(augmentedTracks[0]);
+        setNfTunesRadioFirstTrackCachedBlob(blobUrl);
+      }
 
       setTimeout(() => {
         setRadioTracksLoading(false);

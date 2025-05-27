@@ -224,22 +224,22 @@ export async function fetchBitzPowerUpsAndLikesForSelectedArtist({
 }
 // E: GIVING BITZ FOR ARTIST POWER-UPS AND ALBUM LIKES
 
-export async function getRadioStreamsData() {
-  try {
-    const getRadioStreamAPI = `${getApiWeb2Apps(true)}/app_nftunes/assets/json/radioStreamData.json`;
+// export async function getRadioStreamsData() {
+//   try {
+//     const getRadioStreamAPI = `${getApiWeb2Apps(true)}/app_nftunes/assets/json/radioStreamData.json`;
 
-    const tracksRes = await axios.get(getRadioStreamAPI);
-    const tracksData = tracksRes.data.map((track: any) => ({
-      ...track,
-      idx: parseInt(track.idx, 10),
-    }));
+//     const tracksRes = await axios.get(getRadioStreamAPI);
+//     const tracksData = tracksRes.data.map((track: any) => ({
+//       ...track,
+//       idx: parseInt(track.idx, 10),
+//     }));
 
-    return tracksData;
-  } catch (e) {
-    console.error(e);
-    return [];
-  }
-}
+//     return tracksData;
+//   } catch (e) {
+//     console.error(e);
+//     return [];
+//   }
+// }
 
 export async function getNFTuneFirstTrackBlobData(trackOne: MusicTrack) {
   try {

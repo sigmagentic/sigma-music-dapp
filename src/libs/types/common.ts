@@ -15,8 +15,8 @@ export interface ExtendedViewDataReturnType extends ViewDataReturnType {
 
 export interface MusicTrack {
   idx: string;
-  nftCollection: string;
-  solNftName: string;
+  nftCollection?: string;
+  solNftName?: string;
   artist: string;
   category: string;
   album: string;
@@ -25,11 +25,11 @@ export interface MusicTrack {
   stream?: string; // this is the stream url for the track (Radio load only)
   file?: string; // this is the file url for the track (DB load only)
   bonus?: number; // 0 or 1 indicated if the track is a bonus track (DB load only)
-  ctaBuy: string;
-  dripSet: string;
-  creatorWallet: string;
-  bountyId: string;
-  isExplicit: string;
+  ctaBuy?: string;
+  dripSet?: string;
+  creatorWallet?: string;
+  bountyId?: string;
+  isExplicit?: string;
   alId?: string; // the album and track index in the format (ar22_a1-1) -- it comes for DB in this format, but in the app we normalize it to albumTrackId
   albumTrackId?: string; // (same as above alid, the radio streams json has it in this format) the album and track index in the format (ar22_a1-1)
 }

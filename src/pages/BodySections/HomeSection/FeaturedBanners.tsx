@@ -4,6 +4,7 @@ import { StreamMetricData } from "libs/types/common";
 import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestCollectiblesAvailableViaAPI } from "libs/utils/misc";
 import { convertTokenImageUrl } from "libs/utils/ui";
 import { useAppStore } from "store/app";
+import { ALL_MUSIC_GENRES } from "config";
 
 interface FeaturedArtist {
   name: string;
@@ -53,7 +54,7 @@ export const FeaturedBanners = ({
   const [featuredArtists, setFeaturedArtists] = useState<FeaturedArtist[]>([]);
   const [featuredAlbums, setFeaturedAlbums] = useState<FeaturedAlbum[]>([]);
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
-  const { musicTrackLookup, artistLookup, albumLookup, radioGenres, artistLookupEverything, mintsLeaderboard } = useAppStore();
+  const { musicTrackLookup, artistLookup, albumLookup, artistLookupEverything, mintsLeaderboard } = useAppStore();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [latestInnerCircleOptions, setLatestInnerCircleOptions] = useState<LatestFanCollectibleOption[]>([]);
   const [latestAlbumOptions, setLatestAlbumOptions] = useState<LatestAlbumCollectibleOption[]>([]);
@@ -193,6 +194,9 @@ export const FeaturedBanners = ({
       </div>
     </div>
   );
+
+  const allConfigGenres = ALL_MUSIC_GENRES.map((genre: any) => genre.code);
+  const allGenres = new Set([...allConfigGenres, ...selectedGenres]);
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
@@ -527,7 +531,7 @@ export const FeaturedBanners = ({
                   </div>
                 )}
               </div>
-              {radioGenres.map((genre) => (
+              {Array.from(allGenres).map((genre) => (
                 <div
                   key={genre}
                   onClick={() => {
@@ -563,7 +567,7 @@ export const FeaturedBanners = ({
               ))}
             </div>
           </div>
-          {radioGenres.length > 3 && (
+          {Array.from(allGenres).length > 3 && (
             <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
           )}
         </div>
