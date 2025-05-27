@@ -115,14 +115,8 @@ const AudioPlayer: React.FC<{ tracks: MusicTrack[] }> = ({ tracks }) => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // for games that use radio tracks in the BG for entertainment
+  // for games that use playlist tracks in the BG for entertainment
   const currentTrack = tracks[currentTrackIndex];
-
-  // useEffect(() => {
-  //   if (audioRef.current) {
-  //     audioRef.current.src = currentTrack.stream;
-  //   }
-  // }, [currentTrack]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -174,7 +168,7 @@ const AudioPlayer: React.FC<{ tracks: MusicTrack[] }> = ({ tracks }) => {
           </div>
         </div>
       </div>
-      <audio ref={audioRef} src={currentTrack.stream} autoPlay key={currentTrackIndex} />
+      <audio ref={audioRef} src={currentTrack.stream || currentTrack.file || ""} autoPlay key={currentTrackIndex} />
     </div>
   );
 };
@@ -326,7 +320,7 @@ const MemoryGame: React.FC<{ onClose: () => void; tracks: MusicTrack[]; appMusic
         <div className="mt-6 flex justify-between items-center">
           <button
             onClick={() => {
-              // Randomly select 8 tracks from the radio tracks
+              // Randomly select 8 tracks from the playlist tracks
               const selectedTracks = [...tracks]
                 .sort(() => Math.random() - 0.5)
                 .slice(0, 8)
@@ -441,7 +435,7 @@ const MatchArtistGame: React.FC<{ onClose: () => void; tracks: MusicTrack[] }> =
 
     // Preload new audio files
     const audioElements = selected.map((track) => {
-      const audio = new Audio(track.stream);
+      const audio = new Audio(track.stream || track.file || "");
       audio.load();
       return audio;
     });
@@ -679,12 +673,12 @@ const MatchArtistGame: React.FC<{ onClose: () => void; tracks: MusicTrack[] }> =
 };
 
 interface MiniGamesProps {
-  radioTracks: MusicTrack[];
+  playlistTracks: MusicTrack[];
   appMusicPlayerIsPlaying: boolean;
 }
 
 export const MiniGames = (props: MiniGamesProps) => {
-  const { radioTracks, appMusicPlayerIsPlaying } = props;
+  const { playlistTracks, appMusicPlayerIsPlaying } = props;
   const { isConnected: isLoggedInSol } = useSolanaWallet();
   const { solBitzNfts } = useNftsStore();
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
@@ -776,9 +770,9 @@ export const MiniGames = (props: MiniGamesProps) => {
         <PlayXPGameModal showPlayBitzModel={showPlayBitzModal} handleHideBitzModel={() => setShowPlayBitzModal(false)} />
       )}
 
-      {showMemoryModal && <MemoryGame onClose={() => setShowMemoryModal(false)} tracks={radioTracks} appMusicPlayerIsPlaying={appMusicPlayerIsPlaying} />}
+      {showMemoryModal && <MemoryGame onClose={() => setShowMemoryModal(false)} tracks={playlistTracks} appMusicPlayerIsPlaying={appMusicPlayerIsPlaying} />}
 
-      {showMatchArtistModal && <MatchArtistGame onClose={() => setShowMatchArtistModal(false)} tracks={radioTracks} />}
+      {showMatchArtistModal && <MatchArtistGame onClose={() => setShowMatchArtistModal(false)} tracks={playlistTracks} />}
     </>
   );
 };

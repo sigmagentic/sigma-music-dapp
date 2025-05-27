@@ -2,8 +2,6 @@ import { create } from "zustand";
 import { AlbumWithArtist, AlbumTrackCatalog, MintLeaderboard } from "libs/types";
 
 type State = {
-  radioGenres: string[];
-  radioGenresUpdatedByUserSinceLastRadioTracksRefresh: boolean;
   albumMasterLookup: Record<string, AlbumWithArtist>;
   paymentInProgress: boolean;
   musicTrackLookup: AlbumTrackCatalog;
@@ -16,8 +14,6 @@ type State = {
 };
 
 type Action = {
-  updateRadioGenres: (genres: string[]) => void;
-  updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh: (updated: boolean) => void;
   updateAlbumMasterLookup: (albumMasterLookup: Record<string, AlbumWithArtist>) => void;
   updatePaymentInProgress: (paymentInProgress: boolean) => void;
   updateMusicTrackLookup: (musicTrackLookup: AlbumTrackCatalog) => void;
@@ -30,8 +26,6 @@ type Action = {
 };
 
 export const useAppStore = create<State & Action>((set) => ({
-  radioGenres: [],
-  radioGenresUpdatedByUserSinceLastRadioTracksRefresh: false,
   albumMasterLookup: {},
   paymentInProgress: false,
   musicTrackLookup: {},
@@ -41,9 +35,6 @@ export const useAppStore = create<State & Action>((set) => ({
   artistLookupOrganizedBySections: {},
   tileDataCollectionLoadingInProgress: false,
   mintsLeaderboard: [],
-  updateRadioGenres: (genres: string[]) => set(() => ({ radioGenres: genres })),
-  updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh: (updated: boolean) =>
-    set(() => ({ radioGenresUpdatedByUserSinceLastRadioTracksRefresh: updated })),
   updateAlbumMasterLookup: (albumMasterLookup: Record<string, AlbumWithArtist>) => set(() => ({ albumMasterLookup })),
   updatePaymentInProgress: (paymentInProgress: boolean) => set(() => ({ paymentInProgress })),
   updateMusicTrackLookup: (musicTrackLookup: AlbumTrackCatalog) => set(() => ({ musicTrackLookup })),

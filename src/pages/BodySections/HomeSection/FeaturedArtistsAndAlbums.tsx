@@ -356,7 +356,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         const blob = await fetch(previewStreamUrl).then((r) => r.blob());
         let blobUrl = URL.createObjectURL(blob);
 
-        // ios safari seems to not play the music so tried to use blobs like in the other Audio component like Radio
+        // ios safari seems to not play the music so tried to use blobs like in the other Audio component like Playlist Player
         // but still does not play -- need to debug more (see https://corevo.io/the-weird-case-of-video-streaming-in-safari/)
         previewTrackAudio.src = blobUrl;
       } catch (e) {

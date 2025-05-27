@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { ALL_MUSIC_GENRES } from "config";
 import { Button } from "libComponents/Button";
-import { useAppStore } from "store/app";
 import { GenreSelector } from "./GenreSelector";
 
 interface NFMePreferencesModalProps {
@@ -10,7 +10,6 @@ interface NFMePreferencesModalProps {
 }
 
 export function NFMePreferencesModal({ isOpen, onClose, nfMeIdBrandingHide }: NFMePreferencesModalProps) {
-  const { radioGenres, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
   // Load preferences from session storage when modal opens
@@ -34,15 +33,13 @@ export function NFMePreferencesModal({ isOpen, onClose, nfMeIdBrandingHide }: NF
   // Handle save
   const handleSave = () => {
     sessionStorage.setItem("sig-pref-genres", JSON.stringify(selectedGenres));
-
-    updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(true);
     onClose();
   };
 
   if (!isOpen) return null;
 
-  // Combine current radioGenres with any saved genres that aren't in radioGenres
-  const allGenres = new Set([...radioGenres, ...selectedGenres]);
+  const allConfigGenres = ALL_MUSIC_GENRES.map((genre: any) => genre.code);
+  const allGenres = new Set([...allConfigGenres, ...selectedGenres]);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">

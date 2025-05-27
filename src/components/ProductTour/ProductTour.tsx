@@ -12,7 +12,7 @@ interface Slide {
 const slides: Slide[] = [
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-1-most-streamed.png",
-    text: "Start Radio for free personalized music or view the most streamed songs",
+    text: "Start the Music Player for free personalized music or view the most streamed songs",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-a-listen-to-free-albums.png",
