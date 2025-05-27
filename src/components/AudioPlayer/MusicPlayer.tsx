@@ -755,7 +755,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                       <div
                         key={index}
                         onClick={() => {
-                          if (!publicKey && song.bonus === 1) {
+                          if (!publicKey && song?.bonus === 1) {
                             // if user is not logged in and this is a bonus track via the DB, then we don't allow them to play it
                             // ... if they are logged in and are seeing this bonus track then they own the album so let them jump to it
                             return;
@@ -763,7 +763,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                           setCurrentTrackIndex(index);
                         }}
                         className={`select-none flex flex-row items-center justify-start p-4 rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 
-                          ${!publicKey && song.bonus === 1 ? "cursor-not-allowed" : "cursor-pointer"}
+                          ${!publicKey && song?.bonus === 1 ? "cursor-not-allowed" : "cursor-pointer"}
                           ${song?.bonus === 1 ? "bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20" : ""}`}>
                         <img
                           src={song.cover_art_url}
@@ -777,7 +777,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                           <h6 className="!text-lg !text-muted-foreground">{song.title}</h6>
                           <p className="text-md text-white">{song.artist}</p>
                           <div className="flex flex-row gap-2">
-                            {song.bonus === 1 && <p className="text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black">Bonus Track</p>}
+                            {song?.bonus === 1 && <p className="text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black">Bonus Track</p>}
                             {currentTrackIndex === index && <p className="text-[10px] border border-yellow-500 text-white rounded-md p-1 w-fit">Playing</p>}
                           </div>
                         </div>
@@ -792,7 +792,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                         <div key={index} className="flex items-center justify-center mt-2">
                           <div
                             onClick={() => {
-                              if (!publicKey && song.bonus === 1) {
+                              if (!publicKey && song?.bonus === 1) {
                                 // if user is not logged in and this is a bonus track via the DB, then we don't allow them to play it
                                 // ... if they are logged in and are seeing this bonus track then they own the album so let them jump to it
                                 return;
@@ -800,7 +800,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                               setCurrentTrackIndex(index);
                             }}
                             className={`select-none mr-2 flex flex-row items-center justify-start rounded-lg text-foreground border-[1px] border-foreground/20 hover:opacity-60 
-                              ${!publicKey && song.bonus === 1 ? "cursor-not-allowed" : "cursor-pointer"}
+                              ${!publicKey && song?.bonus === 1 ? "cursor-not-allowed" : "cursor-pointer"}
                               ${song?.bonus === 1 ? "bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20" : ""}`}>
                             <div className="">
                               <img
@@ -816,7 +816,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                               <h6 className="!text-xs md:!text-sm !text-muted-foreground truncate text-left">{song.title}</h6>
                               <p className="text-xs md:text-sm text-white truncate text-left">{song.artist}</p>
                               <div className="flex flex-row gap-2">
-                                {song.bonus === 1 && <p className="text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black">Bonus Track</p>}
+                                {song?.bonus === 1 && <p className="text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black">Bonus Track</p>}
                                 {currentTrackIndex === index && <p className="text-[10px] border border-yellow-500 text-white rounded-md p-1 w-fit">Playing</p>}
                               </div>
                             </div>
@@ -1029,7 +1029,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               </div>
             )}
 
-            {trackList[currentTrackIndex].bonus === 1 && (
+            {trackList[currentTrackIndex]?.bonus === 1 && (
               <p
                 className={`${isFullScreen && displayTrackList ? "md:right-[410px]" : "right-[10px] md:right-[50px]"} z-10 bottom-4 text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black absolute`}>
                 Bonus Track
