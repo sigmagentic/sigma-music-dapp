@@ -1,5 +1,4 @@
 import { LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
-import { MusicTrack } from "libs/types";
 
 interface CacheEntry_DataWithTimestamp {
   data: boolean | [] | Record<string, any> | number;
@@ -251,35 +250,6 @@ export const logStatusChangeToAPI = async ({
     console.error("Error saving new launch:", error);
     throw error;
   }
-};
-
-export const filterRadioTracksByUserPreferences = (allRadioTracks: MusicTrack[]) => {
-  const _allRadioTracksSorted: MusicTrack[] = [...allRadioTracks]; // we clone it so we dont mutate the original list
-  // let now check if the user has some preferences for genres (initially we get this from session storage, later we get this from the NFMe ID)
-  const savedGenres = sessionStorage.getItem("sig-pref-genres");
-
-  // Reorder tracks based on user preferences if they exist
-  if (savedGenres) {
-    const userPreferences = JSON.parse(savedGenres) as string[];
-    const normalizedPreferences = userPreferences.map((genre: string) => genre.toLowerCase());
-
-    // Sort tracks based on preference matches
-    _allRadioTracksSorted.sort((a: any, b: any) => {
-      const aCategories = a.category?.split(",").map((cat: string) => cat.trim().toLowerCase()) || [];
-      const bCategories = b.category?.split(",").map((cat: string) => cat.trim().toLowerCase()) || [];
-
-      // Check if any category matches user preferences
-      const aMatches = aCategories.some((cat: string) => normalizedPreferences.some((pref: string) => cat.includes(pref)));
-      const bMatches = bCategories.some((cat: string) => normalizedPreferences.some((pref: string) => cat.includes(pref)));
-
-      // If both match or both don't match, maintain original order
-      if (aMatches === bMatches) return 0;
-      // If only one matches, put it first
-      return aMatches ? -1 : 1;
-    });
-  }
-
-  return _allRadioTracksSorted;
 };
 
 const cache_checkIfAlbumCanBeMinted: { [key: string]: CacheEntry_DataWithTimestamp } = {};
@@ -866,6 +836,27 @@ export async function fetchBitSumAndGiverCountsViaAPI({
     return data;
   } catch (err: any) {
     const message = "Getting sum and giver count failed :" + getterAddr + "  " + campaignId + err.message;
+    console.error(message);
+    return false;
+  }
+}
+
+export async function getMusicTracksByGenreViaAPI({ genre, pageSize = 50, pageToken }: { genre: string; pageSize?: number; pageToken?: string }): Promise<any> {
+  try {
+    // replace spaces with _
+    const genreWithSpaces = genre.replace(/\s+/g, "-");
+    let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/musicTracks/byGenre/${genreWithSpaces}?pageSize=${pageSize}`;
+
+    if (pageToken) {
+      callUrl += `&pageToken=${pageToken}`;
+    }
+
+    const res = await fetch(callUrl);
+
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    const message = "Getting music tracks by genre failed :" + genre + "  " + err.message;
     console.error(message);
     return false;
   }
