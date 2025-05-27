@@ -844,7 +844,7 @@ export async function fetchBitSumAndGiverCountsViaAPI({
 export async function getMusicTracksByGenreViaAPI({ genre, pageSize = 50, pageToken }: { genre: string; pageSize?: number; pageToken?: string }): Promise<any> {
   try {
     // replace spaces with _
-    const genreWithSpaces = genre.replace(/\s+/g, "_");
+    const genreWithSpaces = genre.replace(/\s+/g, "-");
     let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/musicTracks/byGenre/${genreWithSpaces}?pageSize=${pageSize}`;
 
     if (pageToken) {
