@@ -22,7 +22,7 @@ export interface MusicTrack {
   album: string;
   cover_art_url: string;
   title: string;
-  stream?: string; // this is the stream url for the track (Radio load only)
+  stream?: string; // this is the stream url for the track
   file?: string; // this is the file url for the track (DB load only)
   bonus?: number; // 0 or 1 indicated if the track is a bonus track (DB load only)
   ctaBuy?: string;
@@ -31,7 +31,8 @@ export interface MusicTrack {
   bountyId?: string;
   isExplicit?: string;
   alId?: string; // the album and track index in the format (ar22_a1-1) -- it comes for DB in this format, but in the app we normalize it to albumTrackId
-  albumTrackId?: string; // (same as above alid, the radio streams json has it in this format) the album and track index in the format (ar22_a1-1)
+  albumTrackId?: string; // (same as above alid, the playlist (prev radio) streams json has it in this format) the album and track index in the format (ar22_a1-1)
+  artistSlug?: string;
 }
 
 export interface Album {

@@ -12,7 +12,7 @@ import { StoreProvider } from "./store/StoreProvider";
 
 export const App = () => {
   const [homeMode, setHomeMode] = useState<string>("home");
-  const [triggerToggleRadioPlayback, setTriggerToggleRadioPlayback] = useState<string>("");
+  const [triggerTogglePlaylistPlayback, setTriggerTogglePlaylistPlayback] = useState<string>("");
   const [searchParams, setSearchParams] = useSearchParams();
 
   // S: deep section navigation states
@@ -41,8 +41,9 @@ export const App = () => {
     ?campaign=wsb&country=phl&team=mrw
     ?campaign=wsb
     ?campaign=wsb&artist=wsb-phl-mrw-loonyo
-
     ?artist=7g0strike&tab=fan
+
+    ?artist=masterloopz-tmf~ar22_a1
     */
 
     navigateToDeepAppViewLogic();
@@ -131,7 +132,13 @@ export const App = () => {
       } else {
         if (artistSlug) {
           const currentParams = Object.fromEntries(searchParams.entries());
-          currentParams["artist"] = artistSlug;
+          let slugToUse = artistSlug;
+
+          if (albumId) {
+            slugToUse = `${artistSlug}~${albumId}`;
+          }
+
+          currentParams["artist"] = slugToUse;
 
           if (artistProfileTab) {
             currentParams["tab"] = artistProfileTab;
@@ -166,7 +173,7 @@ export const App = () => {
             <Layout
               homeMode={homeMode}
               setHomeMode={(newHomeMode) => setHomeMode(newHomeMode)}
-              setTriggerToggleRadioPlayback={setTriggerToggleRadioPlayback}
+              setTriggerTogglePlaylistPlayback={setTriggerTogglePlaylistPlayback}
               removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl}>
               <Routes>
                 <Route path={routeNames.login} element={<Login />} />
@@ -176,7 +183,7 @@ export const App = () => {
                     <HomeSection
                       homeMode={homeMode}
                       setHomeMode={setHomeMode}
-                      triggerToggleRadioPlayback={triggerToggleRadioPlayback}
+                      triggerTogglePlaylistPlayback={triggerTogglePlaylistPlayback}
                       campaignCodeFilter={campaignCodeFilter}
                       featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
                       setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}

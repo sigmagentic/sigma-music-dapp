@@ -113,7 +113,7 @@ export async function getAlbumTrackCatalogData() {
 // S: GIVING BITZ FOR ARTIST POWER-UPS AND ALBUM LIKES
 // as the user swaps tabs, we fetch the likes and power-up counts and cache them locally
 
-// we use a global window state variable here as musicBountyBitzSumGlobalMapping can be updated by multiple child components at the same time (e.g. RadioPlayer and FeaturedArtistsAndAlbums)
+// we use a global window state variable here as musicBountyBitzSumGlobalMapping can be updated by multiple child components at the same time (e.g. PlaylistPlayer and FeaturedArtistsAndAlbums)
 // .. and reach state is not sync updated. But we still use setMusicBountyBitzSumGlobalMapping to update the state so we can feed the "update" effect to all the children that need it
 let _bountyBitzSumGlobalMappingWindow: Record<any, any> = {};
 
@@ -224,26 +224,10 @@ export async function fetchBitzPowerUpsAndLikesForSelectedArtist({
 }
 // E: GIVING BITZ FOR ARTIST POWER-UPS AND ALBUM LIKES
 
-// export async function getRadioStreamsData() {
-//   try {
-//     const getRadioStreamAPI = `${getApiWeb2Apps(true)}/app_nftunes/assets/json/radioStreamData.json`;
-
-//     const tracksRes = await axios.get(getRadioStreamAPI);
-//     const tracksData = tracksRes.data.map((track: any) => ({
-//       ...track,
-//       idx: parseInt(track.idx, 10),
-//     }));
-
-//     return tracksData;
-//   } catch (e) {
-//     console.error(e);
-//     return [];
-//   }
-// }
-
-export async function getNFTuneFirstTrackBlobData(trackOne: MusicTrack) {
+export async function getFirstTrackBlobData(trackOne: MusicTrack) {
   try {
-    const blob = await fetch(trackOne.stream!).then((r) => r.blob());
+    const streamOrFile = trackOne.stream || trackOne.file;
+    const blob = await fetch(streamOrFile!).then((r) => r.blob());
     const blobUrl = URL.createObjectURL(blob);
 
     return blobUrl;

@@ -10,7 +10,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
-import { filterRadioTracksByUserPreferences, getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/misc";
+import { getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/misc";
 import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { CampaignHero } from "pages/Campaigns/CampaignHero";
@@ -24,15 +24,15 @@ import { FeaturedBanners } from "./FeaturedBanners";
 import { MiniGames } from "./MiniGames";
 import { MyCollectedNFTs } from "./MyCollectedNFTs";
 import { MyProfile } from "./MyProfile";
-import { RadioTeaser } from "./RadioTeaser";
+import { PlaylistPlayerTeaser } from "./PlaylistPlayerTeaser";
 import { RewardPools } from "./RewardPools";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
-import { getNFTuneFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import { getFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
 
 type HomeSectionProps = {
   homeMode: string;
   campaignCodeFilter: string | undefined;
-  triggerToggleRadioPlayback: string;
+  triggerTogglePlaylistPlayback: string;
   featuredArtistDeepLinkSlug: string | undefined;
   setFeaturedArtistDeepLinkSlug: (featuredArtistDeepLinkSlug: string | undefined) => void;
   setHomeMode: (homeMode: string) => void;
@@ -44,7 +44,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const {
     homeMode,
     setHomeMode,
-    triggerToggleRadioPlayback,
+    triggerTogglePlaylistPlayback,
     campaignCodeFilter,
     setCampaignCodeFilter,
     navigateToDeepAppView,
@@ -75,6 +75,8 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
   const [launchMusicPlayer, setLaunchMusicPlayer] = useState<boolean>(false); // control the visibility base level music player model
   const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
+  const { artistLookupEverything } = useAppStore();
+  const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -94,41 +96,14 @@ export const HomeSection = (props: HomeSectionProps) => {
   // ... but it only get progressively loaded as the user moves between tabs to see the artist and their albums (so its not a complete state)
   const [bountyBitzSumGlobalMapping, setMusicBountyBitzSumGlobalMapping] = useState<any>({});
 
-  // Radio Player state
-  const [radioTracksSorted, setRadioTracksSorted] = useState<MusicTrack[]>([]);
-  const [radioTracksOriginal, setRadioTracksOriginal] = useState<MusicTrack[]>([]);
-  const [radioTracksLoading, setRadioTracksLoading] = useState(true);
-  const [launchRadioPlayer, setLaunchRadioPlayer] = useState(false);
-  const [nfTunesRadioFirstTrackCachedBlob, setNfTunesRadioFirstTrackCachedBlob] = useState<string>("");
-  const [loadRadioPlayerIntoDockedMode, setLoadRadioPlayerIntoDockedMode] = useState(true); // load the radio player into docked mode?
+  // Platlist Player state
+  const [playlistTracksSorted, setPlaylistTracksSorted] = useState<MusicTrack[]>([]);
+  const [playlistTracksLoading, setPlaylistTracksLoading] = useState(true);
+  const [launchPlaylistPlayer, setLaunchPlaylistPlayer] = useState(false);
+  const [playlistFirstTrackCachedBlob, setPlaylistFirstTrackCachedBlob] = useState<string>("");
+  const [loadPlaylistPlayerIntoDockedMode, setLoadPlaylistPlayerIntoDockedMode] = useState(true); // load the playlist player into docked mode?
   const [loadIntoTileView, setLoadIntoTileView] = useState(false);
-
-  // Genres
-  const { radioGenresUpdatedByUserSinceLastRadioTracksRefresh, updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh, artistLookupEverything } =
-    useAppStore();
-  const [genreUpdateTimeout, setGenreUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
-
-  const debouncedGenreUpdate = useCallback(() => {
-    if (genreUpdateTimeout) {
-      clearTimeout(genreUpdateTimeout);
-    }
-
-    const timeout = setTimeout(() => {
-      updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(true);
-      setGenreUpdateTimeout(null);
-    }, 3000); // 3 seconds delay
-
-    setGenreUpdateTimeout(timeout);
-  }, [genreUpdateTimeout]);
-
-  // Cleanup timeout on component unmount
-  useEffect(() => {
-    return () => {
-      if (genreUpdateTimeout) {
-        clearTimeout(genreUpdateTimeout);
-      }
-    };
-  }, [genreUpdateTimeout]);
+  const [selectedPlaylistGenre, setSelectedGenreForPlaylist] = useState<string>("");
 
   // Here, when a deep link is hard reloaded, we look for search params and then call back the setHomeMode to load the local view
   useEffect(() => {
@@ -155,16 +130,19 @@ export const HomeSection = (props: HomeSectionProps) => {
     }
   }, []);
 
+  // Cleanup timeout on component unmount
   useEffect(() => {
-    // // we do this here as if we dont, when the user is in a deep link and come bakc home, the radio player is stuck in a loading state
-    // // ... but only do it if radio is not already playing
-    // if (homeMode === "home" && !launchRadioPlayer) {
-    //   fetchAndUpdateRadioTracks();
-    // }
+    return () => {
+      if (genrePlaylistUpdateTimeout) {
+        clearTimeout(genrePlaylistUpdateTimeout);
+      }
+    };
+  }, [genrePlaylistUpdateTimeout]);
 
-    if (homeMode === "radio" && !launchRadioPlayer) {
-      setLaunchRadioPlayer(true);
-      setLoadRadioPlayerIntoDockedMode(true);
+  useEffect(() => {
+    if (homeMode === "playlist" && !launchPlaylistPlayer) {
+      setLaunchPlaylistPlayer(true);
+      setLoadPlaylistPlayerIntoDockedMode(true);
     }
 
     if (homeMode.includes("artists") || homeMode.includes("campaigns")) {
@@ -209,12 +187,47 @@ export const HomeSection = (props: HomeSectionProps) => {
   }, [homeMode]);
 
   useEffect(() => {
-    // we do this here as if we dont, when the user is in a deep link and come bakc home, the radio player is stuck in a loading state
-    // ... but only do it if radio is not already playing
-    if (homeMode === "home" && !launchRadioPlayer && Object.keys(artistLookupEverything).length > 0) {
-      fetchAndUpdatePersonalizedRadioTracks();
+    // we do this here as if we dont, when the user is in a deep link and come back home, the playlist player is stuck in a loading state
+    // ... but only do it if playlist is not already playing
+    if (homeMode === "home" && !launchPlaylistPlayer && Object.keys(artistLookupEverything).length > 0) {
+      fetchAndLoadDefaultPersonalizedPlaylistTracks();
     }
-  }, [homeMode, artistLookupEverything, launchRadioPlayer]);
+  }, [homeMode, artistLookupEverything, launchPlaylistPlayer]);
+
+  // user has requested a specific genre playlist
+  useEffect(() => {
+    if (selectedPlaylistGenre && selectedPlaylistGenre !== "") {
+      (async () => {
+        setPlaylistTracksLoading(true);
+        setPlaylistTracksSorted([]);
+        setPlaylistFirstTrackCachedBlob("");
+        setPlaylistTracksSorted([]);
+
+        const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: selectedPlaylistGenre, pageSize: 20 });
+        const genreTracks = genreTracksRes.tracks || [];
+        const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(genreTracks);
+
+        if (genreTracks.length > 0) {
+          setPlaylistTracksSorted(augmentedTracks);
+          const blobUrl = await getFirstTrackBlobData(augmentedTracks[0]);
+          setPlaylistFirstTrackCachedBlob(blobUrl);
+
+          setTimeout(() => {
+            setLaunchPlaylistPlayer(true);
+            setPlaylistTracksLoading(false);
+            setLoadPlaylistPlayerIntoDockedMode(true);
+          }, 1000);
+        } else {
+          // it's unlike we hit here, can only happen is there is some API issue OR the genre has no tracks
+          setTimeout(() => {
+            setLaunchPlaylistPlayer(true);
+            setPlaylistTracksLoading(false);
+            setLoadPlaylistPlayerIntoDockedMode(false);
+          }, 1000);
+        }
+      })();
+    }
+  }, [selectedPlaylistGenre]);
 
   useEffect(() => {
     if (publicKeySol && solNfts.length > 0) {
@@ -247,6 +260,23 @@ export const HomeSection = (props: HomeSectionProps) => {
   }, [shownSolAppDataNfts]);
 
   useEffect(() => {
+    if (triggerTogglePlaylistPlayback !== "") {
+      // we may be toggling (on to off or vice versa) but lets clear any playlist state that maybe have been active, so that we can start fresh
+      if (launchPlaylistPlayer) {
+        setPlaylistTracksSorted([]);
+        setPlaylistFirstTrackCachedBlob("");
+        setPlaylistTracksLoading(false);
+        setLoadPlaylistPlayerIntoDockedMode(false);
+
+        // we also clear the selected genre for playlist (if any)
+        setSelectedGenreForPlaylist("");
+      }
+
+      setLaunchPlaylistPlayer(!launchPlaylistPlayer);
+    }
+  }, [triggerTogglePlaylistPlayback]);
+
+  useEffect(() => {
     if (solBitzNfts.length === 0) {
       setUserHasNoBitzDataNftYet(true);
     } else {
@@ -254,123 +284,127 @@ export const HomeSection = (props: HomeSectionProps) => {
     }
   }, [solBitzNfts]);
 
-  // user changed their radio genres, so we need to reorder the radio tracks
-  // useEffect(() => {
-  //   if (radioGenresUpdatedByUserSinceLastRadioTracksRefresh) {
-  //     (async () => {
-  //       setRadioTracksLoading(true);
-  //       setRadioTracksSorted([]);
-  //       setNfTunesRadioFirstTrackCachedBlob("");
+  const debouncedGenrePlaylistUpdate = useCallback(
+    (genre: string) => {
+      if (genrePlaylistUpdateTimeout) {
+        clearTimeout(genrePlaylistUpdateTimeout);
+      }
 
-  //       // we always reorder the master list of radio tracks (not the already sorted previous list)
-  //       const _radioTracksSorted: MusicTrack[] = await reorderRadioTracksAndCacheFirstTrackBlob(radioTracksOriginal);
-  //       setRadioTracksSorted(_radioTracksSorted);
-  //       setRadioTracksLoading(false);
-  //       updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(false);
-  //     })();
-  //   }
-  // }, [radioGenresUpdatedByUserSinceLastRadioTracksRefresh]);
+      const timeout = setTimeout(() => {
+        setSelectedGenreForPlaylist(genre);
+        setGenrePlaylistUpdateTimeout(null);
+      }, 1000); // 1 second delay
 
-  async function fetchAndUpdatePersonalizedRadioTracks() {
+      setGenrePlaylistUpdateTimeout(timeout);
+    },
+    [genrePlaylistUpdateTimeout]
+  );
+
+  async function fetchAndLoadDefaultPersonalizedPlaylistTracks() {
     try {
-      setRadioTracksLoading(true);
-      setRadioTracksSorted([]);
-      setNfTunesRadioFirstTrackCachedBlob("");
+      // if we already have playlist tracks, dont fetch them again
+      if (playlistTracksSorted.length === 0) {
+        setPlaylistTracksLoading(true);
+        setPlaylistTracksSorted([]);
+        setPlaylistFirstTrackCachedBlob("");
 
-      // Step 1: Get saved genres from session storage
-      const savedGenres = sessionStorage.getItem("sig-pref-genres");
-      let userSelectedGenre: string;
+        // Step 1: Get saved genres from session storage
+        const savedGenres = sessionStorage.getItem("sig-pref-genres");
+        let userSelectedGenre: string;
 
-      if (savedGenres) {
-        const parsedGenres = JSON.parse(savedGenres) as string[];
-        console.log("Saved genres:", parsedGenres);
+        if (savedGenres) {
+          const parsedGenres = JSON.parse(savedGenres) as string[];
+          // console.log("Saved genres:", parsedGenres);
 
-        // Get a random genre from the saved genres
-        userSelectedGenre = parsedGenres[Math.floor(Math.random() * parsedGenres.length)];
-        console.log("Random selected genre from saved genres:", userSelectedGenre);
-      } else {
-        // Step 2: If no saved genres, get random genre from Tier1 of ALL_MUSIC_GENRES
-        const tier1Genres = ALL_MUSIC_GENRES.filter((genre) => genre.category === GenreTier.TIER1);
-        userSelectedGenre = tier1Genres[Math.floor(Math.random() * tier1Genres.length)].code;
-        console.log("All available genres:", tier1Genres);
-        console.log("Random selected genre from tier1Genres:", userSelectedGenre);
+          // Get a random genre from the saved genres
+          userSelectedGenre = parsedGenres[Math.floor(Math.random() * parsedGenres.length)];
+          console.log("Random selected genre from saved genres:", userSelectedGenre);
+        } else {
+          // Step 2: If no saved genres, get random genre from Tier1 of ALL_MUSIC_GENRES
+          const tier1Genres = ALL_MUSIC_GENRES.filter((genre) => genre.tier === GenreTier.TIER1);
+          userSelectedGenre = tier1Genres[Math.floor(Math.random() * tier1Genres.length)].code;
+          console.log("All available genres:", tier1Genres);
+          console.log("Random selected genre from tier1Genres:", userSelectedGenre);
+        }
+
+        // Step 3: Get all tracks
+        const allTracksRes = await getMusicTracksByGenreViaAPI({ genre: "all", pageSize: 20 });
+        const allTracks = allTracksRes.tracks || [];
+        // console.log("All tracks:", allTracks);
+
+        // Step 4: Get tracks for selected genre
+        const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: userSelectedGenre, pageSize: 20 });
+        const genreTracks = genreTracksRes.tracks || [];
+        // console.log("Genre tracks:", genreTracks);
+
+        // Step 5: Merge tracks with genre tracks having priority
+        const mergedTracks = [...genreTracks, ...allTracks.filter((track: any) => !genreTracks.some((genreTrack: any) => genreTrack.alId === track.alId))];
+        // console.log("Merged tracks:", mergedTracks);
+
+        // Step 6: Augment tracks with artist data
+        const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(mergedTracks);
+
+        // console.log("Augmented tracks:", augmentedTracks);
+
+        // Set the tracks and cache the first track
+        if (augmentedTracks.length > 0) {
+          setPlaylistTracksSorted(augmentedTracks);
+
+          const blobUrl = await getFirstTrackBlobData(augmentedTracks[0]);
+          setPlaylistFirstTrackCachedBlob(blobUrl);
+        }
+
+        setTimeout(() => {
+          setPlaylistTracksLoading(false);
+        }, 1000);
       }
-
-      // Step 3: Get all tracks
-      const allTracksRes = await getMusicTracksByGenreViaAPI({ genre: "all", pageSize: 20 });
-      const allTracks = allTracksRes.tracks || [];
-      console.log("All tracks:", allTracks);
-
-      // Step 4: Get tracks for selected genre
-      const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: userSelectedGenre, pageSize: 20 });
-      const genreTracks = genreTracksRes.tracks || [];
-      console.log("Genre tracks:", genreTracks);
-
-      // Step 5: Merge tracks with genre tracks having priority
-      const mergedTracks = [...genreTracks, ...allTracks.filter((track: any) => !genreTracks.some((genreTrack: any) => genreTrack.alId === track.alId))];
-      console.log("Merged tracks:", mergedTracks);
-
-      // Step 6: Augment tracks with artist data
-      const augmentedTracks = mergedTracks
-        .map((track: any, index: number) => {
-          const artistId = track.arId;
-          const albumId = track.alId.split("-")[0]; // Extract albumId from alId (e.g., "ar24_a1-2" -> "ar24_a1")
-
-          const artistData = artistLookupEverything[artistId];
-          if (!artistData) {
-            console.warn(`No artist data found for artistId: ${artistId}`);
-            return null;
-          }
-
-          const albumData = artistData.albums.find((album: any) => album.albumId === albumId);
-          if (!albumData) {
-            console.warn(`No album data found for albumId: ${albumId}`);
-            return null;
-          }
-
-          const musicTrack: MusicTrack = {
-            idx: (index + 1).toString(),
-            artist: artistData.name,
-            category: track.category,
-            album: albumData.title,
-            cover_art_url: track.cover_art_url,
-            title: track.title,
-            stream: track.file,
-            creatorWallet: artistData.creatorPaymentsWallet,
-            bountyId: albumData.bountyId,
-            isExplicit: albumData.isExplicit,
-            albumTrackId: track.alId,
-          };
-
-          return musicTrack;
-        })
-        .filter((track): track is MusicTrack => track !== null);
-
-      console.log("Augmented tracks:", augmentedTracks);
-
-      // Set the tracks and cache the first track
-      setRadioTracksSorted(augmentedTracks);
-      if (augmentedTracks.length > 0) {
-        const blobUrl = await getNFTuneFirstTrackBlobData(augmentedTracks[0]);
-        setNfTunesRadioFirstTrackCachedBlob(blobUrl);
-      }
-
-      setTimeout(() => {
-        setRadioTracksLoading(false);
-      }, 1000);
     } catch (error) {
-      console.error("Error fetching radio tracks:", error);
+      console.error("Error fetching playlist tracks:", error);
     }
   }
 
-  async function reorderRadioTracksAndCacheFirstTrackBlob(allRadioTracks: MusicTrack[]) {
-    const _radioTracksSorted: MusicTrack[] = filterRadioTracksByUserPreferences(allRadioTracks);
+  function augmentRawPlaylistTracksWithArtistAndAlbumData(tracks: any[]) {
+    // Step 6: Augment tracks with artist data
+    const augmentedTracks = tracks
+      .map((track: any, index: number) => {
+        const artistId = track.arId;
+        const albumId = track.alId.split("-")[0]; // Extract albumId from alId (e.g., "ar24_a1-2" -> "ar24_a1")
 
-    // cache the first track blob
-    const blobUrl = await getNFTuneFirstTrackBlobData(_radioTracksSorted[0]);
-    setNfTunesRadioFirstTrackCachedBlob(blobUrl);
+        const artistData = artistLookupEverything[artistId];
+        if (!artistData) {
+          console.warn(`No artist data found for artistId: ${artistId}`);
+          return null;
+        }
 
-    return _radioTracksSorted;
+        const albumData = artistData.albums.find((album: any) => album.albumId === albumId);
+
+        // console.log("albumData", albumData);
+
+        if (!albumData) {
+          console.warn(`No album data found for albumId: ${albumId}`);
+          return null;
+        }
+
+        const musicTrack: MusicTrack = {
+          idx: (index + 1).toString(),
+          artist: artistData.name,
+          category: track.category,
+          album: albumData.title,
+          cover_art_url: track.cover_art_url,
+          title: track.title,
+          stream: track.file,
+          creatorWallet: artistData.creatorPaymentsWallet,
+          bountyId: albumData.bountyId,
+          isExplicit: albumData.isExplicit,
+          albumTrackId: track.alId,
+          artistSlug: artistData.slug,
+        };
+
+        return musicTrack;
+      })
+      .filter((track): track is MusicTrack => track !== null);
+
+    return augmentedTracks;
   }
 
   async function viewSolData(index: number, playAlbumNowParams?: any, userOwnsAlbum?: boolean) {
@@ -382,11 +416,15 @@ export const HomeSection = (props: HomeSectionProps) => {
       let _musicPlayerTrackListFromDb = false;
 
       let albumTracksFromDb = await getAlbumTracksFromDBViaAPI(playAlbumNowParams.artistId, playAlbumNowParams.albumId, userOwnsAlbum);
+
+      const artistData = artistLookupEverything[playAlbumNowParams.artistId];
+
       albumTracksFromDb = albumTracksFromDb.map((track: MusicTrack) => ({
         ...track,
         artist: playAlbumNowParams.artistName,
         album: playAlbumNowParams.albumName,
         albumTrackId: track.alId, // the DB calls it alId, but in the app we normalize it to albumTrackId
+        artistSlug: artistData.slug,
       }));
 
       console.log("---> albumTracks from DB", albumTracksFromDb);
@@ -571,26 +609,26 @@ export const HomeSection = (props: HomeSectionProps) => {
     setBitzGiftingMeta(null);
   }
 
-  function handleCloseRadioPlayer() {
-    setLaunchRadioPlayer(false);
+  function handleClosePlaylistPlayer() {
+    setLaunchPlaylistPlayer(false);
   }
 
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
         <div className="flex flex-col justify-center items-center font-[Clash-Regular] w-full pb-6">
-          {/* Radio and main app header CTAs */}
+          {/* Playlist Player and main app header CTAs */}
           {homeMode === "home" && (
             <div className="w-full mt-5">
               <div className="flex flex-col-reverse md:flex-row justify-center items-center xl:items-start w-[100%]">
                 <div className="flex flex-col w-full gap-4">
                   <div className="flex flex-col-reverse md:flex-row gap-4">
-                    <div className="radioTeaser flex flex-col md:mt-0 flex-1">
-                      <RadioTeaser
-                        radioTracks={radioTracksSorted}
-                        radioTracksLoading={radioTracksLoading}
-                        launchRadioPlayer={launchRadioPlayer}
-                        setLaunchRadioPlayer={setLaunchRadioPlayer}
+                    <div className="playlistTeaser flex flex-col md:mt-0 flex-1">
+                      <PlaylistPlayerTeaser
+                        playlistTracks={playlistTracksSorted}
+                        playlistTracksLoading={playlistTracksLoading}
+                        launchPlaylistPlayer={launchPlaylistPlayer}
+                        setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
                       />
                     </div>
                     <div className="campaign-cta flex flex-col md:mt-0 flex-1">
@@ -618,7 +656,12 @@ export const HomeSection = (props: HomeSectionProps) => {
 
                   <div className="featuredBanners flex-1">
                     <FeaturedBanners
-                      onGenreUpdate={debouncedGenreUpdate}
+                      selectedPlaylistGenre={selectedPlaylistGenre}
+                      onPlaylistGenreUpdate={(genre: string) => {
+                        setSelectedGenreForPlaylist(""); // clear any previous genre selection immediately
+
+                        debouncedGenrePlaylistUpdate(genre); // but debounce the actual logic in case the user is click spamming the genre buttons
+                      }}
                       onFeaturedArtistDeepLinkSlug={(slug: string) => {
                         setHomeMode(`artists-${new Date().getTime()}`);
                         setSearchParams({ "artist": slug });
@@ -654,9 +697,9 @@ export const HomeSection = (props: HomeSectionProps) => {
                     // pause the preview tracks if playing
                     setStopPreviewPlaying(false);
 
-                    // pause the radio if playing
-                    if (launchRadioPlayer) {
-                      setLaunchRadioPlayer(false);
+                    // pause the playlist if playing
+                    if (launchPlaylistPlayer) {
+                      setLaunchPlaylistPlayer(false);
                     }
 
                     // pause the main player if playing
@@ -731,7 +774,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
           {homeMode === "games" && (
             <div className="w-full mt-5">
-              <MiniGames radioTracks={radioTracksSorted} appMusicPlayerIsPlaying={launchMusicPlayer || launchRadioPlayer} />
+              <MiniGames playlistTracks={playlistTracksSorted} appMusicPlayerIsPlaying={launchMusicPlayer || launchPlaylistPlayer} />
             </div>
           )}
 
@@ -768,26 +811,27 @@ export const HomeSection = (props: HomeSectionProps) => {
                   // stop the preview playing
                   setStopPreviewPlaying(true);
 
-                  // stop the radio playing
-                  if (launchRadioPlayer) {
-                    setLaunchRadioPlayer(false);
+                  // stop the playlist playing
+                  if (launchPlaylistPlayer) {
+                    setLaunchPlaylistPlayer(false);
                   }
                 }}
                 onCloseMusicPlayer={resetAudioPlayerState}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
                 viewSolDataHasError={viewSolDataHasError}
+                navigateToDeepAppView={navigateToDeepAppView}
               />
             </div>
           )}
 
-          {/* The radio player footer bar */}
-          {launchRadioPlayer && (
+          {/* The playlist player footer bar */}
+          {launchPlaylistPlayer && (
             <div className="w-full fixed left-0 bottom-0 z-50">
               <MusicPlayer
-                trackList={radioTracksSorted}
+                trackList={playlistTracksSorted}
                 trackListFromDb={false}
-                isRadioPlayer={true}
-                firstSongBlobUrl={nfTunesRadioFirstTrackCachedBlob}
+                isPlaylistPlayer={true}
+                firstSongBlobUrl={playlistFirstTrackCachedBlob}
                 onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                 bitzGiftingMeta={bitzGiftingMeta}
                 bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
@@ -797,9 +841,10 @@ export const HomeSection = (props: HomeSectionProps) => {
                   // close the main player if playing
                   resetAudioPlayerState();
                 }}
-                onCloseMusicPlayer={handleCloseRadioPlayer}
+                onCloseMusicPlayer={handleClosePlaylistPlayer}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
-                loadIntoDockedMode={loadRadioPlayerIntoDockedMode}
+                loadIntoDockedMode={loadPlaylistPlayerIntoDockedMode}
+                navigateToDeepAppView={navigateToDeepAppView}
               />
             </div>
           )}
@@ -810,7 +855,7 @@ export const HomeSection = (props: HomeSectionProps) => {
               <div className="w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black">
                 <div className="h-[100px] flex flex-col items-center justify-center px-2">
                   <Loader className="animate-spin" />
-                  <p className="text-foreground text-xs mt-3">hold tight, queuing album for playback</p>
+                  <p className="text-foreground text-xs mt-3">hang tight, queuing album for playback</p>
                 </div>
               </div>
             </div>

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "libComponents/Button";
-import { useAppStore } from "store/app";
-import { GenreSelector } from "./GenreSelector";
 import { ALL_MUSIC_GENRES } from "config";
+import { Button } from "libComponents/Button";
+import { GenreSelector } from "./GenreSelector";
 
 interface NFMePreferencesModalProps {
   isOpen: boolean;
@@ -11,7 +10,6 @@ interface NFMePreferencesModalProps {
 }
 
 export function NFMePreferencesModal({ isOpen, onClose, nfMeIdBrandingHide }: NFMePreferencesModalProps) {
-  const { updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh } = useAppStore();
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
   // Load preferences from session storage when modal opens
@@ -35,8 +33,6 @@ export function NFMePreferencesModal({ isOpen, onClose, nfMeIdBrandingHide }: NF
   // Handle save
   const handleSave = () => {
     sessionStorage.setItem("sig-pref-genres", JSON.stringify(selectedGenres));
-
-    updateRadioGenresUpdatedByUserSinceLastRadioTracksRefresh(true);
     onClose();
   };
 

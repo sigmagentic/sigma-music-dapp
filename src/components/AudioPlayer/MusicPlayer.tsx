@@ -46,13 +46,14 @@ type MusicPlayerProps = {
     bountyBitzSum: number;
     creatorWallet: string;
   } | null;
-  isRadioPlayer?: boolean;
+  isPlaylistPlayer?: boolean;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   loadIntoDockedMode?: boolean;
   viewSolDataHasError?: boolean;
   onSendBitzForMusicBounty: (e: any) => any;
   onCloseMusicPlayer: () => void;
   onPlayHappened: () => void;
+  navigateToDeepAppView: (logicParams: any) => void;
 };
 
 // Common style constants
@@ -119,18 +120,19 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     bitzGiftingMeta,
     bountyBitzSumGlobalMapping,
     pauseAsOtherAudioPlaying,
-    isRadioPlayer,
+    isPlaylistPlayer,
     loadIntoDockedMode,
     viewSolDataHasError,
     onSendBitzForMusicBounty,
     onCloseMusicPlayer,
     onPlayHappened,
+    navigateToDeepAppView,
   } = props;
   const { updateTrackPlayIsQueued } = useAudioPlayerStore();
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("00:00");
-  // const [displayTrackList, setDisplayTrackList] = useState(window.innerWidth >= 768 && !playerExplicitlyDockedByUser && !isRadioPlayer);
+  // const [displayTrackList, setDisplayTrackList] = useState(window.innerWidth >= 768 && !playerExplicitlyDockedByUser && !isPlaylistPlayer);
   const [displayTrackList, setDisplayTrackList] = useState(false);
   const [musicPlayerAudio] = useState(new Audio());
   const [musicPlayerVideo] = useState(() => {
@@ -148,7 +150,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const { publicKey } = useSolanaWallet();
   const [songSource, setSongSource] = useState<{ [key: string]: string }>({}); // map to keep the already fetched trackList
   const settings = {
-    infinite: isRadioPlayer ? true : false,
+    infinite: isPlaylistPlayer ? true : false,
     speed: 1000,
     slidesToShow: 4,
     responsive: [
@@ -429,7 +431,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           }
         } else {
           /*
-            if we come here, that means we are either in radio mode or in DB loaded album mode (not NFT based steaming)
+            if we come here, that means we are either in playlist player (prev radio) mode or in DB loaded album mode (not NFT based steaming)
           */
           let errMsg = null;
           let blobUrl = "";
@@ -437,12 +439,12 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           try {
             console.log(`fetchSong (HTTP): Track ${index} Loading [no-cache]`);
 
-            const trackInRadioList = trackList.find((track: any) => track.idx === index);
+            const trackInPlaylist = trackList.find((track: any) => track.idx === index);
 
-            if (!trackInRadioList) {
+            if (!trackInPlaylist) {
               errMsg = "Track not found";
             } else {
-              const songSourceUrl = trackInRadioList.stream || trackInRadioList.file || "hidden";
+              const songSourceUrl = trackInPlaylist.stream || trackInPlaylist.file || "hidden";
 
               if (songSourceUrl === "hidden") {
                 blobUrl = "hidden";
@@ -634,7 +636,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     return (
       <div className={styles.loader.container}>
         <Loader className={styles.loader.icon + (isSmallScreen ? " w-8 h-8 mr-12" : "")} />
-        {!isSmallScreen && <p className={styles.loader.text}>hold tight, streaming music from the blockchain</p>}
+        {!isSmallScreen && <p className={styles.loader.text}>hang tight, queuing album for playback</p>}
 
         {/* only show close button if the view sol data failed durign track load */}
         {viewSolDataHasError && (
@@ -811,8 +813,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                               />
                             </div>
                             <div className="xl:w-[60%] flex flex-col justify-center text-center">
-                              <h6 className="!text-sm !text-muted-foreground truncate md:text-left">{song.title}</h6>
-                              <p className="text-sm text-white truncate md:text-left">{song.artist}</p>
+                              <h6 className="!text-xs md:!text-sm !text-muted-foreground truncate text-left">{song.title}</h6>
+                              <p className="text-xs md:text-sm text-white truncate text-left">{song.artist}</p>
                               <div className="flex flex-row gap-2">
                                 {song.bonus === 1 && <p className="text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black">Bonus Track</p>}
                                 {currentTrackIndex === index && <p className="text-[10px] border border-yellow-500 text-white rounded-md p-1 w-fit">Playing</p>}
@@ -887,14 +889,36 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   alt="Album Cover"
                   className={`${isSmallScreen ? "hidden" : ""} select-none rounded-md border border-grey-900 transition-all duration-300 ${
                     isFullScreen ? "w-[400px] h-[400px]" : "w-[70px] h-[70px] ml-2"
-                  } ${imgLoading ? "blur-sm" : "blur-none"}`}
+                  } ${imgLoading ? "blur-sm" : "blur-none"}
+                  ${trackList[currentTrackIndex]?.albumTrackId ? "cursor-alias" : ""}`}
                   onLoad={() => setImgLoading(false)}
                   onError={({ currentTarget }) => {
                     currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                   }}
+                  onClick={() => {
+                    if (trackList[currentTrackIndex]?.artistSlug && trackList[currentTrackIndex]?.albumTrackId) {
+                      const albumId = trackList[currentTrackIndex]?.albumTrackId.split("-")[0]; // Extract albumId from alId (e.g., "ar24_a1-2" -> "ar24_a1")
+                      navigateToDeepAppView({
+                        artistSlug: trackList[currentTrackIndex]?.artistSlug,
+                        albumId: albumId,
+                      });
+                    }
+                  }}
                 />
               )}
-              <div className={`${isSmallScreen ? "hidden" : ""} flex flex-col select-text mt-4 ${isFullScreen ? "text-center" : "ml-2"}`}>
+              <div
+                className={`${isSmallScreen ? "hidden" : ""} flex flex-col select-text mt-4 ${isFullScreen ? "text-center" : "ml-2"} ${
+                  trackList[currentTrackIndex]?.albumTrackId ? "cursor-alias" : ""
+                }`}
+                onClick={() => {
+                  if (trackList[currentTrackIndex]?.artistSlug && trackList[currentTrackIndex]?.albumTrackId) {
+                    const albumId = trackList[currentTrackIndex]?.albumTrackId.split("-")[0]; // Extract albumId from alId (e.g., "ar24_a1-2" -> "ar24_a1")
+                    navigateToDeepAppView({
+                      artistSlug: trackList[currentTrackIndex]?.artistSlug,
+                      albumId: albumId,
+                    });
+                  }
+                }}>
                 <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"}`}>{trackList[currentTrackIndex]?.title}</span>
                 <span className={`text-white ${isFullScreen ? "text-lg" : "text-sm"}`}>{trackList[currentTrackIndex]?.artist}</span>
                 <span className="text-xs text-muted-foreground">Track {currentTrackIndex + 1}</span>
@@ -948,29 +972,33 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               </div>
 
               <div className={`songTitleAndArtistForMobile flex flex-col w-full justify-center items-center md:hidden`}>
-                <span className="text-sm text-foreground/60">{trackList[currentTrackIndex]?.title}</span>
-                <span className="text-sm text-muted-foreground">{trackList[currentTrackIndex]?.artist}</span>
+                <span className="text-xs md:text-sm text-foreground/60">{trackList[currentTrackIndex]?.title}</span>
+                <span className="text-xs md:text-sm text-muted-foreground">{trackList[currentTrackIndex]?.artist}</span>
               </div>
             </div>
             <div
               className={`albumControls mb-2 md:mb-0 select-none p-2 flex items-center z-10 ${
                 isFullScreen ? "w-[600px] mt-4 justify-center" : "md:w-[600px] md:mt-[2.2rem] justify-center md:justify-end"
               }`}>
-              <button className="cursor-pointer" onClick={repeatTrack}>
-                <RefreshCcwDot className="w-full hover:scale-105" />
-              </button>
+              {!isSmallScreen && (
+                <button className="cursor-pointer" onClick={repeatTrack}>
+                  <RefreshCcwDot className="w-full hover:scale-105" />
+                </button>
+              )}
 
-              <div className="ml-2 xl:pl-8 flex">
-                {volume === 0 ? <VolumeX /> : volume >= 0.5 ? <Volume2 /> : <Volume1 />}
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={volume}
-                  onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                  className="accent-black dark:accent-white w-[70%] cursor-pointer ml-2 "></input>
-              </div>
+              {!isSmallScreen && (
+                <div className="ml-2 xl:pl-8 flex">
+                  {volume === 0 ? <VolumeX /> : volume >= 0.5 ? <Volume2 /> : <Volume1 />}
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={(e) => handleVolumeChange(Number(e.target.value))}
+                    className="accent-black dark:accent-white w-[70%] cursor-pointer ml-2 "></input>
+                </div>
+              )}
 
               <button className={`mr-2 ${isFullScreen ? "" : "xl:pr-8"}`} onClick={showPlaylist}>
                 <Library className="w-full hover:scale-105" />

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { Loader } from "lucide-react";
+import { ALL_MUSIC_GENRES, GenreTier } from "config";
 import { Button } from "libComponents/Button";
 import { StreamMetricData } from "libs/types/common";
 import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestCollectiblesAvailableViaAPI } from "libs/utils/misc";
 import { convertTokenImageUrl } from "libs/utils/ui";
 import { useAppStore } from "store/app";
-import { ALL_MUSIC_GENRES } from "config";
 
 interface FeaturedArtist {
   name: string;
@@ -42,11 +43,13 @@ interface LatestAlbumCollectibleOption {
 
 export const FeaturedBanners = ({
   onFeaturedArtistDeepLinkSlug,
-  onGenreUpdate,
+  selectedPlaylistGenre,
+  onPlaylistGenreUpdate,
   navigateToDeepAppView,
 }: {
   onFeaturedArtistDeepLinkSlug: (slug: string) => void;
-  onGenreUpdate: () => void;
+  selectedPlaylistGenre: string;
+  onPlaylistGenreUpdate: (genre: string) => void;
   navigateToDeepAppView: (logicParams: any) => void;
 }) => {
   const [streamMetricData, setStreamMetricData] = useState<any[]>([]);
@@ -55,11 +58,11 @@ export const FeaturedBanners = ({
   const [featuredAlbums, setFeaturedAlbums] = useState<FeaturedAlbum[]>([]);
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
   const { musicTrackLookup, artistLookup, albumLookup, artistLookupEverything, mintsLeaderboard } = useAppStore();
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [latestInnerCircleOptions, setLatestInnerCircleOptions] = useState<LatestFanCollectibleOption[]>([]);
   const [latestAlbumOptions, setLatestAlbumOptions] = useState<LatestAlbumCollectibleOption[]>([]);
   const [isLoadingLatestInnerCircleOptions, setIsLoadingLatestInnerCircleOptions] = useState(true);
   const [isLoadingLatestAlbumOptions, setIsLoadingLatestAlbumOptions] = useState(true);
+  const [lastClickedGenreForPlaylist, setLastClickedGenreForPlaylist] = useState<string>("");
 
   useEffect(() => {
     if (Object.keys(musicTrackLookup).length === 0 || Object.keys(artistLookup).length === 0 || Object.keys(albumLookup).length === 0) {
@@ -140,32 +143,11 @@ export const FeaturedBanners = ({
     }
   }, [artistLookupEverything]);
 
-  // Load saved genres from session storage
   useEffect(() => {
-    const savedGenres = sessionStorage.getItem("sig-pref-genres");
-    if (savedGenres) {
-      setSelectedGenres(JSON.parse(savedGenres));
-    } else {
-      // If no saved preferences, preselect "I LOVE EVERYTHING"
-      setSelectedGenres(["I LOVE EVERYTHING"]);
+    if (selectedPlaylistGenre && selectedPlaylistGenre !== "") {
+      setLastClickedGenreForPlaylist(""); // we only use it as a "loading" state until the debounce logic kicks in so we can clear it here
     }
-  }, []);
-
-  // Handle genre selection/deselection
-  const toggleGenre = (genre: string) => {
-    setSelectedGenres((prev) => {
-      if (genre === "I LOVE EVERYTHING") {
-        // If "I LOVE EVERYTHING" is selected, clear all other selections and session storage
-        sessionStorage.removeItem("sig-pref-genres");
-        return ["I LOVE EVERYTHING"];
-      } else {
-        // If selecting a specific genre, remove "I LOVE EVERYTHING" if it exists
-        const newGenres = prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev.filter((g) => g !== "I LOVE EVERYTHING"), genre];
-        sessionStorage.setItem("sig-pref-genres", JSON.stringify(newGenres));
-        return newGenres;
-      }
-    });
-  };
+  }, [selectedPlaylistGenre]);
 
   const handleOpenAlbum = (alid: string) => {
     // Extract album ID from alid (e.g., "ar24_a1-1" -> "ar24_a1")
@@ -195,11 +177,55 @@ export const FeaturedBanners = ({
     </div>
   );
 
-  const allConfigGenres = ALL_MUSIC_GENRES.map((genre: any) => genre.code);
-  const allGenres = new Set([...allConfigGenres, ...selectedGenres]);
+  const tier1Genres = ALL_MUSIC_GENRES.filter((genre: any) => genre.tier === GenreTier.TIER1).map((genre: any) => genre.code);
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
+      {/* Tier 1 Genre Playlists */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+        <div className="text-xl cursor-pointer w-full">
+          <span>Exclusive Playlists</span>
+        </div>
+        <div className="relative w-full">
+          <div
+            className="overflow-x-auto pb-4 mt-5
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+            <div className="flex space-x-4 min-w-max">
+              {tier1Genres.map((genre) => (
+                <div
+                  key={genre}
+                  onClick={() => {
+                    setLastClickedGenreForPlaylist(genre);
+                    onPlaylistGenreUpdate(genre);
+                  }}
+                  className={`flex-shrink-0 w-48 h-32 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group ${
+                    selectedPlaylistGenre === genre
+                      ? "bg-gradient-to-br from-yellow-300 to-orange-500 shadow-lg shadow-orange-500/20"
+                      : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
+                  }`}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="text-center relative z-2">
+                    <div className={`text-lg font-bold mb-2 ${selectedPlaylistGenre === genre ? "text-black" : "text-white"}`}>
+                      {genre.toLocaleUpperCase().trim()}
+                    </div>
+                    {selectedPlaylistGenre === "" && lastClickedGenreForPlaylist === genre && (
+                      <div className="flex justify-center items-center">
+                        <Loader className="animate-spin" />
+                      </div>
+                    )}
+                    <div className={`text-sm ${selectedPlaylistGenre === genre ? "text-black/70" : "text-gray-400"}`}>
+                      {selectedPlaylistGenre === genre ? "Playing" : ""}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Most sold collectibles */}
       {mintsLeaderboard.length > 0 && (
         <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
@@ -225,11 +251,12 @@ export const FeaturedBanners = ({
                         key={item.mintTemplatePrefix}
                         className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
                         style={{
-                          backgroundImage: `url(${item.nftType === "fan" && artistInfo?.fanToken3DGifTeaser && artistInfo.fanToken3DGifTeaser !== "" ? `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistInfo.fanToken3DGifTeaser}.gif` : artistInfo?.img})`,
-                          backgroundSize: "contain",
+                          backgroundImage: `url(${artistInfo?.img})`,
+                          backgroundSize: "cover",
                           backgroundPosition: "center",
                           backgroundBlendMode: "multiply",
-                          backgroundColor: "#16161682",
+                          backgroundColor: "#161616d4",
+                          backgroundRepeat: "no-repeat",
                         }}>
                         {/* NFT type label, rotated on the left */}
                         <div className="absolute left-0 top-10 flex items-center" style={{ height: "100%" }}>
@@ -259,7 +286,7 @@ export const FeaturedBanners = ({
                           <div className="text-3xl font-bold text-orange-500">{item.mints}</div>
                           <div className="text-sm text-white/70 mb-2">Sold</div>
                           <Button
-                            className="mt-2 px-3 py-1 text-sm bg-orange-500/30 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors"
+                            className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
                             onClick={() => {
                               if (artistInfo?.slug) {
                                 if (item.nftType === "album") {
@@ -321,6 +348,7 @@ export const FeaturedBanners = ({
                       backgroundPosition: "center",
                       backgroundBlendMode: "multiply",
                       backgroundColor: "#161616d4",
+                      backgroundRepeat: "no-repeat",
                     }}>
                     <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{index + 1}</div>
                     <div className="absolute top-2 right-4 text-4xl">
@@ -336,7 +364,7 @@ export const FeaturedBanners = ({
                       <div className="text-sm text-white/70 mb-2">Streams</div>
                       <button
                         onClick={() => handleOpenAlbum(stream.alid)}
-                        className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors">
+                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors">
                         Open Containing Album
                       </button>
                     </div>
@@ -388,7 +416,7 @@ export const FeaturedBanners = ({
                           <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
                         </div>
                         <Button
-                          className="mt-2 px-3 py-1 text-sm bg-orange-500/30 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors"
+                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
                           onClick={() => {
                             if (artistInfo?.slug) {
                               if (artistInfo?.artistCampaignCode && artistInfo?.artistCampaignCode !== "0") {
@@ -457,6 +485,7 @@ export const FeaturedBanners = ({
                         backgroundPosition: "center",
                         backgroundBlendMode: "multiply",
                         backgroundColor: "#161616d4",
+                        backgroundRepeat: "no-repeat",
                       }}>
                       <div className="text-center">
                         <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
@@ -465,7 +494,7 @@ export const FeaturedBanners = ({
                         <div className="text-sm text-white/70 mb-2">By {artistInfo?.name || "Unknown Artist"}</div>
                         <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
                         <Button
-                          className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors"
+                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
                           onClick={() => {
                             if (artistInfo?.slug) {
                               onFeaturedArtistDeepLinkSlug(`${artistInfo.slug}~${option.collectibleId}`);
@@ -484,93 +513,6 @@ export const FeaturedBanners = ({
             )}
           </div>
         )}
-      </div>
-
-      {/* Genre Selection Section */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-xl cursor-pointer w-full">
-          <span>Music Genres I Like</span>
-        </div>
-        <div className="relative w-full">
-          <div
-            className="overflow-x-auto pb-4 mt-5
-              [&::-webkit-scrollbar]:h-2
-              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-            <div className="flex space-x-4 min-w-max">
-              {/* I Love Everything Tile */}
-              <div
-                key="I LOVE EVERYTHING"
-                onClick={() => {
-                  toggleGenre("I LOVE EVERYTHING");
-                  onGenreUpdate();
-                }}
-                className={`flex-shrink-0 w-48 h-32 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group ${
-                  selectedGenres.includes("I LOVE EVERYTHING")
-                    ? "bg-gradient-to-br from-yellow-300 to-orange-500 shadow-lg shadow-orange-500/20"
-                    : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
-                }`}>
-                <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="text-center relative z-2">
-                  <div className={`text-lg font-bold mb-2 ${selectedGenres.includes("I LOVE EVERYTHING") ? "text-black" : "text-white"}`}>
-                    I LOVE EVERYTHING
-                  </div>
-                  <div className={`text-sm ${selectedGenres.includes("I LOVE EVERYTHING") ? "text-black/70" : "text-gray-400"}`}>
-                    {selectedGenres.includes("I LOVE EVERYTHING") ? "Selected" : "Click to select all"}
-                  </div>
-                </div>
-                {selectedGenres.includes("I LOVE EVERYTHING") && (
-                  <div className="absolute top-2 right-2 text-black/20">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              {Array.from(allGenres).map((genre) => (
-                <div
-                  key={genre}
-                  onClick={() => {
-                    toggleGenre(genre);
-                    onGenreUpdate();
-                  }}
-                  className={`flex-shrink-0 w-48 h-32 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group ${
-                    selectedGenres.includes(genre)
-                      ? "bg-gradient-to-br from-yellow-300 to-orange-500 shadow-lg shadow-orange-500/20"
-                      : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
-                  }`}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="text-center relative z-2">
-                    <div className={`text-lg font-bold mb-2 ${selectedGenres.includes(genre) ? "text-black" : "text-white"}`}>
-                      {genre.toLocaleUpperCase().trim()}
-                    </div>
-                    <div className={`text-sm ${selectedGenres.includes(genre) ? "text-black/70" : "text-gray-400"}`}>
-                      {selectedGenres.includes(genre) ? "Selected" : "Click to select"}
-                    </div>
-                  </div>
-                  {selectedGenres.includes(genre) && (
-                    <div className="absolute top-2 right-2 text-black/20">
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-          {Array.from(allGenres).length > 3 && (
-            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-          )}
-        </div>
       </div>
 
       {/* Featured albums */}
@@ -600,12 +542,13 @@ export const FeaturedBanners = ({
                       backgroundPosition: "center",
                       backgroundBlendMode: "multiply",
                       backgroundColor: "#161616d4",
+                      backgroundRepeat: "no-repeat",
                     }}>
                     <div className="text-center mt-4">
                       <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
                       <div className="text-sm text-white/70 mb-2">By {album.artistName}</div>
                       <Button
-                        className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors"
+                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
                         onClick={() => {
                           onFeaturedArtistDeepLinkSlug(`${album.artistSlug}~${album.albumId}`);
                         }}>
@@ -650,11 +593,12 @@ export const FeaturedBanners = ({
                       backgroundPosition: "center",
                       backgroundBlendMode: "multiply",
                       backgroundColor: "#161616a3",
+                      backgroundRepeat: "no-repeat",
                     }}>
                     <div className="text-center mt-4">
                       <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{artist.name}</div>
                       <Button
-                        className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors"
+                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
                         onClick={() => {
                           onFeaturedArtistDeepLinkSlug(artist.slug);
                         }}>

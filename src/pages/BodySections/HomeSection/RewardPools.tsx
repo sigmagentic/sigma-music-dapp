@@ -31,10 +31,7 @@ export interface RewardPool {
   walletAddress: string;
 }
 
-interface RewardPoolsProps {
-  // radioTracks: MusicTrack[];
-  // appMusicPlayerIsPlaying: boolean;
-}
+interface RewardPoolsProps {}
 
 interface ModalProps {
   isOpen: boolean;

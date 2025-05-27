@@ -40,13 +40,13 @@ export const Layout = ({
   children,
   homeMode,
   setHomeMode,
-  setTriggerToggleRadioPlayback,
+  setTriggerTogglePlaylistPlayback,
   removeDeepSectionParamsFromUrl,
 }: {
   children: React.ReactNode;
   homeMode: string;
   setHomeMode: (homeMode: string) => void;
-  setTriggerToggleRadioPlayback: (triggerToggleRadioPlayback: string) => void;
+  setTriggerTogglePlaylistPlayback: (triggerTogglePlaylistPlayback: string) => void;
   removeDeepSectionParamsFromUrl: () => void;
 }) => {
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(true);
@@ -122,13 +122,13 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline">Home</span>}
                     </button>
                   </Tooltip>
-                  <Tooltip text="Toggle Radio">
+                  <Tooltip text="Toggle Playlist Player">
                     <button
                       onClick={() => {
                         removeDeepSectionParamsFromUrl();
-                        setTriggerToggleRadioPlayback("radio-" + new Date().getTime().toString());
+                        setTriggerTogglePlaylistPlayback("playlist-" + new Date().getTime().toString());
                       }}
-                      disabled={homeMode === "radio"}
+                      disabled={homeMode === "playlist"}
                       className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
@@ -138,8 +138,8 @@ export const Layout = ({
                       peer
                     `}>
                       <RadioIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">Radio</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">Radio</span>}
+                      <span className="md:hidden w-max">Music Player</span>
+                      {!isMenuCollapsed && <span className="hidden md:inline">Music Player</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="Artists">
