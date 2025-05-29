@@ -327,7 +327,7 @@ export const HomeSection = (props: HomeSectionProps) => {
         }
 
         // Step 3: Get all tracks
-        const allTracksRes = await getMusicTracksByGenreViaAPI({ genre: "all", pageSize: 20 });
+        const allTracksRes = await getMusicTracksByGenreViaAPI({ genre: "all", pageSize: 40 }); // note that API MAY fail if too much response data is requested (40 seems to ok, 50 is too much)
         const allTracks = allTracksRes.tracks || [];
         // console.log("All tracks:", allTracks);
 
@@ -383,7 +383,7 @@ export const HomeSection = (props: HomeSectionProps) => {
         const musicTrack: MusicTrack = {
           idx: (index + 1).toString(),
           artist: artistData.name,
-          category: track.category,
+          category: track.category, // note that we get "all" here for "foryou" playlist on some tracks. This needs to be fixed in the db
           album: albumData.title,
           cover_art_url: track.cover_art_url,
           title: track.title,
@@ -652,7 +652,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                       </div>
                     </div>
                     <div className="flex flex-col flex-1 text-left align-center justify-center p-5">
-                      <span className="text-center font-[Clash-Medium] text-2xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
+                      <span className="text-center font-[Clash-Medium] text-2xl md:text-3xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
                         Your Music Super App for Exclusive Fan Experiences
                       </span>
                     </div>

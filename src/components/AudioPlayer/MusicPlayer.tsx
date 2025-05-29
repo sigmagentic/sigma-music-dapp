@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -85,7 +85,7 @@ const SCREEN_STYLES = {
   },
   normal: {
     container: "flex-row items-center justify-center h-[100px]",
-    songInfo: "w-[500px] px-10 flex-row items-center mt-5 md:mt-0",
+    songInfo: "w-[500px] px-10 flex-row items-center md:mt-0",
     image: "w-[70px] h-[70px]",
     textWrapper: "xl:w-[60%] ml-2",
     title: "!text-sm !text-muted-foreground truncate md:text-left",
@@ -131,7 +131,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("00:00");
-  // const [displayTrackList, setDisplayTrackList] = useState(window.innerWidth >= 768 && !playerExplicitlyDockedByUser && !isPlaylistPlayer);
   const [displayTrackList, setDisplayTrackList] = useState(false);
   const [musicPlayerAudio] = useState(new Audio());
   const [musicPlayerVideo] = useState(() => {
@@ -148,7 +147,14 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const { signMessage } = useWallet();
   const { publicKey } = useSolanaWallet();
   const [songSource, setSongSource] = useState<{ [key: string]: string }>({}); // map to keep the already fetched trackList
-  const settings = {
+  const abortControllersRef = useRef<{ [key: string]: AbortController }>({}); // we use this to keep track of network requests for song blob caches and then abort them if the user clicks out
+  const [imgLoading, setImgLoading] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showBonusTrackModal, setShowBonusTrackModal] = useState(false);
+  const [loggedStreamMetricForTrack, setLoggedStreamMetricForTrack] = useState(0); // a simple 1 or 0 that is linked to the logic of logging a stream event to the backend so in the UI we can reflect this for debugging
+  const isSmallScreen = window.innerWidth < 768;
+
+  const sliderSettings = {
     infinite: isPlaylistPlayer ? true : false,
     speed: 1000,
     slidesToShow: 4,
@@ -180,11 +186,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       },
     ],
   };
-  const [imgLoading, setImgLoading] = useState(false);
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const [showBonusTrackModal, setShowBonusTrackModal] = useState(false);
-  const [loggedStreamMetricForTrack, setLoggedStreamMetricForTrack] = useState(0); // a simple 1 or 0 that is linked to the logic of logging a stream event to the backend so in the UI we can reflect this for debugging
-  const isSmallScreen = window.innerWidth < 768;
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -213,6 +214,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       console.log("$$ trackList, firstSongBlobUrl effect MOUNTING ---");
 
       updateTrackPlayIsQueued(false);
+
       setSongSource((prevState) => ({
         ...prevState, // keep all other key-value pairs
         [trackList[0].idx]: firstSongBlobUrl, // update the value of the first index
@@ -263,17 +265,24 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       mediaElement.addEventListener("timeupdate", updateProgress);
       mediaElement.addEventListener("canplaythrough", handleCanPlayThrough);
 
-      // Queue all songs in trackList
+      // Queue all songs in trackList (and cache songs via pre-making the network requests)
       if (trackList && trackList.length > 0) {
         trackList.forEach((song: any) => {
           if (trackList[0].idx === song.idx) return;
           fetchMarshalForSong(song.idx);
         });
+
         updateProgress();
       }
 
       return () => {
         console.log("$$ trackList, firstSongBlobUrl effect UNMOUNTING ---");
+
+        // Abort all pending requests when the component unmounts
+        Object.values(abortControllersRef.current).forEach((controller) => {
+          controller.abort();
+        });
+        abortControllersRef.current = {};
 
         stopListenTimer(); // stop the listen timer interval
 
@@ -379,6 +388,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const fetchMarshalForSong = async (index: number) => {
     if (songSource[index] === undefined) {
       try {
+        // Create a new AbortController for this specific request
+        const controller = new AbortController();
+        abortControllersRef.current[index] = controller;
+
         setSongSource((prevState) => ({
           ...prevState, // keep all other key-value pairs
           [index]: "Fetching", // update the value of specific key
@@ -456,12 +469,26 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               if (songSourceUrl === "hidden") {
                 blobUrl = "hidden";
               } else {
-                const blob = await fetch(songSourceUrl).then((r) => r.blob());
+                // here we are making a fetch for all tracks, so we are making many requests
+                // ... we need a way to abort any requests not complete if the component unmounts
+                const response = await fetch(songSourceUrl, {
+                  signal: controller.signal,
+                });
+                const blob = await response.blob();
                 blobUrl = URL.createObjectURL(blob);
               }
             }
           } catch (error: any) {
+            // Check if the error is from an aborted request
+            if (error.name === "AbortError") {
+              console.log(`fetchSong (HTTP): Track ${index} ABORTED (a)! [cache]`);
+              return;
+            }
             errMsg = error.toString();
+          } finally {
+            // Clean up the controller for this request
+            console.log(`fetchSong (HTTP): Track ${index} abort cleared (a) [cache]`);
+            delete abortControllersRef.current[index];
           }
 
           if (!errMsg) {
@@ -479,12 +506,22 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           }
         }
       } catch (err) {
+        // Check if the error is from an aborted request
+        if (err instanceof Error && err.name === "AbortError") {
+          console.log(`fetchSong (HTTP): Track ${index} ABORTED (b)! [cache]`);
+          return;
+        }
+
         setSongSource((prevState) => ({
           ...prevState,
           [index]: "Error: " + (err as Error).message,
         }));
 
         console.error("error : ", err);
+      } finally {
+        // Clean up the controller for this request
+        console.log(`fetchSong (HTTP): Track ${index} abort cleared (b) [cache]`);
+        delete abortControllersRef.current[index];
       }
     }
   };
@@ -791,7 +828,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   </div>
                 ) : (
                   // Existing horizontal slider for normal mode
-                  <Slider {...settings}>
+                  <Slider {...sliderSettings}>
                     {trackList.map((song: any, index: number) => {
                       return (
                         <div key={index} className="flex items-center justify-center mt-2">
@@ -930,7 +967,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               </div>
             </div>
             <div
-              className={`songControls text-foreground select-none ${
+              className={`songControls relative text-foreground select-none ${
                 isFullScreen ? "w-[600px] gap-2" : "w-full md:w-[60%]"
               } flex flex-col justify-center items-center px-2`}>
               <div className={`controlButtons flex w-full justify-around ${isFullScreen ? "scale-125 mb-8" : "scale-75"}`}>
@@ -972,17 +1009,19 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               </div>
 
               <div className={`songCategoryAndTitle flex flex-col w-full justify-center items-center ${!isFullScreen ? "hidden" : ""}`}>
-                <span className="text-sm text-foreground/60">Genre: {trackList[currentTrackIndex]?.category}</span>
+                {trackList[currentTrackIndex]?.category !== "all" && (
+                  <span className="text-sm text-foreground/60 capitalize">Genre: {trackList[currentTrackIndex]?.category}</span>
+                )}
                 <span className="text-sm text-muted-foreground">Album: {trackList[currentTrackIndex]?.album}</span>
               </div>
 
-              <div className={`songTitleAndArtistForMobile flex flex-col w-full justify-center items-center md:hidden`}>
+              <div className={`songTitleAndArtistForMobile flex flex-col w-full justify-center items-center md:hidden ${isSmallScreen ? "mb-2" : ""}`}>
                 <span className="text-xs md:text-sm text-foreground/60">{trackList[currentTrackIndex]?.title}</span>
                 <span className="text-xs md:text-sm text-muted-foreground">{trackList[currentTrackIndex]?.artist}</span>
               </div>
             </div>
             <div
-              className={`albumControls mb-2 md:mb-0 select-none p-2 flex items-center z-10 ${
+              className={`albumControls ${isSmallScreen ? "absolute top-0 right-0" : ""}  mb-2 md:mb-0 select-none p-2 flex items-center z-10 ${
                 isFullScreen ? "w-[600px] mt-4 justify-center" : "md:w-[600px] md:mt-[2.2rem] justify-center md:justify-end"
               }`}>
               {!isSmallScreen && (

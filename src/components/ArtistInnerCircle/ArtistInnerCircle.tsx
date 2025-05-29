@@ -678,7 +678,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                                 window.open(`/?section=reward-pools&poolId=${perk.linkedRewardPool}`, "_blank");
                                 e.stopPropagation();
                               }}>
-                              <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">$ View Live Reward Pool</span>
+                              <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">$ View Reward Pool</span>
                             </div>
                           )}
                         </div>
@@ -729,7 +729,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                     window.open(`/?section=reward-pools&poolId=${selectedPerk.linkedRewardPool}`, "_blank");
                     e.stopPropagation();
                   }}>
-                  <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">$ View Live Reward Pool</span>
+                  <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/40 font-medium">$ View Reward Pool</span>
                 </div>
               )}
               <button onClick={() => setSelectedPerk(null)} className="mt-6 w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
