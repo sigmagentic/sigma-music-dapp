@@ -173,11 +173,7 @@ const AudioPlayer: React.FC<{ tracks: MusicTrack[] }> = ({ tracks }) => {
   );
 };
 
-const MemoryGame: React.FC<{ onClose: () => void; tracks: MusicTrack[]; appMusicPlayerIsPlaying: boolean }> = ({
-  onClose,
-  tracks,
-  appMusicPlayerIsPlaying,
-}) => {
+const MemoryGame: React.FC<{ onClose: () => void; tracks: MusicTrack[]; isMusicPlayerOpen: boolean }> = ({ onClose, tracks, isMusicPlayerOpen }) => {
   const [cards, setCards] = useState<Card[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
@@ -287,7 +283,7 @@ const MemoryGame: React.FC<{ onClose: () => void; tracks: MusicTrack[]; appMusic
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[100]">
       <div className="bg-[#1A1A1A] rounded-xl p-6 max-w-lg w-full">
-        {backgroundTracks.length > 0 && !appMusicPlayerIsPlaying && <AudioPlayer tracks={backgroundTracks} />}
+        {backgroundTracks.length > 0 && !isMusicPlayerOpen && <AudioPlayer tracks={backgroundTracks} />}
 
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -674,11 +670,11 @@ const MatchArtistGame: React.FC<{ onClose: () => void; tracks: MusicTrack[] }> =
 
 interface MiniGamesProps {
   playlistTracks: MusicTrack[];
-  appMusicPlayerIsPlaying: boolean;
+  isMusicPlayerOpen: boolean;
 }
 
 export const MiniGames = (props: MiniGamesProps) => {
-  const { playlistTracks, appMusicPlayerIsPlaying } = props;
+  const { playlistTracks, isMusicPlayerOpen } = props;
   const { isConnected: isLoggedInSol } = useSolanaWallet();
   const { solBitzNfts } = useNftsStore();
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
@@ -770,7 +766,7 @@ export const MiniGames = (props: MiniGamesProps) => {
         <PlayXPGameModal showPlayBitzModel={showPlayBitzModal} handleHideBitzModel={() => setShowPlayBitzModal(false)} />
       )}
 
-      {showMemoryModal && <MemoryGame onClose={() => setShowMemoryModal(false)} tracks={playlistTracks} appMusicPlayerIsPlaying={appMusicPlayerIsPlaying} />}
+      {showMemoryModal && <MemoryGame onClose={() => setShowMemoryModal(false)} tracks={playlistTracks} isMusicPlayerOpen={isMusicPlayerOpen} />}
 
       {showMatchArtistModal && <MatchArtistGame onClose={() => setShowMatchArtistModal(false)} tracks={playlistTracks} />}
     </>

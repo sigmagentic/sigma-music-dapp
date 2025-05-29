@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { Gift, Heart, Loader, AudioWaveform, AudioLines, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass, Rocket } from "lucide-react";
+import { Gift, Loader, AudioWaveform, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass, Rocket } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
 import { DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS } from "config";
@@ -70,7 +70,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const addressSol = publicKeySol?.toBase58();
   const { updateSolNfts } = useNftsStore();
   const userLoggedInWithWallet = publicKeySol;
-  const { updateAlbumPlayIsQueued, trackPlayIsQueued, albumPlayIsQueued } = useAudioPlayerStore();
+  const { updateAssetPlayIsQueued, trackPlayIsQueued, assetPlayIsQueued, albumIdBeingPlayed } = useAudioPlayerStore();
   const [queueAlbumPlay, setQueueAlbumPlay] = useState(false);
   const [albumToBuyAndMint, setAlbumToBuyAndMint] = useState<Album | undefined>();
   const [albumsWithCanBeMintedFlags, setAlbumsWithCanBeMintedFlags] = useState<Album[]>([]);
@@ -90,8 +90,12 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     }
   }, [artistProfile, albums]);
 
-  function thisIsPlayingOnMainPlayer(album: any) {
-    return dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName;
+  function thisIsPlayingOnMusicPlayer(album: any) {
+    if (albumIdBeingPlayed) {
+      return albumIdBeingPlayed === album.albumId;
+    } else {
+      return dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName;
+    }
   }
 
   function handlePlayAlbum(
@@ -234,31 +238,34 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             </div>
 
             <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
-              {album.ctaPreviewStream && !inCollectedAlbumsView && checkOwnershipOfAlbum(album) === -1 && (
-                <div>
-                  <Button
-                    disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || albumPlayIsQueued}
-                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
-                    variant="outline"
-                    onClick={() => {
-                      if (playPausePreview) {
-                        playPausePreview(album.ctaPreviewStream, album.albumId);
-                      }
-                    }}>
-                    {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
-                      <>
-                        {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
-                        <span className="ml-2"> {currentTime} - Stop Playing </span>
-                      </>
-                    ) : (
-                      <>
-                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <Play />}
-                        <span className="ml-2">Play Preview</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
+              {!ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId) &&
+                album.ctaPreviewStream &&
+                !inCollectedAlbumsView &&
+                checkOwnershipOfAlbum(album) === -1 && (
+                  <div>
+                    <Button
+                      disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
+                      className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
+                      variant="outline"
+                      onClick={() => {
+                        if (playPausePreview) {
+                          playPausePreview(album.ctaPreviewStream, album.albumId);
+                        }
+                      }}>
+                      {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
+                        <>
+                          {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
+                          <span className="ml-2"> {currentTime} - Stop Playing </span>
+                        </>
+                      ) : (
+                        <>
+                          {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <Play />}
+                          <span className="ml-2">Play Preview</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
 
               {/* when not logged in, show this to convert the wallet into user account */}
               {!publicKeySol && !album._buyNowMeta?.canBeMinted && (
@@ -271,7 +278,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     }}>
                     <>
                       <WalletMinimal />
-                      <span className="ml-2">Login for Premium Album</span>
+                      <span className="ml-2">Login for Full Album</span>
                     </>
                   </Button>
 
@@ -292,10 +299,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     <Button
                       disabled={
                         (isPreviewPlaying && !previewIsReadyToPlay) ||
-                        thisIsPlayingOnMainPlayer(album) ||
+                        thisIsPlayingOnMusicPlayer(album) ||
                         queueAlbumPlay ||
                         trackPlayIsQueued ||
-                        albumPlayIsQueued
+                        assetPlayIsQueued
                       }
                       className={`!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r  ${checkOwnershipOfAlbum(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px] mr-2`}
                       onClick={() => {
@@ -305,7 +312,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         // transition state and prevent users from click spamming play buttons during this time
                         if (isMusicPlayerOpen) {
                           setQueueAlbumPlay(true);
-                          updateAlbumPlayIsQueued(true);
+                          updateAssetPlayIsQueued(true);
                           onCloseMusicPlayer();
 
                           setTimeout(() => {
@@ -316,7 +323,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                               albumName: album.title,
                             });
                             setQueueAlbumPlay(false);
-                            updateAlbumPlayIsQueued(false);
+                            updateAssetPlayIsQueued(false);
                           }, 5000);
                         } else {
                           handlePlayAlbum(album, {
@@ -326,14 +333,14 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                             albumName: album.title,
                           });
                           setQueueAlbumPlay(false);
-                          updateAlbumPlayIsQueued(false);
+                          updateAssetPlayIsQueued(false);
                         }
                       }}>
                       <>
-                        {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : <AudioWaveform />}
+                        {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <AudioWaveform />}
                         <span className="ml-2">
-                          {thisIsPlayingOnMainPlayer(album)
-                            ? "Playing..."
+                          {thisIsPlayingOnMusicPlayer(album)
+                            ? "Playing"
                             : queueAlbumPlay
                               ? "Queued"
                               : checkOwnershipOfAlbum(album) > -1
@@ -369,7 +376,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         break-words md:whitespace-nowrap 
                         text-center
                       ">
-                          {thisIsPlayingOnMainPlayer(album)
+                          {thisIsPlayingOnMusicPlayer(album)
                             ? "This album is currently playing"
                             : queueAlbumPlay
                               ? "Album will start playing in 5 seconds"

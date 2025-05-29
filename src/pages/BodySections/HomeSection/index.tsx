@@ -5,7 +5,7 @@ import { Loader } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import CAMPAIGN_WSB_CTA from "assets/img/campaigns/campaign-wsb-home-cta.png";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
-import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier } from "config";
+import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier, isUIDebugMode } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -24,7 +24,6 @@ import { FeaturedBanners } from "./FeaturedBanners";
 import { MiniGames } from "./MiniGames";
 import { MyCollectedNFTs } from "./MyCollectedNFTs";
 import { MyProfile } from "./MyProfile";
-import { PlaylistPlayerTeaser } from "./PlaylistPlayerTeaser";
 import { RewardPools } from "./RewardPools";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
@@ -55,7 +54,6 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
   const [dataMarshalResponse, setDataMarshalResponse] = useState({ "data_stream": {}, "data": [] });
-  const [firstSongBlobUrl, setFirstSongBlobUrl] = useState<string | undefined>();
   const { solNfts, solBitzNfts } = useNftsStore();
   const [stopPreviewPlaying, setStopPreviewPlaying] = useState<boolean>(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -68,13 +66,9 @@ export const HomeSection = (props: HomeSectionProps) => {
     creatorWallet: string;
   } | null>(null);
   const [userHasNoBitzDataNftYet, setUserHasNoBitzDataNftYet] = useState(false);
-  const [musicPlayerTrackList, setMusicPlayerTrackList] = useState<MusicTrack[]>([]);
-  const [musicPlayerTrackListFromDb, setMusicPlayerTrackListFromDb] = useState<boolean>(false);
-  const { albumPlayIsQueued } = useAudioPlayerStore();
+  const { assetPlayIsQueued, trackPlayIsQueued, updateAssetPlayIsQueued, albumIdBeingPlayed, updateAlbumIdBeingPlayed } = useAudioPlayerStore();
   const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
-  const [launchMusicPlayer, setLaunchMusicPlayer] = useState<boolean>(false); // control the visibility base level music player model
-  const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
   const { artistLookupEverything } = useAppStore();
   const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
 
@@ -96,14 +90,23 @@ export const HomeSection = (props: HomeSectionProps) => {
   // ... but it only get progressively loaded as the user moves between tabs to see the artist and their albums (so its not a complete state)
   const [bountyBitzSumGlobalMapping, setMusicBountyBitzSumGlobalMapping] = useState<any>({});
 
-  // Platlist Player state
-  const [playlistTracksSorted, setPlaylistTracksSorted] = useState<MusicTrack[]>([]);
-  const [playlistTracksLoading, setPlaylistTracksLoading] = useState(true);
-  const [launchPlaylistPlayer, setLaunchPlaylistPlayer] = useState(false);
-  const [playlistFirstTrackCachedBlob, setPlaylistFirstTrackCachedBlob] = useState<string>("");
-  const [loadPlaylistPlayerIntoDockedMode, setLoadPlaylistPlayerIntoDockedMode] = useState(true); // load the playlist player into docked mode?
+  // album or artis tiles view
   const [loadIntoTileView, setLoadIntoTileView] = useState(false);
+
+  // Player state control (for both album and playlist)
+  const [musicPlayerTrackListFromDb, setMusicPlayerTrackListFromDb] = useState<boolean>(false);
+  const [musicPlayerAlbumTrackList, setMusicPlayerAlbumTrackList] = useState<MusicTrack[]>([]);
+  const [musicPlayerPlaylistTrackList, setMusicPlayerPlaylistTrackList] = useState<MusicTrack[]>([]);
+  const [musicPlayerDefaultPlaylistTrackList, setMusicPlayerDefaultPlaylistTrackList] = useState<MusicTrack[]>([]);
+  const [launchPlaylistPlayer, setLaunchPlaylistPlayer] = useState(false); // control the visibility base music player in PLAYLIST play mode
+  const [launchPlaylistPlayerWithDefaultTracks, setLaunchPlaylistPlayerWithDefaultTracks] = useState(false); // if we need to recover the default playlist tracks
+  const [launchAlbumPlayer, setLaunchAlbumPlayer] = useState<boolean>(false); // control the visibility base music player in ALBUM play mode
+  const [firstAlbumSongBlobUrl, setFirstAlbumSongBlobUrl] = useState<string | undefined>();
+  const [firstPlaylistSongBlobUrl, setFirstPlaylistSongBlobUrl] = useState<string | undefined>();
+  const [firstDefaultPlaylistSongBlobUrl, setFirstDefaultPlaylistSongBlobUrl] = useState<string | undefined>();
+  const [loadPlaylistPlayerIntoDockedMode, setLoadPlaylistPlayerIntoDockedMode] = useState(true); // load the playlist player into docked mode?
   const [selectedPlaylistGenre, setSelectedGenreForPlaylist] = useState<string>("");
+  const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
 
   // Here, when a deep link is hard reloaded, we look for search params and then call back the setHomeMode to load the local view
   useEffect(() => {
@@ -140,11 +143,6 @@ export const HomeSection = (props: HomeSectionProps) => {
   }, [genrePlaylistUpdateTimeout]);
 
   useEffect(() => {
-    if (homeMode === "playlist" && !launchPlaylistPlayer) {
-      setLaunchPlaylistPlayer(true);
-      setLoadPlaylistPlayerIntoDockedMode(true);
-    }
-
     if (homeMode.includes("artists") || homeMode.includes("campaigns")) {
       setLoadIntoTileView(true);
 
@@ -198,32 +196,34 @@ export const HomeSection = (props: HomeSectionProps) => {
   useEffect(() => {
     if (selectedPlaylistGenre && selectedPlaylistGenre !== "") {
       (async () => {
-        setPlaylistTracksLoading(true);
-        setPlaylistTracksSorted([]);
-        setPlaylistFirstTrackCachedBlob("");
-        setPlaylistTracksSorted([]);
+        setFirstPlaylistSongBlobUrl(undefined);
+        setMusicPlayerPlaylistTrackList([]);
 
-        const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: selectedPlaylistGenre, pageSize: 20 });
-        const genreTracks = genreTracksRes.tracks || [];
-        const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(genreTracks);
-
-        if (genreTracks.length > 0) {
-          setPlaylistTracksSorted(augmentedTracks);
-          const blobUrl = await getFirstTrackBlobData(augmentedTracks[0]);
-          setPlaylistFirstTrackCachedBlob(blobUrl);
-
-          setTimeout(() => {
-            setLaunchPlaylistPlayer(true);
-            setPlaylistTracksLoading(false);
-            setLoadPlaylistPlayerIntoDockedMode(true);
-          }, 1000);
+        if (selectedPlaylistGenre === "foryou") {
+          setLaunchPlaylistPlayer(true);
+          setLaunchPlaylistPlayerWithDefaultTracks(true);
+          updateAssetPlayIsQueued(false);
         } else {
-          // it's unlike we hit here, can only happen is there is some API issue OR the genre has no tracks
-          setTimeout(() => {
-            setLaunchPlaylistPlayer(true);
-            setPlaylistTracksLoading(false);
-            setLoadPlaylistPlayerIntoDockedMode(false);
-          }, 1000);
+          const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: selectedPlaylistGenre, pageSize: 20 });
+          const genreTracks = genreTracksRes.tracks || [];
+          const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(genreTracks);
+
+          if (genreTracks.length > 0) {
+            setMusicPlayerPlaylistTrackList(augmentedTracks);
+            const blobUrl = await getFirstTrackBlobData(augmentedTracks[0]);
+            setFirstPlaylistSongBlobUrl(blobUrl);
+
+            setTimeout(() => {
+              setLaunchPlaylistPlayer(true);
+              setLoadPlaylistPlayerIntoDockedMode(true);
+            }, 1000);
+          } else {
+            // it's unlikely we hit here, can only happen is there is some API issue OR the genre has no tracks
+            setTimeout(() => {
+              setLaunchPlaylistPlayer(true);
+              setLoadPlaylistPlayerIntoDockedMode(false);
+            }, 1000);
+          }
         }
       })();
     }
@@ -262,17 +262,20 @@ export const HomeSection = (props: HomeSectionProps) => {
   useEffect(() => {
     if (triggerTogglePlaylistPlayback !== "") {
       // we may be toggling (on to off or vice versa) but lets clear any playlist state that maybe have been active, so that we can start fresh
-      if (launchPlaylistPlayer) {
-        setPlaylistTracksSorted([]);
-        setPlaylistFirstTrackCachedBlob("");
-        setPlaylistTracksLoading(false);
-        setLoadPlaylistPlayerIntoDockedMode(false);
+      const someAssetIsPlaying = launchPlaylistPlayer || launchAlbumPlayer;
 
-        // we also clear the selected genre for playlist (if any)
-        setSelectedGenreForPlaylist("");
+      if (someAssetIsPlaying) {
+        resetMusicPlayerState();
+      } else {
+        // some asset is playing, so let's queue the next asset (playlist)
+        updateAssetPlayIsQueued(true);
+
+        setTimeout(() => {
+          setLaunchPlaylistPlayer(true);
+          setLaunchPlaylistPlayerWithDefaultTracks(true);
+          updateAssetPlayIsQueued(false);
+        }, 5000);
       }
-
-      setLaunchPlaylistPlayer(!launchPlaylistPlayer);
     }
   }, [triggerTogglePlaylistPlayback]);
 
@@ -303,11 +306,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   async function fetchAndLoadDefaultPersonalizedPlaylistTracks() {
     try {
       // if we already have playlist tracks, dont fetch them again
-      if (playlistTracksSorted.length === 0) {
-        setPlaylistTracksLoading(true);
-        setPlaylistTracksSorted([]);
-        setPlaylistFirstTrackCachedBlob("");
-
+      if (musicPlayerDefaultPlaylistTrackList.length === 0) {
         // Step 1: Get saved genres from session storage
         const savedGenres = sessionStorage.getItem("sig-pref-genres");
         let userSelectedGenre: string;
@@ -318,13 +317,13 @@ export const HomeSection = (props: HomeSectionProps) => {
 
           // Get a random genre from the saved genres
           userSelectedGenre = parsedGenres[Math.floor(Math.random() * parsedGenres.length)];
-          console.log("Random selected genre from saved genres:", userSelectedGenre);
+          // console.log("Random selected genre from saved genres:", userSelectedGenre);
         } else {
           // Step 2: If no saved genres, get random genre from Tier1 of ALL_MUSIC_GENRES
           const tier1Genres = ALL_MUSIC_GENRES.filter((genre) => genre.tier === GenreTier.TIER1);
           userSelectedGenre = tier1Genres[Math.floor(Math.random() * tier1Genres.length)].code;
-          console.log("All available genres:", tier1Genres);
-          console.log("Random selected genre from tier1Genres:", userSelectedGenre);
+          // console.log("All available genres:", tier1Genres);
+          // console.log("Random selected genre from tier1Genres:", userSelectedGenre);
         }
 
         // Step 3: Get all tracks
@@ -348,15 +347,13 @@ export const HomeSection = (props: HomeSectionProps) => {
 
         // Set the tracks and cache the first track
         if (augmentedTracks.length > 0) {
-          setPlaylistTracksSorted(augmentedTracks);
+          setMusicPlayerDefaultPlaylistTrackList([...augmentedTracks]); // keep a copy of the tracks for the default playlist (so we can go back to it if needed)
+          setMusicPlayerPlaylistTrackList(augmentedTracks);
 
           const blobUrl = await getFirstTrackBlobData(augmentedTracks[0]);
-          setPlaylistFirstTrackCachedBlob(blobUrl);
+          setFirstPlaylistSongBlobUrl(blobUrl);
+          setFirstDefaultPlaylistSongBlobUrl(blobUrl);
         }
-
-        setTimeout(() => {
-          setPlaylistTracksLoading(false);
-        }, 1000);
       }
     } catch (error) {
       console.error("Error fetching playlist tracks:", error);
@@ -377,8 +374,6 @@ export const HomeSection = (props: HomeSectionProps) => {
         }
 
         const albumData = artistData.albums.find((album: any) => album.albumId === albumId);
-
-        // console.log("albumData", albumData);
 
         if (!albumData) {
           console.warn(`No album data found for albumId: ${albumId}`);
@@ -410,13 +405,11 @@ export const HomeSection = (props: HomeSectionProps) => {
   async function viewSolData(index: number, playAlbumNowParams?: any, userOwnsAlbum?: boolean) {
     try {
       setIsFetchingDataMarshal(true);
-      resetAudioPlayerState();
+      resetMusicPlayerState();
       setViewSolDataHasError(false);
 
       let _musicPlayerTrackListFromDb = false;
-
       let albumTracksFromDb = await getAlbumTracksFromDBViaAPI(playAlbumNowParams.artistId, playAlbumNowParams.albumId, userOwnsAlbum);
-
       const artistData = artistLookupEverything[playAlbumNowParams.artistId];
 
       albumTracksFromDb = albumTracksFromDb.map((track: MusicTrack) => ({
@@ -427,14 +420,12 @@ export const HomeSection = (props: HomeSectionProps) => {
         artistSlug: artistData.slug,
       }));
 
-      console.log("---> albumTracks from DB", albumTracksFromDb);
-
       // load the track list via the DB (@TODO: if the userOwnsAlbum, then we should have someway in the music player to capture the play stats as the marshal wont do be doing it)
       if (albumTracksFromDb.length > 0) {
         _musicPlayerTrackListFromDb = true;
 
-        setMusicPlayerTrackList(albumTracksFromDb);
-        setFirstSongBlobUrl(albumTracksFromDb[0].file);
+        setMusicPlayerAlbumTrackList(albumTracksFromDb);
+        setFirstAlbumSongBlobUrl(albumTracksFromDb[0].file);
         setIsFetchingDataMarshal(false);
         setMusicPlayerTrackListFromDb(true);
       }
@@ -502,17 +493,17 @@ export const HomeSection = (props: HomeSectionProps) => {
               blobDataType,
             };
 
-            // await the first song response and set the firstSongBlobUrl state (so that first song plays faster)
+            // await the first song response and set the firstAlbumSongBlobUrl state (so that first song plays faster)
             const firstSongRes = await firstSongResPromise;
             const blobUrl = URL.createObjectURL(await firstSongRes.blob());
 
             // this is the data that feeds the player with the album data
             setCurrentDataNftIndex(index);
             setDataMarshalResponse(data);
-            setMusicPlayerTrackList(data.data);
+            setMusicPlayerAlbumTrackList(data.data);
             setViewDataRes(viewDataPayload);
             setIsFetchingDataMarshal(false);
-            setFirstSongBlobUrl(blobUrl);
+            setFirstAlbumSongBlobUrl(blobUrl);
             setMusicPlayerTrackListFromDb(false);
           }
         } else {
@@ -523,6 +514,10 @@ export const HomeSection = (props: HomeSectionProps) => {
           return { error: true };
         }
       }
+
+      // save in global state the albumId being played
+      updateAlbumIdBeingPlayed(playAlbumNowParams.albumId);
+      setLaunchPlaylistPlayerWithDefaultTracks(false); // reset this value in-case user was listening to a default playlist before playing an album
     } catch (err) {
       console.error(err);
       toastClosableError("Generic error via on-chain data loading, error: " + (err as Error).message);
@@ -598,39 +593,48 @@ export const HomeSection = (props: HomeSectionProps) => {
     });
   }
 
-  function resetAudioPlayerState() {
-    setFirstSongBlobUrl(undefined);
+  function resetMusicPlayerState() {
+    setFirstAlbumSongBlobUrl(undefined);
+    setFirstPlaylistSongBlobUrl(undefined);
     setDataMarshalResponse({ "data_stream": {}, "data": [] });
     setCurrentDataNftIndex(-1);
-    setMusicPlayerTrackList([]);
+    setMusicPlayerPlaylistTrackList([]);
+    setMusicPlayerAlbumTrackList([]);
     setMusicPlayerTrackListFromDb(false);
-    setLaunchMusicPlayer(false);
+    setLaunchAlbumPlayer(false);
+    setLaunchPlaylistPlayer(false);
     // clear this -- its used to carry a like content via bits session to the player so we can collect likes inside it
     setBitzGiftingMeta(null);
-  }
-
-  function handleClosePlaylistPlayer() {
-    setLaunchPlaylistPlayer(false);
+    setLoadPlaylistPlayerIntoDockedMode(false);
+    setViewSolDataHasError(false);
+    setSelectedGenreForPlaylist("");
+    updateAlbumIdBeingPlayed(undefined);
   }
 
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
         <div className="flex flex-col justify-center items-center font-[Clash-Regular] w-full pb-6">
+          <div className={`debug flex flex-row w-full pb-6 text-xs mt-2 bg-yellow-900 p-3 space-x-2 ${isUIDebugMode() ? "block" : "hidden"}`}>
+            <p>
+              launchPlaylistPlayerWithDefaultTracks={" "}
+              {launchPlaylistPlayerWithDefaultTracks ? <span className="text-green-500">true</span> : <span className="text-red-500">false</span>} <br />
+              launchAlbumPlayer = {launchAlbumPlayer ? <span className="text-green-500">true</span> : <span className="text-red-500">false</span>} <br />
+              launchPlaylistPlayer = {launchPlaylistPlayer ? <span className="text-green-500">true</span> : <span className="text-red-500">false</span>}
+            </p>
+            <p>
+              trackPlayIsQueued = {trackPlayIsQueued ? <span className="text-green-500">true</span> : <span className="text-red-500">false</span>} <br />
+              assetPlayIsQueued = {assetPlayIsQueued ? <span className="text-green-500">true</span> : <span className="text-red-500">false</span>} <br />
+              albumIdBeingPlayed = {albumIdBeingPlayed}
+            </p>
+          </div>
+
           {/* Playlist Player and main app header CTAs */}
           {homeMode === "home" && (
             <div className="w-full mt-5">
               <div className="flex flex-col-reverse md:flex-row justify-center items-center xl:items-start w-[100%]">
                 <div className="flex flex-col w-full gap-4">
                   <div className="flex flex-col-reverse md:flex-row gap-4">
-                    <div className="playlistTeaser flex flex-col md:mt-0 flex-1">
-                      <PlaylistPlayerTeaser
-                        playlistTracks={playlistTracksSorted}
-                        playlistTracksLoading={playlistTracksLoading}
-                        launchPlaylistPlayer={launchPlaylistPlayer}
-                        setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
-                      />
-                    </div>
                     <div className="campaign-cta flex flex-col md:mt-0 flex-1">
                       <div
                         className={`select-none h-[200px] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/20 relative w-[100%] flex flex-col items-center justify-center rounded-lg mt-2 overflow-hidden`}>
@@ -657,9 +661,12 @@ export const HomeSection = (props: HomeSectionProps) => {
                   <div className="featuredBanners flex-1">
                     <FeaturedBanners
                       selectedPlaylistGenre={selectedPlaylistGenre}
+                      isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
+                      onCloseMusicPlayer={resetMusicPlayerState}
+                      setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
+                      setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
                       onPlaylistGenreUpdate={(genre: string) => {
                         setSelectedGenreForPlaylist(""); // clear any previous genre selection immediately
-
                         debouncedGenrePlaylistUpdate(genre); // but debounce the actual logic in case the user is click spamming the genre buttons
                       }}
                       onFeaturedArtistDeepLinkSlug={(slug: string) => {
@@ -696,18 +703,12 @@ export const HomeSection = (props: HomeSectionProps) => {
                   onPlayHappened={() => {
                     // pause the preview tracks if playing
                     setStopPreviewPlaying(false);
-
-                    // pause the playlist if playing
-                    if (launchPlaylistPlayer) {
-                      setLaunchPlaylistPlayer(false);
-                    }
-
                     // pause the main player if playing
                     setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
                   }}
                   checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                   openActionFireLogic={(_bitzGiftingMeta?: any) => {
-                    setLaunchMusicPlayer(true);
+                    setLaunchAlbumPlayer(true);
                     setStopPreviewPlaying(true);
 
                     if (_bitzGiftingMeta) {
@@ -719,8 +720,8 @@ export const HomeSection = (props: HomeSectionProps) => {
                   setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
                   userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
                   dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
-                  onCloseMusicPlayer={resetAudioPlayerState}
-                  isMusicPlayerOpen={launchMusicPlayer}
+                  onCloseMusicPlayer={resetMusicPlayerState}
+                  isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
                   loadIntoTileView={loadIntoTileView}
                   setLoadIntoTileView={setLoadIntoTileView}
                   isAllAlbumsMode={homeMode.includes("albums")}
@@ -741,7 +742,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                     viewDataRes={viewDataRes}
                     currentDataNftIndex={currentDataNftIndex}
                     dataMarshalResponse={dataMarshalResponse}
-                    firstSongBlobUrl={firstSongBlobUrl}
+                    firstSongBlobUrl={firstAlbumSongBlobUrl}
                     setStopPreviewPlaying={setStopPreviewPlaying}
                     setBitzGiftingMeta={setBitzGiftingMeta}
                     shownSolAppDataNfts={shownSolAppDataNfts}
@@ -754,7 +755,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                       setFeaturedArtistDeepLinkSlug(slug);
                     }}
                     openActionFireLogic={(_bitzGiftingMeta?: any) => {
-                      setLaunchMusicPlayer(true);
+                      setLaunchAlbumPlayer(true);
                       setStopPreviewPlaying(true);
 
                       if (_bitzGiftingMeta) {
@@ -762,8 +763,8 @@ export const HomeSection = (props: HomeSectionProps) => {
                       }
                     }}
                     dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
-                    onCloseMusicPlayer={resetAudioPlayerState}
-                    isMusicPlayerOpen={launchMusicPlayer}
+                    onCloseMusicPlayer={resetMusicPlayerState}
+                    isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
                     setHomeMode={setHomeMode}
                     navigateToDeepAppView={navigateToDeepAppView}
                   />
@@ -774,7 +775,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
           {homeMode === "games" && (
             <div className="w-full mt-5">
-              <MiniGames playlistTracks={playlistTracksSorted} appMusicPlayerIsPlaying={launchMusicPlayer || launchPlaylistPlayer} />
+              <MiniGames playlistTracks={musicPlayerPlaylistTrackList} isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer} />
             </div>
           )}
 
@@ -797,28 +798,25 @@ export const HomeSection = (props: HomeSectionProps) => {
           )}
 
           {/* The album player footer bar */}
-          {launchMusicPlayer && (
+          {launchAlbumPlayer && (
             <div className="w-full fixed left-0 bottom-0 z-50">
               <MusicPlayer
                 dataNftToOpen={shownSolAppDataNfts[currentDataNftIndex]}
-                trackList={musicPlayerTrackList}
+                trackList={musicPlayerAlbumTrackList}
                 trackListFromDb={musicPlayerTrackListFromDb}
-                firstSongBlobUrl={firstSongBlobUrl}
+                isPlaylistPlayer={false}
+                firstSongBlobUrl={firstAlbumSongBlobUrl}
                 onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                 bitzGiftingMeta={bitzGiftingMeta}
                 bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                 onPlayHappened={() => {
                   // stop the preview playing
                   setStopPreviewPlaying(true);
-
-                  // stop the playlist playing
-                  if (launchPlaylistPlayer) {
-                    setLaunchPlaylistPlayer(false);
-                  }
                 }}
-                onCloseMusicPlayer={resetAudioPlayerState}
+                onCloseMusicPlayer={resetMusicPlayerState}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
                 viewSolDataHasError={viewSolDataHasError}
+                loadIntoDockedMode={false}
                 navigateToDeepAppView={navigateToDeepAppView}
               />
             </div>
@@ -828,21 +826,20 @@ export const HomeSection = (props: HomeSectionProps) => {
           {launchPlaylistPlayer && (
             <div className="w-full fixed left-0 bottom-0 z-50">
               <MusicPlayer
-                trackList={playlistTracksSorted}
+                dataNftToOpen={undefined}
+                trackList={launchPlaylistPlayerWithDefaultTracks ? musicPlayerDefaultPlaylistTrackList : musicPlayerPlaylistTrackList}
                 trackListFromDb={false}
                 isPlaylistPlayer={true}
-                firstSongBlobUrl={playlistFirstTrackCachedBlob}
+                firstSongBlobUrl={launchPlaylistPlayerWithDefaultTracks ? firstDefaultPlaylistSongBlobUrl : firstPlaylistSongBlobUrl}
                 onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                 bitzGiftingMeta={bitzGiftingMeta}
                 bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                 onPlayHappened={() => {
                   setStopPreviewPlaying(true);
-
-                  // close the main player if playing
-                  resetAudioPlayerState();
                 }}
-                onCloseMusicPlayer={handleClosePlaylistPlayer}
+                onCloseMusicPlayer={resetMusicPlayerState}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
+                viewSolDataHasError={false}
                 loadIntoDockedMode={loadPlaylistPlayerIntoDockedMode}
                 navigateToDeepAppView={navigateToDeepAppView}
               />
@@ -850,12 +847,12 @@ export const HomeSection = (props: HomeSectionProps) => {
           )}
 
           {/* The album play queue msg */}
-          {albumPlayIsQueued && (
+          {assetPlayIsQueued && (
             <div className="fixed left-0 bottom-0 w-full z-50">
               <div className="w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black">
                 <div className="h-[100px] flex flex-col items-center justify-center px-2">
                   <Loader className="animate-spin" />
-                  <p className="text-foreground text-xs mt-3">hang tight, queuing album for playback</p>
+                  <p className="text-foreground text-xs mt-3">hang tight, queuing music for playback</p>
                 </div>
               </div>
             </div>

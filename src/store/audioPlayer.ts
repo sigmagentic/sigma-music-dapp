@@ -1,18 +1,22 @@
 import { create } from "zustand";
 
 type State = {
-  trackPlayIsQueued: boolean;
-  albumPlayIsQueued: boolean;
+  trackPlayIsQueued: boolean; // a track is inside an album or a playlist (I dont think this works correctly @TODO)
+  assetPlayIsQueued: boolean; // an asset can be a album or a playlist
+  albumIdBeingPlayed: string | undefined;
 };
 
 type Action = {
   updateTrackPlayIsQueued: (trackPlayIsQueued: State["trackPlayIsQueued"]) => void;
-  updateAlbumPlayIsQueued: (albumPlayIsQueued: State["albumPlayIsQueued"]) => void;
+  updateAssetPlayIsQueued: (assetPlayIsQueued: State["assetPlayIsQueued"]) => void;
+  updateAlbumIdBeingPlayed: (albumIdBeingPlayed: State["albumIdBeingPlayed"]) => void;
 };
 
 export const useAudioPlayerStore = create<State & Action>((set) => ({
   trackPlayIsQueued: false,
-  albumPlayIsQueued: false,
+  assetPlayIsQueued: false,
+  albumIdBeingPlayed: undefined,
   updateTrackPlayIsQueued: (trackPlayIsQueued: State["trackPlayIsQueued"]) => set(() => ({ trackPlayIsQueued: trackPlayIsQueued })),
-  updateAlbumPlayIsQueued: (albumPlayIsQueued: State["albumPlayIsQueued"]) => set(() => ({ albumPlayIsQueued: albumPlayIsQueued })),
+  updateAssetPlayIsQueued: (assetPlayIsQueued: State["assetPlayIsQueued"]) => set(() => ({ assetPlayIsQueued: assetPlayIsQueued })),
+  updateAlbumIdBeingPlayed: (albumIdBeingPlayed: State["albumIdBeingPlayed"]) => set(() => ({ albumIdBeingPlayed: albumIdBeingPlayed })),
 }));

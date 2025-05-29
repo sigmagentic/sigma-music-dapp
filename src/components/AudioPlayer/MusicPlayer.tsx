@@ -108,7 +108,6 @@ this is used to make sure they user listnes to at least 30 seconds before we log
 */
 let listenTimer: NodeJS.Timeout;
 let streamLogEventSentToAPI = false; // we use a global variable here to prevent the API from being accidentally called multiple times due to local effects
-
 let playerExplicitlyDockedByUser = false;
 
 export const MusicPlayer = (props: MusicPlayerProps) => {
@@ -182,10 +181,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     ],
   };
   const [imgLoading, setImgLoading] = useState(false);
-  // const [isFullScreen, setIsFullScreen] = useState(!playerExplicitlyDockedByUser && window.innerWidth >= 768);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showBonusTrackModal, setShowBonusTrackModal] = useState(false);
   const [loggedStreamMetricForTrack, setLoggedStreamMetricForTrack] = useState(0); // a simple 1 or 0 that is linked to the logic of logging a stream event to the backend so in the UI we can reflect this for debugging
+  const isSmallScreen = window.innerWidth < 768;
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -202,7 +201,23 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   };
 
   useEffect(() => {
+    console.log("$$ MUSIC PLAYER MOUNTING ---");
+
+    return () => {
+      console.log("$$ MUSIC PLAYER UNMOUNTING ---");
+    };
+  }, []);
+
+  useEffect(() => {
     if (trackList && trackList.length > 0 && firstSongBlobUrl && firstSongBlobUrl !== "") {
+      console.log("$$ trackList, firstSongBlobUrl effect MOUNTING ---");
+
+      updateTrackPlayIsQueued(false);
+      setSongSource((prevState) => ({
+        ...prevState, // keep all other key-value pairs
+        [trackList[0].idx]: firstSongBlobUrl, // update the value of the first index
+      }));
+
       const mediaElement = getCurrentMediaElement();
 
       const handleEnded = () => {
@@ -258,6 +273,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       }
 
       return () => {
+        console.log("$$ trackList, firstSongBlobUrl effect UNMOUNTING ---");
+
         stopListenTimer(); // stop the listen timer interval
 
         // Clean up both audio and video elements
@@ -272,16 +289,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         });
         mediaElement.removeEventListener("canplaythrough", handleCanPlayThrough);
       };
-    }
-  }, [trackList, firstSongBlobUrl]);
-
-  useEffect(() => {
-    if (firstSongBlobUrl && trackList && trackList.length > 0) {
-      updateTrackPlayIsQueued(false);
-      setSongSource((prevState) => ({
-        ...prevState, // keep all other key-value pairs
-        [trackList[0].idx]: firstSongBlobUrl, // update the value of the first index
-      }));
     } else {
       updateTrackPlayIsQueued(true);
     }
@@ -626,17 +633,17 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     setIsPlaying(false);
     setIsLoaded(false);
     setIsFullScreen(false);
+
     onCloseMusicPlayer();
   };
 
-  // Component render section
   const LoaderSection = () => {
     const styles = isFullScreen ? SCREEN_STYLES.full : SCREEN_STYLES.normal;
 
     return (
       <div className={styles.loader.container}>
         <Loader className={styles.loader.icon + (isSmallScreen ? " w-8 h-8 mr-12" : "")} />
-        {!isSmallScreen && <p className={styles.loader.text}>hang tight, queuing album for playback</p>}
+        {!isSmallScreen && <p className={styles.loader.text}>hang tight, queuing music for playback</p>}
 
         {/* only show close button if the view sol data failed durign track load */}
         {viewSolDataHasError && (
@@ -667,14 +674,12 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     );
   };
 
-  const isSmallScreen = window.innerWidth < 768;
-
   return (
     <div
       className={`relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black transition-all duration-300 ${
         isFullScreen ? "fixed inset-0 z-[9999] rounded-none h-screen w-screen overflow-hidden" : ""
       }`}>
-      <div className="debug hidden bg-yellow-400 text-black p-2 w-full text-xs absolute top-0 left-0">
+      <div className="debug hidden bg-yellow-900 p-2 w-full text-xs absolute top-0 left-0">
         {/* <p className="mb-2">isFullScreen = {isFullScreen.toString()}</p> */}
         {/* <p className="mb-2">loadIntoDockedMode = {loadIntoDockedMode?.toString()}</p> */}
         {/* <p className="mb-2">trackList = {JSON.stringify(trackList)}</p> */}

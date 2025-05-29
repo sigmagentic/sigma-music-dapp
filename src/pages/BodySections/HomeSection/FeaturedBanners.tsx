@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
-import { ALL_MUSIC_GENRES, GenreTier } from "config";
+import { ALL_MUSIC_GENRES, RANDOM_COLORS, GenreTier } from "config";
 import { Button } from "libComponents/Button";
 import { StreamMetricData } from "libs/types/common";
 import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestCollectiblesAvailableViaAPI } from "libs/utils/misc";
 import { convertTokenImageUrl } from "libs/utils/ui";
 import { useAppStore } from "store/app";
+import { useAudioPlayerStore } from "store/audioPlayer";
 
 interface FeaturedArtist {
   name: string;
@@ -41,16 +42,116 @@ interface LatestAlbumCollectibleOption {
   priceInUSD: string;
 }
 
+interface PlaylistTileProps {
+  genre: {
+    code: string;
+    label: string;
+    tier: any;
+    tileImgBg: string;
+  };
+  color: string;
+  selectedPlaylistGenre: string;
+  lastClickedGenreForPlaylist: string;
+  assetPlayIsQueued: boolean;
+  onCloseMusicPlayer: () => void;
+  setLastClickedGenreForPlaylist: (genre: string) => void;
+  isMusicPlayerOpen: boolean;
+  updateAssetPlayIsQueued: (value: boolean) => void;
+  onPlaylistGenreUpdate: (genre: string) => void;
+  setLaunchPlaylistPlayerWithDefaultTracks: (value: boolean) => void;
+  setLaunchPlaylistPlayer: (value: boolean) => void;
+}
+
+const PlaylistTile = ({
+  genre,
+  color,
+  selectedPlaylistGenre,
+  lastClickedGenreForPlaylist,
+  assetPlayIsQueued,
+  onCloseMusicPlayer,
+  setLastClickedGenreForPlaylist,
+  isMusicPlayerOpen,
+  updateAssetPlayIsQueued,
+  onPlaylistGenreUpdate,
+  setLaunchPlaylistPlayerWithDefaultTracks,
+  setLaunchPlaylistPlayer,
+}: PlaylistTileProps) => {
+  const handleClick = () => {
+    onCloseMusicPlayer();
+    setLastClickedGenreForPlaylist(genre.code);
+
+    if (isMusicPlayerOpen) {
+      updateAssetPlayIsQueued(true);
+      setTimeout(() => {
+        onPlaylistGenreUpdate(genre.code);
+        setLaunchPlaylistPlayerWithDefaultTracks(false);
+        setLaunchPlaylistPlayer(true);
+        updateAssetPlayIsQueued(false);
+      }, 5000);
+    } else {
+      onPlaylistGenreUpdate(genre.code);
+      setLaunchPlaylistPlayerWithDefaultTracks(false);
+      setLaunchPlaylistPlayer(true);
+      updateAssetPlayIsQueued(false);
+    }
+  };
+
+  const image = genre.tileImgBg;
+
+  return (
+    <div
+      key={genre.code}
+      onClick={handleClick}
+      className={`flex-shrink-0 w-64 h-40 rounded-xl p-0 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group shadow-lg
+        ${assetPlayIsQueued ? "pointer-events-none cursor-not-allowed" : ""}
+        ${selectedPlaylistGenre === genre.code ? "ring-2 ring-yellow-300" : ""}`}
+      style={{ background: color }}>
+      {/* Genre Title */}
+      <div className="absolute top-4 left-5 z-10">
+        <span className="text-white text-2xl font-bold drop-shadow-lg">{genre.label}</span>
+      </div>
+      {/* Loader/Playing indicator */}
+      {selectedPlaylistGenre === "" && lastClickedGenreForPlaylist === genre.code && (
+        <div className="absolute top-4 right-5 z-10">
+          <Loader className="animate-spin text-white" />
+        </div>
+      )}
+      {selectedPlaylistGenre === genre.code && (
+        <div className="absolute top-4 right-5 z-10">
+          <span className="text-white text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Playing</span>
+        </div>
+      )}
+      {/* Angled image in bottom right */}
+      <div className="absolute bottom-0 right-0 z-20" style={{ transform: "rotate(12deg) translate(20px, 20px)" }}>
+        <img
+          src={image}
+          alt={genre.label}
+          className="w-24 h-24 object-cover rounded-lg shadow-xl border-4 border-white"
+          style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.25)" }}
+        />
+      </div>
+    </div>
+  );
+};
+
 export const FeaturedBanners = ({
   onFeaturedArtistDeepLinkSlug,
   selectedPlaylistGenre,
+  isMusicPlayerOpen,
   onPlaylistGenreUpdate,
   navigateToDeepAppView,
+  onCloseMusicPlayer,
+  setLaunchPlaylistPlayer,
+  setLaunchPlaylistPlayerWithDefaultTracks,
 }: {
   onFeaturedArtistDeepLinkSlug: (slug: string) => void;
   selectedPlaylistGenre: string;
+  isMusicPlayerOpen: boolean;
   onPlaylistGenreUpdate: (genre: string) => void;
   navigateToDeepAppView: (logicParams: any) => void;
+  onCloseMusicPlayer: () => void;
+  setLaunchPlaylistPlayer: (launchPlaylistPlayer: boolean) => void;
+  setLaunchPlaylistPlayerWithDefaultTracks: (launchPlaylistPlayerWithDefaultTracks: boolean) => void;
 }) => {
   const [streamMetricData, setStreamMetricData] = useState<any[]>([]);
   const [isLoadingMostStreamedTracks, setIsLoadingMostStreamedTracks] = useState(true);
@@ -63,6 +164,7 @@ export const FeaturedBanners = ({
   const [isLoadingLatestInnerCircleOptions, setIsLoadingLatestInnerCircleOptions] = useState(true);
   const [isLoadingLatestAlbumOptions, setIsLoadingLatestAlbumOptions] = useState(true);
   const [lastClickedGenreForPlaylist, setLastClickedGenreForPlaylist] = useState<string>("");
+  const { assetPlayIsQueued, updateAssetPlayIsQueued } = useAudioPlayerStore();
 
   useEffect(() => {
     if (Object.keys(musicTrackLookup).length === 0 || Object.keys(artistLookup).length === 0 || Object.keys(albumLookup).length === 0) {
@@ -184,7 +286,7 @@ export const FeaturedBanners = ({
       {/* Tier 1 Genre Playlists */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl cursor-pointer w-full">
-          <span>Exclusive Playlists</span>
+          <span>Exclusive Music Playlists</span>
         </div>
         <div className="relative w-full">
           <div
@@ -192,134 +294,51 @@ export const FeaturedBanners = ({
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-            <div className="flex space-x-4 min-w-max">
-              {tier1Genres.map((genre) => (
-                <div
-                  key={genre}
-                  onClick={() => {
-                    setLastClickedGenreForPlaylist(genre);
-                    onPlaylistGenreUpdate(genre);
-                  }}
-                  className={`flex-shrink-0 w-48 h-32 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group ${
-                    selectedPlaylistGenre === genre
-                      ? "bg-gradient-to-br from-yellow-300 to-orange-500 shadow-lg shadow-orange-500/20"
-                      : "bg-gradient-to-br from-[#171717] to-[#1a1a1a] hover:from-[#1c1c1c] hover:to-[#1f1f1f]"
-                  }`}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="text-center relative z-2">
-                    <div className={`text-lg font-bold mb-2 ${selectedPlaylistGenre === genre ? "text-black" : "text-white"}`}>
-                      {genre.toLocaleUpperCase().trim()}
-                    </div>
-                    {selectedPlaylistGenre === "" && lastClickedGenreForPlaylist === genre && (
-                      <div className="flex justify-center items-center">
-                        <Loader className="animate-spin" />
-                      </div>
-                    )}
-                    <div className={`text-sm ${selectedPlaylistGenre === genre ? "text-black/70" : "text-gray-400"}`}>
-                      {selectedPlaylistGenre === genre ? "Playing" : ""}
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex space-x-4 min-w-max mt-[2px] px-[2px]">
+              <PlaylistTile
+                genre={{
+                  code: "foryou",
+                  label: "For You",
+                  tier: null,
+                  tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Wen_Summer_Cover.jpg",
+                }}
+                color={RANDOM_COLORS[0]}
+                selectedPlaylistGenre={selectedPlaylistGenre}
+                lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
+                assetPlayIsQueued={assetPlayIsQueued}
+                onCloseMusicPlayer={onCloseMusicPlayer}
+                setLastClickedGenreForPlaylist={setLastClickedGenreForPlaylist}
+                isMusicPlayerOpen={isMusicPlayerOpen}
+                updateAssetPlayIsQueued={updateAssetPlayIsQueued}
+                onPlaylistGenreUpdate={onPlaylistGenreUpdate}
+                setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
+                setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
+              />
+              {tier1Genres.map((genreCode, idx) => {
+                const genreObj = ALL_MUSIC_GENRES.find((g) => g.code === genreCode);
+                if (!genreObj) return null;
+                return (
+                  <PlaylistTile
+                    key={genreObj.code}
+                    genre={genreObj}
+                    color={RANDOM_COLORS[(idx + 1) % RANDOM_COLORS.length]}
+                    selectedPlaylistGenre={selectedPlaylistGenre}
+                    lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
+                    assetPlayIsQueued={assetPlayIsQueued}
+                    onCloseMusicPlayer={onCloseMusicPlayer}
+                    setLastClickedGenreForPlaylist={setLastClickedGenreForPlaylist}
+                    isMusicPlayerOpen={isMusicPlayerOpen}
+                    updateAssetPlayIsQueued={updateAssetPlayIsQueued}
+                    onPlaylistGenreUpdate={onPlaylistGenreUpdate}
+                    setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
+                    setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Most sold collectibles */}
-      {mintsLeaderboard.length > 0 && (
-        <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-          <div className="text-xl cursor-pointer w-full">
-            <span className="">Most Sold Collectibles</span>
-          </div>
-          {isLoadingLatestInnerCircleOptions ? (
-            <LoadingSkeleton />
-          ) : mintsLeaderboard.length === 0 ? (
-            <p className="text-xl mb-10 text-center md:text-left opacity-50">No collectibles purchased yet</p>
-          ) : (
-            <div className="relative w-full">
-              <div
-                className="overflow-x-auto pb-4 mt-5
-                [&::-webkit-scrollbar]:h-2
-                dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-                dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-                <div className="flex space-x-4 min-w-max">
-                  {mintsLeaderboard.map((item, idx) => {
-                    const artistInfo = artistLookupEverything[item.arId];
-                    return (
-                      <div
-                        key={item.mintTemplatePrefix}
-                        className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
-                        style={{
-                          backgroundImage: `url(${artistInfo?.img})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          backgroundBlendMode: "multiply",
-                          backgroundColor: "#161616d4",
-                          backgroundRepeat: "no-repeat",
-                        }}>
-                        {/* NFT type label, rotated on the left */}
-                        <div className="absolute left-0 top-10 flex items-center" style={{ height: "100%" }}>
-                          <span
-                            className="text-xs font-bold text-orange-500 bg-black/40 px-2 py-1 rounded-r-lg"
-                            style={{
-                              writingMode: "vertical-rl",
-                              transform: "rotate(-180deg)",
-                              letterSpacing: "0.1em",
-                              marginLeft: "-0.5rem",
-                              opacity: 0.8,
-                            }}>
-                            {item.nftType === "fan" ? "Fan Collectible" : "Album Collectible"}
-                          </span>
-                        </div>
-                        {/* Ranking and Medal */}
-                        <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{idx + 1}</div>
-                        <div className="absolute top-2 right-4 text-4xl">
-                          {idx === 0 && <span>🥇</span>}
-                          {idx === 1 && <span>🥈</span>}
-                          {idx === 2 && <span>🥉</span>}
-                        </div>
-                        <div className="text-center mt-4">
-                          <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
-                            {artistInfo?.name || "Unknown Artist"}
-                          </div>
-                          <div className="text-3xl font-bold text-orange-500">{item.mints}</div>
-                          <div className="text-sm text-white/70 mb-2">Sold</div>
-                          <Button
-                            className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
-                            onClick={() => {
-                              if (artistInfo?.slug) {
-                                if (item.nftType === "album") {
-                                  onFeaturedArtistDeepLinkSlug(artistInfo.slug);
-                                } else {
-                                  const campaign = artistInfo?.artistCampaignCode;
-                                  const country = artistInfo?.artistSubGroup1Code;
-                                  const team = artistInfo?.artistSubGroup2Code;
-
-                                  navigateToDeepAppView({
-                                    artistCampaignCode: campaign,
-                                    artistSubGroup1Code: country,
-                                    artistSubGroup2Code: team,
-                                    artistSlug: artistInfo?.slug,
-                                  });
-                                }
-                              }
-                            }}>
-                            View
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              {mintsLeaderboard.length > 3 && (
-                <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Most streamed songs */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
@@ -378,6 +397,101 @@ export const FeaturedBanners = ({
           </div>
         )}
       </div>
+
+      {/* Most sold collectibles */}
+      {mintsLeaderboard.length > 0 && (
+        <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+          <div className="text-xl cursor-pointer w-full">
+            <span className="">Most Sold Collectibles</span>
+          </div>
+          {isLoadingLatestInnerCircleOptions ? (
+            <LoadingSkeleton />
+          ) : mintsLeaderboard.length === 0 ? (
+            <p className="text-xl mb-10 text-center md:text-left opacity-50">No collectibles purchased yet</p>
+          ) : (
+            <div className="relative w-full">
+              <div
+                className="overflow-x-auto pb-4 mt-5
+                [&::-webkit-scrollbar]:h-2
+                dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+                <div className="flex space-x-4 min-w-max">
+                  {mintsLeaderboard.map((item, idx) => {
+                    const artistInfo = artistLookupEverything[item.arId];
+                    return (
+                      <div
+                        key={item.mintTemplatePrefix}
+                        className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                        style={{
+                          backgroundImage: `url(${item.nftType === "fan" && artistInfo?.fanToken3DGifTeaser && artistInfo.fanToken3DGifTeaser !== "" ? `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistInfo.fanToken3DGifTeaser}.gif` : artistInfo?.img})`,
+                          backgroundSize: "contain",
+                          backgroundPosition: "center",
+                          backgroundBlendMode: "multiply",
+                          backgroundColor: "#161616d4",
+                          backgroundRepeat: "no-repeat",
+                        }}>
+                        {/* NFT type label, rotated on the left */}
+                        <div className="absolute left-0 top-10 flex items-center" style={{ height: "100%" }}>
+                          <span
+                            className="text-xs font-bold text-orange-500 bg-black/40 px-2 py-1 rounded-r-lg"
+                            style={{
+                              writingMode: "vertical-rl",
+                              transform: "rotate(-180deg)",
+                              letterSpacing: "0.1em",
+                              marginLeft: "-0.5rem",
+                              opacity: 0.8,
+                            }}>
+                            {item.nftType === "fan" ? "Fan Collectible" : "Album Collectible"}
+                          </span>
+                        </div>
+                        {/* Ranking and Medal */}
+                        <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{idx + 1}</div>
+                        <div className="absolute top-2 right-4 text-4xl">
+                          {idx === 0 && <span>🥇</span>}
+                          {idx === 1 && <span>🥈</span>}
+                          {idx === 2 && <span>🥉</span>}
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
+                            {artistInfo?.name || "Unknown Artist"}
+                          </div>
+                          <div className="text-3xl font-bold text-orange-500">{item.mints}</div>
+                          <div className="text-sm text-white/70 mb-2">Sold</div>
+                          <Button
+                            className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                            onClick={() => {
+                              if (artistInfo?.slug) {
+                                if (item.nftType === "album") {
+                                  onFeaturedArtistDeepLinkSlug(artistInfo.slug);
+                                } else {
+                                  const campaign = artistInfo?.artistCampaignCode;
+                                  const country = artistInfo?.artistSubGroup1Code;
+                                  const team = artistInfo?.artistSubGroup2Code;
+
+                                  navigateToDeepAppView({
+                                    artistCampaignCode: campaign,
+                                    artistSubGroup1Code: country,
+                                    artistSubGroup2Code: team,
+                                    artistSlug: artistInfo?.slug,
+                                  });
+                                }
+                              }
+                            }}>
+                            View
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              {mintsLeaderboard.length > 3 && (
+                <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Latest Artist Fan Clubs For Sale */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
