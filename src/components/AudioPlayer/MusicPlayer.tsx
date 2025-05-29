@@ -545,7 +545,9 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       onPlayHappened();
 
       if (mediaElement.readyState >= 2) {
-        mediaElement.play();
+        setTimeout(() => {
+          mediaElement.play();
+        }, 1000);
       } else {
         toastClosableError("Media not ready yet. Waiting for loading to complete...");
         return;
@@ -588,6 +590,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     streamLogEventSentToAPI = false;
 
     getCurrentMediaElement().currentTime = 0;
+
     if (isPlaying) {
       getCurrentMediaElement().play();
 

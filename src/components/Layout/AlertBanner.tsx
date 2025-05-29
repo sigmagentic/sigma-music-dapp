@@ -3,11 +3,12 @@ import { X } from "lucide-react";
 
 export const AlertBanner = () => {
   const [isVisible, setIsVisible] = useState(true);
-  const ALERT_IGNORE_HOURS_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  const ALERT_IGNORE_HOURS_MS = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
 
   useEffect(() => {
     // Check if we should show the banner based on session storage
     const lastClosedTimestamp = sessionStorage.getItem("sig-ux-ca-alert");
+
     if (lastClosedTimestamp) {
       const timeSinceLastClose = Date.now() - parseInt(lastClosedTimestamp);
       if (timeSinceLastClose < ALERT_IGNORE_HOURS_MS) {
