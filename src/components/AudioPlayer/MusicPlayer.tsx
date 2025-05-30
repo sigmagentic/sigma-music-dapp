@@ -557,8 +557,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         if (isIOS) {
           // Add a small delay before playing on iOS
           setTimeout(() => {
-            mediaElement.play().catch((error) => {
-              alert("Play failed:" + error);
+            mediaElement.play().catch(() => {
+              // alert("Play failed:" + error); // sometimes the "auto play" not allowed error comes on iOS, in that case we revert the play state so user manually has to click play
               setIsPlaying(false); // Reset UI state if play fails
             });
           }, 100);
