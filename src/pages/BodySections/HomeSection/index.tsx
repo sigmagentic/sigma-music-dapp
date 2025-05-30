@@ -327,7 +327,7 @@ export const HomeSection = (props: HomeSectionProps) => {
         }
 
         // Step 3: Get all tracks
-        const allTracksRes = await getMusicTracksByGenreViaAPI({ genre: "all", pageSize: 40 }); // note that API MAY fail if too much response data is requested (40 seems to ok, 50 is too much)
+        const allTracksRes = await getMusicTracksByGenreViaAPI({ genre: "all", pageSize: 35 }); // note that API MAY fail if too much response data is requested (35 seems to ok, 50 is too much)
         const allTracks = allTracksRes.tracks || [];
         // console.log("All tracks:", allTracks);
 
