@@ -297,6 +297,11 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           handleEnded();
         });
         mediaElement.removeEventListener("canplaythrough", handleCanPlayThrough);
+
+        mediaElement.pause();
+        mediaElement.src = "";
+        mediaElement.load(); // Force reload
+        mediaElement.removeAttribute("src"); // Remove src attribute
       };
     } else {
       updateTrackPlayIsQueued(true);
@@ -545,9 +550,21 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       onPlayHappened();
 
       if (mediaElement.readyState >= 2) {
-        setTimeout(() => {
+        // Add a check for iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+        // Modify the play logic to handle iOS differently
+        if (isIOS) {
+          // Add a small delay before playing on iOS
+          setTimeout(() => {
+            mediaElement.play().catch((error) => {
+              alert("Play failed:" + error);
+              setIsPlaying(false); // Reset UI state if play fails
+            });
+          }, 100);
+        } else {
           mediaElement.play();
-        }, 1000);
+        }
       } else {
         toastClosableError("Media not ready yet. Waiting for loading to complete...");
         return;
