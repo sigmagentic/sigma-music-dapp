@@ -5,7 +5,7 @@ export interface Country {
 }
 
 export const COUNTRIES: Country[] = [
-  { label: "New Zealand", code: "nzw", emoji: "🇳🇿" },
+  { label: "New Zealand", code: "nzl", emoji: "🇳🇿" },
   { label: "South Africa", code: "zaf", emoji: "🇿🇦" },
   { label: "Philippines", code: "phl", emoji: "🇵🇭" },
   { label: "India", code: "ind", emoji: "🇮🇳" },

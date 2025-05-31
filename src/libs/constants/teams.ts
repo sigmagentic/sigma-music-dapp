@@ -4,7 +4,7 @@ export interface Team {
 }
 
 export const TEAMS: Record<string, Team[]> = {
-  nzw: [
+  nzl: [
     { teamName: "Rezpect Kidz", teamCode: "rzk" },
     { teamName: "Rezpect", teamCode: "rzt" },
     { teamName: "Swagga", teamCode: "swg" },
