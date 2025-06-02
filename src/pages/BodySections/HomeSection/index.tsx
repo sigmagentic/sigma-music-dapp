@@ -308,7 +308,7 @@ export const HomeSection = (props: HomeSectionProps) => {
       // if we already have playlist tracks, dont fetch them again
       if (musicPlayerDefaultPlaylistTrackList.length === 0) {
         // Step 1: Get saved genres from session storage
-        const savedGenres = sessionStorage.getItem("sig-pref-genres");
+        const savedGenres = localStorage.getItem("sig-pref-genres");
         let userSelectedGenre: string;
 
         if (savedGenres) {

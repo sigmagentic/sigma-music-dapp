@@ -7,7 +7,7 @@ export const AlertBanner = () => {
 
   useEffect(() => {
     // Check if we should show the banner based on session storage
-    const lastClosedTimestamp = sessionStorage.getItem("sig-ux-ca-alert");
+    const lastClosedTimestamp = localStorage.getItem("sig-ux-ca-alert");
 
     if (lastClosedTimestamp) {
       const timeSinceLastClose = Date.now() - parseInt(lastClosedTimestamp);
@@ -20,7 +20,7 @@ export const AlertBanner = () => {
   const handleClose = () => {
     setIsVisible(false);
     // Store current timestamp in session storage
-    sessionStorage.setItem("sig-ux-ca-alert", Date.now().toString());
+    localStorage.setItem("sig-ux-ca-alert", Date.now().toString());
   };
 
   if (!isVisible) return null;
