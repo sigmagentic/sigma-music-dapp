@@ -171,6 +171,7 @@ export const PaymentSuccess = () => {
 
             if (albumId) {
               mintParams.albumId = albumId;
+              mintParams.albumSaleTypeOption = "2"; // @TODO use actual option. 2 is what we have now (NFT)
             } else {
               mintParams.membershipId = membershipId;
               mintParams.artistId = artistId;
@@ -292,7 +293,7 @@ export const PaymentSuccess = () => {
                 </h3>
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">$ {priceInUSD} USD</span>
+                    <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">${priceInUSD}</span>
                     {quantityToBuy && quantityToBuy > 1 && <span className="text-xs text-gray-400">for {quantityToBuy} items</span>}
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { GetNFMeModal } from "components/GetNFMeModal";
@@ -10,18 +10,23 @@ import { useNftsStore } from "store/nfts";
 
 const nfMeIdBrandingHide = true;
 
-export const MyProfile = () => {
+type MyProfileProps = {
+  navigateToDeepAppView: (e: any) => any;
+};
+
+export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
   const { userInfo, publicKey: web3AuthPublicKey } = useWeb3Auth();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
   const { solNFMeIdNfts } = useNftsStore();
   const [showNfMeIdModal, setShowNfMeIdModal] = useState<boolean>(false);
   const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
   const [nfMeIdImageUrl, setNfMeIdImageUrl] = useState<string | null>(null);
-  const { userWeb2AccountDetails } = useAccountStore();
+  const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases } = useAccountStore();
+
   // Use the appropriate public key based on wallet type
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (solNFMeIdNfts.length > 0) {
       const nfMeId = solNFMeIdNfts[0] as (DasApiAsset & { content: NFMeIdContent }) | undefined;
       const nfmeImg = nfMeId?.content?.links?.image;
@@ -140,13 +145,128 @@ export const MyProfile = () => {
         </div>
       </div>
 
-      {/* Orders Section */}
-      <div className="bg-black rounded-lg p-6 hidden">
-        <h2 className="text-2xl font-bold mb-4">Your Orders</h2>
-        <div className="flex flex-col items-center justify-center py-12">
-          <p className="text-xl text-gray-400">Coming Soon</p>
-          <p className="text-sm text-gray-500 mt-2">Your purchase history will be displayed here</p>
-        </div>
+      {/* Music Asset Purchases Section */}
+      <div className="bg-black rounded-lg p-6">
+        <h2 className="!text-2xl font-bold mb-4">Your Music Asset Purchases</h2>
+        {myMusicAssetPurchases.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <p className="text-xl text-gray-400">No logs yet</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-left border-b border-gray-700">
+                  <th className="pb-3">Date</th>
+                  <th className="pb-3">What You Bought</th>
+                  <th className="pb-3">Sale Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myMusicAssetPurchases.map((log, index) => (
+                  <tr key={index} className="border-b border-gray-700">
+                    <td className="py-3">{new Date(log.purchasedOn).toLocaleString()}</td>
+                    <td className="py-3">
+                      <>
+                        <div
+                          className="cursor-pointer hover:underline text-blue-400"
+                          onClick={() => navigateToDeepAppView({ artistSlug: log._artistSlug, albumId: log.albumId })}>
+                          Album: {log._albumName} by {log._artistName}
+                        </div>
+                      </>
+                    </td>
+                    <td className="py-3">
+                      {" "}
+                      <div className="text-sm text-gray-400">
+                        {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
+                        {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
+                        {log.albumSaleTypeOption === "3" && "Digital Album + Commercial License + Download + Collectible (NFT)"}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Full Purchase Log Section */}
+      <div className="bg-black rounded-lg p-6">
+        <h2 className="!text-2xl font-bold mb-4">Your Full Purchase Log</h2>
+        {myPaymentLogs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <p className="text-xl text-gray-400">No logs yet</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-left border-b border-gray-700">
+                  <th className="pb-3">Date</th>
+                  <th className="pb-3">What You Bought</th>
+                  <th className="pb-3">Status</th>
+                  <th className="pb-3">Amount</th>
+                  <th className="pb-3">Payment Method</th>
+                  <th className="pb-3">Transaction</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myPaymentLogs.map((log, index) => (
+                  <tr key={index} className="border-b border-gray-700">
+                    <td className="py-3">{new Date(log.createdOn).toLocaleString()}</td>
+                    <td className="py-3">
+                      {log.task === "buyAlbum" ? (
+                        <>
+                          <div
+                            className="cursor-pointer hover:underline text-blue-400"
+                            onClick={() => navigateToDeepAppView({ artistSlug: log._artistSlug, albumId: log.albumId })}>
+                            Album: {log._albumName} by {log._artistName}
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
+                            {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
+                            {log.albumSaleTypeOption === "3" && "Digital Album + Commercial License + Download + Collectible (NFT)"}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div
+                            className="cursor-pointer hover:underline text-blue-400"
+                            onClick={() => navigateToDeepAppView({ artistSlug: log._artistSlug, artistProfileTab: "fan" })}>
+                            Artist: {log._artistName}
+                          </div>
+                          <div>Membership ID: {log.membershipId}</div>
+                        </>
+                      )}
+                    </td>
+                    <td className="py-3">
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          log.paymentStatus === "success"
+                            ? "bg-green-900 text-green-300"
+                            : log.paymentStatus === "failed"
+                              ? "bg-red-900 text-red-300"
+                              : "bg-yellow-900 text-yellow-300"
+                        }`}>
+                        {log.paymentStatus.charAt(0).toUpperCase() + log.paymentStatus.slice(1)}
+                      </span>
+                    </td>
+                    <td className="py-3">{log.type === "cc" ? `$${log.amount}` : `${log.amount} SOL ($${log.priceInUSD})`}</td>
+                    <td className="py-3">{log.type === "sol" ? "SOL" : "Credit Card"}</td>
+                    <td className="py-3">
+                      {log.type === "sol" && log.tx && (
+                        <a href={`https://solscan.io/tx/${log.tx}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                          View on Blockchain Explorer
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* NFMe ID Claim Modal */}

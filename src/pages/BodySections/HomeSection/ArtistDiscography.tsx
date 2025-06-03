@@ -1,18 +1,33 @@
 import React, { useEffect, useState } from "react";
-import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { Gift, Loader, AudioWaveform, Pause, Play, ShoppingCart, WalletMinimal, Disc3, Hourglass, Rocket } from "lucide-react";
+import {
+  Gift,
+  Loader,
+  AudioWaveform,
+  Pause,
+  Play,
+  ShoppingCart,
+  WalletMinimal,
+  Disc3,
+  Hourglass,
+  Rocket,
+  Briefcase,
+  Download,
+  ExternalLink,
+  X,
+  Image,
+} from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
-import { DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS } from "config";
+import { DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS, LICENSE_TERMS_MAP } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { fetchSolNfts } from "libs/sol/SolViewData";
-import { BountyBitzSumMapping } from "libs/types";
-import { Artist, Album } from "libs/types";
-import { checkIfAlbumCanBeMintedViaAPI, isMostLikelyMobile } from "libs/utils/misc";
+import { AlbumSaleTypeOption, BountyBitzSumMapping } from "libs/types";
+import { Artist, Album, EntitlementForMusicAsset } from "libs/types";
+import { checkIfAlbumCanBeMintedViaAPI, getPaymentLogsViaAPI, isMostLikelyMobile } from "libs/utils/misc";
 import { routeNames } from "routes";
+import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
 import { BuyAndMintAlbumUsingCC } from "./BuyAlbum/BuyAndMintAlbumUsingCC";
@@ -27,7 +42,6 @@ type ArtistDiscographyProps = {
   previewIsReadyToPlay?: boolean;
   previewPlayingForAlbumId?: any;
   currentTime?: string;
-  isFreeDropSampleWorkflow?: boolean;
   inCollectedAlbumsView?: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
@@ -52,7 +66,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     previewIsReadyToPlay,
     previewPlayingForAlbumId,
     currentTime,
-    isFreeDropSampleWorkflow,
     dataNftPlayingOnMainPlayer,
     isMusicPlayerOpen,
     highlightAlbumId,
@@ -74,21 +87,93 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const [queueAlbumPlay, setQueueAlbumPlay] = useState(false);
   const [albumToBuyAndMint, setAlbumToBuyAndMint] = useState<Album | undefined>();
   const [albumsWithCanBeMintedFlags, setAlbumsWithCanBeMintedFlags] = useState<Album[]>([]);
+  const { updateMyRawPaymentLogs, myMusicAssetPurchases } = useAccountStore();
+  const [showEntitlementsModal, setShowEntitlementsModal] = useState(false);
+  const [selectedAlbumToShowEntitlements, setSelectedAlbumToShowEntitlements] = useState<Album | null>(null);
+  const [entitlementsForSelectedAlbum, setEntitlementsForSelectedAlbum] = useState<EntitlementForMusicAsset | null>(null);
 
   useEffect(() => {
     if (artistProfile && albums.length > 0) {
-      // check and attach the _buyNowMeta (canBeMinted flag and priceInUSD) to each album based on a realtime call to the backend
+      // check and attach the _buyNowMeta to each album based on a realtime call to the backend
+      const isValidBuyNowMetaAfterOption2DoubleCheckApiCall = (meta: any): meta is Album["_buyNowMeta"] => {
+        return (
+          typeof meta === "object" && meta !== null && (meta.priceOption1 !== undefined || meta.priceOption2 !== undefined || meta.priceOption3 !== undefined)
+        );
+      };
+
       const fetchAlbumsWithCanBeMinted = async () => {
         const albumsWithCanBeMinted = await Promise.all(
-          albums.map(async (album) => ({ ...album, _buyNowMeta: await checkIfAlbumCanBeMintedViaAPI(album.albumId) }))
+          albums.map(async (album) => {
+            const meta = await checkIfAlbumCanBeMintedViaAPI(album.albumId);
+            return {
+              ...album,
+              _buyNowMeta: isValidBuyNowMetaAfterOption2DoubleCheckApiCall(meta) ? meta : undefined,
+            };
+          })
         );
 
-        setAlbumsWithCanBeMintedFlags(albumsWithCanBeMinted);
+        // in the above we get some live data to make sure option 2 and 3 are correct (as it needs to double check we have the NFT metadata setup in the backend)
+        // .., now we augment it with some static data for option 1
+        const albumsWithCanBeMintedAndStaticData = albumsWithCanBeMinted.map((album) => {
+          const adjustedWithFlatPurchaseData = {
+            ...album,
+          };
+
+          if (adjustedWithFlatPurchaseData._buyNowMeta) {
+            if (album.albumPriceOption1 && album.albumPriceOption1 !== "") {
+              adjustedWithFlatPurchaseData._buyNowMeta!.priceOption1!.priceInUSD = album.albumPriceOption1;
+            }
+
+            if (album.albumPriceOption2 && album.albumPriceOption2 !== "") {
+              // here, we take the price from the database to be more accurate
+              adjustedWithFlatPurchaseData._buyNowMeta!.priceOption2!.priceInUSD = album.albumPriceOption2;
+            }
+
+            if (album.albumPriceOption3 && album.albumPriceOption3 !== "") {
+              adjustedWithFlatPurchaseData._buyNowMeta!.priceOption3!.priceInUSD = album.albumPriceOption3;
+            }
+          }
+
+          return adjustedWithFlatPurchaseData;
+        });
+
+        setAlbumsWithCanBeMintedFlags(albumsWithCanBeMintedAndStaticData);
       };
 
       fetchAlbumsWithCanBeMinted();
     }
   }, [artistProfile, albums]);
+
+  useEffect(() => {
+    if (selectedAlbumToShowEntitlements && myMusicAssetPurchases.length > 0) {
+      const entitlementsMap: EntitlementForMusicAsset = {
+        mp3TrackUrls: [],
+        licenseTerms: {
+          shortDescription: null,
+          urlToLicense: null,
+        },
+        nftAssetIdOnBlockchain: null,
+      };
+
+      const assetPurchaseThatMatches = myMusicAssetPurchases.find((assetPurchase) => assetPurchase.albumId === selectedAlbumToShowEntitlements.albumId);
+
+      if (assetPurchaseThatMatches && assetPurchaseThatMatches.albumSaleTypeOption) {
+        entitlementsMap.licenseTerms.shortDescription =
+          LICENSE_TERMS_MAP[assetPurchaseThatMatches.albumSaleTypeOption as keyof typeof LICENSE_TERMS_MAP].shortDescription;
+        entitlementsMap.licenseTerms.urlToLicense =
+          LICENSE_TERMS_MAP[assetPurchaseThatMatches.albumSaleTypeOption as keyof typeof LICENSE_TERMS_MAP].urlToLicense;
+      } else {
+        // we should NEVER get here, but old assets may not have priceOptions so lets default to the first option as this is a good license
+        entitlementsMap.mp3TrackUrls = [];
+        entitlementsMap.licenseTerms.shortDescription = LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].shortDescription;
+        entitlementsMap.licenseTerms.urlToLicense = LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].urlToLicense;
+        entitlementsMap.nftAssetIdOnBlockchain = null;
+      }
+
+      setEntitlementsForSelectedAlbum(entitlementsMap);
+      setShowEntitlementsModal(true);
+    }
+  }, [selectedAlbumToShowEntitlements, myMusicAssetPurchases]);
 
   function thisIsPlayingOnMusicPlayer(album: any) {
     if (albumIdBeingPlayed) {
@@ -129,10 +214,16 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     }
   }
 
-  async function refreshPurchasedAlbums() {
+  async function refreshPurchasedAlbumCollectiblesViaRPC() {
     const _allDataNfts = await fetchSolNfts(addressSol);
 
     updateSolNfts(_allDataNfts);
+  }
+
+  // if we fetch the latest logs, the app store propogates all the music asset purchases for the user
+  async function refreshPurchasedLogsViaAPI() {
+    const _paymentLogs = await getPaymentLogsViaAPI({ addressSol: addressSol! });
+    updateMyRawPaymentLogs(_paymentLogs);
   }
 
   // Reorder albums (albumsWithCanBeMintedFlags) if highlightAlbumId is present
@@ -144,6 +235,40 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       ...albumsWithCanBeMintedFlags.filter((album) => album.albumId !== highlightAlbumId),
     ];
   }, [albumsWithCanBeMintedFlags, highlightAlbumId]);
+
+  function handlePlayAlbumNow(selectedAlbumToPlay: Album | null) {
+    // if the user is jumping between multiple albums, the audio player was getting into some weird state
+    // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
+    // @TODO: we can improve UX by using some global store state to toggle "queuing" of music when tracks are loading, or are in some
+    // transition state and prevent users from click spamming play buttons during this time
+    if (!selectedAlbumToPlay) return;
+
+    if (isMusicPlayerOpen) {
+      setQueueAlbumPlay(true);
+      updateAssetPlayIsQueued(true);
+      onCloseMusicPlayer();
+
+      setTimeout(() => {
+        handlePlayAlbum(selectedAlbumToPlay, {
+          artistId: artistProfile.artistId,
+          albumId: selectedAlbumToPlay.albumId,
+          artistName: artistProfile.name,
+          albumName: selectedAlbumToPlay.title,
+        });
+        setQueueAlbumPlay(false);
+        updateAssetPlayIsQueued(false);
+      }, 5000);
+    } else {
+      handlePlayAlbum(selectedAlbumToPlay, {
+        artistId: artistProfile.artistId,
+        albumId: selectedAlbumToPlay.albumId,
+        artistName: artistProfile.name,
+        albumName: selectedAlbumToPlay.title,
+      });
+      setQueueAlbumPlay(false);
+      updateAssetPlayIsQueued(false);
+    }
+  }
 
   return (
     <>
@@ -268,7 +393,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 )}
 
               {/* when not logged in, show this to convert the wallet into user account */}
-              {!publicKeySol && !album._buyNowMeta?.canBeMinted && (
+              {!publicKeySol && !album._buyNowMeta?.priceOption1 && (
                 <div className="relative w-full md:w-auto">
                   <Button
                     className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
@@ -281,15 +406,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       <span className="ml-2">Login for Full Album</span>
                     </>
                   </Button>
-
-                  {isFreeDropSampleWorkflow && (
-                    <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
-                      <div className="m-auto mb-[2px] bg-white dark:bg-slate-800 p-2 w-10 h-10 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center">
-                        <FontAwesomeIcon icon={faHandPointer} />
-                      </div>
-                      <span className="text-center">Click To Play</span>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -306,35 +422,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       }
                       className={`!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r  ${checkOwnershipOfAlbum(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px] mr-2`}
                       onClick={() => {
-                        // if the user is jumping between multiple albums, the audio player was getting into some weird state
-                        // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
-                        // @TODO: we can improve UX by using some global store state to toggle "queuing" of music when tracks are loading, or are in some
-                        // transition state and prevent users from click spamming play buttons during this time
-                        if (isMusicPlayerOpen) {
-                          setQueueAlbumPlay(true);
-                          updateAssetPlayIsQueued(true);
-                          onCloseMusicPlayer();
-
-                          setTimeout(() => {
-                            handlePlayAlbum(album, {
-                              artistId: artistProfile.artistId,
-                              albumId: album.albumId,
-                              artistName: artistProfile.name,
-                              albumName: album.title,
-                            });
-                            setQueueAlbumPlay(false);
-                            updateAssetPlayIsQueued(false);
-                          }, 5000);
-                        } else {
-                          handlePlayAlbum(album, {
-                            artistId: artistProfile.artistId,
-                            albumId: album.albumId,
-                            artistName: artistProfile.name,
-                            albumName: album.title,
-                          });
-                          setQueueAlbumPlay(false);
-                          updateAssetPlayIsQueued(false);
-                        }
+                        handlePlayAlbumNow(album);
                       }}>
                       <>
                         {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <AudioWaveform />}
@@ -392,16 +480,16 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       "></div>
                       </div>
                     </div>
-
-                    {isFreeDropSampleWorkflow && (
-                      <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
-                        <div className="m-auto mb-[2px] bg-white dark:bg-slate-800 p-2 w-10 h-10 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center">
-                          <FontAwesomeIcon icon={faHandPointer} />
-                        </div>
-                        <span className="text-center">Click To Play</span>
-                      </div>
-                    )}
                   </div>
+                  <Button
+                    className="!text-black text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer mr-2"
+                    onClick={() => {
+                      setSelectedAlbumToShowEntitlements(album);
+                      setShowEntitlementsModal(true);
+                    }}>
+                    <Briefcase className="w-4 h-4" />
+                    <span className="ml-2">Entitlements</span>
+                  </Button>
                 </>
               )}
 
@@ -424,7 +512,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       </div>
                     )}
 
-                    {album._buyNowMeta?.canBeMinted && album._buyNowMeta?.priceInUSD && !inCollectedAlbumsView && (
+                    {album._buyNowMeta?.priceOption1?.priceInUSD && !inCollectedAlbumsView && (
                       <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "w-[222px]" : "w-[222px]"}`}>
                         {/* Animated border background */}
                         <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
@@ -445,28 +533,13 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                             <span className="ml-2">
                               {checkOwnershipOfAlbum(album) > -1
                                 ? "Buy More Album Copies Now"
-                                : `${addressSol ? `Buy Now $ ${album._buyNowMeta?.priceInUSD} USD` : `Login to Buy Now $ ${album._buyNowMeta?.priceInUSD} USD`}`}
+                                : `${addressSol ? `Buy (From  $${album._buyNowMeta?.priceOption1?.priceInUSD})` : `Login to Buy (From $${album._buyNowMeta?.priceOption1?.priceInUSD})`}`}
                             </span>
                           </>
                         </Button>
                       </div>
                     )}
                   </>
-                )}
-
-                {album.ctaAirdrop && (
-                  <div>
-                    <Button
-                      className="!text-white text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-700 to-orange-800 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mr-2 cursor-pointer"
-                      onClick={() => {
-                        window.open(album.ctaAirdrop)?.focus();
-                      }}>
-                      <>
-                        <Gift />
-                        <span className="ml-2">Get Album Airdrop!</span>
-                      </>
-                    </Button>
-                  </div>
                 )}
 
                 {inCollectedAlbumsView && artistProfile && !album.isSigmaRemixAlbum && setFeaturedArtistDeepLinkSlug && setHomeMode && (
@@ -492,6 +565,93 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
           </div>
         ))}
 
+      {/* Entitlements Modal */}
+      {showEntitlementsModal && selectedAlbumToShowEntitlements && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-2xl w-full mx-4">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-xl font-bold text-white">Your Entitlements</h3>
+              <button
+                onClick={() => {
+                  setShowEntitlementsModal(false);
+                  setSelectedAlbumToShowEntitlements(null);
+                  setEntitlementsForSelectedAlbum(null);
+                }}
+                className="text-gray-400 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+
+            <p className="text-gray-300 mb-4">You have purchased this asset and these are your entitlements:</p>
+
+            <div className="space-y-4">
+              {/* Play Premium Album Section */}
+              <div className="">
+                <h4 className="!text-lg font-semibold text-white">Play Premium Album</h4>
+                <Button
+                  disabled={thisIsPlayingOnMusicPlayer(selectedAlbumToShowEntitlements) || queueAlbumPlay || trackPlayIsQueued || assetPlayIsQueued}
+                  className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
+                  onClick={() => {
+                    handlePlayAlbumNow(selectedAlbumToShowEntitlements);
+                    setShowEntitlementsModal(false);
+                    setSelectedAlbumToShowEntitlements(null);
+                    setEntitlementsForSelectedAlbum(null);
+                  }}>
+                  <AudioWaveform className="w-4 h-4" />
+                  <span className="ml-2">Play Now</span>
+                </Button>
+              </div>
+
+              {/* Download Premium Album Files Section */}
+              <div
+                className={`${entitlementsForSelectedAlbum?.mp3TrackUrls.length && entitlementsForSelectedAlbum?.mp3TrackUrls.length > 0 ? "" : "opacity-50 pointer-events-none cursor-not-allowed"}`}>
+                <h4 className="!text-lg font-semibold text-white">Download Premium Album Files</h4>
+                <Button
+                  className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
+                  onClick={() => {
+                    // TODO: Implement download functionality
+                    window.open(selectedAlbumToShowEntitlements.ctaBuy, "_blank");
+                  }}>
+                  <Download className="w-4 h-4" />
+                  <span className="ml-2">Download Files</span>
+                </Button>
+              </div>
+
+              {/* Usage License Section */}
+              <div className="">
+                <h4 className="!text-lg font-semibold text-white">Your Usage License</h4>
+                <p className="text-gray-300">{entitlementsForSelectedAlbum?.licenseTerms.shortDescription}</p>
+                <Button
+                  className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
+                  onClick={() => {
+                    if (entitlementsForSelectedAlbum?.licenseTerms.urlToLicense) {
+                      window.open(entitlementsForSelectedAlbum?.licenseTerms.urlToLicense, "_blank");
+                    }
+                  }}>
+                  <ExternalLink className="w-4 h-4" />
+                  <span className="ml-2">View License Details</span>
+                </Button>
+              </div>
+
+              {/* View Collectible Section */}
+              <div className={`${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain ? "" : "opacity-50 pointer-events-none cursor-not-allowed"}`}>
+                <h4 className="!text-lg font-semibold text-white">View Collectible</h4>
+                <p className="text-gray-300">View your NFT collectible on the blockchain.</p>
+                <Button
+                  className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
+                  onClick={() => {
+                    window.open(`https://solscan.io/token/${selectedAlbumToShowEntitlements.solNftName}`, "_blank");
+                  }}>
+                  <Image className="w-4 h-4" />
+                  <span className="ml-2">View on Blockchain</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Buy and Mint Album Modal */}
       <>
         {albumToBuyAndMint &&
           (walletType === "phantom" ? (
@@ -502,8 +662,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 setAlbumToBuyAndMint(undefined);
 
                 if (isMintingSuccess) {
-                  refreshPurchasedAlbums();
+                  refreshPurchasedAlbumCollectiblesViaRPC();
                 }
+
+                refreshPurchasedLogsViaAPI();
               }}
             />
           ) : (

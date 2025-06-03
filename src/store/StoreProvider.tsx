@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useEffect } from "react";
+import React, { PropsWithChildren, useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
@@ -7,9 +7,9 @@ import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
-import { AlbumTrackCatalog } from "libs/types";
+import { AlbumTrackCatalog, MusicAssetOwned, PaymentLog } from "libs/types";
 import { computeRemainingCooldown } from "libs/utils/functions";
-import { fetchMintsLeaderboardByMonth } from "libs/utils/misc";
+import { fetchMintsLeaderboardByMonth, getPaymentLogsViaAPI } from "libs/utils/misc";
 import { getAlbumTrackCatalogData, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
@@ -33,8 +33,18 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     updateIsSigmaWeb2XpSystem,
     isSigmaWeb2XpSystem,
   } = useSolBitzStore();
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
+  const {
+    solPreaccessNonce,
+    solPreaccessSignature,
+    solPreaccessTimestamp,
+    myRawPaymentLogs,
+    updateSolPreaccessNonce,
+    updateSolPreaccessTimestamp,
+    updateSolSignedPreaccess,
+    updateMyPaymentLogs,
+    updateMyMusicAssetPurchases,
+    updateMyRawPaymentLogs,
+  } = useAccountStore();
 
   // NFT Store
   const { solBitzNfts, solNfts, updateSolNfts, updateIsLoadingSol, updateSolBitzNfts, updateSolNFMeIdNfts } = useNftsStore();
@@ -50,6 +60,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     updateArtistLookupEverything,
     updateMintsLeaderboard,
     mintsLeaderboard,
+    artistLookupEverything,
   } = useAppStore();
 
   useEffect(() => {
@@ -105,7 +116,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     })();
   }, []);
 
-  // SOL Logged in - bootstrap nft store
+  // SOL Logged in - bootstrap nft store and other account data
   useEffect(() => {
     async function getAllUsersSolNftsAndRefreshSignatureSession() {
       updateIsLoadingSol(true);
@@ -125,8 +136,14 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       updateIsLoadingSol(false);
     }
 
+    async function getAllPaymentLogs() {
+      const _paymentLogs = await getPaymentLogsViaAPI({ addressSol: addressSol! });
+      updateMyRawPaymentLogs(_paymentLogs);
+    }
+
     if (publicKeySol) {
       getAllUsersSolNftsAndRefreshSignatureSession();
+      getAllPaymentLogs();
     }
   }, [publicKeySol]);
 
@@ -170,6 +187,55 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       updateIsLoadingSol(false);
     })();
   }, [publicKeySol, solNfts]);
+
+  useEffect(() => {
+    // if we have got the myRawPaymentLogs or updated it after a purchase in the app session, then lets filter it by paymentStatus === success
+    // and then find items with type buyAlbum and put that in a new list in useAccountStore called myMusicAssetPurchases
+    if (myRawPaymentLogs.length > 0 && Object.keys(artistLookupEverything).length > 0) {
+      // add data like artistSlug, artistName, albumName to the myRawPaymentLogs
+      const _augmentedMyRawPaymentLogs = myRawPaymentLogs.map((log) => {
+        if (log.artistId) {
+          const artist = artistLookupEverything[log.artistId];
+          if (artist) {
+            log._artistSlug = artist.slug;
+            log._artistName = artist.name;
+          }
+        } else if (log.albumId) {
+          const artist = artistLookupEverything[log.albumId.split("_")[0]];
+          console.log("artist", artist);
+          if (artist) {
+            log._artistSlug = artist.slug;
+            log._artistName = artist.name;
+
+            artist.albums.forEach((album: any) => {
+              if (album.albumId === log.albumId) {
+                log._albumName = album.title;
+              }
+            });
+          }
+        }
+        return log;
+      });
+
+      const _myMusicAssetPurchases: MusicAssetOwned[] = _augmentedMyRawPaymentLogs
+        .filter((log) => log.paymentStatus === "success" && log.task === "buyAlbum")
+        .map((log) => ({
+          purchasedOn: log.createdOn,
+          tx: log.tx,
+          albumSaleTypeOption: log.albumSaleTypeOption,
+          albumId: log.albumId,
+          type: "sol",
+          artistId: log.artistId,
+          membershipId: log.membershipId,
+          _artistSlug: log._artistSlug,
+          _artistName: log._artistName,
+          _albumName: log._albumName,
+        }));
+
+      updateMyPaymentLogs(_augmentedMyRawPaymentLogs);
+      updateMyMusicAssetPurchases(_myMusicAssetPurchases);
+    }
+  }, [myRawPaymentLogs, artistLookupEverything, publicKeySol]);
 
   // SOL - Bitz Bootstrap
   useEffect(() => {

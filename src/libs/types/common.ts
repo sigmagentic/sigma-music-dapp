@@ -43,7 +43,6 @@ export interface Album {
   ctaPreviewStream: string;
   ctaBuy: string;
   dripSet: string;
-  ctaAirdrop: string;
   bountyId: string;
   img: string;
   isExplicit: string;
@@ -51,9 +50,21 @@ export interface Album {
   isSpotlight: string;
   isFeatured: string;
   isSigmaRemixAlbum: string;
+  albumPriceOption1?: string; // digital album  + download only
+  albumPriceOption2?: string; // digital album + download + NFT
+  albumPriceOption3?: string; // digital album + commercial license + download + NFT
   _buyNowMeta?: {
-    canBeMinted: boolean;
-    priceInUSD: string;
+    priceOption1?: {
+      priceInUSD: string | null;
+    };
+    priceOption2?: {
+      canBeMinted: boolean;
+      priceInUSD: string | null;
+    };
+    priceOption3?: {
+      canBeMinted: boolean;
+      priceInUSD: string | null;
+    };
   };
 }
 
@@ -146,4 +157,51 @@ export interface MintLeaderboard {
   nftType: string;
   arId: string;
   mints: number;
+}
+export enum AlbumSaleTypeOption {
+  priceOption1 = "1", // Digital Album + Download Only
+  priceOption2 = "2", // Digital Album + Download + NFT
+  priceOption3 = "3", // Digital Album + Commercial License + Download + NFT
+}
+
+export interface PaymentLog {
+  task: "buyAlbum" | "joinFanClub"; // buyAlbum or joinFanClub
+  paymentStatus: "new" | "success" | "failed"; // new, success, failed (not sure if we use this)
+  createdOn: number;
+  tx: string;
+  amount: string;
+  creatorWallet: string;
+  payer: string;
+  paymentStatusAddedOn: number;
+  albumSaleTypeOption: string; // 1 (digital album + download only), 2 (digital album + download + NFT), 3 (digital album + commercial license + download + NFT)
+  priceInUSD?: string; // only when type is sol
+  albumId?: string;
+  type: "sol" | "cc"; // sol or cc
+  artistId?: string;
+  membershipId?: string;
+  _artistSlug?: string; // we add this inside the app
+  _artistName?: string; // we add this inside the app
+  _albumName?: string; // we add this inside the app
+}
+
+export interface MusicAssetOwned {
+  purchasedOn: number;
+  tx: string;
+  albumSaleTypeOption: string; // 1 (digital album + download only), 2 (digital album + download + NFT), 3 (digital album + commercial license + download + NFT)
+  albumId?: string;
+  type: "sol" | "cc"; // sol or cc
+  artistId?: string;
+  membershipId?: string;
+  _artistSlug?: string; // we add this inside the app
+  _artistName?: string; // we add this inside the app
+  _albumName?: string; // we add this inside the app
+}
+
+export interface EntitlementForMusicAsset {
+  mp3TrackUrls: string[];
+  licenseTerms: {
+    shortDescription: string | null;
+    urlToLicense: string | null;
+  };
+  nftAssetIdOnBlockchain: string | null;
 }

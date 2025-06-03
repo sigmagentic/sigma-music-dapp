@@ -1,4 +1,5 @@
 import { IS_DEVNET } from "appsConfig";
+import { AlbumSaleTypeOption } from "libs/types";
 
 export const APP_NETWORK = import.meta.env.VITE_ENV_NETWORK || "devnet";
 
@@ -155,3 +156,18 @@ export const ALL_MUSIC_GENRES = [
   { code: "alternative", label: "Alternative", tier: GenreTier.TIER1, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
   { code: "vibrant electronic", label: "Vibrant Electronic", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
 ];
+
+export const LICENSE_TERMS_MAP = {
+  [AlbumSaleTypeOption.priceOption1]: {
+    shortDescription: "CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives",
+    urlToLicense: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  },
+  [AlbumSaleTypeOption.priceOption2]: {
+    shortDescription: "CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives",
+    urlToLicense: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  },
+  [AlbumSaleTypeOption.priceOption3]: {
+    shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution Allowed",
+    urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
+  },
+};

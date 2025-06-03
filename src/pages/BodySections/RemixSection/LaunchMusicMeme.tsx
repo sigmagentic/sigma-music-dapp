@@ -196,7 +196,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         <h3 className="text-xl font-bold mb-4">Confirm Payment</h3>
         <div className="space-y-4">
           <p>
-            Amount to pay: {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD} USD)
+            Amount to pay: {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD})
           </p>
           <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
           <p>When you click "Proceed", you will be asked to sign a single transaction to send the payment for processing your music generation request.</p>
@@ -435,14 +435,14 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
           <ul className="space-y-3 list-none text-sm">
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">1.</span>
-              Hold over $49 USD worth of $FAN tokens in your wallet. All music you generate will be original and sold as royalty-free NFTs with your and the
+              Hold over $49 worth of $FAN tokens in your wallet. All music you generate will be original and sold as royalty-free NFTs with your and the
               original artist's name on them artists sharing the earnings.
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">2.</span>
               Make a small SOL payment of{" "}
               <span className="text-orange-600 contents">
-                {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD} USD)
+                {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD})
               </span>{" "}
               to Sigma's wallet. This is used to protect against spam and for music AI LLM usage and tokenization of your music NFT
             </li>

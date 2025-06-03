@@ -58,7 +58,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   const [allOwnedSigmaAlbums, setAllOwnedSigmaAlbums] = useState<any[]>([]);
   const [allOwnedFanMemberships, setAllOwnedFanMemberships] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isFreeDropSampleWorkflow, setIsFreeDropSampleWorkflow] = useState(false);
   const { artistLookupEverything } = useAppStore();
 
   useEffect(() => {
@@ -72,20 +71,12 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     if (allOwnedAlbums.length > 0) {
       // only scroll direct to focus on my collected albums of the user just came from login
       const isDirectFromFreeMusicGift = searchParams.get("fromFreeMusicGift");
-      const isHlWorkflowDeepLink = searchParams.get("hl");
 
       if (isDirectFromFreeMusicGift) {
         const currentParams = Object.fromEntries(searchParams.entries());
         delete currentParams["fromFreeMusicGift"];
         setSearchParams(currentParams);
         scrollToSection("myCollectedAlbums");
-      }
-
-      if (isHlWorkflowDeepLink === "sample") {
-        const currentParams = Object.fromEntries(searchParams.entries());
-        delete currentParams["hl"];
-        setSearchParams(currentParams);
-        setIsFreeDropSampleWorkflow(true);
       }
     }
 
@@ -324,7 +315,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                                 dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
                                 onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                                 isMusicPlayerOpen={isMusicPlayerOpen}
-                                isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
                                 setHomeMode={setHomeMode}
                                 checkOwnershipOfAlbum={checkOwnershipOfAlbum}
                                 openActionFireLogic={openActionFireLogic}

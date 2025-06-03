@@ -368,6 +368,7 @@ export const HomeSection = (props: HomeSectionProps) => {
         const albumId = track.alId.split("-")[0]; // Extract albumId from alId (e.g., "ar24_a1-2" -> "ar24_a1")
 
         const artistData = artistLookupEverything[artistId];
+
         if (!artistData) {
           console.warn(`No artist data found for artistId: ${artistId}`);
           return null;
@@ -397,7 +398,10 @@ export const HomeSection = (props: HomeSectionProps) => {
 
         return musicTrack;
       })
-      .filter((track): track is MusicTrack => track !== null);
+      .filter((track): track is MusicTrack => track !== null)
+      .filter((track) => !track.title.includes("DEMO"));
+
+    console.log("augmentedTracks", augmentedTracks);
 
     return augmentedTracks;
   }
@@ -787,7 +791,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
           {homeMode === "profile" && (
             <div className="w-full mt-5">
-              <MyProfile />
+              <MyProfile navigateToDeepAppView={navigateToDeepAppView} />
             </div>
           )}
 

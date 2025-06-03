@@ -1,7 +1,8 @@
 import { LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
+import { PaymentLog } from "../types/common";
 
 interface CacheEntry_DataWithTimestamp {
-  data: boolean | [] | Record<string, any> | number;
+  data: boolean | [] | Record<string, any> | number | null;
   timestamp: number;
 }
 
@@ -256,6 +257,19 @@ const cache_checkIfAlbumCanBeMinted: { [key: string]: CacheEntry_DataWithTimesta
 
 export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
   const now = Date.now();
+  const baseNothingAvailable = {
+    priceOption1: {
+      priceInUSD: null,
+    },
+    priceOption2: {
+      canBeMinted: false,
+      priceInUSD: null,
+    },
+    priceOption3: {
+      canBeMinted: false,
+      priceInUSD: null,
+    },
+  };
 
   try {
     // Check if we have a valid cache entry
@@ -270,32 +284,47 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
     if (response.ok) {
       const data = await response.json();
 
+      // the above API trumps of if option 2 and 3 is actually available (as it needs to be minted)
+      const _buyNowMeta = {
+        priceOption1: {
+          priceInUSD: null,
+        },
+        priceOption2: {
+          canBeMinted: data.canBeMinted,
+          priceInUSD: null,
+        },
+        priceOption3: {
+          canBeMinted: data.canBeMinted,
+          priceInUSD: null,
+        },
+      };
+
       // Update cache
       cache_checkIfAlbumCanBeMinted[albumId] = {
-        data: data,
+        data: _buyNowMeta,
         timestamp: now,
       };
 
-      return data;
+      return _buyNowMeta;
     } else {
       // Update cache (with false as data)
       cache_checkIfAlbumCanBeMinted[albumId] = {
-        data: { _canBeMinted: false },
+        data: baseNothingAvailable,
         timestamp: now,
       };
 
-      return { _canBeMinted: false };
+      return baseNothingAvailable;
     }
   } catch (error) {
     console.error("Error checking if album can be minted:", error);
 
     // Update cache (with false as data)
     cache_checkIfAlbumCanBeMinted[albumId] = {
-      data: { _canBeMinted: false },
+      data: baseNothingAvailable,
       timestamp: now,
     };
 
-    return { _canBeMinted: false };
+    return baseNothingAvailable;
   }
 };
 
@@ -857,6 +886,21 @@ export async function getMusicTracksByGenreViaAPI({ genre, pageSize = 50, pageTo
     return data;
   } catch (err: any) {
     const message = "Getting music tracks by genre failed :" + genre + "  " + err.message;
+    console.error(message);
+    return false;
+  }
+}
+
+export async function getPaymentLogsViaAPI({ addressSol }: { addressSol: string }): Promise<any> {
+  try {
+    let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/paymentLogs?payer=${addressSol}`;
+
+    const res = await fetch(callUrl);
+
+    const data: PaymentLog[] = await res.json();
+    return data;
+  } catch (err: any) {
+    const message = "Getting payment logs failed :" + err.message;
     console.error(message);
     return false;
   }

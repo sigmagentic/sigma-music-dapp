@@ -365,7 +365,7 @@ export const LaunchToPumpFun = ({
         <h3 className="text-xl font-bold mb-4">Confirm Launch Payment</h3>
         <div className="space-y-4">
           <p>
-            Launch fee: {requiredSolAmount === 0 ? "FREE" : requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD} USD)
+            Launch fee: {requiredSolAmount === 0 ? "FREE" : requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
           </p>
           <p>Your wallet balance: {walletBalance !== null ? `${walletBalance.toFixed(4)} SOL` : "Loading..."}</p>
           <p>This payment will be sent to Sigma's service wallet to launch your Music NFT on Pump.fun</p>
@@ -544,7 +544,7 @@ export const LaunchToPumpFun = ({
               <span className="text-cyan-400 font-bold">3.</span>
               To launch it on pump.fun, Make a small SOL payment of{" "}
               <span className="text-orange-600 contents">
-                {requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD} USD)
+                {requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
               </span>{" "}
               to Sigma's wallet.
             </li>

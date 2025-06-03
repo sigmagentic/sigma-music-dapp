@@ -295,7 +295,7 @@ export const JoinInnerCircleSOL = ({
         <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
         <div className="space-y-4">
           <p>
-            Amount to pay: {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD} USD)
+            Amount to pay: {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
           </p>
           <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
 
@@ -359,7 +359,7 @@ export const JoinInnerCircleSOL = ({
             </div>
 
             <div className="text-center text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              {tierData[membershipId]?.label.toUpperCase()} Tier @ {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD} USD)
+              {tierData[membershipId]?.label.toUpperCase()} Tier @ {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
               {tierData[membershipId]?.term === "annual" ? " per year" : ""}
             </div>
 
@@ -488,7 +488,7 @@ export const JoinInnerCircleSOL = ({
                 <span className="text-cyan-400 font-bold">1.</span>
                 Make a SOL payment of{" "}
                 <span className="text-orange-600 contents">
-                  {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD} USD)
+                  {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
                 </span>{" "}
                 to Sigma's wallet. This is used to pay for the membership tokenization
               </li>

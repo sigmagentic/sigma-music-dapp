@@ -443,7 +443,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
 
       {addressSol && requiredSolAmount && (
         <p className="text-gray-400 text-sm mt-2 text-center md:text-left">
-          Amount to pay: {requiredSolAmount.toFixed(4)} SOL (${artistsMembershipOptions?.[selectedArtistMembership]?.defaultPriceUSD} USD)
+          Amount to pay: {requiredSolAmount.toFixed(4)} SOL (${artistsMembershipOptions?.[selectedArtistMembership]?.defaultPriceUSD})
         </p>
       )}
     </>
@@ -556,7 +556,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   ${selectedArtistMembership === type ? "border-yellow-500 bg-yellow-500/10" : "border-gray-700 hover:border-gray-600"}
                 `}>
                   <h3 className="text-xl font-semibold mb-2 capitalize">{data.label}</h3>
-                  <div className="text-2xl font-bold mb-2">{formatPrice(data.defaultPriceUSD)} USD</div>
+                  <div className="text-2xl font-bold mb-2">${formatPrice(data.defaultPriceUSD)}</div>
                   <div className="text-sm text-gray-400">{formatTerm(data.term)}</div>
                   <div className="text-yellow-400">{data.maxMints && data.maxMints > 0 ? `Only ${data.maxMints.toLocaleString()} will be sold!` : ""}</div>
                   {liveMintStats && liveMintStats.mints && liveMintStats.mints > 0 ? (
@@ -609,7 +609,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
           // Single membership type view
           <div className="space-y-8">
             <div className="p-6 rounded-lg border-2 cursor-pointer transition-all border-yellow-500 bg-yellow-500/10 text-center">
-              <div className="text-3xl font-bold mb-2">{formatPrice(artistsMembershipOptions?.t1.defaultPriceUSD || 0)} USD</div>
+              <div className="text-3xl font-bold mb-2">${formatPrice(artistsMembershipOptions?.t1.defaultPriceUSD || 0)}</div>
               <div className="text-gray-400">{formatTerm(artistsMembershipOptions?.t1.term || "")}</div>
               <div className="text-yellow-400">
                 {artistsMembershipOptions?.t1.maxMints && artistsMembershipOptions?.t1.maxMints > 0 ? (
