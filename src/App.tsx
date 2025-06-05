@@ -165,7 +165,6 @@ export const App = () => {
   };
 
   return (
-    // <Router>
     <Web3AuthProvider>
       <SolContextProvider>
         <StoreProvider>
@@ -200,7 +199,6 @@ export const App = () => {
         </StoreProvider>
       </SolContextProvider>
     </Web3AuthProvider>
-    // </Router>
   );
 };
 

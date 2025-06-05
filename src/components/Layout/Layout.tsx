@@ -66,7 +66,7 @@ export const Layout = ({
         </div>
       )}
       <div className={`header ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""} md:fixed md:top-0 md:left-0 md:right-0 md:z-10`}>
-        <Navbar />
+        <Navbar setHomeMode={setHomeMode} homeMode={homeMode} removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl} />
       </div>
 
       <div className="body mt-2 flex-1 md:mt-[72px] md:mb-[30px]">

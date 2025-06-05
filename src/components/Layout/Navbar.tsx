@@ -20,7 +20,15 @@ import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { ProductTour } from "../ProductTour/ProductTour";
 import { PlayXPGameModal } from "../XPSystem/PlayXPGameModal";
 
-export const Navbar = () => {
+export const Navbar = ({
+  setHomeMode,
+  homeMode,
+  removeDeepSectionParamsFromUrl,
+}: {
+  setHomeMode: (homeMode: string) => void;
+  homeMode: string;
+  removeDeepSectionParamsFromUrl: () => void;
+}) => {
   const { publicKey: publicKeySol, walletType, disconnect, isConnected } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const isLoggedInSol = !!addressSol;
@@ -70,16 +78,20 @@ export const Navbar = () => {
     <>
       <div className="flex flex-row justify-between items-center mx-[1rem] h-full bg-[#171717]">
         <div className="flex mb-0 flex-col items-left text-xl">
-          <Link
-            className="flex flex-row items-center"
-            to={routeNames.home}
+          <div
+            className="flex flex-row leading-none cursor-pointer"
             onClick={() => {
-              window.location.href = `${routeNames.home}`;
+              if (location.pathname !== routeNames.login && homeMode !== "home") {
+                if (homeMode !== "home") {
+                  setHomeMode("home");
+                  removeDeepSectionParamsFromUrl();
+                }
+              } else {
+                window.location.href = `${routeNames.home}`;
+              }
             }}>
-            <div className="flex flex-row leading-none">
-              <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[180px] md:w-[220px] mt-[10px]" />
-            </div>
-          </Link>
+            <img src={sigmaLogo} alt="Sigma Music Logo" className="w-[180px] md:w-[220px] mt-[10px]" />
+          </div>
         </div>
 
         <NavigationMenu className="md:!inline !hidden z-0 pr-2 relative md:z-10">

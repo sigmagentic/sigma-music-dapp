@@ -5,7 +5,7 @@ import { Loader } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import CAMPAIGN_WSB_CTA from "assets/img/campaigns/campaign-wsb-home-cta.png";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
-import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier, isUIDebugMode } from "config";
+import { MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier, isUIDebugMode } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -54,10 +54,9 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
   const [dataMarshalResponse, setDataMarshalResponse] = useState({ "data_stream": {}, "data": [] });
-  const { solNfts, solBitzNfts } = useNftsStore();
+  const { solBitzNfts, solMusicAssetNfts } = useNftsStore();
   const [stopPreviewPlaying, setStopPreviewPlaying] = useState<boolean>(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol } = useSolanaWallet();
   const [bitzGiftingMeta, setBitzGiftingMeta] = useState<{
@@ -73,8 +72,15 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Cached Signature Store Items
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
+  const {
+    solPreaccessNonce,
+    solPreaccessSignature,
+    solPreaccessTimestamp,
+    updateSolPreaccessNonce,
+    updateSolPreaccessTimestamp,
+    updateSolSignedPreaccess,
+    myMusicAssetPurchases,
+  } = useAccountStore();
 
   // give bits to a bounty (power up or like)
   const [giveBitzForMusicBountyConfig, setGiveBitzForMusicBountyConfig] = useState<{
@@ -230,22 +236,8 @@ export const HomeSection = (props: HomeSectionProps) => {
   }, [selectedPlaylistGenre]);
 
   useEffect(() => {
-    if (publicKeySol && solNfts.length > 0) {
-      setShownSolAppDataNfts(
-        solNfts.filter((nft: DasApiAsset) => {
-          if (nft.content.metadata.name.includes("MUS") || nft.content.metadata.name.includes("POD") || nft.content.metadata.name.includes("FAN")) {
-            return true;
-          } else {
-            return false;
-          }
-        })
-      );
-    }
-  }, [solNfts, publicKeySol]);
-
-  useEffect(() => {
-    if (shownSolAppDataNfts && shownSolAppDataNfts.length > 0) {
-      const nameToIndexMap = shownSolAppDataNfts.reduce((t: any, solDataNft: DasApiAsset, idx: number) => {
+    if (solMusicAssetNfts && solMusicAssetNfts.length > 0) {
+      const nameToIndexMap = solMusicAssetNfts.reduce((t: any, solDataNft: DasApiAsset, idx: number) => {
         if (solDataNft?.content?.metadata?.name) {
           // find rarity if it exists or default it to "Common"
           const rarity = solDataNft.content.metadata.attributes?.find((attr: any) => attr.trait_type === "Rarity")?.value || "Common";
@@ -257,7 +249,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
       setOwnedSolDataNftNameAndIndexMap(nameToIndexMap);
     }
-  }, [shownSolAppDataNfts]);
+  }, [solMusicAssetNfts]);
 
   useEffect(() => {
     if (triggerTogglePlaylistPlayback !== "") {
@@ -368,6 +360,7 @@ export const HomeSection = (props: HomeSectionProps) => {
         const albumId = track.alId.split("-")[0]; // Extract albumId from alId (e.g., "ar24_a1-2" -> "ar24_a1")
 
         const artistData = artistLookupEverything[artistId];
+
         if (!artistData) {
           console.warn(`No artist data found for artistId: ${artistId}`);
           return null;
@@ -397,12 +390,15 @@ export const HomeSection = (props: HomeSectionProps) => {
 
         return musicTrack;
       })
-      .filter((track): track is MusicTrack => track !== null);
+      .filter((track): track is MusicTrack => track !== null)
+      .filter((track) => !track.title.includes("DEMO"));
+
+    console.log("augmentedTracks", augmentedTracks);
 
     return augmentedTracks;
   }
 
-  async function viewSolData(index: number, playAlbumNowParams?: any, userOwnsAlbum?: boolean) {
+  async function viewSolData(albumInOwnershipListIndex: number, playAlbumNowParams?: any, userOwnsAlbum?: boolean) {
     try {
       setIsFetchingDataMarshal(true);
       resetMusicPlayerState();
@@ -434,7 +430,7 @@ export const HomeSection = (props: HomeSectionProps) => {
       if (!_musicPlayerTrackListFromDb) {
         if (!publicKeySol) throw new Error("Not logged in to stream music via Data NFT");
 
-        const dataNft = shownSolAppDataNfts[index];
+        const dataNft = solMusicAssetNfts[albumInOwnershipListIndex];
 
         const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
           solPreaccessNonce,
@@ -498,7 +494,7 @@ export const HomeSection = (props: HomeSectionProps) => {
             const blobUrl = URL.createObjectURL(await firstSongRes.blob());
 
             // this is the data that feeds the player with the album data
-            setCurrentDataNftIndex(index);
+            setCurrentDataNftIndex(albumInOwnershipListIndex);
             setDataMarshalResponse(data);
             setMusicPlayerAlbumTrackList(data.data);
             setViewDataRes(viewDataPayload);
@@ -527,44 +523,65 @@ export const HomeSection = (props: HomeSectionProps) => {
     }
   }
 
-  function checkOwnershipOfAlbum(album: any) {
-    let albumInOwnershipListIndex = -1; // note -1 means we don't own it
+  function checkOwnershipOfMusicAsset(album: any, onlyCheckInCollectibleNftHolding?: boolean) {
+    /*
+    the user can own the music asset in 2 ways:
 
-    if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
-      /* mark the albumInOwnershipListIndex as of the highest rarity album
+    1. the album id is in myMusicAssetPurchases from the store (IF NOT.. move to next)
+    2. they own the collectible NFT in their wallet
+
+    Note that they can match for both 1 and 2 if they have bought the NFT colelctible, but we dont need to check both
+    */
+
+    let doesUserOwnMusicAsset = -1; // -1 is no and anything more is yes
+
+    // 1. the album id is in myMusicAssetPurchases from the store (IF NOT.. move to next)
+    const assetPurchaseThatMatches = myMusicAssetPurchases.find((assetPurchase) => assetPurchase.albumId === album.albumId);
+
+    if (assetPurchaseThatMatches && !onlyCheckInCollectibleNftHolding) {
+      doesUserOwnMusicAsset = 0; // this means we own it
+    } else {
+      // 2. they own the collectible NFT in their wallet?
+      let albumInOwnershipListIndex = -1; // note -1 means we don't own it
+
+      if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
+        /* mark the albumInOwnershipListIndex as of the highest rarity album
         Legendary
         Rare
         Common */
 
-      // Normalize the album name
-      const normalizeString = (str: string) => str.replace(/[^0-9a-zA-Z]/g, "").toLowerCase();
+        // Normalize the album name
+        const normalizeString = (str: string) => str.replace(/[^0-9a-zA-Z]/g, "").toLowerCase();
 
-      // Create normalized map
-      const normalizedMap = Object.entries(ownedSolDataNftNameAndIndexMap).reduce(
-        (acc, [key, value]) => {
-          const normalizedKey = normalizeString(key);
-          acc[normalizedKey] = value as number;
-          return acc;
-        },
-        {} as Record<string, number>
-      );
+        // Create normalized map
+        const normalizedMap = Object.entries(ownedSolDataNftNameAndIndexMap).reduce(
+          (acc, [key, value]) => {
+            const normalizedKey = normalizeString(key);
+            acc[normalizedKey] = value as number;
+            return acc;
+          },
+          {} as Record<string, number>
+        );
 
-      // Normalize the album name we're looking for
-      const normalizedAlbumName = normalizeString(album.solNftName);
+        // Normalize the album name we're looking for
+        const normalizedAlbumName = normalizeString(album.solNftName);
 
-      // Check for ownership across rarities
-      // we normalize the values as the drip album and the extra bonus mint album names might not exactly match
-      // ... e.g. we convert key "MUSG20 - Olly'G - MonaLisa Rap - Common" to "musg20ollygmonalisarapcommon"
-      if (typeof normalizedMap[`${normalizedAlbumName}legendary`] !== "undefined") {
-        albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}legendary`];
-      } else if (typeof normalizedMap[`${normalizedAlbumName}rare`] !== "undefined") {
-        albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}rare`];
-      } else if (typeof normalizedMap[`${normalizedAlbumName}common`] !== "undefined") {
-        albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}common`];
+        // Check for ownership across rarities
+        // we normalize the values as the drip album and the extra bonus mint album names might not exactly match
+        // ... e.g. we convert key "MUSG20 - Olly'G - MonaLisa Rap - Common" to "musg20ollygmonalisarapcommon"
+        if (typeof normalizedMap[`${normalizedAlbumName}legendary`] !== "undefined") {
+          albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}legendary`];
+        } else if (typeof normalizedMap[`${normalizedAlbumName}rare`] !== "undefined") {
+          albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}rare`];
+        } else if (typeof normalizedMap[`${normalizedAlbumName}common`] !== "undefined") {
+          albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}common`];
+        }
+
+        doesUserOwnMusicAsset = albumInOwnershipListIndex; // the number here is the index of the album in the ownedSolDataNftNameAndIndexMap
       }
     }
 
-    return albumInOwnershipListIndex;
+    return doesUserOwnMusicAsset;
   }
 
   // here we set the power up object that will trigger the modal that allows a user to sent bitz to a target bounty
@@ -706,7 +723,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                     // pause the main player if playing
                     setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
                   }}
-                  checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                  checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                   openActionFireLogic={(_bitzGiftingMeta?: any) => {
                     setLaunchAlbumPlayer(true);
                     setStopPreviewPlaying(true);
@@ -719,7 +736,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                   bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                   setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
                   userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
-                  dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
+                  dataNftPlayingOnMainPlayer={solMusicAssetNfts[currentDataNftIndex]}
                   onCloseMusicPlayer={resetMusicPlayerState}
                   isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
                   loadIntoTileView={loadIntoTileView}
@@ -745,10 +762,9 @@ export const HomeSection = (props: HomeSectionProps) => {
                     firstSongBlobUrl={firstAlbumSongBlobUrl}
                     setStopPreviewPlaying={setStopPreviewPlaying}
                     setBitzGiftingMeta={setBitzGiftingMeta}
-                    shownSolAppDataNfts={shownSolAppDataNfts}
                     onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                     bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                    checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                    checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                     userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
                     setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
                     setFeaturedArtistDeepLinkSlug={(slug: string) => {
@@ -762,7 +778,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                         setBitzGiftingMeta(_bitzGiftingMeta);
                       }
                     }}
-                    dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
+                    dataNftPlayingOnMainPlayer={solMusicAssetNfts[currentDataNftIndex]}
                     onCloseMusicPlayer={resetMusicPlayerState}
                     isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
                     setHomeMode={setHomeMode}
@@ -787,7 +803,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
           {homeMode === "profile" && (
             <div className="w-full mt-5">
-              <MyProfile />
+              <MyProfile navigateToDeepAppView={navigateToDeepAppView} />
             </div>
           )}
 
@@ -801,7 +817,7 @@ export const HomeSection = (props: HomeSectionProps) => {
           {launchAlbumPlayer && (
             <div className="w-full fixed left-0 bottom-0 z-50">
               <MusicPlayer
-                dataNftToOpen={shownSolAppDataNfts[currentDataNftIndex]}
+                dataNftToOpen={solMusicAssetNfts[currentDataNftIndex]}
                 trackList={musicPlayerAlbumTrackList}
                 trackListFromDb={musicPlayerTrackListFromDb}
                 isPlaylistPlayer={false}

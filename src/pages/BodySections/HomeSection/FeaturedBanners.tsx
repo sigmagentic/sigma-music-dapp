@@ -107,12 +107,12 @@ const PlaylistTile = ({
         ${selectedPlaylistGenre === genre.code ? "ring-2 ring-yellow-300" : ""}`}
       style={{ background: color }}>
       {/* Genre Title */}
-      <div className="absolute top-4 left-5 z-10">
+      <div className="absolute top-4 left-5 z-5">
         <span className="text-white text-2xl font-bold drop-shadow-lg">{genre.label}</span>
       </div>
       {/* Loader/Playing indicator */}
       {selectedPlaylistGenre === "" && lastClickedGenreForPlaylist === genre.code && (
-        <div className="absolute top-4 right-5 z-10">
+        <div className="absolute top-4 right-5 z-5">
           <Loader className="animate-spin text-white" />
         </div>
       )}
@@ -122,7 +122,7 @@ const PlaylistTile = ({
         </div>
       )}
       {/* Angled image in bottom right */}
-      <div className="absolute bottom-0 right-0 z-20" style={{ transform: "rotate(12deg) translate(20px, 20px)" }}>
+      <div className="absolute bottom-0 right-0 z-5" style={{ transform: "rotate(12deg) translate(20px, 20px)" }}>
         <img
           src={image}
           alt={genre.label}
