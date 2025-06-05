@@ -15,7 +15,7 @@ export function NFMePreferencesModal({ isOpen, onClose, nfMeIdBrandingHide }: NF
   // Load preferences from session storage when modal opens
   useEffect(() => {
     if (isOpen) {
-      const savedGenres = sessionStorage.getItem("sig-pref-genres");
+      const savedGenres = localStorage.getItem("sig-pref-genres");
       if (savedGenres) {
         setSelectedGenres(JSON.parse(savedGenres));
       }
@@ -32,7 +32,7 @@ export function NFMePreferencesModal({ isOpen, onClose, nfMeIdBrandingHide }: NF
 
   // Handle save
   const handleSave = () => {
-    sessionStorage.setItem("sig-pref-genres", JSON.stringify(selectedGenres));
+    localStorage.setItem("sig-pref-genres", JSON.stringify(selectedGenres));
     onClose();
   };
 

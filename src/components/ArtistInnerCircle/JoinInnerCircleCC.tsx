@@ -177,7 +177,7 @@ export const JoinInnerCircleCC = ({
                 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
                   <h3 className="text-xl font-bold mb-4">Secure Payment</h3>
                   <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                    $ {(tierData[membershipId].defaultPriceUSD * totalQuantity).toFixed(2)} USD {totalQuantity > 1 && `for ${totalQuantity} items`}
+                    ${(tierData[membershipId].defaultPriceUSD * totalQuantity).toFixed(2)} {totalQuantity > 1 && `for ${totalQuantity} items`}
                   </span>
                   <div className="mt-2">
                     <StripeCheckoutFormFanMembership
@@ -264,7 +264,7 @@ export const JoinInnerCircleCC = ({
             <div className="flex flex-col items-center gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                  $ {(tierData[membershipId].defaultPriceUSD * totalQuantity).toFixed(2)} USD
+                  ${(tierData[membershipId].defaultPriceUSD * totalQuantity).toFixed(2)}
                 </span>
                 {totalQuantity > 1 && <span className="text-sm text-gray-400">for {totalQuantity}</span>}
               </div>
@@ -341,7 +341,6 @@ export const JoinInnerCircleCC = ({
             </Button>
             <Button
               onClick={() => {
-                // setShowStripePaymentPopup(true);
                 createPaymentIntentForThisPayment();
               }}
               className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"

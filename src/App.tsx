@@ -12,7 +12,7 @@ import { StoreProvider } from "./store/StoreProvider";
 
 export const App = () => {
   const [homeMode, setHomeMode] = useState<string>("home");
-  const [triggerTogglePlaylistPlayback, setTriggerTogglePlaylistPlayback] = useState<string>("");
+  const [triggerTogglePlaylistPlayback] = useState<string>("");
   const [searchParams, setSearchParams] = useSearchParams();
 
   // S: deep section navigation states
@@ -165,16 +165,11 @@ export const App = () => {
   };
 
   return (
-    // <Router>
     <Web3AuthProvider>
       <SolContextProvider>
         <StoreProvider>
           <ThemeProvider defaultTheme="dark" storageKey="explorer-ui-theme">
-            <Layout
-              homeMode={homeMode}
-              setHomeMode={(newHomeMode) => setHomeMode(newHomeMode)}
-              setTriggerTogglePlaylistPlayback={setTriggerTogglePlaylistPlayback}
-              removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl}>
+            <Layout homeMode={homeMode} setHomeMode={(newHomeMode) => setHomeMode(newHomeMode)} removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl}>
               <Routes>
                 <Route path={routeNames.login} element={<Login />} />
                 <Route
@@ -204,7 +199,6 @@ export const App = () => {
         </StoreProvider>
       </SolContextProvider>
     </Web3AuthProvider>
-    // </Router>
   );
 };
 

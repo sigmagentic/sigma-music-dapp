@@ -36,7 +36,7 @@ type FeaturedArtistsAndAlbumsProps = {
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number, f?: any) => void;
   onPlayHappened: () => void;
-  checkOwnershipOfAlbum: (e: any) => any;
+  checkOwnershipOfMusicAsset: (e: any, f?: boolean) => any;
   onSendBitzForMusicBounty: (e: any) => any;
   onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => any;
   onCloseMusicPlayer: () => void;
@@ -58,7 +58,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     openActionFireLogic,
     viewSolData,
     onPlayHappened,
-    checkOwnershipOfAlbum,
+    checkOwnershipOfMusicAsset,
     onSendBitzForMusicBounty,
     onFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
@@ -79,8 +79,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [duration, setDuration] = useState("00:00");
   const [progress, setProgress] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isFreeDropSampleWorkflow, setIsFreeDropSampleWorkflow] = useState(false);
-  const [isSigmaWorkflow, setIsSigmaWorkflow] = useState(false);
   const { solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<Artist[]>([]);
   const [albumsDataset, setAlbumsDataset] = useState<AlbumWithArtist[]>([]);
@@ -127,14 +125,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     scrollToTopOnMainContentArea();
 
-    const isHlWorkflowDeepLink = searchParams.get("hl");
     const jumpToTab = searchParams.get("tab");
-
-    if (isHlWorkflowDeepLink === "sample") {
-      setIsFreeDropSampleWorkflow(true);
-    } else if (isHlWorkflowDeepLink === "sigma") {
-      setIsSigmaWorkflow(true);
-    }
 
     if (jumpToTab && jumpToTab === "fan") {
       setActiveTab("fan");
@@ -680,14 +671,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                     </>
                                   </Button>
                                 )}
-                                {isSigmaWorkflow && (
-                                  <div className="animate-bounce p-3 text-sm absolute w-[110px] ml-[-18px] mt-[12px] text-center">
-                                    <div className="m-auto mb-[2px] bg-white dark:bg-slate-800 p-2 w-10 h-10 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center">
-                                      <FontAwesomeIcon icon={faHandPointer} />
-                                    </div>
-                                    <span className="text-center">Click To Vote</span>
-                                  </div>
-                                )}
                               </div>
 
                               <div
@@ -716,7 +699,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             </div>
                           )}
 
-                          <div className={`artist-bio-n-links flex flex-col items-baseline md:block ${isSigmaWorkflow ? "opacity-[0.1]" : ""}`}>
+                          <div className={`artist-bio-n-links flex flex-col items-baseline md:block`}>
                             <p className="artist-who">{artistProfile.bio}</p>
 
                             {(artistProfile.dripLink !== "" ||
@@ -790,7 +773,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                       <div className="artist-tabs flex flex-col p-2 items-start w-full">
                         {/* Tabs Navigation */}
-                        <div className="tabs-menu w-full border-b border-gray-600 overflow-y-auto pb-5 md:pb-0">
+                        <div className="tabs-menu w-full border-b border-gray-800 overflow-y-auto pb-5 md:pb-0">
                           <div className="flex space-x-8">
                             {tabsOrdered.includes("discography") && (
                               <button
@@ -880,13 +863,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               previewIsReadyToPlay={previewIsReadyToPlay}
                               previewPlayingForAlbumId={previewPlayingForAlbumId}
                               currentTime={currentTime}
-                              isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
                               dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
                               isMusicPlayerOpen={isMusicPlayerOpen}
                               highlightAlbumId={selAlbumId}
                               onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                               playPausePreview={playPausePreview}
-                              checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                              checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                               viewSolData={viewSolData}
                               openActionFireLogic={openActionFireLogic}
                               onCloseMusicPlayer={onCloseMusicPlayer}

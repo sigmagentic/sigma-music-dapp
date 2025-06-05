@@ -8,10 +8,11 @@ import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS } from "confi
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { Artist, Album } from "libs/types";
+import { Artist, Album, AlbumSaleTypeOption } from "libs/types";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
+import PurchaseOptions from "./PurchaseOptions";
 
 export const BuyAndMintAlbumUsingSOL = ({
   onCloseModal,
@@ -28,21 +29,18 @@ export const BuyAndMintAlbumUsingSOL = ({
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
+  const [albumSaleTypeOption, setAlbumSaleTypeOption] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
+  const [digitalAlbumOnlyPurchaseStatus, setDigitalAlbumOnlyPurchaseStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm?artist=${artistProfile.slug}`)}&text=${encodeURIComponent(
     `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on @SigmaXMusic and I'm excited to stream it!`
   )}`;
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
 
-  // S: Cached Signature Store Items
-  const solPreaccessNonce = useAccountStore((state: any) => state.solPreaccessNonce);
-  const solPreaccessSignature = useAccountStore((state: any) => state.solPreaccessSignature);
-  const solPreaccessTimestamp = useAccountStore((state: any) => state.solPreaccessTimestamp);
-  const updateSolPreaccessNonce = useAccountStore((state: any) => state.updateSolPreaccessNonce);
-  const updateSolPreaccessTimestamp = useAccountStore((state: any) => state.updateSolPreaccessTimestamp);
-  const updateSolSignedPreaccess = useAccountStore((state: any) => state.updateSolSignedPreaccess);
-  // E: Cached Signature Store Items
+  // Cached Signature Store Items
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -55,7 +53,7 @@ export const BuyAndMintAlbumUsingSOL = ({
   }, []);
 
   useEffect(() => {
-    if (!albumToBuyAndMint || !albumToBuyAndMint._buyNowMeta) {
+    if (!albumToBuyAndMint || !albumToBuyAndMint._buyNowMeta || !albumSaleTypeOption) {
       return;
     }
 
@@ -64,7 +62,8 @@ export const BuyAndMintAlbumUsingSOL = ({
         const { currentSolPrice } = await fetchSolPrice();
 
         // Calculate required SOL amount based on USD price
-        const solAmount = Number(albumToBuyAndMint._buyNowMeta?.priceInUSD) / currentSolPrice;
+        const solAmount =
+          Number(albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD) / currentSolPrice;
         setRequiredSolAmount(Number(solAmount.toFixed(4))); // Round to 4 decimal places
       } catch (error) {
         console.error("Failed to fetch SOL price:", error);
@@ -72,7 +71,7 @@ export const BuyAndMintAlbumUsingSOL = ({
     };
 
     fetchPrice();
-  }, [albumToBuyAndMint]);
+  }, [albumToBuyAndMint, albumSaleTypeOption]);
 
   // Add effect to fetch wallet balance
   useEffect(() => {
@@ -90,6 +89,8 @@ export const BuyAndMintAlbumUsingSOL = ({
 
   const handlePaymentConfirmation = async () => {
     if (!publicKey || !requiredSolAmount) return;
+
+    // handlePaymentConfirmation_Simulate();
 
     // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
     const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
@@ -133,13 +134,17 @@ export const BuyAndMintAlbumUsingSOL = ({
 
       // Log payment to web2 API
       const _logPaymentToAPIResponse = await logPaymentToAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
         payer: publicKey.toBase58(),
         tx: signature,
         task: "buyAlbum",
         type: "sol",
         amount: requiredSolAmount.toString(),
+        priceInUSD: albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD,
         creatorWallet: artistProfile.creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         albumId: albumToBuyAndMint.albumId,
+        albumSaleTypeOption: AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption],
       });
 
       if (_logPaymentToAPIResponse.error) {
@@ -150,7 +155,23 @@ export const BuyAndMintAlbumUsingSOL = ({
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
-      handleMinting({ paymentMadeTx: signature, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce });
+      if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption1) {
+        // user is buying ONLY the digital album so we dont need minting
+        setDigitalAlbumOnlyPurchaseStatus("processing");
+
+        await sleep(3);
+
+        toastSuccess("Album Purchase Successful!", true);
+
+        // need to pull it out of the ui thread of for some reason the confetti goes first
+        setTimeout(() => {
+          setDigitalAlbumOnlyPurchaseStatus("confirmed");
+          showSuccessConfetti();
+        }, 500);
+      } else {
+        // for all other options, we need to mint the album as well
+        handleMinting({ paymentMadeTx: signature, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce });
+      }
     } catch (error) {
       console.error("Payment failed:", error);
       alert("Payment failed. Please try again - " + (error as Error).message);
@@ -166,9 +187,6 @@ export const BuyAndMintAlbumUsingSOL = ({
 
     try {
       await sleep(3);
-
-      // Update payment transaction hash
-      setPaymentTx("simulated-signature");
 
       // Log payment to web2 API
 
@@ -236,12 +254,14 @@ export const BuyAndMintAlbumUsingSOL = ({
       //   membershipId: membershipId,
       //   creatorSlug: artistSlug,
       // });
-
       await sleep(5);
-
+      // throw new Error("Minting failed");
       toastSuccess("Minting Successful!", true);
       setMintingStatus("confirmed");
-      await showSuccessConfetti();
+      // need to pull it out of the ui thread of for some reason the confetti goes first
+      setTimeout(() => {
+        showSuccessConfetti();
+      }, 500);
     } catch (error) {
       console.error("Minting failed:", error);
       setMintingStatus("failed");
@@ -249,11 +269,12 @@ export const BuyAndMintAlbumUsingSOL = ({
   };
   */
 
-  const handlePaymentAndMint = async () => {
+  const handlePaymentAndMint = async (_albumSaleTypeOption: string) => {
     if (!publicKey?.toBase58()) {
       return;
     }
 
+    setAlbumSaleTypeOption(_albumSaleTypeOption);
     setShowPaymentConfirmation(true);
   };
 
@@ -285,163 +306,160 @@ export const BuyAndMintAlbumUsingSOL = ({
 
   // Payment confirmation popup
   const PaymentConfirmationPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-      <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
-        <div className="space-y-4">
-          <p>
-            Amount to pay: {requiredSolAmount ?? "..."} SOL (${Number(albumToBuyAndMint._buyNowMeta?.priceInUSD)} USD)
-          </p>
-          <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
+    <>
+      {albumSaleTypeOption ? (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
+            <div className="space-y-4">
+              <p>
+                Amount to pay: {requiredSolAmount ?? "..."} SOL ($
+                {Number(albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD)})
+              </p>
+              <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
 
-          {paymentStatus === "idle" && <p>When you click "Proceed", you will be asked to sign a single transaction to send the payment.</p>}
+              {paymentStatus === "idle" && <p>When you click "Proceed", you will be asked to sign a single transaction to send the payment.</p>}
 
-          {paymentStatus === "processing" ? (
-            <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
-              <Loader className="w-full text-center animate-spin hover:scale-105" />
-              <p className="text-yellow-500">Payment in process... do not close this page</p>
+              {paymentStatus === "processing" ? (
+                <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
+                  <Loader className="w-full text-center animate-spin hover:scale-105" />
+                  <p className="text-yellow-500">Payment in process... do not close this page</p>
+                </div>
+              ) : (
+                <div className="flex gap-4">
+                  <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handlePaymentConfirmation}
+                    className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
+                    disabled={isSolPaymentsDisabled || !requiredSolAmount}>
+                    Proceed
+                  </Button>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="flex gap-4">
-              <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
-                Cancel
-              </Button>
-              <Button
-                onClick={handlePaymentConfirmation}
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
-                disabled={isSolPaymentsDisabled}>
-                Proceed
-              </Button>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
-    </div>
+      ) : null}
+    </>
   );
 
   function resetStateToPristine() {
     setShowPaymentConfirmation(false);
     setPaymentStatus("idle");
     setMintingStatus("idle");
+    setDigitalAlbumOnlyPurchaseStatus("idle");
     setBackendErrorMessage(null);
+    setAlbumSaleTypeOption(null);
   }
 
   let isSolPaymentsDisabled = !ENABLE_SOL_PAYMENTS || ENABLE_SOL_PAYMENTS !== "1";
+
+  function musicAssetProcurementFullyDone() {
+    return mintingStatus === "confirmed" || digitalAlbumOnlyPurchaseStatus === "confirmed";
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       {showPaymentConfirmation && <PaymentConfirmationPopup />}
 
-      <div className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 grid grid-cols-1 md:grid-cols-1 max-w-xl gap-6`}>
+      <div
+        className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4   ${musicAssetProcurementFullyDone() ? "max-w-lg" : "grid grid-cols-1 md:grid-cols-2 max-w-6xl"} gap-6`}>
         {/* Close button  */}
-        {(paymentStatus === "idle" || mintingStatus === "confirmed" || mintingStatus === "failed") && (
+        {(paymentStatus === "idle" || mintingStatus === "failed" || musicAssetProcurementFullyDone()) && (
           <button
             onClick={() => {
               resetStateToPristine();
-              onCloseModal(mintingStatus === "confirmed");
+              onCloseModal(musicAssetProcurementFullyDone());
             }}
             className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
             ✕
           </button>
         )}
 
-        {mintingStatus !== "confirmed" && (
-          <div>
-            <div className="mb-2">
-              <h2 className={` ${paymentStatus === "idle" ? "!text-3xl" : "!text-2xl"} text-center font-bold`}>
-                {paymentStatus === "idle" ? "Buy & Mint Album" : "Minting Album..."}
-              </h2>
-            </div>
+        {mintingStatus !== "confirmed" && digitalAlbumOnlyPurchaseStatus !== "confirmed" && (
+          <>
+            {/* Left Column - Album Details */}
+            <div className="flex flex-col items-center justify-center h-full p-2">
+              <div className="mb-2 w-full">
+                <h2 className={` ${paymentStatus === "idle" ? "!text-3xl" : "!text-2xl"} text-center font-bold`}>
+                  {paymentStatus === "idle" ? "Buy Album" : "Minting Album..."}
+                </h2>
+              </div>
 
-            <div className="space-y-4">
-              <div className="flex flex-col items-center p-6 shadow-xl">
-                <div className="relative group mb-6">
-                  <img
-                    src={albumToBuyAndMint.img}
-                    alt={albumToBuyAndMint.title}
-                    className="w-32 h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-cover rounded-lg shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
-                  />
-                  <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
+              <div className="space-y-4 w-full flex flex-col items-center">
+                <div className="flex flex-col items-center p-4 shadow-xl w-full">
+                  <div className="relative group mb-6 flex justify-center w-full">
+                    <img
+                      src={albumToBuyAndMint.img}
+                      alt={albumToBuyAndMint.title}
+                      className="w-40 h-40 md:w-56 md:h-56 lg:w-80 lg:h-80 object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.02] mx-auto"
+                    />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
 
-                <div className="text-center space-y-4">
-                  <h3 className="text-xl md:text-2xl font-bold text-white">
-                    {albumToBuyAndMint.title} by <span className="text-gray-400">{artistProfile.name}</span>
-                  </h3>
-
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                        {requiredSolAmount ?? "..."} SOL
-                      </span>
-                      <span className="text-gray-400">(${albumToBuyAndMint._buyNowMeta?.priceInUSD} USD)</span>
-                    </div>
+                  <div className="text-center space-y-4 w-full">
+                    <h3 className="text-xl md:text-2  xl font-bold text-white">
+                      <span className="text-yellow-400">{albumToBuyAndMint.title}</span> by <span className="text-yellow-400">{artistProfile.name}</span>
+                    </h3>
                   </div>
                 </div>
               </div>
 
               {mintingStatus === "processing" && (
-                <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
+                <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg col-span-2">
                   <Loader className="w-full text-center animate-spin hover:scale-105" />
                   <p className="text-yellow-500">Collectible Minting in process... do not close this page</p>
                 </div>
               )}
-
-              {backendErrorMessage && (
-                <div className="flex flex-col gap-4">
-                  <p className="bg-red-500 p-4 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
-                </div>
-              )}
-
-              {mintingStatus === "failed" && (
-                <div className="flex flex-col gap-4">
-                  <div className="text-center">
-                    <p className="bg-red-500 p-4 rounded-lg text-sm">
-                      Error! Minting seems to have failed. We are looking into it. Please also wait a few minutes, return back to the artist profile and reload
-                      the page to check if the Music Collectible has been minted (as sometime blockchain can be congested). If it still doesn't show up, please
-                      DM us on telegram:{" "}
-                      <a className="underline" href="http://t.me/SigmaXMusicOfficial" target="_blank" rel="noopener noreferrer">
-                        http://t.me/SigmaXMusicOfficial
-                      </a>
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      resetStateToPristine();
-                      onCloseModal(false);
-                    }}
-                    className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity m-auto">
-                    Back to Artist Page
-                  </Button>
-                </div>
-              )}
-
-              {paymentStatus === "idle" && (
-                <>
-                  {isSolPaymentsDisabled && (
-                    <div className="flex gap-4 bg-red-500 p-4 rounded-lg text-sm">
-                      <p className="text-white">SOL payments are currently disabled. Please try again later.</p>
-                    </div>
-                  )}
-
-                  <Button
-                    onClick={handlePaymentAndMint}
-                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
-                    disabled={isSolPaymentsDisabled}>
-                    Buy Music Album
-                  </Button>
-                </>
-              )}
             </div>
-          </div>
+
+            {/* Right Column - Purchase Options */}
+            <PurchaseOptions
+              isPaymentsDisabled={isSolPaymentsDisabled}
+              handlePaymentAndMint={handlePaymentAndMint}
+              buyNowMeta={albumToBuyAndMint._buyNowMeta}
+              disableActions={mintingStatus === "processing" || digitalAlbumOnlyPurchaseStatus === "processing"}
+            />
+
+            {backendErrorMessage && (
+              <div className="flex flex-col gap-4 col-span-2">
+                <p className="bg-red-500 p-4 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
+              </div>
+            )}
+
+            {mintingStatus === "failed" && (
+              <div className="flex flex-col gap-4 col-span-2">
+                <div className="text-center">
+                  <p className="bg-red-500 p-4 rounded-lg text-sm">
+                    Error! Minting seems to have failed. We are looking into it. Please also wait a few minutes, return back to the artist profile and reload
+                    the page to check if the Music Collectible has been minted (as sometime blockchain can be congested). If it still doesn't show up, please DM
+                    us on telegram:{" "}
+                    <a className="underline" href="http://t.me/SigmaXMusicOfficial" target="_blank" rel="noopener noreferrer">
+                      http://t.me/SigmaXMusicOfficial
+                    </a>
+                  </p>
+                </div>
+                <Button
+                  onClick={() => {
+                    resetStateToPristine();
+                    onCloseModal(false);
+                  }}
+                  className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity m-auto">
+                  Back to Artist Page
+                </Button>
+              </div>
+            )}
+          </>
         )}
 
-        {mintingStatus === "confirmed" && (
-          <div>
-            <div className="space-y-4 flex flex-col items-center">
+        {musicAssetProcurementFullyDone() && (
+          <>
+            <div className="space-y-4 flex flex-col items-center w-full">
               <h2 className={`!text-2xl text-center font-bold`}>
-                Success! You can now stream <span className="text-orange-400">{albumToBuyAndMint.title}</span> by{" "}
-                <span className="text-orange-400">{artistProfile.name}</span>!
+                Success! You can now stream <span className="text-yellow-400">{albumToBuyAndMint.title}</span> by{" "}
+                <span className="text-yellow-400">{artistProfile.name}</span>!
               </h2>
 
               <Button
@@ -469,7 +487,7 @@ export const BuyAndMintAlbumUsingSOL = ({
                 </a>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>

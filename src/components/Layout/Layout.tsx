@@ -40,19 +40,16 @@ export const Layout = ({
   children,
   homeMode,
   setHomeMode,
-  setTriggerTogglePlaylistPlayback,
   removeDeepSectionParamsFromUrl,
 }: {
   children: React.ReactNode;
   homeMode: string;
   setHomeMode: (homeMode: string) => void;
-  setTriggerTogglePlaylistPlayback: (triggerTogglePlaylistPlayback: string) => void;
   removeDeepSectionParamsFromUrl: () => void;
 }) => {
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(true);
   const { publicKey: publicKeySol } = useSolanaWallet();
   const paymentInProgress = useAppStore((state) => state.paymentInProgress);
-
   const isLoginRoute = location.pathname === routeNames.login;
   const isInSectionWeShouldNotShowSideMenu =
     location.pathname === routeNames.faq || location.pathname === routeNames.whitepaper || location.pathname === routeNames.legal;
@@ -69,7 +66,7 @@ export const Layout = ({
         </div>
       )}
       <div className={`header ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""} md:fixed md:top-0 md:left-0 md:right-0 md:z-10`}>
-        <Navbar />
+        <Navbar setHomeMode={setHomeMode} homeMode={homeMode} removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl} />
       </div>
 
       <div className="body mt-2 flex-1 md:mt-[72px] md:mb-[30px]">
@@ -119,27 +116,7 @@ export const Layout = ({
                     `}>
                       <HomeIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Home</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">Home</span>}
-                    </button>
-                  </Tooltip>
-                  <Tooltip text="Toggle Playlist Player">
-                    <button
-                      onClick={() => {
-                        removeDeepSectionParamsFromUrl();
-                        setTriggerTogglePlaylistPlayback("playlist-" + new Date().getTime().toString());
-                      }}
-                      disabled={homeMode === "playlist"}
-                      className={`
-                      flex items-center flex-shrink-0
-                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                      py-3 px-4 rounded-lg transition-colors text-lg 
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                      hover:text-orange-500
-                      peer
-                    `}>
-                      <RadioIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">Music Player</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">Music Player</span>}
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Home</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="Artists">
@@ -158,7 +135,7 @@ export const Layout = ({
                     `}>
                       <UserGroupIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Artists</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">Artists</span>}
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Artists</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="Albums">
@@ -181,7 +158,7 @@ export const Layout = ({
                     `}>
                       <Square3Stack3DIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Albums</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">Albums</span>}
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Albums</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="Sigma: AI Music Agent">
@@ -199,7 +176,7 @@ export const Layout = ({
                     `}>
                       <ChatBubbleOvalLeftEllipsisIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">AI Agent</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">Agent</span>}
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI Agent</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="AI REMiX : Generate & Own Royalty-Free Viral AI Music">
@@ -218,8 +195,8 @@ export const Layout = ({
                       peer
                     `}>
                       <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">REMiX</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">REMiX</span>}
+                      <span className="md:hidden w-max">AI REMiX</span>
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI REMiX</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="Play Music Mini-Games">
@@ -243,7 +220,7 @@ export const Layout = ({
                     `}>
                       <PuzzlePieceIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Games</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">Games</span>}
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Games</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="Reward Pools">
@@ -262,7 +239,7 @@ export const Layout = ({
                     `}>
                       <CurrencyDollarIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Reward Pools</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">Reward Pools</span>}
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Rewards</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="World Supremacy Battle Campaign">
@@ -281,7 +258,7 @@ export const Layout = ({
                     `}>
                       <GlobeEuropeAfricaIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">WSB</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline">WSB</span>}
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">WSB</span>}
                     </button>
                   </Tooltip>
                   {isLoggedIn && (
@@ -306,8 +283,8 @@ export const Layout = ({
                           peer
                         `}>
                           <WalletIcon className="h-6 w-6 mr-1 md:mr-0" />
-                          <span className="md:hidden w-max">Collect</span>
-                          {!isMenuCollapsed && <span className="hidden md:inline">Collect</span>}
+                          <span className="md:hidden w-max">Wallet</span>
+                          {!isMenuCollapsed && <span className="hidden md:inline text-sm">Wallet</span>}
                         </button>
                       </Tooltip>
                       <Tooltip text="Your Profile">
@@ -331,7 +308,7 @@ export const Layout = ({
                         `}>
                           <UserIcon className="h-6 w-6 mr-1 md:mr-0" />
                           <span className="md:hidden w-max">Profile</span>
-                          {!isMenuCollapsed && <span className="hidden md:inline">Profile</span>}
+                          {!isMenuCollapsed && <span className="hidden md:inline text-sm">Profile</span>}
                         </button>
                       </Tooltip>
                     </>
