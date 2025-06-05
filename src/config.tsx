@@ -5,8 +5,6 @@ export const APP_NETWORK = import.meta.env.VITE_ENV_NETWORK || "devnet";
 
 export const apiTimeout = 10_000; // 10s
 
-export const SHOW_NFTS_STEP = 20;
-
 export const DEFAULT_BITZ_COLLECTION_SOL = IS_DEVNET ? "AXvaYiSwE7XKdiM4eSWTfagkswmWKVF7KzwW5EpjCDGk" : "JAWEFUJSWErkDj8RefehQXGp1nUhCoWbtZnpeo8Db8KN";
 
 export const MARSHAL_CACHE_DURATION_SECONDS = import.meta.env.VITE_ENV_MARSHAL_CACHE_DURATION_SECONDS

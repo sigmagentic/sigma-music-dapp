@@ -18,7 +18,6 @@ type MyCollectedNFTsProps = {
   firstSongBlobUrl: any;
   setStopPreviewPlaying: any;
   setBitzGiftingMeta: any;
-  // shownSolAppDataNfts: any;
   onSendBitzForMusicBounty: any;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   setMusicBountyBitzSumGlobalMapping: any;
@@ -36,7 +35,6 @@ type MyCollectedNFTsProps = {
 
 export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   const {
-    // shownSolAppDataNfts,
     onSendBitzForMusicBounty,
     bountyBitzSumGlobalMapping,
     setMusicBountyBitzSumGlobalMapping,
@@ -93,7 +91,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
 
   useEffect(() => {
     if (artistAlbumDataset && artistAlbumDataset.length > 0 && Object.keys(artistLookupEverything).length > 0) {
-      // if (shownSolAppDataNfts.length > 0) {
       if (solMusicAssetNfts.length > 0) {
         (async () => {
           let _allOwnedAlbums: any[] = [];
@@ -103,7 +100,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             .map((artist) => {
               // Filter the albums array for each artist
               const filteredAlbums = artist.albums.filter((album: any) =>
-                // shownSolAppDataNfts.some((ownedNft: DasApiAsset) => {
                 solMusicAssetNfts.some((ownedNft: DasApiAsset) => {
                   /*
                     this should match:
@@ -139,10 +135,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
             return !_allOwnedAlbums.some((album) => album.solNftName.split(/[-\s]/)[0].toLowerCase() === nftPrefix.toLowerCase());
           });
-          // const unmatchedNfts = shownSolAppDataNfts.filter((ownedNft: DasApiAsset) => {
-          //   const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
-          //   return !_allOwnedAlbums.some((album) => album.solNftName.split(/[-\s]/)[0].toLowerCase() === nftPrefix.toLowerCase());
-          // });
 
           // Filter out fan membership NFTs
           const fanMembershipNfts = unmatchedNfts.filter((nft: DasApiAsset) => nft.content.metadata.name.includes("FAN"));
@@ -246,7 +238,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
         })();
       }
     }
-    // }, [artistAlbumDataset, shownSolAppDataNfts, artistLookupEverything]);
   }, [artistAlbumDataset, solMusicAssetNfts, artistLookupEverything]);
 
   async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {

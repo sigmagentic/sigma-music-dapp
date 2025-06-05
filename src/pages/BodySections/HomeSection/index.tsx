@@ -5,7 +5,7 @@ import { Loader } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import CAMPAIGN_WSB_CTA from "assets/img/campaigns/campaign-wsb-home-cta.png";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
-import { SHOW_NFTS_STEP, MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier, isUIDebugMode } from "config";
+import { MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier, isUIDebugMode } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -54,10 +54,9 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
   const [dataMarshalResponse, setDataMarshalResponse] = useState({ "data_stream": {}, "data": [] });
-  const { solNfts, solBitzNfts, solMusicAssetNfts } = useNftsStore();
+  const { solBitzNfts, solMusicAssetNfts } = useNftsStore();
   const [stopPreviewPlaying, setStopPreviewPlaying] = useState<boolean>(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  // const [shownSolAppDataNfts, setShownSolAppDataNfts] = useState<DasApiAsset[]>(solNfts.slice(0, SHOW_NFTS_STEP));
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol } = useSolanaWallet();
   const [bitzGiftingMeta, setBitzGiftingMeta] = useState<{
@@ -235,36 +234,6 @@ export const HomeSection = (props: HomeSectionProps) => {
       })();
     }
   }, [selectedPlaylistGenre]);
-
-  // useEffect(() => {
-  //   if (publicKeySol && solNfts.length > 0) {
-  //     setShownSolAppDataNfts(
-  //       solNfts.filter((nft: DasApiAsset) => {
-  //         if (nft.content.metadata.name.includes("MUS") || nft.content.metadata.name.includes("POD") || nft.content.metadata.name.includes("FAN")) {
-  //           return true;
-  //         } else {
-  //           return false;
-  //         }
-  //       })
-  //     );
-  //   }
-  // }, [solNfts, publicKeySol]);
-
-  // useEffect(() => {
-  //   if (shownSolAppDataNfts && shownSolAppDataNfts.length > 0) {
-  //     const nameToIndexMap = shownSolAppDataNfts.reduce((t: any, solDataNft: DasApiAsset, idx: number) => {
-  //       if (solDataNft?.content?.metadata?.name) {
-  //         // find rarity if it exists or default it to "Common"
-  //         const rarity = solDataNft.content.metadata.attributes?.find((attr: any) => attr.trait_type === "Rarity")?.value || "Common";
-
-  //         t[`${solDataNft.content.metadata.name} : ${rarity}`] = idx;
-  //       }
-  //       return t;
-  //     }, {});
-
-  //     setOwnedSolDataNftNameAndIndexMap(nameToIndexMap);
-  //   }
-  // }, [shownSolAppDataNfts]);
 
   useEffect(() => {
     if (solMusicAssetNfts && solMusicAssetNfts.length > 0) {
@@ -461,7 +430,6 @@ export const HomeSection = (props: HomeSectionProps) => {
       if (!_musicPlayerTrackListFromDb) {
         if (!publicKeySol) throw new Error("Not logged in to stream music via Data NFT");
 
-        // const dataNft = shownSolAppDataNfts[albumInOwnershipListIndex];
         const dataNft = solMusicAssetNfts[albumInOwnershipListIndex];
 
         const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
@@ -768,7 +736,6 @@ export const HomeSection = (props: HomeSectionProps) => {
                   bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                   setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
                   userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
-                  // dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
                   dataNftPlayingOnMainPlayer={solMusicAssetNfts[currentDataNftIndex]}
                   onCloseMusicPlayer={resetMusicPlayerState}
                   isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
@@ -795,7 +762,6 @@ export const HomeSection = (props: HomeSectionProps) => {
                     firstSongBlobUrl={firstAlbumSongBlobUrl}
                     setStopPreviewPlaying={setStopPreviewPlaying}
                     setBitzGiftingMeta={setBitzGiftingMeta}
-                    // shownSolAppDataNfts={shownSolAppDataNfts}
                     onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                     bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
                     checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
@@ -812,7 +778,6 @@ export const HomeSection = (props: HomeSectionProps) => {
                         setBitzGiftingMeta(_bitzGiftingMeta);
                       }
                     }}
-                    // dataNftPlayingOnMainPlayer={shownSolAppDataNfts[currentDataNftIndex]}
                     dataNftPlayingOnMainPlayer={solMusicAssetNfts[currentDataNftIndex]}
                     onCloseMusicPlayer={resetMusicPlayerState}
                     isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
@@ -852,7 +817,6 @@ export const HomeSection = (props: HomeSectionProps) => {
           {launchAlbumPlayer && (
             <div className="w-full fixed left-0 bottom-0 z-50">
               <MusicPlayer
-                // dataNftToOpen={shownSolAppDataNfts[currentDataNftIndex]}
                 dataNftToOpen={solMusicAssetNfts[currentDataNftIndex]}
                 trackList={musicPlayerAlbumTrackList}
                 trackListFromDb={musicPlayerTrackListFromDb}
