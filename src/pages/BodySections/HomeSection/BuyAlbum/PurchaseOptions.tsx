@@ -52,7 +52,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({ isPaymentsDisa
             </div>
             {/* Price & Button (right) */}
             <div className="flex flex-col items-end min-w-[110px] md:pl-4">
-              <span className="text-3xl font-extrabold text-yellow-400 mb-2">${price}</span>
+              {price && <span className="text-3xl font-extrabold text-yellow-400 mb-2">${price}</span>}
               <Button
                 onClick={() => handlePaymentAndMint(option)}
                 className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-6 rounded-lg hover:opacity-90 transition-opacity"
@@ -72,8 +72,6 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({ isPaymentsDisa
       </div>
     );
   };
-
-  console.log("buyNowMeta", buyNowMeta);
 
   return (
     <div className="space-y-4">

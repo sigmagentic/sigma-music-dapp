@@ -7,8 +7,10 @@ import { Loader } from "lucide-react";
 import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
+import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/misc";
+import { useAccountStore } from "store/account";
 
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
 const MAX_TITLE_LENGTH = 20;
@@ -33,7 +35,7 @@ const MUSIC_STYLE_OPTIONS = [
 
 export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) => {
   const { connection } = useConnection();
-  const { sendTransaction } = useWallet();
+  const { sendTransaction, signMessage } = useWallet();
   const { publicKey } = useSolanaWallet();
   const [songTitle, setSongTitle] = useState("");
   const [musicStyle, setMusicStyle] = useState("D&B");
@@ -49,6 +51,10 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
   const [verificationError, setVerificationError] = useState("");
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Cached Signature Store Items
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -130,8 +136,22 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         signature = "FREE-gen-" + Date.now();
       }
 
+      // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage,
+        publicKey,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
       // Log payment to web2 API (placeholder)
       await logPaymentToAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
         payer: publicKey.toBase58(),
         tx: signature,
         task: "gen",

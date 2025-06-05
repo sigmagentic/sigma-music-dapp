@@ -2,33 +2,51 @@ import React, { useState, useEffect } from "react";
 import { PaymentElement, useStripe, useElements, AddressElement } from "@stripe/react-stripe-js";
 import { Loader } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
-import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { Artist, Album } from "libs/types";
+import { useAccountStore } from "store/account";
 
 type StripeCheckoutFormAlbumProps = {
   artistProfile: Artist;
   albumToBuyAndMint: Album;
   priceInUSD: string | null;
+  albumSaleTypeOption: string | null;
   closeStripePaymentPopup: () => void;
 };
 
-const StripeCheckoutFormAlbum = ({ artistProfile, albumToBuyAndMint, priceInUSD, closeStripePaymentPopup }: StripeCheckoutFormAlbumProps) => {
+const StripeCheckoutFormAlbum = ({
+  artistProfile,
+  albumToBuyAndMint,
+  priceInUSD,
+  albumSaleTypeOption,
+  closeStripePaymentPopup,
+}: StripeCheckoutFormAlbumProps) => {
   const { publicKey } = useSolanaWallet();
-  const { userInfo } = useWeb3Auth();
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [paymentElementReady, setPaymentElementReady] = useState(false);
-  const [email, setEmail] = useState(userInfo.email || "");
+  const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
+  const { userWeb2AccountDetails } = useAccountStore();
 
   useEffect(() => {
     if (stripe && elements) {
       setIsReady(true);
     }
   }, [stripe, elements]);
+
+  useEffect(() => {
+    if (
+      userWeb2AccountDetails &&
+      Object.keys(userWeb2AccountDetails).length > 0 &&
+      userWeb2AccountDetails.billingEmail &&
+      userWeb2AccountDetails.billingEmail !== ""
+    ) {
+      setEmail(userWeb2AccountDetails.billingEmail);
+    }
+  }, [userWeb2AccountDetails]);
 
   const validateEmail = (_email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -82,7 +100,7 @@ const StripeCheckoutFormAlbum = ({ artistProfile, albumToBuyAndMint, priceInUSD,
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSD}&billingEmail=${encodeURIComponent(email)}`,
+          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSD}&billingEmail=${encodeURIComponent(email)}&albumSaleTypeOption=${albumSaleTypeOption}`,
           receipt_email: email,
         },
       });

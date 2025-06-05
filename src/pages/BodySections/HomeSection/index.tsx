@@ -73,8 +73,15 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Cached Signature Store Items
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
+  const {
+    solPreaccessNonce,
+    solPreaccessSignature,
+    solPreaccessTimestamp,
+    updateSolPreaccessNonce,
+    updateSolPreaccessTimestamp,
+    updateSolSignedPreaccess,
+    myMusicAssetPurchases,
+  } = useAccountStore();
 
   // give bits to a bounty (power up or like)
   const [giveBitzForMusicBountyConfig, setGiveBitzForMusicBountyConfig] = useState<{
@@ -531,44 +538,65 @@ export const HomeSection = (props: HomeSectionProps) => {
     }
   }
 
-  function checkOwnershipOfAlbum(album: any) {
-    let albumInOwnershipListIndex = -1; // note -1 means we don't own it
+  function checkOwnershipOfMusicAsset(album: any, onlyCheckInCollectibleNftHolding?: boolean) {
+    /*
+    the user can own the music asset in 2 ways:
 
-    if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
-      /* mark the albumInOwnershipListIndex as of the highest rarity album
+    1. the album id is in myMusicAssetPurchases from the store (IF NOT.. move to next)
+    2. they own the collectible NFT in their wallet
+
+    Note that they can match for both 1 and 2 if they have bought the NFT colelctible, but we dont need to check both
+    */
+
+    let doesUserOwnMusicAsset = -1; // -1 is no and anything more is yes
+
+    // 1. the album id is in myMusicAssetPurchases from the store (IF NOT.. move to next)
+    const assetPurchaseThatMatches = myMusicAssetPurchases.find((assetPurchase) => assetPurchase.albumId === album.albumId);
+
+    if (assetPurchaseThatMatches && !onlyCheckInCollectibleNftHolding) {
+      doesUserOwnMusicAsset = 0; // this means we own it
+    } else {
+      // 2. they own the collectible NFT in their wallet?
+      let albumInOwnershipListIndex = -1; // note -1 means we don't own it
+
+      if (album?.solNftName && ownedSolDataNftNameAndIndexMap) {
+        /* mark the albumInOwnershipListIndex as of the highest rarity album
         Legendary
         Rare
         Common */
 
-      // Normalize the album name
-      const normalizeString = (str: string) => str.replace(/[^0-9a-zA-Z]/g, "").toLowerCase();
+        // Normalize the album name
+        const normalizeString = (str: string) => str.replace(/[^0-9a-zA-Z]/g, "").toLowerCase();
 
-      // Create normalized map
-      const normalizedMap = Object.entries(ownedSolDataNftNameAndIndexMap).reduce(
-        (acc, [key, value]) => {
-          const normalizedKey = normalizeString(key);
-          acc[normalizedKey] = value as number;
-          return acc;
-        },
-        {} as Record<string, number>
-      );
+        // Create normalized map
+        const normalizedMap = Object.entries(ownedSolDataNftNameAndIndexMap).reduce(
+          (acc, [key, value]) => {
+            const normalizedKey = normalizeString(key);
+            acc[normalizedKey] = value as number;
+            return acc;
+          },
+          {} as Record<string, number>
+        );
 
-      // Normalize the album name we're looking for
-      const normalizedAlbumName = normalizeString(album.solNftName);
+        // Normalize the album name we're looking for
+        const normalizedAlbumName = normalizeString(album.solNftName);
 
-      // Check for ownership across rarities
-      // we normalize the values as the drip album and the extra bonus mint album names might not exactly match
-      // ... e.g. we convert key "MUSG20 - Olly'G - MonaLisa Rap - Common" to "musg20ollygmonalisarapcommon"
-      if (typeof normalizedMap[`${normalizedAlbumName}legendary`] !== "undefined") {
-        albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}legendary`];
-      } else if (typeof normalizedMap[`${normalizedAlbumName}rare`] !== "undefined") {
-        albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}rare`];
-      } else if (typeof normalizedMap[`${normalizedAlbumName}common`] !== "undefined") {
-        albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}common`];
+        // Check for ownership across rarities
+        // we normalize the values as the drip album and the extra bonus mint album names might not exactly match
+        // ... e.g. we convert key "MUSG20 - Olly'G - MonaLisa Rap - Common" to "musg20ollygmonalisarapcommon"
+        if (typeof normalizedMap[`${normalizedAlbumName}legendary`] !== "undefined") {
+          albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}legendary`];
+        } else if (typeof normalizedMap[`${normalizedAlbumName}rare`] !== "undefined") {
+          albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}rare`];
+        } else if (typeof normalizedMap[`${normalizedAlbumName}common`] !== "undefined") {
+          albumInOwnershipListIndex = normalizedMap[`${normalizedAlbumName}common`];
+        }
+
+        doesUserOwnMusicAsset = albumInOwnershipListIndex; // the number here is the index of the album in the ownedSolDataNftNameAndIndexMap
       }
     }
 
-    return albumInOwnershipListIndex;
+    return doesUserOwnMusicAsset;
   }
 
   // here we set the power up object that will trigger the modal that allows a user to sent bitz to a target bounty
@@ -710,7 +738,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                     // pause the main player if playing
                     setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
                   }}
-                  checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                  checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                   openActionFireLogic={(_bitzGiftingMeta?: any) => {
                     setLaunchAlbumPlayer(true);
                     setStopPreviewPlaying(true);
@@ -752,7 +780,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                     shownSolAppDataNfts={shownSolAppDataNfts}
                     onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                     bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                    checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                    checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                     userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
                     setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
                     setFeaturedArtistDeepLinkSlug={(slug: string) => {

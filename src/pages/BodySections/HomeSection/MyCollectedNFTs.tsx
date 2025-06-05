@@ -25,7 +25,7 @@ type MyCollectedNFTsProps = {
   userHasNoBitzDataNftYet: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
-  checkOwnershipOfAlbum: (e: any) => any;
+  checkOwnershipOfMusicAsset: (e: any, f?: boolean) => any;
   setFeaturedArtistDeepLinkSlug: (e: any) => any;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number) => void;
@@ -43,7 +43,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     userHasNoBitzDataNftYet,
     dataNftPlayingOnMainPlayer,
     isMusicPlayerOpen,
-    checkOwnershipOfAlbum,
+    checkOwnershipOfMusicAsset,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
     viewSolData,
@@ -316,7 +316,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                                 onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                                 isMusicPlayerOpen={isMusicPlayerOpen}
                                 setHomeMode={setHomeMode}
-                                checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                                checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                                 openActionFireLogic={openActionFireLogic}
                                 setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
                                 viewSolData={viewSolData}
@@ -394,7 +394,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                                   albums={artist.albums}
                                   artistProfile={artist}
                                   bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                                  checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                                  checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                                   openActionFireLogic={openActionFireLogic}
                                   setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
                                   dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}

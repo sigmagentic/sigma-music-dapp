@@ -344,7 +344,7 @@ export const getAlbumTracksFromDBViaAPI = async (artistId: string, albumId: stri
     }
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/musicTracks/${artistId}?albumId=${albumId}&bonus=${userOwnsAlbum ? 1 : 0}`);
+    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/musicTracks/${artistId}?albumId=${albumId}&bonus=${userOwnsAlbum ? 1 : 0}`);
 
     if (response.ok) {
       const data = await response.json();
@@ -898,10 +898,39 @@ export async function getPaymentLogsViaAPI({ addressSol }: { addressSol: string 
     const res = await fetch(callUrl);
 
     const data: PaymentLog[] = await res.json();
-    return data;
+
+    // @TODO, we should reorder the createdOn which is the timestamp of the payment in the server, for now, lets do it here
+    return data.sort((a: any, b: any) => b.createdOn - a.createdOn);
   } catch (err: any) {
     const message = "Getting payment logs failed :" + err.message;
     console.error(message);
     return false;
   }
 }
+
+export const getLoggedInUserProfileAPI = async ({ solSignature, signatureNonce, addr }: { solSignature: string; signatureNonce: string; addr: string }) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/userAccounts/loggedInUserProfile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ solSignature, signatureNonce, addr }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error getting logged in user profile:", error);
+    throw error;
+  }
+};

@@ -158,6 +158,7 @@ export interface MintLeaderboard {
   arId: string;
   mints: number;
 }
+
 export enum AlbumSaleTypeOption {
   priceOption1 = "1", // Digital Album + Download Only
   priceOption2 = "2", // Digital Album + Download + NFT

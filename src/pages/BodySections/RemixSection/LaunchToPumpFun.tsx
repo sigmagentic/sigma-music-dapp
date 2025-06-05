@@ -6,11 +6,13 @@ import { PublicKey } from "@solana/web3.js";
 import { ArrowUpRight, Info, Loader } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI } from "libs/utils/misc";
 import { mergeImages } from "libs/utils/ui";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { useAccountStore } from "store/account";
+import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 
 export const LaunchToPumpFun = ({
   onCloseModal,
@@ -35,7 +37,7 @@ export const LaunchToPumpFun = ({
   tokenId: string;
   twitterUrl?: string;
 }) => {
-  const { wallet, sendTransaction } = useWallet();
+  const { sendTransaction, signMessage } = useWallet();
   const { publicKey } = useSolanaWallet();
   const { connection } = useConnection();
   const [description, setDescription] = useState(tokenDesc);
@@ -53,9 +55,12 @@ export const LaunchToPumpFun = ({
   const [pumpTokenId, setPumpTokenId] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
-
   const [base64ForApi, setBase64ForApi] = useState<string | null>(null);
   const [base64ForPreview, setBase64ForPreview] = useState<string | null>(null);
+
+  // Cached Signature Store Items
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -208,8 +213,22 @@ export const LaunchToPumpFun = ({
         signature = "FREE-" + tokenId + "-" + Date.now();
       }
 
+      // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage,
+        publicKey,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
       // Log payment to web2 API
       await logPaymentToAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
         payer: publicKey.toBase58(),
         tx: signature,
         task: "pump",

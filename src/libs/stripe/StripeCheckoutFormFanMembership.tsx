@@ -3,7 +3,7 @@ import { PaymentElement, useStripe, useElements, AddressElement } from "@stripe/
 import { Loader } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
-import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import { useAccountStore } from "store/account";
 
 type StripeCheckoutFormFanMembershipProps = {
   membershipProfile: {
@@ -22,7 +22,6 @@ type StripeCheckoutFormFanMembershipProps = {
 
 const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePaymentPopup }: StripeCheckoutFormFanMembershipProps) => {
   const { publicKey } = useSolanaWallet();
-  const { userInfo } = useWeb3Auth();
   const [searchParams] = useSearchParams();
   const stripe = useStripe();
   const elements = useElements();
@@ -30,14 +29,26 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePayment
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [paymentElementReady, setPaymentElementReady] = useState(false);
-  const [email, setEmail] = useState(userInfo.email || "");
+  const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
+  const { userWeb2AccountDetails } = useAccountStore();
 
   useEffect(() => {
     if (stripe && elements) {
       setIsReady(true);
     }
   }, [stripe, elements]);
+
+  useEffect(() => {
+    if (
+      userWeb2AccountDetails &&
+      Object.keys(userWeb2AccountDetails).length > 0 &&
+      userWeb2AccountDetails.billingEmail &&
+      userWeb2AccountDetails.billingEmail !== ""
+    ) {
+      setEmail(userWeb2AccountDetails.billingEmail);
+    }
+  }, [userWeb2AccountDetails]);
 
   const validateEmail = (_email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

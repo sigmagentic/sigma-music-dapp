@@ -36,7 +36,7 @@ type FeaturedArtistsAndAlbumsProps = {
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number, f?: any) => void;
   onPlayHappened: () => void;
-  checkOwnershipOfAlbum: (e: any) => any;
+  checkOwnershipOfMusicAsset: (e: any, f?: boolean) => any;
   onSendBitzForMusicBounty: (e: any) => any;
   onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => any;
   onCloseMusicPlayer: () => void;
@@ -58,7 +58,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     openActionFireLogic,
     viewSolData,
     onPlayHappened,
-    checkOwnershipOfAlbum,
+    checkOwnershipOfMusicAsset,
     onSendBitzForMusicBounty,
     onFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
@@ -773,7 +773,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                       <div className="artist-tabs flex flex-col p-2 items-start w-full">
                         {/* Tabs Navigation */}
-                        <div className="tabs-menu w-full border-b border-gray-600 overflow-y-auto pb-5 md:pb-0">
+                        <div className="tabs-menu w-full border-b border-gray-800 overflow-y-auto pb-5 md:pb-0">
                           <div className="flex space-x-8">
                             {tabsOrdered.includes("discography") && (
                               <button
@@ -868,7 +868,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               highlightAlbumId={selAlbumId}
                               onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                               playPausePreview={playPausePreview}
-                              checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                              checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                               viewSolData={viewSolData}
                               openActionFireLogic={openActionFireLogic}
                               onCloseMusicPlayer={onCloseMusicPlayer}

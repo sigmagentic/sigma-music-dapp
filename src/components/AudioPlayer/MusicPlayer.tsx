@@ -1095,8 +1095,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
             {trackList[currentTrackIndex]?.bonus === 1 && (
               <p
-                className={`${isFullScreen && displayTrackList ? "md:right-[410px]" : "right-[10px] md:right-[50px]"} z-10 bottom-4 text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black absolute`}>
-                Bonus Track
+                className={`${isFullScreen && displayTrackList ? "md:right-[410px] text-[10px]" : "right-[10px] md:right-[10px] text-[8px]"} z-10 bottom-4 bg-yellow-500 rounded-md p-1 w-fit text-black absolute`}>
+                Bonus
               </p>
             )}
           </div>

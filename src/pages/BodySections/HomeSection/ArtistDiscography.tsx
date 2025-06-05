@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
-import { DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS, LICENSE_TERMS_MAP } from "config";
+import { APP_NETWORK, DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS, LICENSE_TERMS_MAP } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { fetchSolNfts } from "libs/sol/SolViewData";
@@ -50,7 +50,7 @@ type ArtistDiscographyProps = {
   viewSolData: (e: number, f?: any, g?: boolean) => void;
   onSendBitzForMusicBounty: (e: any) => any;
   playPausePreview?: (e: any, f: any) => any;
-  checkOwnershipOfAlbum: (e: any) => any;
+  checkOwnershipOfMusicAsset: (e: any, f?: boolean) => any;
   openActionFireLogic: (e: any) => any;
   setFeaturedArtistDeepLinkSlug?: (e: any) => any;
   onCloseMusicPlayer: () => void;
@@ -73,7 +73,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     viewSolData,
     onSendBitzForMusicBounty,
     playPausePreview,
-    checkOwnershipOfAlbum,
+    checkOwnershipOfMusicAsset,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
@@ -81,7 +81,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const [, setSearchParams] = useSearchParams();
   const addressSol = publicKeySol?.toBase58();
-  const { updateSolNfts } = useNftsStore();
+  const { updateSolNfts, solMusicAssetNfts } = useNftsStore();
   const userLoggedInWithWallet = publicKeySol;
   const { updateAssetPlayIsQueued, trackPlayIsQueued, assetPlayIsQueued, albumIdBeingPlayed } = useAudioPlayerStore();
   const [queueAlbumPlay, setQueueAlbumPlay] = useState(false);
@@ -170,6 +170,13 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         entitlementsMap.nftAssetIdOnBlockchain = null;
       }
 
+      // does the user have the nft collectible?
+      const findMusicNft = solMusicAssetNfts.find((nft) => nft.content.metadata.name === selectedAlbumToShowEntitlements.solNftName);
+
+      if (findMusicNft) {
+        entitlementsMap.nftAssetIdOnBlockchain = findMusicNft.id;
+      }
+
       setEntitlementsForSelectedAlbum(entitlementsMap);
       setShowEntitlementsModal(true);
     }
@@ -183,7 +190,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     }
   }
 
-  function handlePlayAlbum(
+  function handlePlayMusicAsset(
     album: any,
     { artistId, albumId, artistName, albumName }: { artistId?: string; albumId?: string; artistName?: string; albumName?: string } = {}
   ) {
@@ -198,7 +205,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       };
     }
 
-    const albumInOwnershipListIndex = checkOwnershipOfAlbum(album);
+    const albumInOwnershipListIndex = checkOwnershipOfMusicAsset(album);
     const userOwnsAlbum = albumInOwnershipListIndex > -1;
 
     if (userOwnsAlbum || playAlbumNowParams) {
@@ -249,7 +256,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       onCloseMusicPlayer();
 
       setTimeout(() => {
-        handlePlayAlbum(selectedAlbumToPlay, {
+        handlePlayMusicAsset(selectedAlbumToPlay, {
           artistId: artistProfile.artistId,
           albumId: selectedAlbumToPlay.albumId,
           artistName: artistProfile.name,
@@ -259,7 +266,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         updateAssetPlayIsQueued(false);
       }, 5000);
     } else {
-      handlePlayAlbum(selectedAlbumToPlay, {
+      handlePlayMusicAsset(selectedAlbumToPlay, {
         artistId: artistProfile.artistId,
         albumId: selectedAlbumToPlay.albumId,
         artistName: artistProfile.name,
@@ -366,7 +373,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               {!ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId) &&
                 album.ctaPreviewStream &&
                 !inCollectedAlbumsView &&
-                checkOwnershipOfAlbum(album) === -1 && (
+                checkOwnershipOfMusicAsset(album) === -1 && (
                   <div>
                     <Button
                       disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
@@ -409,7 +416,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 </div>
               )}
 
-              {(ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId) || (publicKeySol && checkOwnershipOfAlbum(album) > -1)) && (
+              {(ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId) || (publicKeySol && checkOwnershipOfMusicAsset(album) > -1)) && (
                 <>
                   <div className="relative group">
                     <Button
@@ -420,7 +427,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         trackPlayIsQueued ||
                         assetPlayIsQueued
                       }
-                      className={`!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r  ${checkOwnershipOfAlbum(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px] mr-2`}
+                      className={`!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r ${checkOwnershipOfMusicAsset(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px] mr-2`}
                       onClick={() => {
                         handlePlayAlbumNow(album);
                       }}>
@@ -431,7 +438,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                             ? "Playing"
                             : queueAlbumPlay
                               ? "Queued"
-                              : checkOwnershipOfAlbum(album) > -1
+                              : checkOwnershipOfMusicAsset(album) > -1
                                 ? "Play Premium Album"
                                 : "Play Free Album"}
                         </span>
@@ -468,7 +475,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                             ? "This album is currently playing"
                             : queueAlbumPlay
                               ? "Album will start playing in 5 seconds"
-                              : checkOwnershipOfAlbum(album) > -1
+                              : checkOwnershipOfMusicAsset(album) > -1
                                 ? "Play your premium album with bonus tracks"
                                 : "Listen for free, or purchase this album to unlock premium bonus tracks"}
                         </div>
@@ -481,20 +488,24 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    className="!text-black text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer mr-2"
-                    onClick={() => {
-                      setSelectedAlbumToShowEntitlements(album);
-                      setShowEntitlementsModal(true);
-                    }}>
-                    <Briefcase className="w-4 h-4" />
-                    <span className="ml-2">Entitlements</span>
-                  </Button>
+
+                  {/* Entitlements Button */}
+                  {checkOwnershipOfMusicAsset(album) > -1 && (
+                    <Button
+                      className="!text-black text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer mr-2"
+                      onClick={() => {
+                        setSelectedAlbumToShowEntitlements(album);
+                        setShowEntitlementsModal(true);
+                      }}>
+                      <Briefcase className="w-4 h-4" />
+                      <span className="ml-2">Entitlements</span>
+                    </Button>
+                  )}
                 </>
               )}
 
               <>
-                {checkOwnershipOfAlbum(album) < 0 && (
+                {checkOwnershipOfMusicAsset(album) < 0 && (
                   <>
                     {walletType === "phantom" && getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }) && (
                       <div>
@@ -531,7 +542,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                           }}>
                           <>
                             <span className="ml-2">
-                              {checkOwnershipOfAlbum(album) > -1
+                              {checkOwnershipOfMusicAsset(album) > -1
                                 ? "Buy More Album Copies Now"
                                 : `${addressSol ? `Buy (From  $${album._buyNowMeta?.priceOption1?.priceInUSD})` : `Login to Buy (From $${album._buyNowMeta?.priceOption1?.priceInUSD})`}`}
                             </span>
@@ -561,7 +572,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               </>
             </div>
 
-            <span className="text-xs text-gray-700 ml-2 text-right">id: {album.albumId}</span>
+            <span className="text-xs text-gray-700 ml-2 text-right mt-2">id: {album.albumId}</span>
           </div>
         ))}
 
@@ -605,7 +616,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               {/* Download Premium Album Files Section */}
               <div
                 className={`${entitlementsForSelectedAlbum?.mp3TrackUrls.length && entitlementsForSelectedAlbum?.mp3TrackUrls.length > 0 ? "" : "opacity-50 pointer-events-none cursor-not-allowed"}`}>
-                <h4 className="!text-lg font-semibold text-white">Download Premium Album Files</h4>
+                <h4 className="!text-lg font-semibold text-white">Download Premium Album Files (Coming Soon)</h4>
                 <Button
                   className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
                   onClick={() => {
@@ -640,7 +651,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 <Button
                   className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
                   onClick={() => {
-                    window.open(`https://solscan.io/token/${selectedAlbumToShowEntitlements.solNftName}`, "_blank");
+                    window.open(
+                      `https://solscan.io/token/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}${APP_NETWORK === "devnet" ? "?cluster=devnet" : ""}`,
+                      "_blank"
+                    );
                   }}>
                   <Image className="w-4 h-4" />
                   <span className="ml-2">View on Blockchain</span>

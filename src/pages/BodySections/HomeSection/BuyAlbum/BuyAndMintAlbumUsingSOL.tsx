@@ -32,6 +32,7 @@ export const BuyAndMintAlbumUsingSOL = ({
   const [albumSaleTypeOption, setAlbumSaleTypeOption] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
+  const [digitalAlbumOnlyPurchaseStatus, setDigitalAlbumOnlyPurchaseStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm?artist=${artistProfile.slug}`)}&text=${encodeURIComponent(
     `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on @SigmaXMusic and I'm excited to stream it!`
   )}`;
@@ -87,7 +88,6 @@ export const BuyAndMintAlbumUsingSOL = ({
   }, [publicKey, connection]);
 
   const handlePaymentConfirmation = async () => {
-    debugger;
     if (!publicKey || !requiredSolAmount) return;
 
     // handlePaymentConfirmation_Simulate();
@@ -134,6 +134,8 @@ export const BuyAndMintAlbumUsingSOL = ({
 
       // Log payment to web2 API
       const _logPaymentToAPIResponse = await logPaymentToAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
         payer: publicKey.toBase58(),
         tx: signature,
         task: "buyAlbum",
@@ -153,7 +155,23 @@ export const BuyAndMintAlbumUsingSOL = ({
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
-      handleMinting({ paymentMadeTx: signature, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce });
+      if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption1) {
+        // user is buying ONLY the digital album so we dont need minting
+        setDigitalAlbumOnlyPurchaseStatus("processing");
+
+        await sleep(3);
+
+        toastSuccess("Album Purchase Successful!", true);
+
+        // need to pull it out of the ui thread of for some reason the confetti goes first
+        setTimeout(() => {
+          setDigitalAlbumOnlyPurchaseStatus("confirmed");
+          showSuccessConfetti();
+        }, 500);
+      } else {
+        // for all other options, we need to mint the album as well
+        handleMinting({ paymentMadeTx: signature, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce });
+      }
     } catch (error) {
       console.error("Payment failed:", error);
       alert("Payment failed. Please try again - " + (error as Error).message);
@@ -161,6 +179,7 @@ export const BuyAndMintAlbumUsingSOL = ({
     }
   };
 
+  /*
   const handlePaymentConfirmation_Simulate = async () => {
     if (!publicKey || !requiredSolAmount) return;
 
@@ -182,6 +201,7 @@ export const BuyAndMintAlbumUsingSOL = ({
       setPaymentStatus("idle");
     }
   };
+  */
 
   const handleMinting = async ({ paymentMadeTx, solSignature, signatureNonce }: { paymentMadeTx: string; solSignature: string; signatureNonce: string }) => {
     setMintingStatus("processing");
@@ -220,6 +240,7 @@ export const BuyAndMintAlbumUsingSOL = ({
     }
   };
 
+  /*
   const handleMinting_Simulate = async () => {
     setMintingStatus("processing");
 
@@ -246,6 +267,7 @@ export const BuyAndMintAlbumUsingSOL = ({
       setMintingStatus("failed");
     }
   };
+  */
 
   const handlePaymentAndMint = async (_albumSaleTypeOption: string) => {
     if (!publicKey?.toBase58()) {
@@ -311,7 +333,7 @@ export const BuyAndMintAlbumUsingSOL = ({
                   <Button
                     onClick={handlePaymentConfirmation}
                     className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
-                    disabled={isSolPaymentsDisabled}>
+                    disabled={isSolPaymentsDisabled || !requiredSolAmount}>
                     Proceed
                   </Button>
                 </div>
@@ -327,31 +349,36 @@ export const BuyAndMintAlbumUsingSOL = ({
     setShowPaymentConfirmation(false);
     setPaymentStatus("idle");
     setMintingStatus("idle");
+    setDigitalAlbumOnlyPurchaseStatus("idle");
     setBackendErrorMessage(null);
     setAlbumSaleTypeOption(null);
   }
 
   let isSolPaymentsDisabled = !ENABLE_SOL_PAYMENTS || ENABLE_SOL_PAYMENTS !== "1";
 
+  function musicAssetProcurementFullyDone() {
+    return mintingStatus === "confirmed" || digitalAlbumOnlyPurchaseStatus === "confirmed";
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       {showPaymentConfirmation && <PaymentConfirmationPopup />}
 
       <div
-        className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4   ${mintingStatus === "confirmed" ? "max-w-lg" : "grid grid-cols-1 md:grid-cols-2 max-w-6xl"} gap-6`}>
+        className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4   ${musicAssetProcurementFullyDone() ? "max-w-lg" : "grid grid-cols-1 md:grid-cols-2 max-w-6xl"} gap-6`}>
         {/* Close button  */}
-        {(paymentStatus === "idle" || mintingStatus === "confirmed" || mintingStatus === "failed") && (
+        {(paymentStatus === "idle" || mintingStatus === "failed" || musicAssetProcurementFullyDone()) && (
           <button
             onClick={() => {
               resetStateToPristine();
-              onCloseModal(mintingStatus === "confirmed");
+              onCloseModal(musicAssetProcurementFullyDone());
             }}
             className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
             ✕
           </button>
         )}
 
-        {mintingStatus !== "confirmed" && (
+        {mintingStatus !== "confirmed" && digitalAlbumOnlyPurchaseStatus !== "confirmed" && (
           <>
             {/* Left Column - Album Details */}
             <div className="flex flex-col items-center justify-center h-full p-2">
@@ -374,7 +401,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
                   <div className="text-center space-y-4 w-full">
                     <h3 className="text-xl md:text-2  xl font-bold text-white">
-                      <span className="text-orange-400">{albumToBuyAndMint.title}</span> by <span className="text-orange-600">{artistProfile.name}</span>
+                      <span className="text-yellow-400">{albumToBuyAndMint.title}</span> by <span className="text-yellow-400">{artistProfile.name}</span>
                     </h3>
                   </div>
                 </div>
@@ -393,7 +420,7 @@ export const BuyAndMintAlbumUsingSOL = ({
               isPaymentsDisabled={isSolPaymentsDisabled}
               handlePaymentAndMint={handlePaymentAndMint}
               buyNowMeta={albumToBuyAndMint._buyNowMeta}
-              disableActions={mintingStatus === "processing"}
+              disableActions={mintingStatus === "processing" || digitalAlbumOnlyPurchaseStatus === "processing"}
             />
 
             {backendErrorMessage && (
@@ -427,12 +454,12 @@ export const BuyAndMintAlbumUsingSOL = ({
           </>
         )}
 
-        {mintingStatus === "confirmed" && (
+        {musicAssetProcurementFullyDone() && (
           <>
             <div className="space-y-4 flex flex-col items-center w-full">
               <h2 className={`!text-2xl text-center font-bold`}>
-                Success! You can now stream <span className="text-orange-400">{albumToBuyAndMint.title}</span> by{" "}
-                <span className="text-orange-600">{artistProfile.name}</span>!
+                Success! You can now stream <span className="text-yellow-400">{albumToBuyAndMint.title}</span> by{" "}
+                <span className="text-yellow-400">{artistProfile.name}</span>!
               </h2>
 
               <Button

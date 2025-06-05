@@ -137,6 +137,8 @@ export const JoinInnerCircleSOL = ({
 
       // Log payment to web2 API
       const _logPaymentToAPIResponse = await logPaymentToAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
         payer: publicKey.toBase58(),
         tx: signature,
         task: "joinFanClub",
@@ -371,7 +373,7 @@ export const JoinInnerCircleSOL = ({
               {mintingStatus === "processing" && (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
                   <Loader className="w-full text-center animate-spin hover:scale-105" />
-                  <p className="text-yellow-500">Fan Collectible Minting in process... do not close this page</p>
+                  <p className="text-yellow-500">Fan collectible minting in process... do not close this page</p>
                 </div>
               )}
 

@@ -341,7 +341,6 @@ export const JoinInnerCircleCC = ({
             </Button>
             <Button
               onClick={() => {
-                // setShowStripePaymentPopup(true);
                 createPaymentIntentForThisPayment();
               }}
               className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
