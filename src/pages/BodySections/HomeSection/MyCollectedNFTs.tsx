@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { useSearchParams } from "react-router-dom";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { BountyBitzSumMapping } from "libs/types";
 import { sleep } from "libs/utils/misc";
-import { scrollToSection } from "libs/utils/ui";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
@@ -49,13 +47,11 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     setHomeMode,
     navigateToDeepAppView,
   } = props;
-  const { isLoadingSol, solBitzNfts, solMusicAssetNfts } = useNftsStore();
+  const { isLoadingSol, solBitzNfts, solMusicAssetNfts, solFanMembershipNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [myCollectedArtistsAlbums, setMyCollectedArtistsAlbums] = useState<any[]>([]);
   const [allOwnedAlbums, setAllOwnedAlbums] = useState<any[]>([]);
-  const [allOwnedSigmaAlbums, setAllOwnedSigmaAlbums] = useState<any[]>([]);
   const [allOwnedFanMemberships, setAllOwnedFanMemberships] = useState<any[]>([]);
-  const [searchParams, setSearchParams] = useSearchParams();
   const { artistLookupEverything } = useAppStore();
 
   useEffect(() => {
@@ -66,18 +62,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   }, []);
 
   useEffect(() => {
-    if (allOwnedAlbums.length > 0) {
-      // only scroll direct to focus on my collected albums of the user just came from login
-      const isDirectFromFreeMusicGift = searchParams.get("fromFreeMusicGift");
-
-      if (isDirectFromFreeMusicGift) {
-        const currentParams = Object.fromEntries(searchParams.entries());
-        delete currentParams["fromFreeMusicGift"];
-        setSearchParams(currentParams);
-        scrollToSection("myCollectedAlbums");
-      }
-    }
-
     (async () => {
       if (DISABLE_BITZ_FEATURES) {
         return;
@@ -91,10 +75,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
 
   useEffect(() => {
     if (artistAlbumDataset && artistAlbumDataset.length > 0 && Object.keys(artistLookupEverything).length > 0) {
-      if (solMusicAssetNfts.length > 0) {
+      if (solMusicAssetNfts.length > 0 || solFanMembershipNfts.length > 0) {
         (async () => {
           let _allOwnedAlbums: any[] = [];
-          let _allOwnedSigmaAlbums: any[] = [];
 
           const filteredArtists = artistAlbumDataset
             .map((artist) => {
@@ -130,20 +113,10 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             })
             .filter((artist) => artist.albums.length > 0); // Only keep artists that have matching albums
 
-          // Find unmatched NFTs
-          const unmatchedNfts = solMusicAssetNfts.filter((ownedNft: DasApiAsset) => {
-            const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
-            return !_allOwnedAlbums.some((album) => album.solNftName.split(/[-\s]/)[0].toLowerCase() === nftPrefix.toLowerCase());
-          });
-
-          // Filter out fan membership NFTs
-          const fanMembershipNfts = unmatchedNfts.filter((nft: DasApiAsset) => nft.content.metadata.name.includes("FAN"));
-          const remainingUnmatchedNfts = unmatchedNfts.filter((nft: DasApiAsset) => !nft.content.metadata.name.includes("FAN"));
-
           // Process fan membership NFTs
-          if (fanMembershipNfts.length > 0) {
+          if (solFanMembershipNfts.length > 0) {
             const fanMembershipsWithMetadata = await Promise.all(
-              fanMembershipNfts.map(async (nft: DasApiAsset) => {
+              solFanMembershipNfts.map(async (nft: DasApiAsset) => {
                 try {
                   const response = await fetch(nft.content.json_uri);
                   const metadata = await response.json();
@@ -166,7 +139,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             );
 
             // let's pull out the attributed slug and artistCampaignCode from artistLookupEverything by matching on tryExtractFanToken3DGifTeaser and fanToken3DGifTeaser from artistLookupEverything
-            const fanMembershipsWithAttributedSlugAndArtistCampaignCode = fanMembershipsWithMetadata.map((fanMembership) => {
+            const fanMembershipsWithAttributedSlugAndArtistCampaignCode = fanMembershipsWithMetadata.map((fanMembership: any) => {
               if (!fanMembership?.tryExtractFanToken3DGifTeaser) {
                 return fanMembership;
               }
@@ -187,58 +160,12 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             setAllOwnedFanMemberships(fanMembershipsWithAttributedSlugAndArtistCampaignCode);
           }
 
-          if (remainingUnmatchedNfts.length > 0) {
-            // Now await is allowed since we're in an async function
-            const albumsWithMetadata = await Promise.all(
-              remainingUnmatchedNfts.map(async (nft: DasApiAsset) => {
-                try {
-                  const response = await fetch(nft.content.json_uri);
-                  const metadata = await response.json();
-
-                  return {
-                    solNftName: nft.content.metadata.name,
-                    creatorWallet: nft.ownership.owner,
-                    img: metadata.image || "https://placeholder.com/300x300",
-                    title: metadata.name || nft.content.metadata.name,
-                    desc: metadata.description || "AI Generated Music",
-                    bountyId: "sigma_bounty",
-                    albumId: "sigma_album",
-                    isSigmaRemixAlbum: true,
-                  };
-                } catch (error) {
-                  console.error("Error fetching metadata for NFT:", error);
-                  // Return default values if fetch fails
-                  return {
-                    solNftName: nft.content.metadata.name,
-                    creatorWallet: nft.ownership.owner,
-                    img: "https://placeholder.com/300x300",
-                    title: nft.content.metadata.name,
-                    desc: "AI Generated Music",
-                    bountyId: "",
-                    albumId: nft.content.metadata.name.replaceAll(" ", "_"),
-                    isSigmaRemixAlbum: true,
-                  };
-                }
-              })
-            );
-
-            _allOwnedSigmaAlbums = [
-              {
-                name: "Sigma",
-                slug: "sigma",
-                creatorWallet: "sigma_wallet",
-                albums: albumsWithMetadata,
-              },
-            ];
-          }
-
           setMyCollectedArtistsAlbums([...filteredArtists]);
           setAllOwnedAlbums(_allOwnedAlbums);
-          setAllOwnedSigmaAlbums(_allOwnedSigmaAlbums);
         })();
       }
     }
-  }, [artistAlbumDataset, solMusicAssetNfts, artistLookupEverything]);
+  }, [artistAlbumDataset, solMusicAssetNfts, artistLookupEverything, solFanMembershipNfts]);
 
   async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {
     // we throttle this so that we don't overwhelm the server and also, the local state updates dont fire if they are all too close together
@@ -355,88 +282,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
           </div>
         </div>
       </div>
-
-      {allOwnedSigmaAlbums.length > 0 && (
-        <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
-          <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
-            <span className="m-auto md:m-0">Sigma AI Albums</span>
-          </div>
-
-          <div className="flex flex-col md:flex-row w-[100%] items-start">
-            <div className="flex flex-col gap-4 items-start bg-background min-h-[200px] w-[100%]">
-              <>
-                <div className="flex flex-col justify-center w-[100%]">
-                  {isLoadingSol ? (
-                    <div className="m-auto w-full">
-                      <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
-                        {[...Array(3)].map((_, index) => (
-                          <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {allOwnedSigmaAlbums.length > 0 ? (
-                        <>
-                          <div className="font-bold text-2xl mb-5">
-                            You have collected{" "}
-                            <span className="text-2xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
-                              {allOwnedSigmaAlbums.length} {allOwnedSigmaAlbums.length > 1 ? `albums` : `album`}
-                            </span>
-                          </div>
-                          {allOwnedSigmaAlbums.map((artist: any, index: number) => {
-                            return (
-                              <div key={index} className="w-[100%]">
-                                <ArtistDiscography
-                                  inCollectedAlbumsView={true}
-                                  albums={artist.albums}
-                                  artistProfile={artist}
-                                  bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                                  checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
-                                  openActionFireLogic={openActionFireLogic}
-                                  setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
-                                  dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
-                                  onSendBitzForMusicBounty={onSendBitzForMusicBounty}
-                                  viewSolData={viewSolData}
-                                  isMusicPlayerOpen={isMusicPlayerOpen}
-                                  onCloseMusicPlayer={onCloseMusicPlayer}
-                                />
-                              </div>
-                            );
-                          })}
-                        </>
-                      ) : (
-                        <div className="">
-                          ⚠️ You have not collected any albums. Let's fix that!
-                          <span className="hidden">Get your </span>
-                          <span
-                            className="hidden text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
-                            onClick={() => {
-                              window.scrollTo({
-                                top: 0,
-                                behavior: "smooth",
-                              });
-                            }}>
-                            free airdrop on top of this page (if you are eligible)
-                          </span>{" "}
-                          Get some by{" "}
-                          <span
-                            className="text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
-                            onClick={() => {
-                              scrollToSection("artist-profile");
-                            }}>
-                            exploring artists and albums
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </>
-            </div>
-          </div>
-        </div>
-      )}
 
       {allOwnedFanMemberships.length > 0 && (
         <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">

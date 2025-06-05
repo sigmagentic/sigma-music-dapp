@@ -208,7 +208,7 @@ export const BuyAndMintAlbumUsingCC = ({
             buyNowMeta={albumToBuyAndMint._buyNowMeta}
             disableActions={fetchingPaymentIntent}
           />
-          <div className="text-xs text-right">
+          <div className="text-xs text-right mt-[5px]">
             <p>
               <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Buy Now", you agree to these{" "}
               <a className="underline" href="https://sigmamusic.fm/legal#terms-of-sale" target="_blank" rel="noopener noreferrer">
