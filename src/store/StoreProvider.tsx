@@ -7,9 +7,9 @@ import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
-import { AlbumTrackCatalog } from "libs/types";
+import { AlbumTrackCatalog, MusicAssetOwned } from "libs/types";
 import { computeRemainingCooldown } from "libs/utils/functions";
-import { fetchMintsLeaderboardByMonth } from "libs/utils/misc";
+import { fetchMintsLeaderboardByMonth, getLoggedInUserProfileAPI, getPaymentLogsViaAPI } from "libs/utils/misc";
 import { getAlbumTrackCatalogData, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
@@ -22,7 +22,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   const addressSol = publicKeySol?.toBase58();
   const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
 
-  // ACCOUNT Store
+  // Stores
   const {
     updateBitzBalance,
     updateCooldown,
@@ -33,11 +33,30 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     updateIsSigmaWeb2XpSystem,
     isSigmaWeb2XpSystem,
   } = useSolBitzStore();
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
-
-  // NFT Store
-  const { solBitzNfts, solNfts, updateSolNfts, updateIsLoadingSol, updateSolBitzNfts, updateSolNFMeIdNfts } = useNftsStore();
+  const {
+    solPreaccessNonce,
+    solPreaccessSignature,
+    solPreaccessTimestamp,
+    myRawPaymentLogs,
+    userWeb2AccountDetails,
+    updateSolPreaccessNonce,
+    updateSolPreaccessTimestamp,
+    updateSolSignedPreaccess,
+    updateMyPaymentLogs,
+    updateMyMusicAssetPurchases,
+    updateMyRawPaymentLogs,
+    updateUserWeb2AccountDetails,
+  } = useAccountStore();
+  const {
+    solBitzNfts,
+    solNfts,
+    updateSolNfts,
+    updateIsLoadingSol,
+    updateSolBitzNfts,
+    updateSolNFMeIdNfts,
+    updateSolMusicAssetNfts,
+    updateSolFanMembershipNfts,
+  } = useNftsStore();
 
   // Store lookup etc the app needed regardless on if it the use is logged in or not
   const {
@@ -50,6 +69,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     updateArtistLookupEverything,
     updateMintsLeaderboard,
     mintsLeaderboard,
+    artistLookupEverything,
   } = useAppStore();
 
   useEffect(() => {
@@ -105,7 +125,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     })();
   }, []);
 
-  // SOL Logged in - bootstrap nft store
+  // Logged in - bootstrap nft store and other account data
   useEffect(() => {
     async function getAllUsersSolNftsAndRefreshSignatureSession() {
       updateIsLoadingSol(true);
@@ -125,12 +145,38 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       updateIsLoadingSol(false);
     }
 
+    async function getAllPaymentLogs() {
+      const _paymentLogs = await getPaymentLogsViaAPI({ addressSol: addressSol! });
+      updateMyRawPaymentLogs(_paymentLogs);
+    }
+
     if (publicKeySol) {
       getAllUsersSolNftsAndRefreshSignatureSession();
+      getAllPaymentLogs();
     }
   }, [publicKeySol]);
 
-  // SOL: if someone updates data nfts (i.e. at the start when app loads and we get nfts OR they get a free mint during app session), we go over them and find bitz nfts etc
+  // if the user reloads the page after a login, lets rehydrate the user web2 account details
+  useEffect(() => {
+    if (publicKeySol && publicKeySol !== null && solPreaccessNonce !== "" && solPreaccessSignature !== "" && Object.keys(userWeb2AccountDetails).length === 0) {
+      (async () => {
+        const _userProfileData = await getLoggedInUserProfileAPI({
+          solSignature: solPreaccessSignature,
+          signatureNonce: solPreaccessNonce,
+          addr: publicKeySol.toBase58(),
+        });
+
+        if (!_userProfileData.error) {
+          updateUserWeb2AccountDetails(_userProfileData);
+        } else {
+          console.error("StoreProvider: error getting user profile data");
+          console.error(_userProfileData);
+        }
+      })();
+    }
+  }, [publicKeySol, solPreaccessNonce, solPreaccessSignature, userWeb2AccountDetails]);
+
+  // if someone updates data nfts (i.e. at the start when app loads and we get nfts OR they get a free mint during app session), we go over them and find bitz nfts etc
   useEffect(() => {
     if (!publicKeySol) {
       return;
@@ -145,6 +191,16 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
         : solNfts.filter((nft) => nft.content.metadata.name.includes("IXPG")); // @TODO, what is the user has multiple BiTz? IXPG2 was from drip and IXPG3 will be from us direct via the airdrop
 
       const _nfMeIdNfts: DasApiAsset[] = solNfts.filter((nft) => nft.content.metadata.name.includes("NFMeID"));
+
+      const _musicAssetNfts: DasApiAsset[] = solNfts.filter((nft: DasApiAsset) => {
+        if (nft.content.metadata.name.includes("MUS") || nft.content.metadata.name.includes("POD")) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+
+      const _fanMembershipNfts: DasApiAsset[] = solNfts.filter((nft) => nft.content.metadata.name.includes("FAN"));
 
       if (_bitzDataNfts.length === 0) {
         // user has no, so we create the place holder one for them
@@ -164,14 +220,78 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
         updateIsSigmaWeb2XpSystem(0);
       }
 
+      // our collection of nfts for this app, this will keep updating as user buys more nfts and we refresh the solNfts master list
       updateSolBitzNfts(_bitzDataNfts);
       updateSolNFMeIdNfts(_nfMeIdNfts);
+      updateSolMusicAssetNfts(_musicAssetNfts);
+      updateSolFanMembershipNfts(_fanMembershipNfts);
 
       updateIsLoadingSol(false);
     })();
   }, [publicKeySol, solNfts]);
 
-  // SOL - Bitz Bootstrap
+  // used raw payment logs to get music asset purchases
+  useEffect(() => {
+    // if we have got the myRawPaymentLogs or updated it after a purchase in the app session, then lets filter it by paymentStatus === success
+    // and then find items with type buyAlbum and put that in a new list in useAccountStore called myMusicAssetPurchases
+    if (myRawPaymentLogs.length > 0 && Object.keys(artistLookupEverything).length > 0) {
+      // add data like artistSlug, artistName, albumName to the myRawPaymentLogs
+      const _augmentedMyRawPaymentLogs = myRawPaymentLogs.map((log) => {
+        if (log.artistId) {
+          const artist = artistLookupEverything[log.artistId];
+          if (artist) {
+            log._artistSlug = artist.slug;
+            log._artistName = artist.name;
+
+            if (artist.artistCampaignCode && artist.artistCampaignCode !== "") {
+              log._artistCampaignCode = artist.artistCampaignCode;
+            }
+
+            if (artist.artistSubGroup1Code && artist.artistSubGroup1Code !== "") {
+              log._artistSubGroup1Code = artist.artistSubGroup1Code;
+            }
+
+            if (artist.artistSubGroup2Code && artist.artistSubGroup2Code !== "") {
+              log._artistSubGroup2Code = artist.artistSubGroup2Code;
+            }
+          }
+        } else if (log.albumId) {
+          const artist = artistLookupEverything[log.albumId.split("_")[0]];
+          if (artist) {
+            log._artistSlug = artist.slug;
+            log._artistName = artist.name;
+
+            artist.albums.forEach((album: any) => {
+              if (album.albumId === log.albumId) {
+                log._albumName = album.title;
+              }
+            });
+          }
+        }
+        return log;
+      });
+
+      const _myMusicAssetPurchases: MusicAssetOwned[] = _augmentedMyRawPaymentLogs
+        .filter((log) => log.paymentStatus === "success" && log.task === "buyAlbum")
+        .map((log) => ({
+          purchasedOn: log.createdOn,
+          tx: log.tx,
+          albumSaleTypeOption: log.albumSaleTypeOption,
+          albumId: log.albumId,
+          type: "sol",
+          artistId: log.artistId,
+          membershipId: log.membershipId,
+          _artistSlug: log._artistSlug,
+          _artistName: log._artistName,
+          _albumName: log._albumName,
+        }));
+
+      updateMyPaymentLogs(_augmentedMyRawPaymentLogs);
+      updateMyMusicAssetPurchases(_myMusicAssetPurchases);
+    }
+  }, [myRawPaymentLogs, artistLookupEverything, publicKeySol]);
+
+  // NFT based XP Bootstrap
   useEffect(() => {
     (async () => {
       if (DISABLE_BITZ_FEATURES || isSigmaWeb2XpSystem === -2 || !publicKeySol) {

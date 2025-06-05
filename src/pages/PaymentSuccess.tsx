@@ -5,6 +5,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { SOL_ENV_ENUM } from "config";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
+import { AlbumSaleTypeOption } from "libs/types";
 import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep, updateUserProfileOnBackEndAPI } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
@@ -21,6 +22,7 @@ export const PaymentSuccess = () => {
   const [paymentStatus, setPaymentStatus] = useState<"processing" | "confirmed" | "failed">("processing");
   const [paymentLogStatus, setPaymentLogStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
+  const [digitalAlbumOnlyPurchaseStatus, setDigitalAlbumOnlyPurchaseStatus] = useState<"idle" | "confirmed">("idle");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading"); // the overall status of the process
   const [error, setError] = useState<string | null>(null); // the error message if the process fails
   const { updateSolNfts } = useNftsStore();
@@ -64,6 +66,7 @@ export const PaymentSuccess = () => {
         const artistSlug = searchParams.get("artist");
         const campaignCode = searchParams.get("campaignCode");
         const totalQuantity = parseInt(searchParams.get("totalQuantity") || "1");
+        const albumSaleTypeOption = searchParams.get("albumSaleTypeOption");
 
         const _itemImg = searchParams.get("albumImg");
         const _albumTitle = searchParams.get("albumTitle");
@@ -101,9 +104,22 @@ export const PaymentSuccess = () => {
           setPaymentStatus("confirmed");
           setPaymentLogStatus("processing");
 
-          // Log payment to web2 API
+          const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+            solPreaccessNonce,
+            solPreaccessSignature,
+            solPreaccessTimestamp,
+            signMessage: signMessageViaWeb3Auth,
+            updateSolPreaccessNonce,
+            updateSolSignedPreaccess,
+            updateSolPreaccessTimestamp,
+            forceNewSession: true,
+          });
+
           try {
+            // Log payment to web2 API
             const paymentLogParams: any = {
+              solSignature: usedPreAccessSignature,
+              signatureNonce: usedPreAccessNonce,
               payer: buyerSolAddress,
               tx: paymentIntentId,
               task: albumId ? "buyAlbum" : "joinFanClub",
@@ -115,6 +131,7 @@ export const PaymentSuccess = () => {
 
             if (albumId) {
               paymentLogParams.albumId = albumId;
+              paymentLogParams.albumSaleTypeOption = AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption];
             } else {
               paymentLogParams.membershipId = membershipId;
               paymentLogParams.artistId = artistId;
@@ -131,7 +148,13 @@ export const PaymentSuccess = () => {
             if (_billingEmail) {
               const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
 
-              const _updateUserBillingEmail = await updateUserProfileOnBackEndAPI({ addr: buyerSolAddress, chainId, billingEmail: _billingEmail });
+              const _updateUserBillingEmail = await updateUserProfileOnBackEndAPI({
+                addr: buyerSolAddress,
+                chainId,
+                billingEmail: _billingEmail,
+                solSignature: usedPreAccessSignature,
+                signatureNonce: usedPreAccessNonce,
+              });
 
               if (_updateUserBillingEmail.error) {
                 console.error("Failed to update user billing email", _updateUserBillingEmail.errorMessage);
@@ -143,58 +166,54 @@ export const PaymentSuccess = () => {
           }
 
           setPaymentLogStatus("confirmed");
-          setMintingStatus("processing");
 
-          // Mint the collectible
-          try {
-            const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
-              solPreaccessNonce,
-              solPreaccessSignature,
-              solPreaccessTimestamp,
-              signMessage: signMessageViaWeb3Auth,
-              updateSolPreaccessNonce,
-              updateSolSignedPreaccess,
-              updateSolPreaccessTimestamp,
-              forceNewSession: true,
-            });
+          if (albumId && AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption1) {
+            // user is buying ONLY the digital album so we dont need minting
+            setDigitalAlbumOnlyPurchaseStatus("confirmed");
+          } else {
+            setMintingStatus("processing");
 
-            const mintParams: any = {
-              solSignature: usedPreAccessSignature,
-              signatureNonce: usedPreAccessNonce,
-              mintForSolAddr: buyerSolAddress,
-              paymentHash: paymentIntentId, // in the db, we verify that paymentIntentId is not used multiple times
-              nftType: albumId ? "album" : "fan",
-              creatorWallet: creatorWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
-              isCCPayment: "1",
-              totalQuantity: totalQuantity,
-            };
+            // Mint the collectible
+            try {
+              const mintParams: any = {
+                solSignature: usedPreAccessSignature,
+                signatureNonce: usedPreAccessNonce,
+                mintForSolAddr: buyerSolAddress,
+                paymentHash: paymentIntentId, // in the db, we verify that paymentIntentId is not used multiple times
+                nftType: albumId ? "album" : "fan",
+                creatorWallet: creatorWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
+                isCCPayment: "1",
+                totalQuantity: totalQuantity,
+              };
 
-            if (albumId) {
-              mintParams.albumId = albumId;
-            } else {
-              mintParams.membershipId = membershipId;
-              mintParams.artistId = artistId;
-            }
+              if (albumId) {
+                mintParams.albumId = albumId;
+                mintParams.albumSaleTypeOption = "2"; // @TODO use actual option. 2 is what we have now (NFT)
+              } else {
+                mintParams.membershipId = membershipId;
+                mintParams.artistId = artistId;
+              }
 
-            const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI(mintParams);
+              const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI(mintParams);
 
-            if (_mintAlbumNFTAfterPaymentResponse.error) {
+              if (_mintAlbumNFTAfterPaymentResponse.error) {
+                setMintingStatus("failed");
+                throw new Error(_mintAlbumNFTAfterPaymentResponse.errorMessage || "Minting failed");
+              }
+            } catch (e) {
               setMintingStatus("failed");
-              throw new Error(_mintAlbumNFTAfterPaymentResponse.errorMessage || "Minting failed");
+              throw e;
             }
-          } catch (e) {
-            setMintingStatus("failed");
-            throw e;
+
+            // sleep for an extra 20 seconds after success to the RPC indexing can update
+            await sleep(20);
+
+            // update the NFT store now as we have a new collectible
+            const _allDataNfts: DasApiAsset[] = await fetchSolNfts(buyerSolAddress!);
+            updateSolNfts(_allDataNfts);
+
+            setMintingStatus("confirmed");
           }
-
-          // sleep for an extra 20 seconds after success to the RPC indexing can update
-          await sleep(20);
-
-          // update the NFT store now as we have a new collectible
-          const _allDataNfts: DasApiAsset[] = await fetchSolNfts(buyerSolAddress!);
-          updateSolNfts(_allDataNfts);
-
-          setMintingStatus("confirmed");
 
           setStatus("success"); // everything was a success
 
@@ -292,7 +311,7 @@ export const PaymentSuccess = () => {
                 </h3>
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">$ {priceInUSD} USD</span>
+                    <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">${priceInUSD}</span>
                     {quantityToBuy && quantityToBuy > 1 && <span className="text-xs text-gray-400">for {quantityToBuy} items</span>}
                   </div>
                 </div>
@@ -301,7 +320,7 @@ export const PaymentSuccess = () => {
           </div>
         </div>
         <div className="bg-black p-8 rounded-lg shadow-xl flex flex-col items-center justify-center">
-          {status === "loading" && (
+          {status === "loading" && digitalAlbumOnlyPurchaseStatus === "idle" && (
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
               <p className="mt-4 text-white">

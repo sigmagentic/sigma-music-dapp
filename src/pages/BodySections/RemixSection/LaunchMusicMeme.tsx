@@ -7,8 +7,10 @@ import { Loader } from "lucide-react";
 import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
+import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/misc";
+import { useAccountStore } from "store/account";
 
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
 const MAX_TITLE_LENGTH = 20;
@@ -33,7 +35,7 @@ const MUSIC_STYLE_OPTIONS = [
 
 export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) => {
   const { connection } = useConnection();
-  const { sendTransaction } = useWallet();
+  const { sendTransaction, signMessage } = useWallet();
   const { publicKey } = useSolanaWallet();
   const [songTitle, setSongTitle] = useState("");
   const [musicStyle, setMusicStyle] = useState("D&B");
@@ -49,6 +51,10 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
   const [verificationError, setVerificationError] = useState("");
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Cached Signature Store Items
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -130,8 +136,22 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         signature = "FREE-gen-" + Date.now();
       }
 
+      // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage,
+        publicKey,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
       // Log payment to web2 API (placeholder)
       await logPaymentToAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
         payer: publicKey.toBase58(),
         tx: signature,
         task: "gen",
@@ -196,7 +216,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
         <h3 className="text-xl font-bold mb-4">Confirm Payment</h3>
         <div className="space-y-4">
           <p>
-            Amount to pay: {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD} USD)
+            Amount to pay: {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD})
           </p>
           <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
           <p>When you click "Proceed", you will be asked to sign a single transaction to send the payment for processing your music generation request.</p>
@@ -435,14 +455,14 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
           <ul className="space-y-3 list-none text-sm">
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">1.</span>
-              Hold over $49 USD worth of $FAN tokens in your wallet. All music you generate will be original and sold as royalty-free NFTs with your and the
+              Hold over $49 worth of $FAN tokens in your wallet. All music you generate will be original and sold as royalty-free NFTs with your and the
               original artist's name on them artists sharing the earnings.
             </li>
             <li className="flex gap-2">
               <span className="text-cyan-400 font-bold">2.</span>
               Make a small SOL payment of{" "}
               <span className="text-orange-600 contents">
-                {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD} USD)
+                {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD})
               </span>{" "}
               to Sigma's wallet. This is used to protect against spam and for music AI LLM usage and tokenization of your music NFT
             </li>

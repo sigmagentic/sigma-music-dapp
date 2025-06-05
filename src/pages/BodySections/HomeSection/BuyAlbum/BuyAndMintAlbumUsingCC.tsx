@@ -5,10 +5,10 @@ import { Loader } from "lucide-react";
 import { STRIPE_PUBLISHABLE_KEY, ENABLE_CC_PAYMENTS } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { Button } from "libComponents/Button";
 import StripeCheckoutFormAlbum from "libs/stripe/StripeCheckoutFormAlbum";
-import { Artist, Album } from "libs/types";
+import { Artist, Album, AlbumSaleTypeOption } from "libs/types";
 import { getApiWeb2Apps } from "libs/utils/misc";
+import PurchaseOptions from "./PurchaseOptions";
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
@@ -23,6 +23,9 @@ export const BuyAndMintAlbumUsingCC = ({
 }) => {
   const { publicKey } = useSolanaWallet();
   const [showStripePaymentPopup, setShowStripePaymentPopup] = useState(false);
+  const [paymentIntentReceived, setPaymentIntentReceived] = useState(false);
+  const [fetchingPaymentIntent, setFetchingPaymentIntent] = useState(false);
+  const [albumSaleTypeOption, setAlbumSaleTypeOption] = useState<string | null>(null);
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState("");
   const { userInfo } = useWeb3Auth();
@@ -38,15 +41,29 @@ export const BuyAndMintAlbumUsingCC = ({
   }, []);
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (albumSaleTypeOption && albumSaleTypeOption !== "") {
+      createPaymentIntentForThisPayment();
+    }
+  }, [albumSaleTypeOption]);
+
+  useEffect(() => {
+    if (paymentIntentReceived && clientSecret && clientSecret !== "" && !fetchingPaymentIntent) {
+      setShowStripePaymentPopup(true);
+    }
+  }, [paymentIntentReceived, clientSecret, fetchingPaymentIntent]);
+
+  function createPaymentIntentForThisPayment() {
+    if (!publicKey || !albumSaleTypeOption) return;
+    setFetchingPaymentIntent(true);
 
     const intentExtraParams: Record<string, any> = {
-      amountToPay: albumToBuyAndMint._buyNowMeta?.priceInUSD,
+      amountToPay: albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD,
       type: "album",
       albumId: albumToBuyAndMint.albumId,
       artistSlug: artistProfile.slug,
       artistName: artistProfile.name,
       buyerSolAddress: publicKey.toBase58(),
+      albumSaleTypeOption: AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption],
     };
 
     if (userInfo.email) {
@@ -67,12 +84,17 @@ export const BuyAndMintAlbumUsingCC = ({
         }
         return res.json();
       })
-      .then((data) => setClientSecret(data.clientSecret))
+      .then((data) => {
+        setClientSecret(data.clientSecret);
+        setPaymentIntentReceived(true);
+        setFetchingPaymentIntent(false);
+      })
       .catch((error) => {
         console.error("Error creating payment intent:", error);
         setBackendErrorMessage("Failed to initialize payment. Please try again later.");
+        setFetchingPaymentIntent(false);
       });
-  }, [publicKey, albumToBuyAndMint.albumId]);
+  }
 
   const StripePaymentPopup = useMemo(() => {
     return () => (
@@ -95,13 +117,14 @@ export const BuyAndMintAlbumUsingCC = ({
                 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
                   <h3 className="text-xl font-bold mb-4">Secure Payment</h3>
                   <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                    $ {albumToBuyAndMint._buyNowMeta?.priceInUSD} USD
+                    $ {albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD} USD
                   </span>
                   <div className="mt-2">
                     <StripeCheckoutFormAlbum
                       artistProfile={artistProfile}
                       albumToBuyAndMint={albumToBuyAndMint}
-                      priceInUSD={albumToBuyAndMint._buyNowMeta?.priceInUSD || null}
+                      priceInUSD={albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD || null}
+                      albumSaleTypeOption={albumSaleTypeOption}
                       closeStripePaymentPopup={() => {
                         setShowStripePaymentPopup(false);
                       }}
@@ -126,6 +149,10 @@ export const BuyAndMintAlbumUsingCC = ({
   function resetStateToPristine() {
     setBackendErrorMessage(null);
     setClientSecret("");
+    setAlbumSaleTypeOption(null);
+    setShowStripePaymentPopup(false);
+    setPaymentIntentReceived(false);
+    setFetchingPaymentIntent(false);
   }
 
   let isCCPaymentsDisabled = !ENABLE_CC_PAYMENTS || ENABLE_CC_PAYMENTS !== "1" || !STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "";
@@ -133,7 +160,8 @@ export const BuyAndMintAlbumUsingCC = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       {showStripePaymentPopup && <StripePaymentPopup />}
-      <div className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 grid grid-cols-1 md:grid-cols-1 max-w-xl gap-6`}>
+
+      <div className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 grid grid-cols-1 md:grid-cols-2 max-w-6xl gap-6`}>
         {/* Close button  */}
         <button
           onClick={() => {
@@ -144,82 +172,58 @@ export const BuyAndMintAlbumUsingCC = ({
           ✕
         </button>
 
-        <div>
-          <div className="mb-2">
-            <h2 className={`!text-2xl text-center font-bold`}>Buy Premium Music Album</h2>
+        {/* Left Column - Album Details */}
+        <div className="flex flex-col items-center justify-center h-full p-2">
+          <div className="mb-2 w-full">
+            <h2 className="!text-3xl text-center font-bold">Buy Album</h2>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex flex-col items-center p-3 shadow-xl">
-              <div className="relative group mb-6">
+          <div className="space-y-4 w-full flex flex-col items-center">
+            <div className="flex flex-col items-center p-4 shadow-xl w-full">
+              <div className="relative group mb-6 flex justify-center w-full">
                 <img
                   src={albumToBuyAndMint.img}
                   alt={albumToBuyAndMint.title}
-                  className="w-32 h-32 md:w-48 md:h-48 lg:w-52 lg:h-52 object-cover rounded-lg shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
+                  className="w-40 h-40 md:w-56 md:h-56 lg:w-80 lg:h-80 object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.02] mx-auto"
                 />
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
 
-              <div className="text-center space-y-4">
+              <div className="text-center space-y-4 w-full">
                 <h3 className="text-xl md:text-2xl font-bold text-white">
-                  {albumToBuyAndMint.title} by <span className="text-gray-400">{artistProfile.name}</span>
+                  <span className="text-yellow-400">{albumToBuyAndMint.title}</span> by <span className="text-yellow-400">{artistProfile.name}</span>
                 </h3>
-
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                      $ {albumToBuyAndMint._buyNowMeta?.priceInUSD} USD
-                    </span>
-                  </div>
-                </div>
               </div>
-            </div>
-
-            {backendErrorMessage && (
-              <div className="flex flex-col gap-4">
-                <p className="bg-red-500 p-4 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
-              </div>
-            )}
-
-            <div className="flex flex-col gap-2 text-sm">
-              <p>
-                <span className="font-bold text-yellow-400">What are you buying?</span> Access to stream the premium music album with all hidden bonus tracks
-                unlocked and an exclusive copy of the album as an NFT collectible.
-              </p>
-              <p>
-                <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Proceed", you agree to these{" "}
-                <a className="underline" href="https://sigmamusic.fm/legal#terms-of-sale" target="_blank" rel="noopener noreferrer">
-                  Terms
-                </a>
-                .
-              </p>
-              <p className="text-xs text-gray-400">Payments are processed securely by Stripe. Click on Proceed when ready to pay.</p>
-            </div>
-
-            {isCCPaymentsDisabled && (
-              <div className="flex gap-4 bg-red-500 p-4 rounded-lg text-sm">
-                <p className="text-white">CC payments are currently disabled. Please try again later.</p>
-              </div>
-            )}
-
-            <div className="flex gap-4">
-              <Button
-                onClick={() => {
-                  resetStateToPristine();
-                  onCloseModal();
-                }}
-                className="flex-1 bg-gray-600 hover:bg-gray-700">
-                Cancel
-              </Button>
-              <Button
-                onClick={() => setShowStripePaymentPopup(true)}
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
-                disabled={isCCPaymentsDisabled}>
-                Proceed
-              </Button>
             </div>
           </div>
         </div>
+
+        {/* Right Column - Purchase Options */}
+        <div>
+          <PurchaseOptions
+            isPaymentsDisabled={isCCPaymentsDisabled}
+            handlePaymentAndMint={(_albumSaleTypeOption: string) => {
+              setAlbumSaleTypeOption(_albumSaleTypeOption);
+            }}
+            buyNowMeta={albumToBuyAndMint._buyNowMeta}
+            disableActions={fetchingPaymentIntent}
+          />
+          <div className="text-xs text-right">
+            <p>
+              <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Buy Now", you agree to these{" "}
+              <a className="underline" href="https://sigmamusic.fm/legal#terms-of-sale" target="_blank" rel="noopener noreferrer">
+                Terms
+              </a>
+            </p>
+            <p className="text-xs text-gray-400">Payments are processed securely by Stripe. Click on Proceed when ready to pay.</p>
+          </div>
+        </div>
+
+        {backendErrorMessage && (
+          <div className="flex flex-col gap-4 col-span-2">
+            <p className="bg-red-500 p-4 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
+          </div>
+        )}
       </div>
     </div>
   );

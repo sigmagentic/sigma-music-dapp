@@ -6,11 +6,13 @@ import { PublicKey } from "@solana/web3.js";
 import { ArrowUpRight, Info, Loader } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
 import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI } from "libs/utils/misc";
 import { mergeImages } from "libs/utils/ui";
-import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { useAccountStore } from "store/account";
+import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 
 export const LaunchToPumpFun = ({
   onCloseModal,
@@ -35,7 +37,7 @@ export const LaunchToPumpFun = ({
   tokenId: string;
   twitterUrl?: string;
 }) => {
-  const { wallet, sendTransaction } = useWallet();
+  const { sendTransaction, signMessage } = useWallet();
   const { publicKey } = useSolanaWallet();
   const { connection } = useConnection();
   const [description, setDescription] = useState(tokenDesc);
@@ -53,9 +55,12 @@ export const LaunchToPumpFun = ({
   const [pumpTokenId, setPumpTokenId] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
-
   const [base64ForApi, setBase64ForApi] = useState<string | null>(null);
   const [base64ForPreview, setBase64ForPreview] = useState<string | null>(null);
+
+  // Cached Signature Store Items
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -208,8 +213,22 @@ export const LaunchToPumpFun = ({
         signature = "FREE-" + tokenId + "-" + Date.now();
       }
 
+      // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage,
+        publicKey,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
       // Log payment to web2 API
       await logPaymentToAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
         payer: publicKey.toBase58(),
         tx: signature,
         task: "pump",
@@ -365,7 +384,7 @@ export const LaunchToPumpFun = ({
         <h3 className="text-xl font-bold mb-4">Confirm Launch Payment</h3>
         <div className="space-y-4">
           <p>
-            Launch fee: {requiredSolAmount === 0 ? "FREE" : requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD} USD)
+            Launch fee: {requiredSolAmount === 0 ? "FREE" : requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
           </p>
           <p>Your wallet balance: {walletBalance !== null ? `${walletBalance.toFixed(4)} SOL` : "Loading..."}</p>
           <p>This payment will be sent to Sigma's service wallet to launch your Music NFT on Pump.fun</p>
@@ -544,7 +563,7 @@ export const LaunchToPumpFun = ({
               <span className="text-cyan-400 font-bold">3.</span>
               To launch it on pump.fun, Make a small SOL payment of{" "}
               <span className="text-orange-600 contents">
-                {requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD} USD)
+                {requiredSolAmount ?? "..."} SOL (${LAUNCH_MUSIC_MEME_PRICE_IN_USD})
               </span>{" "}
               to Sigma's wallet.
             </li>

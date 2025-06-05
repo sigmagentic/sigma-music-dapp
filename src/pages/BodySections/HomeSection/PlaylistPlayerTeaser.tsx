@@ -9,15 +9,25 @@ import { useAudioPlayerStore } from "store/audioPlayer";
 type PlaylistPlayerTeaserProps = {
   playlistTracks: MusicTrack[];
   playlistTracksLoading: boolean;
-  launchPlaylistPlayer: boolean;
   loadAsScreenSaver?: boolean;
+  isMusicPlayerOpen: boolean;
   setLaunchPlaylistPlayer: (launchPlaylistPlayer: boolean) => void;
+  onCloseMusicPlayer: () => void;
+  setLaunchPlaylistPlayerWithDefaultTracks: (launchPlaylistPlayerWithDefaultTracks: boolean) => void;
 };
 
 export const PlaylistPlayerTeaser = (props: PlaylistPlayerTeaserProps) => {
-  const { playlistTracks, playlistTracksLoading, launchPlaylistPlayer, loadAsScreenSaver, setLaunchPlaylistPlayer } = props;
+  const {
+    playlistTracks,
+    playlistTracksLoading,
+    loadAsScreenSaver,
+    isMusicPlayerOpen,
+    setLaunchPlaylistPlayer,
+    onCloseMusicPlayer,
+    setLaunchPlaylistPlayerWithDefaultTracks,
+  } = props;
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const { trackPlayIsQueued, albumPlayIsQueued } = useAudioPlayerStore();
+  const { assetPlayIsQueued, updateAssetPlayIsQueued } = useAudioPlayerStore();
 
   useEffect(() => {
     if (playlistTracks.length === 0) return;
@@ -29,6 +39,8 @@ export const PlaylistPlayerTeaser = (props: PlaylistPlayerTeaserProps) => {
     return () => clearInterval(timer);
   }, [playlistTracks]);
 
+  console.log("$$ playlistTracksLoading Z", playlistTracksLoading);
+
   return (
     <div
       className={`select-none ${loadAsScreenSaver ? "min-h-[100dvh]" : "h-[200px]"} bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/20 relative w-[100%] flex flex-col items-center justify-center rounded-lg mt-2 overflow-hidden`}>
@@ -37,10 +49,10 @@ export const PlaylistPlayerTeaser = (props: PlaylistPlayerTeaserProps) => {
           {playlistTracksLoading ? (
             <span className="text-xs">
               <Loader className="w-full text-center animate-spin hover:scale-105 mb-2" />
-              Music player powering up...
+              Music player powering up
             </span>
           ) : (
-            <span className="text-xs">⚠️ Music service unavailable</span>
+            <>{assetPlayIsQueued ? <span className="text-xs">⌛ Music tracks queued</span> : <span className="text-xs">⚠️ Music player unavailable</span>}</>
           )}
         </>
       ) : (
@@ -65,18 +77,27 @@ export const PlaylistPlayerTeaser = (props: PlaylistPlayerTeaserProps) => {
 
           {!loadAsScreenSaver && (
             <Button
-              disabled={trackPlayIsQueued || albumPlayIsQueued}
+              disabled={assetPlayIsQueued}
               onClick={() => {
-                if (launchPlaylistPlayer) {
-                  setLaunchPlaylistPlayer(false);
+                if (isMusicPlayerOpen) {
+                  updateAssetPlayIsQueued(true);
+                  onCloseMusicPlayer();
+
+                  setTimeout(() => {
+                    setLaunchPlaylistPlayer(true);
+                    setLaunchPlaylistPlayerWithDefaultTracks(true);
+                    updateAssetPlayIsQueued(false);
+                  }, 5000);
                 } else {
-                  setLaunchPlaylistPlayer(true);
+                  setLaunchPlaylistPlayer(false);
+                  setLaunchPlaylistPlayerWithDefaultTracks(true);
+                  updateAssetPlayIsQueued(false);
                 }
               }}
               className="!text-black text-sm tracking-tight relative px-[2.35rem] left-2 bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l">
               <>
-                {trackPlayIsQueued || albumPlayIsQueued ? <Hourglass /> : launchPlaylistPlayer ? <CircleStop /> : <Music2 />}
-                <span className="ml-2">{launchPlaylistPlayer ? "Stop Music" : "Listen Now"}</span>
+                {assetPlayIsQueued ? <Hourglass /> : isMusicPlayerOpen ? <CircleStop /> : <Music2 />}
+                <span className="ml-2">{isMusicPlayerOpen ? "Stop Music" : assetPlayIsQueued ? "Queued" : "Listen Now"}</span>
               </>
             </Button>
           )}

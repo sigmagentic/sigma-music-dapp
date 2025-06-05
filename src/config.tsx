@@ -1,10 +1,9 @@
 import { IS_DEVNET } from "appsConfig";
+import { AlbumSaleTypeOption } from "libs/types";
 
 export const APP_NETWORK = import.meta.env.VITE_ENV_NETWORK || "devnet";
 
 export const apiTimeout = 10_000; // 10s
-
-export const SHOW_NFTS_STEP = 20;
 
 export const DEFAULT_BITZ_COLLECTION_SOL = IS_DEVNET ? "AXvaYiSwE7XKdiM4eSWTfagkswmWKVF7KzwW5EpjCDGk" : "JAWEFUJSWErkDj8RefehQXGp1nUhCoWbtZnpeo8Db8KN";
 
@@ -60,49 +59,113 @@ export enum GenreTier {
   FRINGE = "fringe",
 }
 
-export const ALL_MUSIC_GENRES = [
-  { code: "garage track", label: "Garage Track", tier: GenreTier.TIER2 },
-  { code: "rnb", label: "R&B", tier: GenreTier.TIER1 },
-  { code: "pop", label: "Pop", tier: GenreTier.TIER1 },
-  { code: "afropop", label: "Afropop", tier: GenreTier.TIER2 },
-  { code: "dnb", label: "Drum & Bass", tier: GenreTier.TIER2 },
-  { code: "trance", label: "Trance", tier: GenreTier.TIER2 },
-  { code: "breakbeat", label: "Breakbeat", tier: GenreTier.TIER2 },
-  { code: "deep house", label: "Deep House", tier: GenreTier.TIER2 },
-  { code: "boombap", label: "Boombap", tier: GenreTier.TIER2 },
-  { code: "dark hip hop", label: "Dark Hip Hop", tier: GenreTier.TIER2 },
-  { code: "lofi", label: "Lo-Fi", tier: GenreTier.TIER2 },
-  { code: "hip hop", label: "Hip Hop", tier: GenreTier.TIER1 },
-  { code: "house", label: "House", tier: GenreTier.TIER1 },
-  { code: "breakcore", label: "Breakcore", tier: GenreTier.FRINGE },
-  { code: "instrumental", label: "Instrumental", tier: GenreTier.TIER2 },
-  { code: "rock", label: "Rock", tier: GenreTier.TIER1 },
-  { code: "world beat", label: "World Beat", tier: GenreTier.TIER2 },
-  { code: "trap", label: "Trap", tier: GenreTier.TIER1 },
-  { code: "drill", label: "Drill", tier: GenreTier.TIER2 },
-  { code: "indian pop", label: "Indian Pop", tier: GenreTier.TIER2 },
-  { code: "dark trap", label: "Dark Trap", tier: GenreTier.TIER2 },
-  { code: "rap", label: "Rap", tier: GenreTier.TIER1 },
-  { code: "african pop", label: "African Pop", tier: GenreTier.TIER1 },
-  { code: "edm", label: "EDM", tier: GenreTier.TIER1 },
-  { code: "rock ballad", label: "Rock Ballad", tier: GenreTier.TIER2 },
-  { code: "alternative rock", label: "Alternative Rock", tier: GenreTier.TIER2 },
-  { code: "ballad", label: "Ballad", tier: GenreTier.TIER2 },
-  { code: "folk", label: "Folk", tier: GenreTier.TIER2 },
-  { code: "metal", label: "Metal", tier: GenreTier.TIER2 },
-  { code: "electro", label: "Electro", tier: GenreTier.TIER2 },
-  { code: "cyberpunk", label: "Cyberpunk", tier: GenreTier.FRINGE },
-  { code: "gypsy", label: "Gypsy", tier: GenreTier.FRINGE },
-  { code: "dance", label: "Dance", tier: GenreTier.TIER1 },
-  { code: "pop rock", label: "Pop Rock", tier: GenreTier.TIER2 },
-  { code: "jazz", label: "Jazz", tier: GenreTier.TIER2 },
-  { code: "ambient", label: "Ambient", tier: GenreTier.TIER2 },
-  { code: "dream pop", label: "Dream Pop", tier: GenreTier.TIER2 },
-  { code: "electronica", label: "Electronica", tier: GenreTier.TIER2 },
-  { code: "soundtrack", label: "Soundtrack", tier: GenreTier.TIER2 },
-  { code: "spoken word", label: "Spoken Word", tier: GenreTier.FRINGE },
-  { code: "dubstep", label: "Dubstep", tier: GenreTier.TIER2 },
-  { code: "jungle", label: "Jungle", tier: GenreTier.TIER2 },
-  { code: "alternative", label: "Alternative", tier: GenreTier.TIER1 },
-  { code: "vibrant electronic", label: "Vibrant Electronic", tier: GenreTier.TIER2 },
+export const isUIDebugMode = () => {
+  const _isUIDebugMode = sessionStorage.getItem("sig-adm-ui-debug");
+  return _isUIDebugMode === "true";
+};
+
+// 15 vibrant colors for rotating backgrounds
+export const RANDOM_COLORS = [
+  "#FF6B6B", // Red
+  "#FFD93D", // Yellow
+  "#6BCB77", // Green
+  "#4D96FF", // Blue
+  "#FF6F91", // Pink
+  "#845EC2", // Purple
+  "#FFC75F", // Orange
+  "#0081CF", // Deep Blue
+  "#f9b571", // Yellow Shade
+  "#F96D00", // Deep Orange
+  "#43AA8B", // Teal
+  "#B983FF", // Lavender
+  "#F7B801", // Gold
+  "#EA5455", // Coral
+  "#00C9A7", // Aqua
 ];
+
+export const ALL_MUSIC_GENRES = [
+  { code: "garage track", label: "Garage Track", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "rnb", label: "R&B", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/Beats_By_Scooby_TAOTS_Album_Cover.png" },
+  { code: "pop", label: "Pop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/HachiMugenInfinitySeries.jpg" },
+  { code: "afropop", label: "Afropop", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "dnb", label: "Drum & Bass", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
+  { code: "trance", label: "Trance", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  { code: "breakbeat", label: "Breakbeat", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "deep house", label: "Deep House", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
+  { code: "boombap", label: "Boombap", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  {
+    code: "dark hip hop",
+    label: "Dark Hip Hop",
+    tier: GenreTier.TIER2,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Streetz_Cover.jpg",
+  },
+  { code: "lofi", label: "Lo-Fi", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  { code: "hip hop", label: "Hip Hop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Streetz_Cover.jpg" },
+  { code: "house", label: "House", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Corners_Cover.jpg" },
+  { code: "breakcore", label: "Breakcore", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "instrumental", label: "Instrumental", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
+  {
+    code: "rock",
+    label: "Rock",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/deep-forest.jpg?tpos=bottom",
+  },
+  { code: "world beat", label: "World Beat", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "trap", label: "Trap", tier: GenreTier.TIER1, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
+  { code: "drill", label: "Drill", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "indian pop", label: "Indian Pop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/Uncomplex.jpg?tpos=bottom" },
+  { code: "dark trap", label: "Dark Trap", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  {
+    code: "rap",
+    label: "Rap",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/bogden-cobra.png?tpos=center&ppos=right",
+  },
+  {
+    code: "african pop",
+    label: "African Pop",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/MASTERLOOPZ_TMF_Cover_Art.jpg",
+  },
+  { code: "edm", label: "EDM", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PixelJedi_Absolute.jpg" },
+  { code: "rock ballad", label: "Rock Ballad", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
+  { code: "alternative rock", label: "Alternative Rock", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  { code: "ballad", label: "Ballad", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "folk", label: "Folk", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
+  { code: "metal", label: "Metal", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "electro", label: "Electro", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
+  { code: "cyberpunk", label: "Cyberpunk", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  { code: "gypsy", label: "Gypsy", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "dance", label: "Dance", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/TheArtOfSelfDestruction.jpg" },
+  {
+    code: "pop rock",
+    label: "Pop Rock",
+    tier: GenreTier.TIER2,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/deep-forest.jpg?tpos=bottom",
+  },
+  { code: "jazz", label: "Jazz", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
+  { code: "ambient", label: "Ambient", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  { code: "dream pop", label: "Dream Pop", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "electronica", label: "Electronica", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
+  { code: "soundtrack", label: "Soundtrack", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "spoken word", label: "Spoken Word", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
+  { code: "dubstep", label: "Dubstep", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  { code: "jungle", label: "Jungle", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "alternative", label: "Alternative", tier: GenreTier.TIER1, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
+  { code: "vibrant electronic", label: "Vibrant Electronic", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+];
+
+export const LICENSE_TERMS_MAP = {
+  [AlbumSaleTypeOption.priceOption1]: {
+    shortDescription: "CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives",
+    urlToLicense: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  },
+  [AlbumSaleTypeOption.priceOption2]: {
+    shortDescription: "CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives",
+    urlToLicense: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  },
+  [AlbumSaleTypeOption.priceOption3]: {
+    shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution Allowed",
+    urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
+  },
+};

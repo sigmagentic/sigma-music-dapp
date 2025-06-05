@@ -1,7 +1,8 @@
 import { LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
+import { PaymentLog } from "../types/common";
 
 interface CacheEntry_DataWithTimestamp {
-  data: boolean | [] | Record<string, any> | number;
+  data: boolean | [] | Record<string, any> | number | null;
   timestamp: number;
 }
 
@@ -256,6 +257,19 @@ const cache_checkIfAlbumCanBeMinted: { [key: string]: CacheEntry_DataWithTimesta
 
 export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
   const now = Date.now();
+  const baseNothingAvailable = {
+    priceOption1: {
+      priceInUSD: null,
+    },
+    priceOption2: {
+      canBeMinted: false,
+      priceInUSD: null,
+    },
+    priceOption3: {
+      canBeMinted: false,
+      priceInUSD: null,
+    },
+  };
 
   try {
     // Check if we have a valid cache entry
@@ -270,32 +284,47 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
     if (response.ok) {
       const data = await response.json();
 
+      // the above API trumps of if option 2 and 3 is actually available (as it needs to be minted)
+      const _buyNowMeta = {
+        priceOption1: {
+          priceInUSD: null,
+        },
+        priceOption2: {
+          canBeMinted: data.canBeMinted,
+          priceInUSD: null,
+        },
+        priceOption3: {
+          canBeMinted: data.canBeMinted,
+          priceInUSD: null,
+        },
+      };
+
       // Update cache
       cache_checkIfAlbumCanBeMinted[albumId] = {
-        data: data,
+        data: _buyNowMeta,
         timestamp: now,
       };
 
-      return data;
+      return _buyNowMeta;
     } else {
       // Update cache (with false as data)
       cache_checkIfAlbumCanBeMinted[albumId] = {
-        data: { _canBeMinted: false },
+        data: baseNothingAvailable,
         timestamp: now,
       };
 
-      return { _canBeMinted: false };
+      return baseNothingAvailable;
     }
   } catch (error) {
     console.error("Error checking if album can be minted:", error);
 
     // Update cache (with false as data)
     cache_checkIfAlbumCanBeMinted[albumId] = {
-      data: { _canBeMinted: false },
+      data: baseNothingAvailable,
       timestamp: now,
     };
 
-    return { _canBeMinted: false };
+    return baseNothingAvailable;
   }
 };
 
@@ -315,7 +344,7 @@ export const getAlbumTracksFromDBViaAPI = async (artistId: string, albumId: stri
     }
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/musicTracks/${artistId}?albumId=${albumId}&bonus=${userOwnsAlbum ? 1 : 0}`);
+    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/musicTracks/${artistId}?albumId=${albumId}&bonus=${userOwnsAlbum ? 1 : 0}`);
 
     if (response.ok) {
       const data = await response.json();
@@ -861,3 +890,47 @@ export async function getMusicTracksByGenreViaAPI({ genre, pageSize = 50, pageTo
     return false;
   }
 }
+
+export async function getPaymentLogsViaAPI({ addressSol }: { addressSol: string }): Promise<any> {
+  try {
+    let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/paymentLogs?payer=${addressSol}`;
+
+    const res = await fetch(callUrl);
+
+    const data: PaymentLog[] = await res.json();
+
+    // @TODO, we should reorder the createdOn which is the timestamp of the payment in the server, for now, lets do it here
+    return data.sort((a: any, b: any) => b.createdOn - a.createdOn);
+  } catch (err: any) {
+    const message = "Getting payment logs failed :" + err.message;
+    console.error(message);
+    return false;
+  }
+}
+
+export const getLoggedInUserProfileAPI = async ({ solSignature, signatureNonce, addr }: { solSignature: string; signatureNonce: string; addr: string }) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/userAccounts/loggedInUserProfile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ solSignature, signatureNonce, addr }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error getting logged in user profile:", error);
+    throw error;
+  }
+};

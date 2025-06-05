@@ -18,14 +18,13 @@ type MyCollectedNFTsProps = {
   firstSongBlobUrl: any;
   setStopPreviewPlaying: any;
   setBitzGiftingMeta: any;
-  shownSolAppDataNfts: any;
   onSendBitzForMusicBounty: any;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   setMusicBountyBitzSumGlobalMapping: any;
   userHasNoBitzDataNftYet: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
-  checkOwnershipOfAlbum: (e: any) => any;
+  checkOwnershipOfMusicAsset: (e: any, f?: boolean) => any;
   setFeaturedArtistDeepLinkSlug: (e: any) => any;
   openActionFireLogic: (e: any) => any;
   viewSolData: (e: number) => void;
@@ -36,14 +35,13 @@ type MyCollectedNFTsProps = {
 
 export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   const {
-    shownSolAppDataNfts,
     onSendBitzForMusicBounty,
     bountyBitzSumGlobalMapping,
     setMusicBountyBitzSumGlobalMapping,
     userHasNoBitzDataNftYet,
     dataNftPlayingOnMainPlayer,
     isMusicPlayerOpen,
-    checkOwnershipOfAlbum,
+    checkOwnershipOfMusicAsset,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
     viewSolData,
@@ -51,14 +49,13 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     setHomeMode,
     navigateToDeepAppView,
   } = props;
-  const { isLoadingSol, solBitzNfts } = useNftsStore();
+  const { isLoadingSol, solBitzNfts, solMusicAssetNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [myCollectedArtistsAlbums, setMyCollectedArtistsAlbums] = useState<any[]>([]);
   const [allOwnedAlbums, setAllOwnedAlbums] = useState<any[]>([]);
   const [allOwnedSigmaAlbums, setAllOwnedSigmaAlbums] = useState<any[]>([]);
   const [allOwnedFanMemberships, setAllOwnedFanMemberships] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isFreeDropSampleWorkflow, setIsFreeDropSampleWorkflow] = useState(false);
   const { artistLookupEverything } = useAppStore();
 
   useEffect(() => {
@@ -72,20 +69,12 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     if (allOwnedAlbums.length > 0) {
       // only scroll direct to focus on my collected albums of the user just came from login
       const isDirectFromFreeMusicGift = searchParams.get("fromFreeMusicGift");
-      const isHlWorkflowDeepLink = searchParams.get("hl");
 
       if (isDirectFromFreeMusicGift) {
         const currentParams = Object.fromEntries(searchParams.entries());
         delete currentParams["fromFreeMusicGift"];
         setSearchParams(currentParams);
         scrollToSection("myCollectedAlbums");
-      }
-
-      if (isHlWorkflowDeepLink === "sample") {
-        const currentParams = Object.fromEntries(searchParams.entries());
-        delete currentParams["hl"];
-        setSearchParams(currentParams);
-        setIsFreeDropSampleWorkflow(true);
       }
     }
 
@@ -102,7 +91,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
 
   useEffect(() => {
     if (artistAlbumDataset && artistAlbumDataset.length > 0 && Object.keys(artistLookupEverything).length > 0) {
-      if (shownSolAppDataNfts.length > 0) {
+      if (solMusicAssetNfts.length > 0) {
         (async () => {
           let _allOwnedAlbums: any[] = [];
           let _allOwnedSigmaAlbums: any[] = [];
@@ -111,7 +100,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             .map((artist) => {
               // Filter the albums array for each artist
               const filteredAlbums = artist.albums.filter((album: any) =>
-                shownSolAppDataNfts.some((ownedNft: DasApiAsset) => {
+                solMusicAssetNfts.some((ownedNft: DasApiAsset) => {
                   /*
                     this should match:
                     "MUSG20 - Olly'G - MonaLisa Rap" should match "MUSG20-Olly'G-MonaLisa Rap" or "MUSG20 - Olly'G-MonaLisa Rap"
@@ -142,7 +131,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             .filter((artist) => artist.albums.length > 0); // Only keep artists that have matching albums
 
           // Find unmatched NFTs
-          const unmatchedNfts = shownSolAppDataNfts.filter((ownedNft: DasApiAsset) => {
+          const unmatchedNfts = solMusicAssetNfts.filter((ownedNft: DasApiAsset) => {
             const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
             return !_allOwnedAlbums.some((album) => album.solNftName.split(/[-\s]/)[0].toLowerCase() === nftPrefix.toLowerCase());
           });
@@ -178,7 +167,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
 
             // let's pull out the attributed slug and artistCampaignCode from artistLookupEverything by matching on tryExtractFanToken3DGifTeaser and fanToken3DGifTeaser from artistLookupEverything
             const fanMembershipsWithAttributedSlugAndArtistCampaignCode = fanMembershipsWithMetadata.map((fanMembership) => {
-              if (!fanMembership.tryExtractFanToken3DGifTeaser) {
+              if (!fanMembership?.tryExtractFanToken3DGifTeaser) {
                 return fanMembership;
               }
 
@@ -249,7 +238,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
         })();
       }
     }
-  }, [artistAlbumDataset, shownSolAppDataNfts, artistLookupEverything]);
+  }, [artistAlbumDataset, solMusicAssetNfts, artistLookupEverything]);
 
   async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {
     // we throttle this so that we don't overwhelm the server and also, the local state updates dont fire if they are all too close together
@@ -324,9 +313,8 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                                 dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
                                 onSendBitzForMusicBounty={onSendBitzForMusicBounty}
                                 isMusicPlayerOpen={isMusicPlayerOpen}
-                                isFreeDropSampleWorkflow={isFreeDropSampleWorkflow}
                                 setHomeMode={setHomeMode}
-                                checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                                checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                                 openActionFireLogic={openActionFireLogic}
                                 setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
                                 viewSolData={viewSolData}
@@ -404,7 +392,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                                   albums={artist.albums}
                                   artistProfile={artist}
                                   bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                                  checkOwnershipOfAlbum={checkOwnershipOfAlbum}
+                                  checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                                   openActionFireLogic={openActionFireLogic}
                                   setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
                                   dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
