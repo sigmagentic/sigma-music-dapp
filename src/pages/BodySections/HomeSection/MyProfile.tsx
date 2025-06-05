@@ -233,7 +233,23 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
                         <>
                           <div
                             className="cursor-pointer hover:underline text-blue-400"
-                            onClick={() => navigateToDeepAppView({ artistSlug: log._artistSlug, artistProfileTab: "fan" })}>
+                            onClick={() => {
+                              const campaign = log._artistCampaignCode;
+                              const country = log._artistSubGroup1Code;
+                              const team = log._artistSubGroup2Code;
+
+                              if (campaign && country && team) {
+                                navigateToDeepAppView({
+                                  artistCampaignCode: campaign,
+                                  artistSubGroup1Code: country,
+                                  artistSubGroup2Code: team,
+                                  artistSlug: log._artistSlug,
+                                  artistProfileTab: "fan",
+                                });
+                              } else {
+                                navigateToDeepAppView({ artistSlug: log._artistSlug, artistProfileTab: "fan" });
+                              }
+                            }}>
                             Artist: {log._artistName}
                           </div>
                           <div>Membership ID: {log.membershipId}</div>

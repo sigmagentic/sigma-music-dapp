@@ -18,7 +18,7 @@ type MyCollectedNFTsProps = {
   firstSongBlobUrl: any;
   setStopPreviewPlaying: any;
   setBitzGiftingMeta: any;
-  shownSolAppDataNfts: any;
+  // shownSolAppDataNfts: any;
   onSendBitzForMusicBounty: any;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   setMusicBountyBitzSumGlobalMapping: any;
@@ -36,7 +36,7 @@ type MyCollectedNFTsProps = {
 
 export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   const {
-    shownSolAppDataNfts,
+    // shownSolAppDataNfts,
     onSendBitzForMusicBounty,
     bountyBitzSumGlobalMapping,
     setMusicBountyBitzSumGlobalMapping,
@@ -51,7 +51,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     setHomeMode,
     navigateToDeepAppView,
   } = props;
-  const { isLoadingSol, solBitzNfts } = useNftsStore();
+  const { isLoadingSol, solBitzNfts, solMusicAssetNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [myCollectedArtistsAlbums, setMyCollectedArtistsAlbums] = useState<any[]>([]);
   const [allOwnedAlbums, setAllOwnedAlbums] = useState<any[]>([]);
@@ -93,7 +93,8 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
 
   useEffect(() => {
     if (artistAlbumDataset && artistAlbumDataset.length > 0 && Object.keys(artistLookupEverything).length > 0) {
-      if (shownSolAppDataNfts.length > 0) {
+      // if (shownSolAppDataNfts.length > 0) {
+      if (solMusicAssetNfts.length > 0) {
         (async () => {
           let _allOwnedAlbums: any[] = [];
           let _allOwnedSigmaAlbums: any[] = [];
@@ -102,7 +103,8 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             .map((artist) => {
               // Filter the albums array for each artist
               const filteredAlbums = artist.albums.filter((album: any) =>
-                shownSolAppDataNfts.some((ownedNft: DasApiAsset) => {
+                // shownSolAppDataNfts.some((ownedNft: DasApiAsset) => {
+                solMusicAssetNfts.some((ownedNft: DasApiAsset) => {
                   /*
                     this should match:
                     "MUSG20 - Olly'G - MonaLisa Rap" should match "MUSG20-Olly'G-MonaLisa Rap" or "MUSG20 - Olly'G-MonaLisa Rap"
@@ -133,10 +135,14 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             .filter((artist) => artist.albums.length > 0); // Only keep artists that have matching albums
 
           // Find unmatched NFTs
-          const unmatchedNfts = shownSolAppDataNfts.filter((ownedNft: DasApiAsset) => {
+          const unmatchedNfts = solMusicAssetNfts.filter((ownedNft: DasApiAsset) => {
             const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
             return !_allOwnedAlbums.some((album) => album.solNftName.split(/[-\s]/)[0].toLowerCase() === nftPrefix.toLowerCase());
           });
+          // const unmatchedNfts = shownSolAppDataNfts.filter((ownedNft: DasApiAsset) => {
+          //   const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
+          //   return !_allOwnedAlbums.some((album) => album.solNftName.split(/[-\s]/)[0].toLowerCase() === nftPrefix.toLowerCase());
+          // });
 
           // Filter out fan membership NFTs
           const fanMembershipNfts = unmatchedNfts.filter((nft: DasApiAsset) => nft.content.metadata.name.includes("FAN"));
@@ -169,7 +175,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
 
             // let's pull out the attributed slug and artistCampaignCode from artistLookupEverything by matching on tryExtractFanToken3DGifTeaser and fanToken3DGifTeaser from artistLookupEverything
             const fanMembershipsWithAttributedSlugAndArtistCampaignCode = fanMembershipsWithMetadata.map((fanMembership) => {
-              if (!fanMembership.tryExtractFanToken3DGifTeaser) {
+              if (!fanMembership?.tryExtractFanToken3DGifTeaser) {
                 return fanMembership;
               }
 
@@ -240,7 +246,8 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
         })();
       }
     }
-  }, [artistAlbumDataset, shownSolAppDataNfts, artistLookupEverything]);
+    // }, [artistAlbumDataset, shownSolAppDataNfts, artistLookupEverything]);
+  }, [artistAlbumDataset, solMusicAssetNfts, artistLookupEverything]);
 
   async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {
     // we throttle this so that we don't overwhelm the server and also, the local state updates dont fire if they are all too close together

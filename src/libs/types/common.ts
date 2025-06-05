@@ -183,6 +183,9 @@ export interface PaymentLog {
   _artistSlug?: string; // we add this inside the app
   _artistName?: string; // we add this inside the app
   _albumName?: string; // we add this inside the app
+  _artistCampaignCode?: string; // we add this inside the app
+  _artistSubGroup1Code?: string; // we add this inside the app
+  _artistSubGroup2Code?: string; // we add this inside the app
 }
 
 export interface MusicAssetOwned {

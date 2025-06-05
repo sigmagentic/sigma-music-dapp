@@ -145,7 +145,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   }, [artistProfile, albums]);
 
   useEffect(() => {
-    if (selectedAlbumToShowEntitlements && myMusicAssetPurchases.length > 0) {
+    if (selectedAlbumToShowEntitlements && (myMusicAssetPurchases.length > 0 || solMusicAssetNfts.length > 0)) {
       const entitlementsMap: EntitlementForMusicAsset = {
         mp3TrackUrls: [],
         licenseTerms: {
@@ -163,7 +163,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         entitlementsMap.licenseTerms.urlToLicense =
           LICENSE_TERMS_MAP[assetPurchaseThatMatches.albumSaleTypeOption as keyof typeof LICENSE_TERMS_MAP].urlToLicense;
       } else {
-        // we should NEVER get here, but old assets may not have priceOptions so lets default to the first option as this is a good license
+        // we should NEVER get here, but old assets (Drip assets) may not have priceOptions so lets default to the first option as this is a good license
         entitlementsMap.mp3TrackUrls = [];
         entitlementsMap.licenseTerms.shortDescription = LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].shortDescription;
         entitlementsMap.licenseTerms.urlToLicense = LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].urlToLicense;
@@ -171,6 +171,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       }
 
       // does the user have the nft collectible?
+
       const findMusicNft = solMusicAssetNfts.find((nft) => nft.content.metadata.name === selectedAlbumToShowEntitlements.solNftName);
 
       if (findMusicNft) {
@@ -180,7 +181,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       setEntitlementsForSelectedAlbum(entitlementsMap);
       setShowEntitlementsModal(true);
     }
-  }, [selectedAlbumToShowEntitlements, myMusicAssetPurchases]);
+  }, [selectedAlbumToShowEntitlements, myMusicAssetPurchases, solMusicAssetNfts]);
 
   function thisIsPlayingOnMusicPlayer(album: any) {
     if (albumIdBeingPlayed) {
@@ -652,7 +653,9 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
                   onClick={() => {
                     window.open(
-                      `https://solscan.io/token/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}${APP_NETWORK === "devnet" ? "?cluster=devnet" : ""}`,
+                      APP_NETWORK === "devnet"
+                        ? `https://solscan.io/token/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}?cluster=devnet`
+                        : `https://solana.fm/address/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}/transactions?cluster=mainnet-alpha`,
                       "_blank"
                     );
                   }}>

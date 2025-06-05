@@ -156,11 +156,10 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     }
   }, [publicKeySol]);
 
+  // if the user reloads the page after a login, lets rehydrate the user web2 account details
   useEffect(() => {
     if (publicKeySol && publicKeySol !== null && solPreaccessNonce !== "" && solPreaccessSignature !== "" && Object.keys(userWeb2AccountDetails).length === 0) {
       (async () => {
-        console.log("XXXXXXXXXXX -- user refreshed the page, we need to rehydrate any web2 details");
-
         const _userProfileData = await getLoggedInUserProfileAPI({
           solSignature: solPreaccessSignature,
           signatureNonce: solPreaccessNonce,
@@ -243,6 +242,18 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
           if (artist) {
             log._artistSlug = artist.slug;
             log._artistName = artist.name;
+
+            if (artist.artistCampaignCode && artist.artistCampaignCode !== "") {
+              log._artistCampaignCode = artist.artistCampaignCode;
+            }
+
+            if (artist.artistSubGroup1Code && artist.artistSubGroup1Code !== "") {
+              log._artistSubGroup1Code = artist.artistSubGroup1Code;
+            }
+
+            if (artist.artistSubGroup2Code && artist.artistSubGroup2Code !== "") {
+              log._artistSubGroup2Code = artist.artistSubGroup2Code;
+            }
           }
         } else if (log.albumId) {
           const artist = artistLookupEverything[log.albumId.split("_")[0]];
