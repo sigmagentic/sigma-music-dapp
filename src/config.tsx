@@ -67,8 +67,7 @@ export const isUIDebugMode = () => {
 // 15 vibrant colors for rotating backgrounds
 export const RANDOM_COLORS = [
   "#FF6B6B", // Red
-  "#FFD93D", // Yellow
-  "#6BCB77", // Green
+  "#00C9A7", // Aqua
   "#4D96FF", // Blue
   "#FF6F91", // Pink
   "#845EC2", // Purple
@@ -79,16 +78,57 @@ export const RANDOM_COLORS = [
   "#43AA8B", // Teal
   "#B983FF", // Lavender
   "#F7B801", // Gold
+  "#6BCB77", // Green
   "#EA5455", // Coral
-  "#00C9A7", // Aqua
+  "#FFD93D", // Yellow
 ];
 
 export const ALL_MUSIC_GENRES = [
-  { code: "garage track", label: "Garage Track", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "ai music", label: "AI Music", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/OllyGMonaLisaRapSymphony.jpg" },
+  { code: "electronic", label: "Electronic", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PixelJedi_Absolute.jpg" },
+  { code: "dnb", label: "Drum & Bass", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PhysixDudeAnglesOfIdentity.jpg" },
+  { code: "hip hop", label: "Hip Hop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Streetz_Cover.jpg" },
+  {
+    code: "rock",
+    label: "Rock",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/deep-forest.jpg?tpos=bottom",
+  },
   { code: "rnb", label: "R&B", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/Beats_By_Scooby_TAOTS_Album_Cover.png" },
-  { code: "pop", label: "Pop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/HachiMugenInfinitySeries.jpg" },
+  { code: "jazz", label: "Jazz", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/HachiMugenInfinitySeries.jpg" },
+  {
+    code: "folk",
+    label: "Folk",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/Waveborn_Luminex_Lost_And_Wondering.jpeg",
+  },
+  { code: "pop", label: "Pop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/WavebornLuminexGalacticGravity.jpg" },
+
+  { code: "house", label: "House", tier: GenreTier.TIER2, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Corners_Cover.jpg" },
+  { code: "trap", label: "Trap", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
+  { code: "indian pop", label: "Indian Pop", tier: GenreTier.TIER2, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/Uncomplex.jpg?tpos=bottom" },
+  {
+    code: "rap",
+    label: "Rap",
+    tier: GenreTier.TIER2,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/bogden-cobra.png?tpos=center&ppos=right",
+  },
+  {
+    code: "african pop",
+    label: "African Pop",
+    tier: GenreTier.TIER2,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/MASTERLOOPZ_TMF_Cover_Art.jpg",
+  },
+
+  { code: "dance", label: "Dance", tier: GenreTier.TIER2, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/TheArtOfSelfDestruction.jpg" },
+  { code: "alternative", label: "Alternative", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
+
+  { code: "country", label: "Country", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "classical", label: "Classical", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "edm", label: "EDM", tier: GenreTier.TIER2, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PixelJedi_Absolute.jpg" },
+  { code: "garage track", label: "Garage Track", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
   { code: "afropop", label: "Afropop", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
-  { code: "dnb", label: "Drum & Bass", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
+
   { code: "trance", label: "Trance", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
   { code: "breakbeat", label: "Breakbeat", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
   { code: "deep house", label: "Deep House", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
@@ -100,59 +140,34 @@ export const ALL_MUSIC_GENRES = [
     tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Streetz_Cover.jpg",
   },
   { code: "lofi", label: "Lo-Fi", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
-  { code: "hip hop", label: "Hip Hop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Streetz_Cover.jpg" },
-  { code: "house", label: "House", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Corners_Cover.jpg" },
-  { code: "breakcore", label: "Breakcore", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
   { code: "instrumental", label: "Instrumental", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
-  {
-    code: "rock",
-    label: "Rock",
-    tier: GenreTier.TIER1,
-    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/deep-forest.jpg?tpos=bottom",
-  },
   { code: "world beat", label: "World Beat", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
-  { code: "trap", label: "Trap", tier: GenreTier.TIER1, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
   { code: "drill", label: "Drill", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
-  { code: "indian pop", label: "Indian Pop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/Uncomplex.jpg?tpos=bottom" },
   { code: "dark trap", label: "Dark Trap", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
-  {
-    code: "rap",
-    label: "Rap",
-    tier: GenreTier.TIER1,
-    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/bogden-cobra.png?tpos=center&ppos=right",
-  },
-  {
-    code: "african pop",
-    label: "African Pop",
-    tier: GenreTier.TIER1,
-    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/MASTERLOOPZ_TMF_Cover_Art.jpg",
-  },
-  { code: "edm", label: "EDM", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PixelJedi_Absolute.jpg" },
   { code: "rock ballad", label: "Rock Ballad", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
   { code: "alternative rock", label: "Alternative Rock", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
   { code: "ballad", label: "Ballad", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
-  { code: "folk", label: "Folk", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
+
   { code: "metal", label: "Metal", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
   { code: "electro", label: "Electro", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
-  { code: "cyberpunk", label: "Cyberpunk", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
-  { code: "gypsy", label: "Gypsy", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
-  { code: "dance", label: "Dance", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/TheArtOfSelfDestruction.jpg" },
+
+  { code: "ambient", label: "Ambient", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  { code: "dream pop", label: "Dream Pop", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "electronica", label: "Electronica", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
+  { code: "soundtrack", label: "Soundtrack", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "dubstep", label: "Dubstep", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  { code: "jungle", label: "Jungle", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
+  { code: "vibrant electronic", label: "Vibrant Electronic", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
   {
     code: "pop rock",
     label: "Pop Rock",
     tier: GenreTier.TIER2,
     tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/deep-forest.jpg?tpos=bottom",
   },
-  { code: "jazz", label: "Jazz", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
-  { code: "ambient", label: "Ambient", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
-  { code: "dream pop", label: "Dream Pop", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
-  { code: "electronica", label: "Electronica", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
-  { code: "soundtrack", label: "Soundtrack", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "breakcore", label: "Breakcore", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
+  { code: "cyberpunk", label: "Cyberpunk", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  { code: "gypsy", label: "Gypsy", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
   { code: "spoken word", label: "Spoken Word", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
-  { code: "dubstep", label: "Dubstep", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
-  { code: "jungle", label: "Jungle", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
-  { code: "alternative", label: "Alternative", tier: GenreTier.TIER1, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
-  { code: "vibrant electronic", label: "Vibrant Electronic", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
 ];
 
 export const LICENSE_TERMS_MAP = {
