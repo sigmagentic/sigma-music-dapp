@@ -5,6 +5,7 @@ import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { fetchFullXPLeaderboardViaAPI, fetchMyPlaceOnFullXPLeaderboardViaAPI } from "libs/utils/misc";
 import { useNftsStore } from "store/nfts";
+import { routeNames } from "routes";
 
 interface LeaderboardEntry {
   giverAddr: string;
@@ -87,8 +88,20 @@ export const Leaderboards = () => {
             <div className="text-lg text-white">Your Position:</div>
             {myPlaceOnLeaderboard === "" ? (
               <div className="flex items-center space-x-2">
-                <Loader className="animate-spin h-5 w-5 text-yellow-300" />
-                <span className="text-yellow-300">Loading</span>
+                {addressSol ? <Loader className="animate-spin h-5 w-5 text-yellow-300" /> : null}
+                <span className="text-yellow-300">
+                  {!addressSol ? (
+                    <span
+                      className="text-yellow-300 cursor-pointer hover:underline"
+                      onClick={() => {
+                        window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + "?section=xp-leaderboards")}`;
+                      }}>
+                      Login to see your position
+                    </span>
+                  ) : (
+                    "Loading"
+                  )}
+                </span>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
