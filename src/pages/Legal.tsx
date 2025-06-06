@@ -41,11 +41,11 @@ const legalSections: LegalSection[] = [
                 href="https://t.me/SigmaXMusicOfficial"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                className="text-yellow-300 hover:text-yellow-300 transition-colors">
                 Telegram support channel
               </a>{" "}
               or email us at{" "}
-              <a href="mailto:support@zedgehorizon.com" className="text-yellow-400 hover:text-yellow-300 transition-colors">
+              <a href="mailto:support@zedgehorizon.com" className="text-yellow-300 hover:text-yellow-300 transition-colors">
                 support@zedgehorizon.com
               </a>
               .
@@ -75,11 +75,11 @@ const legalSections: LegalSection[] = [
                 href="https://t.me/SigmaXMusicOfficial"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                className="text-yellow-300 hover:text-yellow-300 transition-colors">
                 Telegram support channel
               </a>{" "}
               or email us at{" "}
-              <a href="mailto:support@zedgehorizon.com" className="text-yellow-400 hover:text-yellow-300 transition-colors">
+              <a href="mailto:support@zedgehorizon.com" className="text-yellow-300 hover:text-yellow-300 transition-colors">
                 support@zedgehorizon.com
               </a>
               .
@@ -109,11 +109,11 @@ const legalSections: LegalSection[] = [
                 href="https://t.me/SigmaXMusicOfficial"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                className="text-yellow-300 hover:text-yellow-300 transition-colors">
                 Telegram support channel
               </a>{" "}
               or email us at{" "}
-              <a href="mailto:support@zedgehorizon.com" className="text-yellow-400 hover:text-yellow-300 transition-colors">
+              <a href="mailto:support@zedgehorizon.com" className="text-yellow-300 hover:text-yellow-300 transition-colors">
                 support@zedgehorizon.com
               </a>
               . We'll do our best to assist you and find a satisfactory resolution.
@@ -190,11 +190,11 @@ export const Legal = () => {
         <div className="space-y-4">
           {legalSections.map((section) => (
             <div key={section.title} className="space-y-2">
-              <h3 className="text-lg font-semibold text-yellow-400">{section.title}</h3>
+              <h3 className="text-lg font-semibold text-yellow-300">{section.title}</h3>
               <ul className="list-disc pl-6 space-y-2">
                 {section.questions.map((question) => (
                   <li key={question.id}>
-                    <button onClick={() => scrollToQuestion(question.id)} className="text-yellow-400 hover:text-yellow-300 transition-colors text-left">
+                    <button onClick={() => scrollToQuestion(question.id)} className="text-yellow-300 hover:text-yellow-300 transition-colors text-left">
                       {question.question}
                     </button>
                   </li>
@@ -212,7 +212,7 @@ export const Legal = () => {
           <div className="space-y-4">
             {section.questions.map((item) => (
               <div key={item.id} id={item.id} className="bg-black text-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-3 !text-yellow-400">{item.question}</h3>
+                <h3 className="text-lg font-semibold mb-3 !text-yellow-300">{item.question}</h3>
                 <div className="text-gray-400">{item.answer}</div>
               </div>
             ))}

@@ -934,3 +934,116 @@ export const getLoggedInUserProfileAPI = async ({ solSignature, signatureNonce, 
     throw error;
   }
 };
+
+const cache_fullXPLeaderboard: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchFullXPLeaderboardViaAPI = async (xpCollectionIdToUse: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_fullXPLeaderboard["fullXPLeaderboard"];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_HALF_MIN) {
+      console.log(`fetchFullXPLeaderboardViaAPI: Getting full XP leaderboard from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+
+    const callConfig = {
+      headers: {
+        "fwd-tokenid": xpCollectionIdToUse,
+      },
+    };
+
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/xpGamePrivate/giverLeaderBoard`, callConfig);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_fullXPLeaderboard["fullXPLeaderboard"] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_fullXPLeaderboard["fullXPLeaderboard"] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchFullXPLeaderboardViaAPI: Error fetching full XP leaderboard:", error);
+
+    // Update cache (with [] as data)
+    cache_fullXPLeaderboard["fullXPLeaderboard"] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
+const cache_MyPlaceOnfullXPLeaderboard: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchMyPlaceOnFullXPLeaderboardViaAPI = async (xpCollectionIdToUse: string, playerAddr: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_MyPlaceOnfullXPLeaderboard["myPlaceOnFullXPLeaderboard"];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_HALF_MIN) {
+      console.log(`fetchMyPlaceOnFullXPLeaderboardViaAPI: Getting my place on full XP leaderboard from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+
+    const callConfig = {
+      headers: {
+        "fwd-tokenid": xpCollectionIdToUse,
+      },
+    };
+
+    const response = await fetch(
+      `${getApiWeb2Apps()}/datadexapi/xpGamePrivate/playerRankOnLeaderBoard?playerAddr=${playerAddr}&giveMeGiverLeaderBoard=1`,
+      callConfig
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_MyPlaceOnfullXPLeaderboard["myPlaceOnFullXPLeaderboard"] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_MyPlaceOnfullXPLeaderboard["myPlaceOnFullXPLeaderboard"] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchMyPlaceOnFullXPLeaderboardViaAPI: Error fetching my place on full XP leaderboard:", error);
+
+    // Update cache (with [] as data)
+    cache_MyPlaceOnfullXPLeaderboard["myPlaceOnFullXPLeaderboard"] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};

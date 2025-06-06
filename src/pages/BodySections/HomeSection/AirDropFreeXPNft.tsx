@@ -198,7 +198,7 @@ export const AirDropFreeXPNft = (props: AirDropFreeXPNftProps) => {
                   <div className="text-2xl font-bold mb-2">With Sigma Music, your XP Data is yours to own! 🚀</div>
                   <div className="mt-5">
                     Your XP is stored as in your wallet using{" "}
-                    <a className="text-yellow-500" href="https://x.com/itheum/status/1889675252025745427" target="_blank">
+                    <a className="text-yellow-300" href="https://x.com/itheum/status/1889675252025745427" target="_blank">
                       Itheum's Data NFT tech
                     </a>
                     . You can collect XP every few hours by being active on the music app. Use XP to then curate music content on this app in return for earning

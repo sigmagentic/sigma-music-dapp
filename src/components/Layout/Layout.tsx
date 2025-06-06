@@ -24,6 +24,7 @@ import { useAppStore } from "store/app";
 import { AlertBanner } from "./AlertBanner";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
+import { AwardIcon } from "lucide-react";
 
 const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => {
   return (
@@ -240,6 +241,25 @@ export const Layout = ({
                       <CurrencyDollarIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Reward Pools</span>
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">Rewards</span>}
+                    </button>
+                  </Tooltip>
+                  <Tooltip text="XP Leaderboards">
+                    <button
+                      onClick={() => {
+                        setHomeMode(`xp-leaderboards-${new Date().getTime()}`);
+                      }}
+                      disabled={homeMode.includes("xp-leaderboards")}
+                      className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:text-orange-500
+                      peer
+                    `}>
+                      <AwardIcon className="h-6 w-6 mr-1 md:mr-0" />
+                      <span className="md:hidden w-max">Leaderboards</span>
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Leaderboards</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="World Supremacy Battle Campaign">

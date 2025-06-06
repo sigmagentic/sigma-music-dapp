@@ -165,11 +165,11 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
             ) : isAnimating ? (
               <Countdown
                 date={Date.now() + 2000}
-                renderer={({ seconds }) => <span className="text-yellow-400">{Math.floor((usdcBalance * (2 - seconds)) / 2)} USDC</span>}
+                renderer={({ seconds }) => <span className="text-yellow-300">{Math.floor((usdcBalance * (2 - seconds)) / 2)} USDC</span>}
                 onComplete={() => setIsAnimating(false)}
               />
             ) : (
-              <span className="text-yellow-400">{usdcBalance.toFixed(2)} USDC</span>
+              <span className="text-yellow-300">{usdcBalance.toFixed(2)} USDC</span>
             )}
           </div>
           <p className="text-gray-400">Total Pool Value</p>
@@ -179,7 +179,7 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
           {now < start ? (
             <div className="space-y-2">
               <p className="text-gray-300">Pool starts in:</p>
-              <div className="text-xl font-bold text-yellow-400">
+              <div className="text-xl font-bold text-yellow-300">
                 <Countdown
                   date={start}
                   renderer={({ days, hours, minutes, seconds }) => (
@@ -271,7 +271,7 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
             Object.entries(pool.priceSplit[0]).map(([position, split]) => (
               <div key={position} className="flex justify-between items-center p-3 bg-black/40 rounded-lg">
                 <span className="font-bold text-white">{position}</span>
-                <span className="text-yellow-400">{split}</span>
+                <span className="text-yellow-300">{split}</span>
               </div>
             ))}
         </div>

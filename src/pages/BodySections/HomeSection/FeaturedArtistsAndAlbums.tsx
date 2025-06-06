@@ -486,7 +486,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                   {filterByArtistCampaignCode && filterByArtistCampaignCode !== -1 ? (
                     <div className="min-h-6">
                       Artist collection is coming very soon! Await ammouncement on{" "}
-                      <a href="https://x.com/SigmaMusic" target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:text-yellow-600">
+                      <a href="https://x.com/SigmaMusic" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-600">
                         Sigma Music's X Account
                       </a>
                     </div>
