@@ -821,7 +821,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
           {homeMode.includes("xp-leaderboards") && (
             <div className="w-full mt-5">
-              <Leaderboards />
+              <Leaderboards navigateToDeepAppView={navigateToDeepAppView} />
             </div>
           )}
 

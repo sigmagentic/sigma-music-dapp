@@ -132,6 +132,7 @@ export const App = () => {
       } else {
         if (artistSlug) {
           const currentParams = Object.fromEntries(searchParams.entries());
+          delete currentParams["section"];
           let slugToUse = artistSlug;
 
           if (albumId) {

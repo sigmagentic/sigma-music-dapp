@@ -493,142 +493,6 @@ export const FeaturedBanners = ({
         </div>
       )}
 
-      {/* Latest Artist Fan Clubs For Sale */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-xl cursor-pointer w-full">
-          <span className="">Latest Artist Fan Clubs For Sale</span>
-        </div>
-        {isLoadingLatestInnerCircleOptions ? (
-          <LoadingSkeleton />
-        ) : latestInnerCircleOptions.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new Inner Circle collectible available</p>
-        ) : (
-          <div className="relative w-full">
-            <div
-              className="overflow-x-auto pb-4 mt-5
-              [&::-webkit-scrollbar]:h-2
-              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-              <div className="flex space-x-4 min-w-max">
-                {latestInnerCircleOptions.map((option) => {
-                  const artistInfo = artistLookupEverything[option.artistId];
-                  return (
-                    <div
-                      key={option.collectibleId}
-                      className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
-                      style={{
-                        backgroundImage: `url(${convertTokenImageUrl(option.tokenImg)})`,
-                        backgroundSize: "contain",
-                        backgroundPosition: "center",
-                        backgroundBlendMode: "multiply",
-                        backgroundRepeat: "no-repeat",
-                        backgroundColor: "#16161682",
-                      }}>
-                      <div className="text-center mt-4">
-                        <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
-                          {artistInfo?.name || "Unknown Artist"}
-                          <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
-                        </div>
-                        <Button
-                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
-                          onClick={() => {
-                            if (artistInfo?.slug) {
-                              if (artistInfo?.artistCampaignCode && artistInfo?.artistCampaignCode !== "0") {
-                                const campaign = artistInfo?.artistCampaignCode;
-                                const country = artistInfo?.artistSubGroup1Code;
-                                const team = artistInfo?.artistSubGroup2Code;
-
-                                navigateToDeepAppView({
-                                  artistCampaignCode: campaign,
-                                  artistSubGroup1Code: country,
-                                  artistSubGroup2Code: team,
-                                  artistSlug: artistInfo?.slug,
-                                });
-                              } else {
-                                navigateToDeepAppView({
-                                  artistSlug: artistInfo?.slug,
-                                  artistProfileTab: "fan",
-                                });
-                              }
-                            }
-                          }}>
-                          Join Fan Club
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {latestInnerCircleOptions.length > 3 && (
-              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Latest Music Collectible For Sale */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-        <div className="text-xl cursor-pointer w-full">
-          <span className="">Latest Music Collectibles For Sale</span>
-        </div>
-        {isLoadingLatestAlbumOptions ? (
-          <LoadingSkeleton />
-        ) : latestAlbumOptions.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new music collectibles available</p>
-        ) : (
-          <div className="relative w-full">
-            <div
-              className="overflow-x-auto pb-4 mt-5
-              [&::-webkit-scrollbar]:h-2
-              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-              <div className="flex space-x-4 min-w-max">
-                {latestAlbumOptions.map((option) => {
-                  const [artistId] = option.collectibleId.split("_");
-                  const artistInfo = artistLookupEverything[artistId];
-                  const albumInfo = artistInfo?.albums?.find((album: { albumId: string }) => album.albumId === option.collectibleId);
-
-                  return (
-                    <div
-                      key={option.collectibleId}
-                      className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
-                      style={{
-                        backgroundImage: `url(${albumInfo?.img})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundBlendMode: "multiply",
-                        backgroundColor: "#161616d4",
-                        backgroundRepeat: "no-repeat",
-                      }}>
-                      <div className="text-center">
-                        <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
-                          {albumInfo?.title || "Unknown Album"}
-                        </div>
-                        <div className="text-sm text-white/70 mb-2">By {artistInfo?.name || "Unknown Artist"}</div>
-                        <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
-                        <Button
-                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
-                          onClick={() => {
-                            if (artistInfo?.slug) {
-                              onFeaturedArtistDeepLinkSlug(`${artistInfo.slug}~${option.collectibleId}`);
-                            }
-                          }}>
-                          Listen & Collect
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {latestAlbumOptions.length > 3 && (
-              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-            )}
-          </div>
-        )}
-      </div>
-
       {/* Featured albums */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
         <div className="text-xl cursor-pointer w-full">
@@ -724,6 +588,142 @@ export const FeaturedBanners = ({
               </div>
             </div>
             {featuredArtists.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Latest Music Collectible For Sale */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="">Latest Music Collectibles For Sale</span>
+        </div>
+        {isLoadingLatestAlbumOptions ? (
+          <LoadingSkeleton />
+        ) : latestAlbumOptions.length === 0 ? (
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new music collectibles available</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-5
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {latestAlbumOptions.map((option) => {
+                  const [artistId] = option.collectibleId.split("_");
+                  const artistInfo = artistLookupEverything[artistId];
+                  const albumInfo = artistInfo?.albums?.find((album: { albumId: string }) => album.albumId === option.collectibleId);
+
+                  return (
+                    <div
+                      key={option.collectibleId}
+                      className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                      style={{
+                        backgroundImage: `url(${albumInfo?.img})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundBlendMode: "multiply",
+                        backgroundColor: "#161616d4",
+                        backgroundRepeat: "no-repeat",
+                      }}>
+                      <div className="text-center">
+                        <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
+                          {albumInfo?.title || "Unknown Album"}
+                        </div>
+                        <div className="text-sm text-white/70 mb-2">By {artistInfo?.name || "Unknown Artist"}</div>
+                        <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
+                        <Button
+                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                          onClick={() => {
+                            if (artistInfo?.slug) {
+                              onFeaturedArtistDeepLinkSlug(`${artistInfo.slug}~${option.collectibleId}`);
+                            }
+                          }}>
+                          Listen & Collect
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {latestAlbumOptions.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Latest Artist Fan Clubs For Sale */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="">Latest Artist Fan Clubs For Sale</span>
+        </div>
+        {isLoadingLatestInnerCircleOptions ? (
+          <LoadingSkeleton />
+        ) : latestInnerCircleOptions.length === 0 ? (
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new Inner Circle collectible available</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-5
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {latestInnerCircleOptions.map((option) => {
+                  const artistInfo = artistLookupEverything[option.artistId];
+                  return (
+                    <div
+                      key={option.collectibleId}
+                      className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                      style={{
+                        backgroundImage: `url(${convertTokenImageUrl(option.tokenImg)})`,
+                        backgroundSize: "contain",
+                        backgroundPosition: "center",
+                        backgroundBlendMode: "multiply",
+                        backgroundRepeat: "no-repeat",
+                        backgroundColor: "#16161682",
+                      }}>
+                      <div className="text-center mt-4">
+                        <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
+                          {artistInfo?.name || "Unknown Artist"}
+                          <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
+                        </div>
+                        <Button
+                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                          onClick={() => {
+                            if (artistInfo?.slug) {
+                              if (artistInfo?.artistCampaignCode && artistInfo?.artistCampaignCode !== "0") {
+                                const campaign = artistInfo?.artistCampaignCode;
+                                const country = artistInfo?.artistSubGroup1Code;
+                                const team = artistInfo?.artistSubGroup2Code;
+
+                                navigateToDeepAppView({
+                                  artistCampaignCode: campaign,
+                                  artistSubGroup1Code: country,
+                                  artistSubGroup2Code: team,
+                                  artistSlug: artistInfo?.slug,
+                                });
+                              } else {
+                                navigateToDeepAppView({
+                                  artistSlug: artistInfo?.slug,
+                                  artistProfileTab: "fan",
+                                });
+                              }
+                            }
+                          }}>
+                          Join Fan Club
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {latestInnerCircleOptions.length > 3 && (
               <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
             )}
           </div>

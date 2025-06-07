@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   HomeIcon,
-  RadioIcon,
   UserGroupIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -14,6 +13,7 @@ import {
   GlobeEuropeAfricaIcon,
   CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
+import { AwardIcon } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import offlineAnimeHeroImage from "assets/img/offline-anime-hero.jpg";
 import { ENABLE_WSB_CAMPAIGN } from "config";
@@ -24,7 +24,6 @@ import { useAppStore } from "store/app";
 import { AlertBanner } from "./AlertBanner";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
-import { AwardIcon } from "lucide-react";
 
 const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => {
   return (

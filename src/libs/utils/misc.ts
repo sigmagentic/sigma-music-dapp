@@ -1047,3 +1047,52 @@ export const fetchMyPlaceOnFullXPLeaderboardViaAPI = async (xpCollectionIdToUse:
     return [];
   }
 };
+
+const cache_bountySnapshot: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchBountySnapshotViaAPI = async () => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_bountySnapshot["bountySnapshot"];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_HALF_MIN) {
+      console.log(`fetchBountySnapshotViaAPI: Getting bounty snapshot from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+
+    const response = await fetch(`${getApiWeb2Apps(true)}/app_nftunes/assets/json/bounty_snapshot.json`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_bountySnapshot["bountySnapshot"] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_bountySnapshot["bountySnapshot"] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchBountySnapshotViaAPI: Error fetching bounty snapshot:", error);
+
+    // Update cache (with [] as data)
+    cache_bountySnapshot["bountySnapshot"] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
