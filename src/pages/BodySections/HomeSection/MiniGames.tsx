@@ -608,7 +608,7 @@ const MatchArtistGame: React.FC<{ onClose: () => void; tracks: MusicTrack[] }> =
                 </div>
                 {gameComplete && (
                   <div className="text-sm text-gray-400 px-3 md:w-[240px]">
-                    <span className="text-emerald-400">{track.title}</span> from {track.artist}'s <span className="text-yellow-400">{track.album}</span> album
+                    <span className="text-emerald-400">{track.title}</span> from {track.artist}'s <span className="text-yellow-300">{track.album}</span> album
                   </div>
                 )}
               </div>
@@ -687,7 +687,7 @@ export const MiniGames = (props: MiniGamesProps) => {
       id: "xp-roulette",
       name: "XP Roulette",
       description: "Spin the wheel to earn Sigma XP rewards",
-      icon: <Dice1 className="w-6 h-6 text-yellow-500" />,
+      icon: <Dice1 className="w-6 h-6 text-yellow-300" />,
       isEnabled: true,
       requiresNFT: true,
       requiresLogin: true,

@@ -21,6 +21,7 @@ import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
 import { FeaturedArtistsAndAlbums } from "./FeaturedArtistsAndAlbums";
 import { FeaturedBanners } from "./FeaturedBanners";
+import { Leaderboards } from "./Leaderboards";
 import { MiniGames } from "./MiniGames";
 import { MyCollectedNFTs } from "./MyCollectedNFTs";
 import { MyProfile } from "./MyProfile";
@@ -131,10 +132,15 @@ export const HomeSection = (props: HomeSectionProps) => {
       return;
     }
 
-    const isRewardPoolsMode = searchParams.get("section");
+    const isSectionMode = searchParams.get("section");
 
-    if (isRewardPoolsMode && isRewardPoolsMode === "reward-pools") {
+    if (isSectionMode && isSectionMode === "reward-pools") {
       setHomeMode(`reward-pools-${new Date().getTime()}`);
+      return;
+    }
+
+    if (isSectionMode && isSectionMode === "xp-leaderboards") {
+      setHomeMode(`xp-leaderboards-${new Date().getTime()}`);
       return;
     }
   }, []);
@@ -175,6 +181,18 @@ export const HomeSection = (props: HomeSectionProps) => {
     if (homeMode.includes("reward-pools")) {
       const currentParams = Object.fromEntries(searchParams.entries());
       currentParams["section"] = "reward-pools";
+      delete currentParams["campaign"];
+      delete currentParams["artist"];
+      delete currentParams["tab"];
+      delete currentParams["action"];
+      delete currentParams["country"];
+      delete currentParams["team"];
+      setSearchParams({ ...currentParams });
+    }
+
+    if (homeMode.includes("xp-leaderboards")) {
+      const currentParams = Object.fromEntries(searchParams.entries());
+      currentParams["section"] = "xp-leaderboards";
       delete currentParams["campaign"];
       delete currentParams["artist"];
       delete currentParams["tab"];
@@ -798,6 +816,12 @@ export const HomeSection = (props: HomeSectionProps) => {
           {homeMode.includes("reward-pools") && (
             <div className="w-full mt-5">
               <RewardPools />
+            </div>
+          )}
+
+          {homeMode.includes("xp-leaderboards") && (
+            <div className="w-full mt-5">
+              <Leaderboards navigateToDeepAppView={navigateToDeepAppView} />
             </div>
           )}
 

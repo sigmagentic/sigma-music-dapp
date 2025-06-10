@@ -48,7 +48,7 @@ const slides: Slide[] = [
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-7-launch-ai-meme-coins.png",
-    text: "REMIX any music content on our platform using AI, mint them as Music NFTs or launch them as Music Meme Coins!",
+    text: "REMiX any music content on our platform using AI, mint them as Music NFTs or launch them as Music Meme Coins!",
   },
 ];
 

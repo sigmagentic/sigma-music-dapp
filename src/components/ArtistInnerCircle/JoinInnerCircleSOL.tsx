@@ -306,7 +306,7 @@ export const JoinInnerCircleSOL = ({
           {paymentStatus === "processing" ? (
             <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
               <Loader className="w-full text-center animate-spin hover:scale-105" />
-              <p className="text-yellow-500">Payment in process... do not close this page</p>
+              <p className="text-yellow-300">Payment in process... do not close this page</p>
             </div>
           ) : (
             <div className="flex gap-4">
@@ -373,7 +373,7 @@ export const JoinInnerCircleSOL = ({
               {mintingStatus === "processing" && (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
                   <Loader className="w-full text-center animate-spin hover:scale-105" />
-                  <p className="text-yellow-500">Fan collectible minting in process... do not close this page</p>
+                  <p className="text-yellow-300">Fan collectible minting in process... do not close this page</p>
                 </div>
               )}
 

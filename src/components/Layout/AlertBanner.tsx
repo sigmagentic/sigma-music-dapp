@@ -36,10 +36,10 @@ export const AlertBanner = () => {
       <div className="mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-yellow-500 text-lg">🚨 </span>
+            <span className="text-yellow-300 text-lg">🚨 </span>
             <p className="text-md font-medium text-gray-100">
               Rewards Pools are now live! Fan can share in app revenue!
-              <a href="/?section=reward-pools" className="text-yellow-400 hover:text-yellow-300 mx-1">
+              <a href="/?section=reward-pools" className="text-yellow-300 hover:text-yellow-300 mx-1">
                 Check it out
               </a>
             </p>

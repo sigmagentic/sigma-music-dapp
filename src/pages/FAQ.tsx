@@ -24,7 +24,7 @@ const faqSections: FAQSection[] = [
             <div className="space-y-4">
               <p>There are over 9 billion people on Earth. While we may differ in countless ways, one thing unites us all: we're all fans of music.</p>
 
-              <p className="text-lg font-semibold text-yellow-400">
+              <p className="text-lg font-semibold text-yellow-300">
                 What if we could turn those 9 billion fans into the world's largest music distribution network?
               </p>
 
@@ -78,7 +78,7 @@ const faqSections: FAQSection[] = [
                 href="https://sigmamusic.fm/deck"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                className="text-yellow-300 hover:text-yellow-300 transition-colors">
                 here
               </a>
               .
@@ -98,7 +98,7 @@ const faqSections: FAQSection[] = [
                 href="https://t.me/SigmaXMusicOfficial"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                className="text-yellow-300 hover:text-yellow-300 transition-colors">
                 Telegram channel for Musicans
               </a>
               .
@@ -123,7 +123,7 @@ const faqSections: FAQSection[] = [
                   href="https://worldsupremacybattlegrounds.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                  className="text-yellow-300 hover:text-yellow-300 transition-colors">
                   worldsupremacybattlegrounds.com
                 </a>{" "}
                 for the first IRL music competition in Dubai in April 2025
@@ -223,7 +223,7 @@ const faqSections: FAQSection[] = [
                   href="https://sigmamusic.fm?g=tour"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-yellow-400 hover:text-yellow-300 transition-colors inline-block mt-2">
+                  className="text-yellow-300 hover:text-yellow-300 transition-colors inline-block mt-2">
                   👉 https://sigmamusic.fm?g=tour
                 </a>
               </div>
@@ -310,7 +310,7 @@ const faqSections: FAQSection[] = [
                 </h4>
                 <p>
                   Sigma utilizes the{" "}
-                  <a href="http://x.com/itheum" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                  <a href="http://x.com/itheum" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-300 transition-colors">
                     Itheum protocol
                   </a>{" "}
                   to issue Data NFTs — a powerful extension of compressed NFTs that support mutable "data streams." This allows for flexible and updatable NFTs,
@@ -341,7 +341,7 @@ const faqSections: FAQSection[] = [
                     href="https://www.elizaos.ai/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-yellow-400 hover:text-yellow-300 transition-colors">
+                    className="text-yellow-300 hover:text-yellow-300 transition-colors">
                     ElizaOS
                   </a>{" "}
                   framework and customized for the music domain. It interacts with users via social platforms, accesses and streams NFT-based content, and
@@ -391,7 +391,7 @@ const faqSections: FAQSection[] = [
               </div>
 
               <div className="bg-gray-800 p-4 rounded-lg">
-                <p className="text-yellow-400">
+                <p className="text-yellow-300">
                   ⚠️ Note: The revenue share model is still being finalized. We intend to launch with the above structure and iterate based on community
                   feedback and platform performance.
                 </p>
@@ -431,13 +431,13 @@ const faqSections: FAQSection[] = [
                 buckets and vesting schedules:
               </p>
 
-              <p className="text-yellow-400 font-semibold mb-6">
+              <p className="text-yellow-300 font-semibold mb-6">
                 We were able to secure 42% of the total supply for the project, with 34% (Foundation) locked (for details see below for details of the lock)
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-black/50 p-6 rounded-lg border border-gray-700">
-                  <h4 className="text-lg font-semibold mb-4 text-yellow-400">Foundation</h4>
+                  <h4 className="text-lg font-semibold mb-4 text-yellow-300">Foundation</h4>
                   <div className="space-y-3">
                     <p>
                       <span className="text-gray-400">TGE:</span> <span className="text-white">34%</span>
@@ -452,7 +452,7 @@ const faqSections: FAQSection[] = [
                 </div>
 
                 <div className="bg-black/50 p-6 rounded-lg border border-gray-700">
-                  <h4 className="text-lg font-semibold mb-4 text-yellow-400">Airdrop</h4>
+                  <h4 className="text-lg font-semibold mb-4 text-yellow-300">Airdrop</h4>
                   <div className="space-y-3">
                     <p>
                       <span className="text-gray-400">TGE:</span> <span className="text-white">4%</span>
@@ -467,7 +467,7 @@ const faqSections: FAQSection[] = [
                 </div>
 
                 <div className="bg-black/50 p-6 rounded-lg border border-gray-700">
-                  <h4 className="text-lg font-semibold mb-4 text-yellow-400">Liquidity</h4>
+                  <h4 className="text-lg font-semibold mb-4 text-yellow-300">Liquidity</h4>
                   <div className="space-y-3">
                     <p>
                       <span className="text-gray-400">TGE:</span> <span className="text-white">4%</span>
@@ -572,7 +572,7 @@ const faqSections: FAQSection[] = [
                       80% of the supply we secured will be locked with a 3 month cliff followed by a linear vesting schedule on Streamflow for 12 months. The
                       Streamflow lock contract{" "}
                       <a
-                        className="text-yellow-400 hover:text-yellow-300 transition-colors"
+                        className="text-yellow-300 hover:text-yellow-300 transition-colors"
                         href="https://app.streamflow.finance/contract/solana/mainnet/dL8G6VNhdP1XhUrrvwE8W7JVKbbH6hSuwwSFEQGCgJ7"
                         target="_blank"
                         rel="noopener noreferrer">
@@ -599,7 +599,7 @@ const faqSections: FAQSection[] = [
                   <li>
                     Buy for SOL on
                     <a
-                      className="text-yellow-400 hover:text-yellow-300 transition-colors ml-2"
+                      className="text-yellow-300 hover:text-yellow-300 transition-colors ml-2"
                       href="https://raydium.io/swap/?inputMint=D7qqKEr7JFpAd82m9nvJL2psdPmU1oW54g1LHvDUYFAN&outputMint=sol"
                       target="_blank"
                       rel="noopener noreferrer">
@@ -609,7 +609,7 @@ const faqSections: FAQSection[] = [
                   <li>
                     Buy for SOL on Auto.Fun
                     <a
-                      className="text-yellow-400 hover:text-yellow-300 transition-colors ml-2"
+                      className="text-yellow-300 hover:text-yellow-300 transition-colors ml-2"
                       href="https://auto.fun/token/D7qqKEr7JFpAd82m9nvJL2psdPmU1oW54g1LHvDUYFAN"
                       target="_blank"
                       rel="noopener noreferrer">
@@ -619,7 +619,7 @@ const faqSections: FAQSection[] = [
                   <li>
                     Buy for USDC or swap any token for $FAN on
                     <a
-                      className="text-yellow-400 hover:text-yellow-300 transition-colors ml-2"
+                      className="text-yellow-300 hover:text-yellow-300 transition-colors ml-2"
                       href="https://jup.ag/swap/USDC-D7qqKEr7JFpAd82m9nvJL2psdPmU1oW54g1LHvDUYFAN"
                       target="_blank"
                       rel="noopener noreferrer">
@@ -701,11 +701,11 @@ export const FAQ = () => {
         <div className="space-y-4">
           {faqSections.map((section) => (
             <div key={section.title} className="space-y-2">
-              <h3 className="text-lg font-semibold text-yellow-400">{section.title}</h3>
+              <h3 className="text-lg font-semibold text-yellow-300">{section.title}</h3>
               <ul className="list-disc pl-6 space-y-2">
                 {section.questions.map((question) => (
                   <li key={question.id}>
-                    <button onClick={() => scrollToQuestion(question.id)} className="text-yellow-400 hover:text-yellow-300 transition-colors text-left">
+                    <button onClick={() => scrollToQuestion(question.id)} className="text-yellow-300 hover:text-yellow-300 transition-colors text-left">
                       {question.question}
                     </button>
                   </li>
@@ -723,7 +723,7 @@ export const FAQ = () => {
           <div className="space-y-4">
             {section.questions.map((item) => (
               <div key={item.id} id={item.id} className="bg-black text-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-3 !text-yellow-400">{item.question}</h3>
+                <h3 className="text-lg font-semibold mb-3 !text-yellow-300">{item.question}</h3>
                 <div className="text-gray-400">{item.answer}</div>
               </div>
             ))}

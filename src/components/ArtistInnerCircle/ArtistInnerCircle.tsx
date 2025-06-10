@@ -504,7 +504,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                         <p className="text-sm text-gray-400">Joined {new Date(membership.createdOnTS).toLocaleDateString()}</p>
                         {membership.expiresInDays !== undefined && (
                           <p className="text-sm mt-1">
-                            <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">Valid for {membership.expiresInDays} days</span>
+                            <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded">Valid for {membership.expiresInDays} days</span>
                           </p>
                         )}
                       </div>
@@ -558,9 +558,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   <h3 className="text-xl font-semibold mb-2 capitalize">{data.label}</h3>
                   <div className="text-2xl font-bold mb-2">{formatPrice(data.defaultPriceUSD)}</div>
                   <div className="text-sm text-gray-400">{formatTerm(data.term)}</div>
-                  <div className="text-yellow-400">{data.maxMints && data.maxMints > 0 ? `Only ${data.maxMints.toLocaleString()} will be sold!` : ""}</div>
+                  <div className="text-yellow-300">{data.maxMints && data.maxMints > 0 ? `Only ${data.maxMints.toLocaleString()} will be sold!` : ""}</div>
                   {liveMintStats && liveMintStats.mints && liveMintStats.mints > 0 ? (
-                    <div className="text-yellow-400 mt-2 text-sm">
+                    <div className="text-yellow-300 mt-2 text-sm">
                       {liveMintStats.mints.toLocaleString()} sold so far. Last purchase: {formatFriendlyDate(liveMintStats.lastBought)}
                     </div>
                   ) : null}
@@ -611,7 +611,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
             <div className="p-6 rounded-lg border-2 cursor-pointer transition-all border-yellow-500 bg-yellow-500/10 text-center">
               <div className="text-3xl font-bold mb-2">{formatPrice(artistsMembershipOptions?.t1.defaultPriceUSD || 0)}</div>
               <div className="text-gray-400">{formatTerm(artistsMembershipOptions?.t1.term || "")}</div>
-              <div className="text-yellow-400">
+              <div className="text-yellow-300">
                 {artistsMembershipOptions?.t1.maxMints && artistsMembershipOptions?.t1.maxMints > 0 ? (
                   <div className="flex items-center justify-center gap-2 mt-2">
                     <span className="animate-pulse">🔥</span>
@@ -624,7 +624,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   ""
                 )}
                 {liveMintStats && liveMintStats.mints && liveMintStats.mints > 0 ? (
-                  <div className="text-yellow-400 mt-2 text-sm">
+                  <div className="text-yellow-300 mt-2 text-sm">
                     {liveMintStats.mints.toLocaleString()} sold so far. Last purchase: {formatFriendlyDate(liveMintStats.lastBought)}
                   </div>
                 ) : null}

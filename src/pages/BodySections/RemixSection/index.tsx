@@ -95,20 +95,20 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
                   <td className="p-2">{job.task === "gen" ? "Generate Music Meme" : "Launch To Pump.fun"}</td>
                   <td className="p-2">
                     {job.launchId && (
-                      <a href={`/remix?launchId=${job.launchId}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                      <a href={`/remix?launchId=${job.launchId}`} target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:underline">
                         {job.launchId}
                         {job.launchedOn && <span className="text-gray-400 text-xs ml-2">({new Date(job.launchedOn).toLocaleDateString()})</span>}
                       </a>
                     )}
                   </td>
                   <td className="p-2">
-                    <a href={`https://solscan.io/tx/${job.tx}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                    <a href={`https://solscan.io/tx/${job.tx}`} target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:underline">
                       {job.tx.slice(0, 4)}...{job.tx.slice(-4)}
                     </a>
                   </td>
                   {job.prompt && (
                     <td className="p-2">
-                      <a href={job.prompt} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                      <a href={job.prompt} target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:underline">
                         <a
                           href={`https://twitter.com/intent/tweet?text=${job.prompt}`}
                           target="_blank"
@@ -435,11 +435,11 @@ const RemixSectionContent = () => {
               </div>
               <p className="text-xs text-gray-400">
                 Based on music by{" "}
-                <a href={`/?artist=${item.basedOn}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                <a href={`/?artist=${item.basedOn}`} target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:underline">
                   {item.basedOn}
                 </a>
                 , remixed by{" "}
-                <a href={`https://solscan.io/account/${item.remixedBy}`} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                <a href={`https://solscan.io/account/${item.remixedBy}`} target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:underline">
                   {formatAddress(item.remixedBy)}
                 </a>{" "}
                 on {new Date(item.createdOn).toLocaleDateString()}
@@ -451,13 +451,13 @@ const RemixSectionContent = () => {
                   href={`https://solscan.io/token/${item.assetIdOrTokenName}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-yellow-500 hover:underline">
+                  className="text-yellow-300 hover:underline">
                   {formatAddress(item.assetIdOrTokenName)}
                 </a>
               </p>
               {item.tweet && (
                 <p className="text-xs text-gray-600">
-                  <a href={item.tweet} target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline flex items-center gap-2">
+                  <a href={item.tweet} target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:underline flex items-center gap-2">
                     View Creation Tweet <ArrowUpRight className="w-4 h-4" />
                   </a>
                 </p>
@@ -490,7 +490,7 @@ const RemixSectionContent = () => {
                         <div className="relative">
                           <button
                             className={`flex items-center gap-2 ${
-                              currentPlayingId && currentPlayingId !== `${item.launchId}-${idx2}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
+                              currentPlayingId && currentPlayingId !== `${item.launchId}-${idx2}` ? "opacity-50 cursor-not-allowed" : "text-yellow-300"
                             }`}
                             disabled={currentPlayingId ? currentPlayingId !== `${item.launchId}-${idx2}` : false}
                             onClick={() => handlePlay(version.streamUrl, `${item.launchId}-${idx2}`)}>
@@ -508,7 +508,7 @@ const RemixSectionContent = () => {
                           </button>
                           {isFocused && (
                             <div className="absolute -bottom-16 left-1/2">
-                              <Pointer className="w-12 h-12 text-yellow-500 animate-point" />
+                              <Pointer className="w-12 h-12 text-yellow-300 animate-point" />
                             </div>
                           )}
                         </div>
@@ -565,7 +565,7 @@ const RemixSectionContent = () => {
                 <div className="relative">
                   <button
                     className={`flex items-center gap-2 ${
-                      currentPlayingId && currentPlayingId !== `graduated-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
+                      currentPlayingId && currentPlayingId !== `graduated-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-300"
                     }`}
                     disabled={currentPlayingId ? currentPlayingId !== `graduated-${item.launchId}` : false}
                     onClick={() => handlePlay(item.graduatedStreamUrl || item.versions[0].streamUrl, `graduated-${item.launchId}`)}>
@@ -583,7 +583,7 @@ const RemixSectionContent = () => {
                   </button>
                   {isFocused && (
                     <div className="absolute -bottom-16 left-1/2">
-                      <Pointer className="w-12 h-12 text-yellow-500 animate-point" />
+                      <Pointer className="w-12 h-12 text-yellow-300 animate-point" />
                     </div>
                   )}
                 </div>
@@ -656,7 +656,7 @@ const RemixSectionContent = () => {
                 <div className="relative">
                   <button
                     className={`flex items-center gap-2 ${
-                      currentPlayingId && currentPlayingId !== `launched-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-500"
+                      currentPlayingId && currentPlayingId !== `launched-${item.launchId}` ? "opacity-50 cursor-not-allowed" : "text-yellow-300"
                     }`}
                     disabled={currentPlayingId ? currentPlayingId !== `launched-${item.launchId}` : false}
                     onClick={() => handlePlay(item.graduatedStreamUrl || item.versions[0].streamUrl, `launched-${item.launchId}`)}>
@@ -674,7 +674,7 @@ const RemixSectionContent = () => {
                   </button>
                   {isFocused && (
                     <div className="absolute -bottom-16 left-1/2">
-                      <Pointer className="w-12 h-12 text-yellow-500 animate-point" />
+                      <Pointer className="w-12 h-12 text-yellow-300 animate-point" />
                     </div>
                   )}
                 </div>
@@ -852,7 +852,7 @@ const RemixSectionContent = () => {
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
                           <p className="mb-4">
-                            <strong className="text-yellow-500">New AI Meme Coin Candidates:</strong> 'Remixers' use Sigma Music AI to generate a remix album
+                            <strong className="text-yellow-300">New AI Meme Coin Candidates:</strong> 'Remixers' use Sigma Music AI to generate a remix album
                             based on real-world music content. (Click on the "Launch an AI Music Meme Coin Now!" button to generate your own!)
                           </p>
                           <p className="mb-4">
@@ -907,7 +907,7 @@ const RemixSectionContent = () => {
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
                           <p className="mb-4">
-                            <strong className="text-yellow-500">Graduated Launches:</strong> These curated AI Music NFTs have received enough votes from the
+                            <strong className="text-yellow-300">Graduated Launches:</strong> These curated AI Music NFTs have received enough votes from the
                             community to graduate to this next (super interesting) launch stage.
                           </p>
                           <p className="mb-4">
@@ -963,7 +963,7 @@ const RemixSectionContent = () => {
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
                           <p className="mb-4">
-                            <strong className="text-yellow-500">Token Launched on Pump.fun:</strong> These fractionalized Music NFTs are available for purchase
+                            <strong className="text-yellow-300">Token Launched on Pump.fun:</strong> These fractionalized Music NFTs are available for purchase
                             on pump.fun as AI Music Meme Coins.
                           </p>
                           <p className="mb-4">
