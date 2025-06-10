@@ -323,7 +323,7 @@ export const BuyAndMintAlbumUsingSOL = ({
               {paymentStatus === "processing" ? (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
                   <Loader className="w-full text-center animate-spin hover:scale-105" />
-                  <p className="text-yellow-500">Payment in process... do not close this page</p>
+                  <p className="text-yellow-300">Payment in process... do not close this page</p>
                 </div>
               ) : (
                 <div className="flex gap-4">
@@ -401,7 +401,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
                   <div className="text-center space-y-4 w-full">
                     <h3 className="text-xl md:text-2  xl font-bold text-white">
-                      <span className="text-yellow-400">{albumToBuyAndMint.title}</span> by <span className="text-yellow-400">{artistProfile.name}</span>
+                      <span className="text-yellow-300">{albumToBuyAndMint.title}</span> by <span className="text-yellow-300">{artistProfile.name}</span>
                     </h3>
                   </div>
                 </div>
@@ -410,7 +410,7 @@ export const BuyAndMintAlbumUsingSOL = ({
               {mintingStatus === "processing" && (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg col-span-2">
                   <Loader className="w-full text-center animate-spin hover:scale-105" />
-                  <p className="text-yellow-500">Collectible Minting in process... do not close this page</p>
+                  <p className="text-yellow-300">Collectible Minting in process... do not close this page</p>
                 </div>
               )}
             </div>
@@ -458,8 +458,8 @@ export const BuyAndMintAlbumUsingSOL = ({
           <>
             <div className="space-y-4 flex flex-col items-center w-full">
               <h2 className={`!text-2xl text-center font-bold`}>
-                Success! You can now stream <span className="text-yellow-400">{albumToBuyAndMint.title}</span> by{" "}
-                <span className="text-yellow-400">{artistProfile.name}</span>!
+                Success! You can now stream <span className="text-yellow-300">{albumToBuyAndMint.title}</span> by{" "}
+                <span className="text-yellow-300">{artistProfile.name}</span>!
               </h2>
 
               <Button

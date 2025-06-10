@@ -297,18 +297,18 @@ export const JoinInnerCircleCC = ({
 
           <div className="flex flex-col gap-2 text-sm lg:mt-5">
             <p>
-              <span className="font-bold text-yellow-400">What are you buying?</span> Access to join the Inner Circle fan collectible of {artistName} and
+              <span className="font-bold text-yellow-300">What are you buying?</span> Access to join the Inner Circle fan collectible of {artistName} and
               receive exclusive content and perks.
             </p>
             <p>
-              <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Proceed", you agree to these{" "}
+              <span className="font-bold text-yellow-300">Terms of Sale:</span> By clicking "Proceed", you agree to these{" "}
               <a className="underline" href="https://sigmamusic.fm/legal#terms-of-sale" target="_blank" rel="noopener noreferrer">
                 Terms
               </a>
             </p>
             {totalQuantity > 1 && (
               <p>
-                <span className="font-bold text-yellow-400">Multiple Memberships:</span> When buying multiple memberships, you'll receive one immediately and
+                <span className="font-bold text-yellow-300">Multiple Memberships:</span> When buying multiple memberships, you'll receive one immediately and
                 the rest within 24 hours.{" "}
                 <a className="underline" href="https://sigmamusic.fm/legal#multiple-memberships" target="_blank" rel="noopener noreferrer">
                   Learn more

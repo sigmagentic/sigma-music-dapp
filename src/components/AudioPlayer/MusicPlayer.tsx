@@ -801,7 +801,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
                 {trackListFromDb && (
                   <div className="flex justify-center items-center gap-2">
-                    <div className="flex items-center gap-2 text-yellow-400">
+                    <div className="flex items-center gap-2 text-yellow-300">
                       <div className="flex items-center gap-1">
                         <Zap className="w-4 h-4" />
                         <span className="text-[10px]">This album supports fast streaming</span>
@@ -1122,10 +1122,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
               <div className="flex flex-col gap-2 text-sm">
                 <p>
-                  <span className="font-bold text-yellow-400">What are you missing?</span> Access to exclusive bonus tracks and premium content from this album.
+                  <span className="font-bold text-yellow-300">What are you missing?</span> Access to exclusive bonus tracks and premium content from this album.
                 </p>
                 <p>
-                  <span className="font-bold text-yellow-400">How to unlock:</span> Purchase the premium version of the album from the artist's profile page.
+                  <span className="font-bold text-yellow-300">How to unlock:</span> Purchase the premium version of the album from the artist's profile page.
                 </p>
               </div>
 

@@ -191,7 +191,7 @@ export const BuyAndMintAlbumUsingCC = ({
 
               <div className="text-center space-y-4 w-full">
                 <h3 className="text-xl md:text-2xl font-bold text-white">
-                  <span className="text-yellow-400">{albumToBuyAndMint.title}</span> by <span className="text-yellow-400">{artistProfile.name}</span>
+                  <span className="text-yellow-300">{albumToBuyAndMint.title}</span> by <span className="text-yellow-300">{artistProfile.name}</span>
                 </h3>
               </div>
             </div>
@@ -210,7 +210,7 @@ export const BuyAndMintAlbumUsingCC = ({
           />
           <div className="text-xs text-right mt-[5px]">
             <p>
-              <span className="font-bold text-yellow-400">Terms of Sale:</span> By clicking "Buy Now", you agree to these{" "}
+              <span className="font-bold text-yellow-300">Terms of Sale:</span> By clicking "Buy Now", you agree to these{" "}
               <a className="underline" href="https://sigmamusic.fm/legal#terms-of-sale" target="_blank" rel="noopener noreferrer">
                 Terms
               </a>

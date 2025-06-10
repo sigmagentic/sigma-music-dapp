@@ -109,10 +109,10 @@ export const CampaignHero = (props: CampaignHeroProps) => {
             />
           </div>
           <div className="flex flex-col w-full md:w-1/2 h-full p-6 bg-black">
-            <h1 className="!text-3xl font-bold  !text-yellow-400">
+            <h1 className="!text-3xl font-bold  !text-yellow-300">
               WSB Collectibles <span className="ml-1">{tileDataCollectionLoadingInProgress && <Loader className="w-4 h-4 animate-spin inline-block" />}</span>
             </h1>
-            <h2 className="!text-2xl font-bold md:mb-4 !text-orange-400">Join The Movement. Collect Them All!</h2>
+            <h2 className="!text-2xl font-bold md:mb-4">Join The Movement. Collect Them All!</h2>
             {!selectedCountry ? (
               <>
                 <h2 className="!text-xl font-bold mt-2">Countries Battling</h2>
@@ -258,7 +258,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
       {showFeaturedTeams && (
         <div className="w-full">
           <div className="w-full mt-5">
-            <h1 className="!text-2xl font-bold mb-4 !text-yellow-400 text-center md:text-left">Featured Teams</h1>
+            <h1 className="!text-2xl font-bold mb-4 !text-yellow-300 text-center md:text-left">Featured Teams</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {FEATURED_TEAMS.map((team) => (
@@ -271,7 +271,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
                   />
                   <div className="relative p-6 flex flex-col h-[300px] justify-between">
                     <div>
-                      <h3 className="text-2xl font-bold text-yellow-400 mb-2">{team.teamName}</h3>
+                      <h3 className="text-2xl font-bold text-yellow-300 mb-2">{team.teamName}</h3>
                       <p className="mb-4 font-bold">{team.description}</p>
                       <div className="flex items-center">
                         <span className="mr-2">{COUNTRIES.find((c) => c.code === team.countryCode)?.emoji}</span>
@@ -298,7 +298,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
           </div>
 
           <div className="w-full mt-[50px] mb-[80px]">
-            <h1 className="!text-2xl font-bold mb-8 !text-yellow-400 text-center md:text-left">Top 3 Dancers By Collectibles Sold</h1>
+            <h1 className="!text-2xl font-bold mb-8 !text-yellow-300 text-center md:text-left">Top 3 Dancers By Collectibles Sold</h1>
             {mintsLeaderboard
               .filter((item) => item.nftType === "fan")
               .filter((item) => {
@@ -402,7 +402,7 @@ export const CampaignHero = (props: CampaignHeroProps) => {
       {/* the heading for the dancers we are seeing in the view */}
       {!selectedArtist && (
         <div className="w-full mt-[20px] relative top-[10px]">
-          <h1 className="!text-2xl font-bold mb-4 !text-yellow-400 text-left p-2">{dancerHeadingToShow}</h1>
+          <h1 className="!text-2xl font-bold mb-4 !text-yellow-300 text-left p-2">{dancerHeadingToShow}</h1>
         </div>
       )}
     </>

@@ -147,7 +147,7 @@ export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bounty
                 <th className="px-6 py-3 text-left text-sm font-semibold">Wallet</th>
                 <th className="px-6 py-3 text-right text-sm font-semibold">
                   <div className="flex items-center justify-end space-x-1">
-                    <SparklesIcon className="h-5 w-5 text-yellow-400" />
+                    <SparklesIcon className="h-5 w-5 text-yellow-300" />
                     <span>Power</span>
                   </div>
                 </th>
@@ -178,14 +178,14 @@ export const ArtistXPLeaderboard: React.FC<ArtistXPLeaderboardProps> = ({ bounty
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {loggedInAddress && entry.giverAddr.toLowerCase() === loggedInAddress.toLowerCase() ? (
-                      <span className="text-yellow-400 font-bold">YOU! 🔥</span>
+                      <span className="text-yellow-300 font-bold">YOU! 🔥</span>
                     ) : (
                       truncateAddress(entry.giverAddr)
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-1">
-                      <SparklesIcon className="h-4 w-4 text-yellow-400" />
+                      <SparklesIcon className="h-4 w-4 text-yellow-300" />
                       <span>{entry.bits.toLocaleString()}</span>
                     </div>
                   </td>

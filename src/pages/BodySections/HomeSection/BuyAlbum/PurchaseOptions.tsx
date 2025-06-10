@@ -45,14 +45,14 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({ isPaymentsDisa
               <p className="text-sm text-gray-300">{description}</p>
               <p className="text-sm text-gray-300">
                 License: {license} -{" "}
-                <a href={licenseUrl} target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">
+                <a href={licenseUrl} target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:underline">
                   {licenseUrl.includes("by-nc-nd") ? "CC BY-NC-ND 4.0" : "CC BY 4.0"}
                 </a>
               </p>
             </div>
             {/* Price & Button (right) */}
             <div className="flex flex-col items-end min-w-[110px] md:pl-4">
-              {price && <span className="text-3xl font-extrabold text-yellow-400 mb-2">${price}</span>}
+              {price && <span className="text-3xl font-extrabold text-yellow-300 mb-2">${price}</span>}
               <Button
                 onClick={() => handlePaymentAndMint(option)}
                 className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-6 rounded-lg hover:opacity-90 transition-opacity"

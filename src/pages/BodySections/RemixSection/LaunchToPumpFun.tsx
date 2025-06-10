@@ -392,7 +392,7 @@ export const LaunchToPumpFun = ({
           {paymentStatus === "processing" ? (
             <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
               <Loader className="w-full text-center animate-spin hover:scale-105" />
-              <p className="text-yellow-500">Payment in process... do not close this page</p>
+              <p className="text-yellow-300">Payment in process... do not close this page</p>
             </div>
           ) : paymentStatus === "confirmed" ? (
             <div className="text-center text-green-500">

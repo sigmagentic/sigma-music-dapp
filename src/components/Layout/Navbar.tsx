@@ -219,21 +219,21 @@ export const Navbar = ({
                 <DropdownMenuGroup>
                   <div className="flex flex-col gap-2">
                     <Button
-                      className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-400"
+                      className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-300"
                       onClick={() => {
                         window.location.href = `${routeNames.faq}`;
                       }}>
                       About
                     </Button>
                     <Button
-                      className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-400"
+                      className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-300"
                       onClick={() => {
                         window.open("https://sigmamusic.fm/faq#where-to-buy", "_blank");
                       }}>
                       Get $FAN
                     </Button>
                     <Button
-                      className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-400"
+                      className="bg-background text-foreground hover:bg-background/90 border-0 !text-md hover:text-yellow-300"
                       onClick={() => setShowProductTour(true)}>
                       Tour
                     </Button>
