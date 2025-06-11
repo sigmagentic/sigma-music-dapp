@@ -411,8 +411,6 @@ export const HomeSection = (props: HomeSectionProps) => {
       .filter((track): track is MusicTrack => track !== null)
       .filter((track) => !track.title.includes("DEMO"));
 
-    console.log("augmentedTracks", augmentedTracks);
-
     return augmentedTracks;
   }
 
