@@ -185,12 +185,22 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   function tryExtractFanToken3DGifTeaserFromTokenImgUrl(imgUrl: string) {
     // imgUrl will be like this: https://gateway.lighthouse.storage/ipfs/bafybeidn4zspev7ewj3zjuaxlt6masdl4kdzt2os2lfgog6riaytfwjvy4/925_WsbFgcThabangT1.gif
     // we need to extract WsbFgcThabangT1 out of it
+    // we also need to support URLs like https://gateway.lighthouse.storage/ipfs/bafybeifgfrjg6coehbibxfjirbesc4a3ex6ztxsv7jrrgwhlz3rfq6a24a/5242_img_WsbNzlRzkArohaT1.gif
 
+    console.log("imgUrl", imgUrl);
     try {
-      const match = imgUrl.match(/(\d+)_(.*)\.gif/);
-      if (match) {
-        return match[2];
+      if (imgUrl.includes("img_")) {
+        const match = imgUrl.match(/(\d+)_img_(.*)\.gif/);
+        if (match) {
+          return match[2];
+        }
+      } else {
+        const match = imgUrl.match(/(\d+)_(.*)\.gif/);
+        if (match) {
+          return match[2];
+        }
       }
+
       return null;
     } catch (error) {
       console.error("Error extracting fan token 3D gif teaser from token img url:", error);
