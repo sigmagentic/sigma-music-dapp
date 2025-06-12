@@ -7,7 +7,6 @@ import CAMPAIGN_WSB_CTA from "assets/img/campaigns/campaign-wsb-home-cta.png";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
 import { MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier, isUIDebugMode } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
-import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
 import { getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/misc";
@@ -19,6 +18,7 @@ import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
+import { Slideshow } from "./components/Slideshow";
 import { FeaturedArtistsAndAlbums } from "./FeaturedArtistsAndAlbums";
 import { FeaturedBanners } from "./FeaturedBanners";
 import { Leaderboards } from "./Leaderboards";
@@ -71,6 +71,8 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
   const { artistLookupEverything } = useAppStore();
   const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Cached Signature Store Items
   const {
@@ -644,6 +646,15 @@ export const HomeSection = (props: HomeSectionProps) => {
     updateAlbumIdBeingPlayed(undefined);
   }
 
+  useEffect(() => {
+    if (!isHovered) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev === 1 ? 0 : 1));
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isHovered]);
+
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
@@ -668,23 +679,29 @@ export const HomeSection = (props: HomeSectionProps) => {
               <div className="flex flex-col-reverse md:flex-row justify-center items-center xl:items-start w-[100%]">
                 <div className="flex flex-col w-full gap-4">
                   <div className="flex flex-col-reverse md:flex-row gap-4">
-                    <div className="campaign-cta flex flex-col md:mt-0 flex-1">
-                      <div
-                        className={`select-none h-[200px] bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/20 relative w-[100%] flex flex-col items-center justify-center rounded-lg mt-2 overflow-hidden`}>
-                        <img src={CAMPAIGN_WSB_CTA} alt="WSB Fan Collectibles Are Live!" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/50"></div>
-                        <Button
-                          onClick={() => {
-                            setHomeMode(`campaigns-wsb-${new Date().getTime()}`);
-                          }}
-                          className="!text-black text-sm tracking-tight absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:bg-gradient-to-l">
-                          <>
-                            <span className="ml-2">WSB Collectibles Now Live!</span>
-                          </>
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex flex-col flex-1 text-left align-center justify-center p-5">
+                    <Slideshow
+                      slides={[
+                        {
+                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/DuoDo.jpg",
+                          imageCustomClass: "object-none",
+                          alt: "WSB Fan Collectibles Are Live!",
+                          buttonText: "Exclusive Music By Dúo Dø is Live!",
+                          onClick: () => {
+                            navigateToDeepAppView({
+                              artistSlug: "dúo-dø",
+                            });
+                          },
+                        },
+                        {
+                          image: CAMPAIGN_WSB_CTA,
+                          imageCustomClass: "object-cover",
+                          alt: "WSB Fan Collectibles Are Live!",
+                          buttonText: "WSB Collectibles Now Live!",
+                          onClick: () => setHomeMode(`campaigns-wsb-${new Date().getTime()}`),
+                        },
+                      ]}
+                    />
+                    <div className="flex flex-col flex-1 text-left align-center justify-center p-2 md:p-5">
                       <span className="text-center font-[Clash-Medium] text-2xl md:text-3xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
                         Your Music Super App for Exclusive Fan Experiences
                       </span>

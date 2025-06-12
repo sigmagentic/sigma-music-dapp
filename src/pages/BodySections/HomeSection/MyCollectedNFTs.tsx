@@ -187,7 +187,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     // we need to extract WsbFgcThabangT1 out of it
     // we also need to support URLs like https://gateway.lighthouse.storage/ipfs/bafybeifgfrjg6coehbibxfjirbesc4a3ex6ztxsv7jrrgwhlz3rfq6a24a/5242_img_WsbNzlRzkArohaT1.gif
 
-    console.log("imgUrl", imgUrl);
     try {
       if (imgUrl.includes("img_")) {
         const match = imgUrl.match(/(\d+)_img_(.*)\.gif/);
