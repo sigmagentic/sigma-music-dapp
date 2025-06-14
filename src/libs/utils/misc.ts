@@ -267,6 +267,7 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
     },
     priceOption3: {
       canBeMinted: false,
+      IpTokenId: null,
       priceInUSD: null,
     },
   };
@@ -294,7 +295,8 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
           priceInUSD: null,
         },
         priceOption3: {
-          canBeMinted: data.canBeMinted,
+          canBeMinted: data.t2CollectibleAvailable,
+          IpTokenId: data.t2IpTokenId,
           priceInUSD: null,
         },
       };

@@ -63,6 +63,7 @@ export interface Album {
     };
     priceOption3?: {
       canBeMinted: boolean;
+      IpTokenId: string | null; // the story protocol IP token to issue licenses on
       priceInUSD: string | null;
     };
   };
