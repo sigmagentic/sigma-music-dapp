@@ -180,7 +180,7 @@ export const LICENSE_TERMS_MAP = {
     urlToLicense: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
   },
   [AlbumSaleTypeOption.priceOption3]: {
-    shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution Allowed",
+    shortDescription: "Commercial Remix. CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution",
     urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
   },
 };
