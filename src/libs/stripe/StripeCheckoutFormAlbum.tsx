@@ -97,10 +97,17 @@ const StripeCheckoutFormAlbum = ({
       const creatorWallet = artistProfile.creatorPaymentsWallet;
       const buyerSolAddress = publicKey?.toBase58();
 
+      // do we have an iptoken configured for priceOption3? if so, we need to pass it to the payment success page
+      let IpTokenId = "";
+
+      if (albumSaleTypeOption === "priceOption3" && albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId) {
+        IpTokenId = albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId || "";
+      }
+
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSD}&billingEmail=${encodeURIComponent(email)}&albumSaleTypeOption=${albumSaleTypeOption}`,
+          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSD}&billingEmail=${encodeURIComponent(email)}&albumSaleTypeOption=${albumSaleTypeOption}&IpTokenId=${IpTokenId}`,
           receipt_email: email,
         },
       });

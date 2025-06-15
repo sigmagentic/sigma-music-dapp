@@ -582,6 +582,7 @@ export const HomeSection = (props: HomeSectionProps) => {
         );
 
         // Normalize the album name we're looking for
+        // @TODO: we need to normalize the album name with the solNftName as well (not sure of impact if we dont)
         const normalizedAlbumName = normalizeString(album.solNftName);
 
         // Check for ownership across rarities

@@ -94,7 +94,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                   // Get the prefix before first "-" or space from both strings
                   const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
                   const albumPrefix = album.solNftName.split(/[-\s]/)[0];
-                  return nftPrefix.toLowerCase() === albumPrefix.toLowerCase();
+                  return nftPrefix.toLowerCase() === albumPrefix.toLowerCase() || (album.solNftAltCodes !== "" && album.solNftAltCodes?.includes(nftPrefix));
                 })
               );
 

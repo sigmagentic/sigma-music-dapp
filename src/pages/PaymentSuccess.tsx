@@ -67,6 +67,7 @@ export const PaymentSuccess = () => {
         const campaignCode = searchParams.get("campaignCode");
         const totalQuantity = parseInt(searchParams.get("totalQuantity") || "1");
         const albumSaleTypeOption = searchParams.get("albumSaleTypeOption");
+        const IpTokenId = searchParams.get("IpTokenId");
 
         const _itemImg = searchParams.get("albumImg");
         const _albumTitle = searchParams.get("albumTitle");
@@ -188,7 +189,18 @@ export const PaymentSuccess = () => {
 
               if (albumId) {
                 mintParams.albumId = albumId;
-                mintParams.albumSaleTypeOption = "2"; // @TODO use actual option. 2 is what we have now (NFT)
+
+                // if it's priceOption3, and we confirm again that we have an IpTokenId, then we need to use the commercial license mint metadata
+                let useCommercialMusicAssetLicenseT2 = false;
+
+                if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption3) {
+                  // we need to mint the commercial license
+                  useCommercialMusicAssetLicenseT2 = IpTokenId && IpTokenId !== "" ? true : false;
+                }
+
+                if (useCommercialMusicAssetLicenseT2) {
+                  mintParams.useCommercialMusicAssetLicenseT2 = "1";
+                }
               } else {
                 mintParams.membershipId = membershipId;
                 mintParams.artistId = artistId;

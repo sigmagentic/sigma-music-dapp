@@ -17,6 +17,7 @@ export interface MusicTrack {
   idx: string;
   nftCollection?: string;
   solNftName?: string;
+  solNftAltCodes?: string; // can be a , separated list of alt codes prefixes for the album (e.g. MUSSM1). but intially we only support 1 (if we add more, code repo changes are needed)
   artist: string;
   category: string;
   album: string;
@@ -38,6 +39,7 @@ export interface MusicTrack {
 export interface Album {
   albumId: string;
   solNftName: string;
+  solNftAltCodes?: string; // can be a , separated list of alt codes prefixes for the album (e.g. MUSSM1)
   title: string;
   desc: string;
   ctaPreviewStream: string;
@@ -47,7 +49,6 @@ export interface Album {
   img: string;
   isExplicit: string;
   isPodcast: string;
-  isSpotlight: string;
   isFeatured: string;
   isSigmaRemixAlbum: string;
   albumPriceOption1?: string; // digital album  + download only
@@ -207,6 +208,7 @@ export interface EntitlementForMusicAsset {
   licenseTerms: {
     shortDescription: string | null;
     urlToLicense: string | null;
+    ipTokenId: string | null;
   };
   nftAssetIdOnBlockchain: string | null;
 }
