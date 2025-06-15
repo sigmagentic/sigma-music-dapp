@@ -39,8 +39,6 @@ export const PlaylistPlayerTeaser = (props: PlaylistPlayerTeaserProps) => {
     return () => clearInterval(timer);
   }, [playlistTracks]);
 
-  console.log("$$ playlistTracksLoading Z", playlistTracksLoading);
-
   return (
     <div
       className={`select-none ${loadAsScreenSaver ? "min-h-[100dvh]" : "h-[200px]"} bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/20 relative w-[100%] flex flex-col items-center justify-center rounded-lg mt-2 overflow-hidden`}>

@@ -231,7 +231,12 @@ export const FeaturedBanners = ({
         setLatestInnerCircleOptions(latestInnerCircleOptionsData);
 
         const latestAlbumOptionsData = await fetchLatestCollectiblesAvailableViaAPI("album", 20);
-        setLatestAlbumOptions(latestAlbumOptionsData);
+
+        console.log("latestAlbumOptionsData", latestAlbumOptionsData);
+        // let filter own any items that have a _t2 substring in the collectibleId
+        const filteredLatestAlbumOptionsData = latestAlbumOptionsData.filter((item: any) => !item.collectibleId.includes("_t2"));
+
+        setLatestAlbumOptions(filteredLatestAlbumOptionsData);
       } catch (error) {
         console.error("Error fetching Inner Circle collectible options:", error);
       } finally {
