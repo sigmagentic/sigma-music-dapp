@@ -102,10 +102,16 @@ export const convertTokenImageUrl = (tokenImg: string): string => {
       // Extract the filename from the URL
       const url = new URL(tokenImg);
       const pathParts = url.pathname.split("/");
+
       const fileName = pathParts[pathParts.length - 1];
 
-      // Extract the artist identifier (e.g., 'loonyoT1' from '733_loonyoT1.gif')
-      const artistIdentifier = fileName.split("_")[1];
+      // Extract the artist identifier (e.g., 'loonyoT1.gif' from '733_loonyoT1.gif')
+      // also 5242_img_WsbNzlRzkArohaT1.gif format of files (pull out WsbNzlRzkArohaT1.gif)
+      let artistIdentifier = fileName.split("_")[1];
+
+      if (fileName.includes("img_")) {
+        artistIdentifier = fileName.split("img_")[1];
+      }
 
       if (artistIdentifier) {
         return `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistIdentifier}`;

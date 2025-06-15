@@ -207,8 +207,15 @@ export const BuyAndMintAlbumUsingSOL = ({
     setMintingStatus("processing");
 
     try {
-      // Mint the music
-      const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI({
+      // if it's priceOption3, and we confirm again that we have an IpTokenId, then we need to use the commercial license mint metadata
+      let useCommercialMusicAssetLicenseT2 = false;
+
+      if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption3) {
+        // we need to mint the commercial license
+        useCommercialMusicAssetLicenseT2 = albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId ? true : false;
+      }
+
+      const mintParams: any = {
         solSignature,
         signatureNonce,
         mintForSolAddr: publicKey?.toBase58(),
@@ -216,7 +223,13 @@ export const BuyAndMintAlbumUsingSOL = ({
         nftType: "album",
         creatorWallet: artistProfile.creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         albumId: albumToBuyAndMint.albumId,
-      });
+      };
+
+      if (useCommercialMusicAssetLicenseT2) {
+        mintParams.useCommercialMusicAssetLicenseT2 = "1";
+      }
+
+      const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI(mintParams);
 
       if (_mintAlbumNFTAfterPaymentResponse.error) {
         throw new Error(_mintAlbumNFTAfterPaymentResponse.errorMessage || "Minting failed");

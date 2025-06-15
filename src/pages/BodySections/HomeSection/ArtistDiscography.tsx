@@ -33,6 +33,7 @@ import { useNftsStore } from "store/nfts";
 import { BuyAndMintAlbumUsingCC } from "./BuyAlbum/BuyAndMintAlbumUsingCC";
 import { BuyAndMintAlbumUsingSOL } from "./BuyAlbum/BuyAndMintAlbumUsingSOL";
 import { getBestBuyCtaLink } from "./types/utils";
+import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
 
 type ArtistDiscographyProps = {
   albums: Album[];
@@ -146,11 +147,13 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
   useEffect(() => {
     if (selectedAlbumToShowEntitlements && (myMusicAssetPurchases.length > 0 || solMusicAssetNfts.length > 0)) {
+      debugger;
       const entitlementsMap: EntitlementForMusicAsset = {
         mp3TrackUrls: [],
         licenseTerms: {
           shortDescription: null,
           urlToLicense: null,
+          ipTokenId: null,
         },
         nftAssetIdOnBlockchain: null,
       };
@@ -162,17 +165,25 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
           LICENSE_TERMS_MAP[assetPurchaseThatMatches.albumSaleTypeOption as keyof typeof LICENSE_TERMS_MAP].shortDescription;
         entitlementsMap.licenseTerms.urlToLicense =
           LICENSE_TERMS_MAP[assetPurchaseThatMatches.albumSaleTypeOption as keyof typeof LICENSE_TERMS_MAP].urlToLicense;
+        entitlementsMap.licenseTerms.ipTokenId = selectedAlbumToShowEntitlements._buyNowMeta?.priceOption3?.IpTokenId || null;
       } else {
         // we should NEVER get here, but old assets (Drip assets) may not have priceOptions so lets default to the first option as this is a good license
         entitlementsMap.mp3TrackUrls = [];
         entitlementsMap.licenseTerms.shortDescription = LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].shortDescription;
         entitlementsMap.licenseTerms.urlToLicense = LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].urlToLicense;
         entitlementsMap.nftAssetIdOnBlockchain = null;
+        entitlementsMap.licenseTerms.ipTokenId = null;
       }
 
       // does the user have the nft collectible?
-
-      const findMusicNft = solMusicAssetNfts.find((nft) => nft.content.metadata.name === selectedAlbumToShowEntitlements.solNftName);
+      const findMusicNft = solMusicAssetNfts.find((nft) => {
+        const nftPrefix = nft.content.metadata.name.split(/[-\s]/)[0];
+        const albumPrefix = selectedAlbumToShowEntitlements.solNftName.split(/[-\s]/)[0];
+        return (
+          nftPrefix.toLowerCase() === albumPrefix.toLowerCase() ||
+          (selectedAlbumToShowEntitlements.solNftAltCodes !== "" && selectedAlbumToShowEntitlements.solNftAltCodes?.includes(nftPrefix))
+        );
+      });
 
       if (findMusicNft) {
         entitlementsMap.nftAssetIdOnBlockchain = findMusicNft.id;
@@ -187,7 +198,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     if (albumIdBeingPlayed) {
       return albumIdBeingPlayed === album.albumId;
     } else {
-      return dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName;
+      return (
+        dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName ||
+        dataNftPlayingOnMainPlayer?.content.metadata.name.includes(album?.solNftAltCodes || "")
+      );
     }
   }
 
@@ -643,6 +657,49 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   <ExternalLink className="w-4 h-4" />
                   <span className="ml-2">View License Details</span>
                 </Button>
+
+                {entitlementsForSelectedAlbum?.licenseTerms.ipTokenId && (
+                  <div className="mt-2">
+                    You have been also allocated an on-chain legal license via Story Protocol.
+                    <div className="flex items-baseline gap-2">
+                      <a
+                        href={`https://explorer.story.foundation/ipa/${entitlementsForSelectedAlbum?.licenseTerms.ipTokenId}`}
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        <div
+                          className="w-[112px] h-[25px] rounded-md overflow-hidden mt-2 hover:scale-105 transition-all duration-300"
+                          style={{
+                            backgroundImage: `url(${storyProtocolIpOpen})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            backgroundRepeat: "no-repeat",
+                          }}></div>
+                      </a>
+                      <a
+                        href="https://github.com/piplabs/pil-document/blob/v1.3.0/Story%20Foundation%20-%20Programmable%20IP%20License%20(1.31.25).pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-yellow-300 cursor-pointer flex items-center gap-2 hover:opacity-80 transition-colors">
+                        <span>View PIL (Programmatic IP License) Legal Document</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                          <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                        </svg>
+                      </a>
+                      <a
+                        href="https://github.com/piplabs/pil-document/blob/ad67bb632a310d2557f8abcccd428e4c9c798db1/off-chain-terms/CommercialRemix.json"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-yellow-300 cursor-pointer flex items-center gap-2 hover:opacity-80 transition-colors">
+                        <span>View Off-Chain Terms</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                          <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* View Collectible Section */}

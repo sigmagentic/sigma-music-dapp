@@ -1,5 +1,6 @@
 import React from "react";
 import { Loader } from "lucide-react";
+import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
 import { LICENSE_TERMS_MAP } from "config";
 import { Button } from "libComponents/Button";
 import { Album, AlbumSaleTypeOption } from "libs/types";
@@ -26,7 +27,8 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({ isPaymentsDisa
     description: string,
     license: string,
     licenseUrl: string,
-    price: string | null
+    price: string | null,
+    ipTokenId?: string | null
   ) => {
     const available = isOptionAvailable(option);
 
@@ -49,6 +51,20 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({ isPaymentsDisa
                   {licenseUrl.includes("by-nc-nd") ? "CC BY-NC-ND 4.0" : "CC BY 4.0"}
                 </a>
               </p>
+              {ipTokenId && (
+                <>
+                  <a href={`https://explorer.story.foundation/ipa/${ipTokenId}`} target="_blank" rel="noopener noreferrer">
+                    <div
+                      className="w-[112px] h-[25px] rounded-md overflow-hidden mt-2 hover:scale-105 transition-all duration-300"
+                      style={{
+                        backgroundImage: `url(${storyProtocolIpOpen})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
+                      }}></div>
+                  </a>
+                </>
+              )}
             </div>
             {/* Price & Button (right) */}
             <div className="flex flex-col items-end min-w-[110px] md:pl-4">
@@ -107,7 +123,8 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({ isPaymentsDisa
         "You Get: Everything above + commercial use",
         LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption3].shortDescription,
         LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption3].urlToLicense,
-        buyNowMeta?.priceOption3?.priceInUSD || null
+        buyNowMeta?.priceOption3?.priceInUSD || null,
+        buyNowMeta?.priceOption3?.IpTokenId || null
       )}
     </div>
   );

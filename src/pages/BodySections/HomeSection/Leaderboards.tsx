@@ -123,14 +123,12 @@ export const Leaderboards = ({ navigateToDeepAppView }: { navigateToDeepAppView:
         const sortedAlbumPower = albumEntries
           .sort((a: AlbumLeaderboardEntry, b: AlbumLeaderboardEntry) => b.bitsSum - a.bitsSum)
           .map((entry: AlbumLeaderboardEntry, index: number) => ({ ...entry, rank: index + 1 }));
-        console.log("sortedAlbumPower", sortedAlbumPower);
         setAlbumPowerLeaderboard(sortedAlbumPower);
 
         // Sort and rank album fans leaderboard
         const sortedAlbumFans = albumEntries
           .sort((a: AlbumLeaderboardEntry, b: AlbumLeaderboardEntry) => b.giverCounts - a.giverCounts)
           .map((entry: AlbumLeaderboardEntry, index: number) => ({ ...entry, rank: index + 1 }));
-        console.log("sortedAlbumFans", sortedAlbumFans);
         setAlbumFansLeaderboard(sortedAlbumFans);
       } catch (error) {
         console.error("Error fetching bounty snapshot:", error);
