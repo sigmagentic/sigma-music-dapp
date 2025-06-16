@@ -28,7 +28,7 @@ Sigma Music consists of a performant frontend + several backend services that ab
 We integrate:
 
 - **Solana** for compressed NFT music assets
-- **SUI (Walrus)** and **IPDS/Filecoin** for storage
+- **SUI (Walrus)** and **IPFS/Filecoin** for storage
 - **Story Protocol** for commercial IP protection & remix licensing
 - **ElizaOS AI agents** for remix generation and music enhancement
 

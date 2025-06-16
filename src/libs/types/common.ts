@@ -86,6 +86,7 @@ export interface Artist {
   instaLink?: string;
   otherLink1: string;
   isArtistFeatured: string;
+  isDeprioritized: string;
   creatorPaymentsWallet: string;
   artistCampaignCode?: string;
   artistSubGroup1Code?: string;

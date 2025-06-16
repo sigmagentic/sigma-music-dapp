@@ -53,7 +53,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({ isPaymentsDisa
               </p>
               {ipTokenId && (
                 <>
-                  <a href={`https://explorer.story.foundation/ipa/${ipTokenId}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`https://www.ipontop.com/ip/${ipTokenId}`} target="_blank" rel="noopener noreferrer">
                     <div
                       className="w-[112px] h-[25px] rounded-md overflow-hidden mt-2 hover:scale-105 transition-all duration-300"
                       style={{

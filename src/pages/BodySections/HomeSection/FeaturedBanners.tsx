@@ -232,7 +232,6 @@ export const FeaturedBanners = ({
 
         const latestAlbumOptionsData = await fetchLatestCollectiblesAvailableViaAPI("album", 20);
 
-        console.log("latestAlbumOptionsData", latestAlbumOptionsData);
         // let filter own any items that have a _t2 substring in the collectibleId
         const filteredLatestAlbumOptionsData = latestAlbumOptionsData.filter((item: any) => !item.collectibleId.includes("_t2"));
 
@@ -289,7 +288,7 @@ export const FeaturedBanners = ({
   return (
     <div className="flex flex-col justify-center items-center w-full">
       {/* Tier 1 Genre Playlists */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-5">
         <div className="text-xl cursor-pointer w-full">
           <span>Exclusive Music Playlists</span>
         </div>
