@@ -1,5 +1,9 @@
 # Sigma Music
 
+> **🎯 Story Protocol Hackathon Judges**
+>
+> Please note this repo is our open-source frontend app for [Sigma Music](https://sigmamusic.fm/) . We also added backend Story support to our admin backend app and API. Our admin backend app is open-source and [available here](https://github.com/zedgehorizon/zstorage), but our API is not open-source as it contains some proprietary tech on how we abstract chain wallets for Sigma Music to work like a web2 app. Also please find a section below on **IP Licensing via Story Protocol** that provides more details. Our integration is now on Story mainnet as we are now fully committed to using Story as our IP engine for all commercial licenses offered in Sigma Music, with the first artist to use IP tokens being [TKO](https://sigmamusic.fm/?artist=tko) and we are rolling it out to all our existing music albums and EPs this week.
+
 **Sigma Music** (https://sigmamusic.fm) is a "fan-first" music platform reimagining the way fans and artists connect. Built with web3 technology under the hood but designed for a mainstream web2 experience, Sigma combines the best of platforms like Bandcamp and SoundCloud with powerful new monetization tools — including tokenized music assets, AI remix licensing, and IP finance.
 
 We believe in building in the open. This repo is part of our effort to make the future of music infrastructure community-owned and developer-friendly.
