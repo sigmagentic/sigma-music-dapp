@@ -338,7 +338,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     <img className="max-h-[20px] ml-[10px] dark:bg-white" src={ratingR} alt="Warning: Explicit Content" title="Warning: Explicit Content" />
                   )}
                 </h3>
-                <p className="">{album.desc}</p>
+                <p className="text-sm">{album.desc}</p>
               </div>
 
               {!DISABLE_BITZ_FEATURES && (
@@ -662,10 +662,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   <div className="mt-2">
                     You have been also allocated an on-chain legal license via Story Protocol.
                     <div className="flex items-baseline gap-2">
-                      <a
-                        href={`https://explorer.story.foundation/ipa/${entitlementsForSelectedAlbum?.licenseTerms.ipTokenId}`}
-                        target="_blank"
-                        rel="noopener noreferrer">
+                      <a href={`https://www.ipontop.com/ip/${entitlementsForSelectedAlbum?.licenseTerms.ipTokenId}`} target="_blank" rel="noopener noreferrer">
                         <div
                           className="w-[112px] h-[25px] rounded-md overflow-hidden mt-2 hover:scale-105 transition-all duration-300"
                           style={{

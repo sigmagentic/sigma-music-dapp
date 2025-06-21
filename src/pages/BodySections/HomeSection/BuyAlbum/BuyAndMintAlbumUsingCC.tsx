@@ -161,14 +161,15 @@ export const BuyAndMintAlbumUsingCC = ({
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       {showStripePaymentPopup && <StripePaymentPopup />}
 
-      <div className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 grid grid-cols-1 md:grid-cols-2 max-w-6xl gap-6`}>
+      <div
+        className={`purchase-music-modal relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 grid grid-cols-1 md:grid-cols-2 max-w-6xl gap-6 max-h-[90vh] md:max-h-none overflow-x-hidden overflow-y-auto md:overflow-y-visible`}>
         {/* Close button  */}
         <button
           onClick={() => {
             resetStateToPristine();
             onCloseModal();
           }}
-          className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
+          className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
           ✕
         </button>
 
