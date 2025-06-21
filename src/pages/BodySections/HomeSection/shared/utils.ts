@@ -26,6 +26,23 @@ export async function getArtistsAlbumsData() {
       const getArtistsAlbumsAPI = `${getApiWeb2Apps(true)}/app_nftunes/assets/json/albumsAndArtistsData.json`;
       const dataRes = await axios.get(getArtistsAlbumsAPI);
       let dataset = dataRes.data;
+
+      // some items in the dataset will have isDeprioratized === "1", if so, move them to the bottom of the dataset
+      dataset = dataset.sort((a: any, b: any) => {
+        if (a.isDeprioratized === "1") return 1;
+        if (b.isDeprioratized === "1") return -1;
+        return 0;
+      });
+
+      // some items in the dataset will have isArtistFeatured === "1", if so, move them to the top of the dataset
+      dataset = dataset.sort((a: any, b: any) => {
+        if (a.isArtistFeatured === "1") return -1;
+        if (b.isArtistFeatured === "1") return 1;
+        return 0;
+      });
+
+      console.log("dataset", dataset);
+
       let cloneDataset = [...dataset];
       let cloneDatasetEverything = [...dataset];
 

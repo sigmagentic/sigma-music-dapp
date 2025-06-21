@@ -700,7 +700,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           )}
 
                           <div className={`artist-bio-n-links flex flex-col items-baseline md:block`}>
-                            <p className="artist-who">{artistProfile.bio}</p>
+                            <p className="artist-who text-sm">{artistProfile.bio}</p>
 
                             {(artistProfile.dripLink !== "" ||
                               artistProfile.xLink !== "" ||
@@ -773,8 +773,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                       <div className="artist-tabs flex flex-col p-2 items-start w-full">
                         {/* Tabs Navigation */}
-                        <div className="tabs-menu w-full border-b border-gray-800 overflow-y-auto pb-5 md:pb-0">
-                          <div className="flex space-x-8">
+                        <div className="tabs-menu w-full border-b border-gray-800 overflow-x-auto pb-5 md:pb-0">
+                          <div className="flex space-x-8 whitespace-nowrap min-w-max">
                             {tabsOrdered.includes("discography") && (
                               <button
                                 onClick={() => {

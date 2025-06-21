@@ -140,20 +140,22 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
           </span>
         </div>
 
-        <div className="mb-10">
-          <Button
-            onClick={() => {
-              if (pool.cta.isNewWindow) {
-                window.open(pool.cta.link, "_blank");
-              } else {
-                window.location.href = pool.cta.link;
-              }
-            }}
-            variant="outline"
-            className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black hover:from-yellow-400 hover:to-orange-600 hover:text-black">
-            {pool.cta.text}
-          </Button>
-        </div>
+        {pool.cta.text !== "" && (
+          <div className="mb-10">
+            <Button
+              onClick={() => {
+                if (pool.cta.isNewWindow) {
+                  window.open(pool.cta.link, "_blank");
+                } else {
+                  window.location.href = pool.cta.link;
+                }
+              }}
+              variant="outline"
+              className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black hover:from-yellow-400 hover:to-orange-600 hover:text-black">
+              {pool.cta.text}
+            </Button>
+          </div>
+        )}
 
         <div className="mb-6">
           <div className="text-3xl font-bold text-white mb-2">
@@ -175,7 +177,7 @@ const RewardPoolCard: React.FC<{ pool: RewardPool; isFeatured?: boolean }> = ({ 
           <p className="text-gray-400">Total Pool Value</p>
         </div>
 
-        <div className="mb-6 p-4 md:pl-0 bg-black/20 rounded-lg">
+        <div className="mb-6 py-4 md:pl-0 bg-black/20 rounded-lg">
           {now < start ? (
             <div className="space-y-2">
               <p className="text-gray-300">Pool starts in:</p>
