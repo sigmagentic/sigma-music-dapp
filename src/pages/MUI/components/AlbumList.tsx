@@ -4,20 +4,10 @@ import { Badge } from "libComponents/Badge";
 import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
 import { Artist } from "libs/types/common";
+import { Album } from "libs/types/common";
 import { CollectibleMetadataModal } from "./CollectibleMetadataModal";
 import { TrackListModal } from "./TrackListModal";
 import { adminApi, FastStreamTrack } from "../services";
-
-interface Album {
-  albumId: string;
-  title: string;
-  img?: string;
-  tracks?: any[];
-  isExplicit?: string;
-  bountyId?: string;
-  solNftName?: string;
-  solNftAltCodes?: string;
-}
 
 interface AlbumListProps {
   albums: Album[];

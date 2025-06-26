@@ -1,8 +1,5 @@
 import { getApiWeb2Apps } from "libs/utils/misc";
 
-// Base admin API configuration
-const ADMIN_API_BASE = `${getApiWeb2Apps()}/admin`;
-
 // Types for admin API responses
 export interface FastStreamTrack {
   file: string;
@@ -40,7 +37,6 @@ export const fastStreamApi = {
   // Get fast stream tracks for an album
   getFastStreamTracksForAlbum: async (artistId: string, albumId: string): Promise<AdminApiResponse<FastStreamTrack[]>> => {
     try {
-      // const response = await fetch(`${ADMIN_API_BASE}/albums/${albumId}/fast-stream-tracks`);
       const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/musicTracks/${artistId}?albumId=${albumId}`);
 
       const data = await response.json();
@@ -66,7 +62,7 @@ export const fastStreamApi = {
   // Add new fast stream tracks for an album
   addNewFastStreamTracksForAlbum: async (trackData: Partial<FastStreamTrack>): Promise<AdminApiResponse<null>> => {
     try {
-      const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/admin/addOrUpdateMusicCatalogTrack`, {
+      const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/management/addOrUpdateMusicCatalogTrack`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,7 +99,7 @@ export const fastStreamApi = {
   // Edit fast stream tracks for an album
   editFastStreamTracksForAlbum: async (albumId: string, trackId: string, trackData: Partial<FastStreamTrack>): Promise<AdminApiResponse<FastStreamTrack>> => {
     try {
-      const response = await fetch(`${ADMIN_API_BASE}/albums/${albumId}/fast-stream-tracks/${trackId}`, {
+      const response = await fetch(`${getApiWeb2Apps()}/albums/${albumId}/fast-stream-tracks/${trackId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -134,7 +130,7 @@ export const collectibleMetadataApi = {
   }): Promise<AdminApiResponse<CollectibleMetadata[]>> => {
     try {
       const response = await fetch(
-        `${getApiWeb2Apps()}/datadexapi/sigma/admin/viewCollectibleMetadata?collectibleId=${collectibleId}&solSignature=${solSignature}&signatureNonce=${signatureNonce}&adminWallet=${adminWallet}`
+        `${getApiWeb2Apps()}/datadexapi/sigma/management/viewCollectibleMetadata?collectibleId=${collectibleId}&solSignature=${solSignature}&signatureNonce=${signatureNonce}&adminWallet=${adminWallet}`
       );
       const data = await response.json();
 
@@ -163,7 +159,7 @@ export const collectibleMetadataApi = {
   // Add collectible metadata for an album
   addCollectibleMetadataForAlbum: async (collectibleId: string, metadata: any): Promise<AdminApiResponse<{ created: boolean }>> => {
     try {
-      const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/admin/addToCollectibleCatalog`, {
+      const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/management/addToCollectibleCatalog`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -200,7 +196,7 @@ export const collectibleMetadataApi = {
   // Edit collectible metadata for an album
   editCollectibleMetadataForAlbum: async (collectibleId: string, metadata: Partial<CollectibleMetadata>): Promise<AdminApiResponse<{ updated: boolean }>> => {
     try {
-      const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/admin/editCollectibleMetadata`, {
+      const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/management/editCollectibleMetadata`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
