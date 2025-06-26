@@ -19,13 +19,14 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingR from "assets/img/nf-tunes/rating-R.png";
-import { APP_NETWORK, DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS, LICENSE_TERMS_MAP } from "config";
+import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
+import { APP_NETWORK, DISABLE_BITZ_FEATURES, LICENSE_TERMS_MAP } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { fetchSolNfts } from "libs/sol/SolViewData";
 import { AlbumSaleTypeOption, BountyBitzSumMapping } from "libs/types";
 import { Artist, Album, EntitlementForMusicAsset } from "libs/types";
-import { checkIfAlbumCanBeMintedViaAPI, getPaymentLogsViaAPI, isMostLikelyMobile } from "libs/utils/misc";
+import { checkIfAlbumCanBeMintedViaAPI, doFastStreamOnAlbumCheckViaAPI, getPaymentLogsViaAPI, isMostLikelyMobile } from "libs/utils/misc";
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -33,7 +34,6 @@ import { useNftsStore } from "store/nfts";
 import { BuyAndMintAlbumUsingCC } from "./BuyAlbum/BuyAndMintAlbumUsingCC";
 import { BuyAndMintAlbumUsingSOL } from "./BuyAlbum/BuyAndMintAlbumUsingSOL";
 import { getBestBuyCtaLink } from "./types/utils";
-import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
 
 type ArtistDiscographyProps = {
   albums: Album[];
@@ -106,9 +106,11 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         const albumsWithCanBeMinted = await Promise.all(
           albums.map(async (album) => {
             const meta = await checkIfAlbumCanBeMintedViaAPI(album.albumId);
+            const albumCanBeFastStreamed = await doFastStreamOnAlbumCheckViaAPI(`${album.albumId}-1`); // we check if the first track is loaded and if so, we know it can be fast streamed
             return {
               ...album,
               _buyNowMeta: isValidBuyNowMetaAfterOption2DoubleCheckApiCall(meta) ? meta : undefined,
+              _albumCanBeFastStreamed: Boolean(albumCanBeFastStreamed),
             };
           })
         );
@@ -385,34 +387,31 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             </div>
 
             <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
-              {!ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId) &&
-                album.ctaPreviewStream &&
-                !inCollectedAlbumsView &&
-                checkOwnershipOfMusicAsset(album) === -1 && (
-                  <div>
-                    <Button
-                      disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
-                      className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
-                      variant="outline"
-                      onClick={() => {
-                        if (playPausePreview) {
-                          playPausePreview(album.ctaPreviewStream, album.albumId);
-                        }
-                      }}>
-                      {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
-                        <>
-                          {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
-                          <span className="ml-2"> {currentTime} - Stop Playing </span>
-                        </>
-                      ) : (
-                        <>
-                          {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <Play />}
-                          <span className="ml-2">Play Preview</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
+              {!album._albumCanBeFastStreamed && album.ctaPreviewStream && !inCollectedAlbumsView && checkOwnershipOfMusicAsset(album) === -1 && (
+                <div>
+                  <Button
+                    disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
+                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
+                    variant="outline"
+                    onClick={() => {
+                      if (playPausePreview) {
+                        playPausePreview(album.ctaPreviewStream, album.albumId);
+                      }
+                    }}>
+                    {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
+                      <>
+                        {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
+                        <span className="ml-2"> {currentTime} - Stop Playing </span>
+                      </>
+                    ) : (
+                      <>
+                        {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <Play />}
+                        <span className="ml-2">Play Preview</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
 
               {/* when not logged in, show this to convert the wallet into user account */}
               {!publicKeySol && !album._buyNowMeta?.priceOption1 && (
@@ -431,7 +430,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 </div>
               )}
 
-              {(ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId) || (publicKeySol && checkOwnershipOfMusicAsset(album) > -1)) && (
+              {(album._albumCanBeFastStreamed || (publicKeySol && checkOwnershipOfMusicAsset(album) > -1)) && (
                 <>
                   <div className="relative group">
                     <Button

@@ -68,6 +68,7 @@ export interface Album {
       priceInUSD: string | null;
     };
   };
+  _albumCanBeFastStreamed?: boolean;
 }
 
 export interface Artist {

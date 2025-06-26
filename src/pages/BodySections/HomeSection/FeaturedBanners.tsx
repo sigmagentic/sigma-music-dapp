@@ -302,7 +302,7 @@ export const FeaturedBanners = ({
               <PlaylistTile
                 genre={{
                   code: "foryou",
-                  label: "For You",
+                  label: "24/7 Radio",
                   tier: null,
                   tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Wen_Summer_Cover.jpg",
                 }}
