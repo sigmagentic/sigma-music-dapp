@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import {
-  Gift,
   Loader,
   AudioWaveform,
   Pause,
@@ -92,6 +91,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const [showEntitlementsModal, setShowEntitlementsModal] = useState(false);
   const [selectedAlbumToShowEntitlements, setSelectedAlbumToShowEntitlements] = useState<Album | null>(null);
   const [entitlementsForSelectedAlbum, setEntitlementsForSelectedAlbum] = useState<EntitlementForMusicAsset | null>(null);
+  const [showSigmaExclusiveModal, setShowSigmaExclusiveModal] = useState(false);
 
   useEffect(() => {
     if (artistProfile && albums.length > 0) {
@@ -316,7 +316,44 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         orderedAlbums.map((album: Album, idx: number) => (
           <div
             key={`${album.albumId}-${idx}`}
-            className={`album flex flex-col my-3 p-2 md:p-5 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
+            className={`album relative flex flex-col my-3 p-2 md:p-5 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
+            {album.isSigmaExclusive && album.isSigmaExclusive === "1" && (
+              <>
+                <div className="absolute top-0 right-0 z-10">
+                  <div className="relative inline-block overflow-hidden rounded-bl-lg cursor-pointer" onClick={() => setShowSigmaExclusiveModal(true)}>
+                    <div className="relative bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-bl-lg font-semibold text-sm shadow-lg border border-red-400/50">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                        Sigma Exclusive
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sigma Exclusive Modal */}
+                {showSigmaExclusiveModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+                    <div className="bg-[#1A1A1A] rounded-lg p-6  max-w-2xl w-full mx-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xl font-bold text-white">Sigma Music Exclusive!</h3>
+                        <button onClick={() => setShowSigmaExclusiveModal(false)} className="text-gray-400 hover:text-white">
+                          <X size={24} />
+                        </button>
+                      </div>
+                      <div className="text-white py-2">
+                        <strong className="text-red-400">Sigma Exclusive</strong> albums, EPs, and singles are <strong>ONLY</strong> available on the Sigma
+                        Music platform. Listen for free, purchase as collectibles, or get commercial licenses. These are super rare!
+                      </div>
+                      <div className="flex justify-center mt-4">
+                        <Button variant="outline" className="text-sm px-6" onClick={() => setShowSigmaExclusiveModal(false)}>
+                          Close
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
             <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
               <div
                 className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto"

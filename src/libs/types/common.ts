@@ -54,6 +54,7 @@ export interface Album {
   albumPriceOption1?: string; // digital album  + download only
   albumPriceOption2?: string; // digital album + download + NFT
   albumPriceOption3?: string; // digital album + commercial license + download + NFT
+  isSigmaExclusive?: string; // 0 or 1 indicated if the album is a sigma exclusive album
   _buyNowMeta?: {
     priceOption1?: {
       priceInUSD: string | null;
