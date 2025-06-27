@@ -252,7 +252,6 @@ export const JoinInnerCircleCC = ({
                 alt={tierData[membershipId]?.label.toUpperCase()}
                 className="w-48 h-48 lg:w-[400px] lg:h-[400px] m-auto object-cover rounded-lg shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
               />
-              <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
           </div>
         </div>

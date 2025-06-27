@@ -185,10 +185,11 @@ export const AlbumList: React.FC<AlbumListProps> = ({ albums, artistName, artist
       <CollectibleMetadataModal
         isOpen={isCollectibleModalOpen}
         onClose={handleCloseCollectibleModal}
-        albumTitle={selectedAlbumTitle}
+        collectibleTitle={selectedAlbumTitle}
         collectibleId={selectedCollectibleId}
         collectibleTier={selectedCollectibleTier}
-        selectedAlbumArtist={selectedAlbumArtist}
+        selectedArtist={selectedAlbumArtist}
+        isFanCollectible={false}
         onMetadataUpdated={handleCollectibleMetadataUpdated}
       />
     </>

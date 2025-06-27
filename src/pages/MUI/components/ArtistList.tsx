@@ -1,9 +1,10 @@
-import React from "react";
-import { Plus, Music, Users } from "lucide-react";
+import React, { useState } from "react";
+import { Plus, Music, Users, Tag } from "lucide-react";
 import { Badge } from "libComponents/Badge";
 import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
 import { Artist } from "libs/types/common";
+import { CollectibleMetadataModal } from "./CollectibleMetadataModal";
 
 interface ArtistListProps {
   artists: Artist[];
@@ -11,9 +12,37 @@ interface ArtistListProps {
 }
 
 export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect }) => {
+  // Collectible metadata modal state
+  const [isCollectibleModalOpen, setIsCollectibleModalOpen] = useState(false);
+  const [selectedCollectibleId, setSelectedCollectibleId] = useState<string>("");
+  const [selectedCollectibleTier, setSelectedCollectibleTier] = useState<string>("");
+  const [selectedArtistTitle, setSelectedArtistTitle] = useState<string>("");
+  const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
+
   const handleAddAlbum = (artistId: string, artistName: string) => {
     // TODO: Implement add album functionality
     console.log(`Add album for artist: ${artistName} (${artistId})`);
+  };
+
+  const handleViewCollectibleMetadata = async (artistName: string, artistId: string, creatorPaymentsWallet: string, tier: string) => {
+    const collectibleId = `${creatorPaymentsWallet}-${artistId}-${tier}`;
+    setSelectedCollectibleId(collectibleId);
+    setSelectedArtistTitle(artistName);
+    setSelectedCollectibleTier(tier || "");
+    setIsCollectibleModalOpen(true);
+    setSelectedArtist(artists.find((artist) => artist.artistId === artistId) || null);
+  };
+
+  const handleCloseCollectibleModal = () => {
+    setIsCollectibleModalOpen(false);
+    setSelectedCollectibleId("");
+    setSelectedCollectibleTier("");
+    setSelectedArtist(null);
+  };
+
+  const handleCollectibleMetadataUpdated = () => {
+    // Optionally refresh any data if needed
+    console.log("Collectible metadata updated");
   };
 
   return (
@@ -36,17 +65,16 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">{artist.name}</h3>
-                <p className="text-sm text-gray-500 mb-2">@{artist.slug}</p>
+                <a href={`/?artist=${artist.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 mb-2 hover:underline">
+                  <p className="text-sm text-gray-500 mb-2">@{artist.slug}</p>
+                </a>
+                <p className="text-sm text-gray-500 mb-2">{artist.artistId}</p>
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <div className="flex items-center space-x-1">
-                    <Music className="w-4 h-4" />
-                    <span>{artist.albums?.length || 0} albums</span>
-                  </div>
-                  {artist.creatorWallet && (
+                  {artist.creatorPaymentsWallet && (
                     <div className="flex items-center space-x-1">
                       <Users className="w-4 h-4" />
                       <span className="font-mono text-xs">
-                        {artist.creatorWallet.slice(0, 6)}...{artist.creatorWallet.slice(-4)}
+                        {artist.creatorPaymentsWallet.slice(0, 6)}...{artist.creatorPaymentsWallet.slice(-4)}
                       </span>
                     </div>
                   )}
@@ -62,13 +90,26 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
               </div>
             )}
 
-            <div className="flex space-x-2">
-              <Button onClick={() => onArtistSelect(artist.artistId, artist.name)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-                View Albums
+            <div className="flex flex-col space-y-2">
+              <Button
+                onClick={() => handleViewCollectibleMetadata(artist.name, artist.artistId, artist.creatorPaymentsWallet, "t1")}
+                variant="outline"
+                className="w-full">
+                <Tag className="w-4 h-4 mr-2" />
+                View Basic Fan Collectible Metadata
               </Button>
-              <Button onClick={() => handleAddAlbum(artist.artistId, artist.name)} variant="outline" size="sm" className="px-3">
-                <Plus className="w-4 h-4" />
-              </Button>
+              <div className="flex space-x-2">
+                <Button onClick={() => onArtistSelect(artist.artistId, artist.name)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                  View Albums
+                </Button>
+                <Button
+                  onClick={() => handleAddAlbum(artist.artistId, artist.name)}
+                  variant="outline"
+                  size="sm"
+                  className="opacity-10 pointer-events-none px-3">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </Card>
         ))}
@@ -81,6 +122,17 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
           <p className="text-gray-600">No artists are currently available in the catalog.</p>
         </div>
       )}
+
+      <CollectibleMetadataModal
+        isOpen={isCollectibleModalOpen}
+        onClose={handleCloseCollectibleModal}
+        collectibleTitle={selectedArtistTitle}
+        collectibleId={selectedCollectibleId}
+        collectibleTier={selectedCollectibleTier}
+        selectedArtist={selectedArtist}
+        isFanCollectible={true}
+        onMetadataUpdated={handleCollectibleMetadataUpdated}
+      />
     </div>
   );
 };

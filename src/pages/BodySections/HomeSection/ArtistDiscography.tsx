@@ -17,7 +17,7 @@ import {
   Image,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import ratingR from "assets/img/nf-tunes/rating-R.png";
+import ratingE from "assets/img/icons/rating-E.png";
 import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
 import { APP_NETWORK, DISABLE_BITZ_FEATURES, LICENSE_TERMS_MAP } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -374,7 +374,12 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     )}
                   </span>
                   {album.isExplicit && album.isExplicit === "1" && (
-                    <img className="max-h-[20px] ml-[10px] dark:bg-white" src={ratingR} alt="Warning: Explicit Content" title="Warning: Explicit Content" />
+                    <img
+                      className="max-h-[20px] relative top-[2px] ml-[5px] rounded-md"
+                      src={ratingE}
+                      alt="Warning: Explicit Content"
+                      title="Warning: Explicit Content"
+                    />
                   )}
                 </h3>
                 <p className="text-sm">{album.desc}</p>

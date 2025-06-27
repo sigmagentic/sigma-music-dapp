@@ -402,14 +402,13 @@ export const BuyAndMintAlbumUsingSOL = ({
               </div>
 
               <div className="space-y-4 w-full flex flex-col items-center">
-                <div className="flex flex-col items-center p-4 shadow-xl w-full">
+                <div className="flex flex-col items-center p-4 w-full">
                   <div className="relative group mb-6 flex justify-center w-full">
                     <img
                       src={albumToBuyAndMint.img}
                       alt={albumToBuyAndMint.title}
                       className="w-40 h-40 md:w-56 md:h-56 lg:w-80 lg:h-80 object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.02] mx-auto"
                     />
-                    <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
 
                   <div className="text-center space-y-4 w-full">
