@@ -86,7 +86,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [activeTab, setActiveTab] = useState("discography");
   const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan"]);
-  const [selectedLargeSizeProfileImg, setSelectedLargeSizeProfileImg] = useState<string | null>(null);
+  const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -609,9 +609,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           onClick={() => {
                             // if the artist has a 3D gif teaser, allow the user to click on the image to see the full size image
                             if (activeTab === "fan" && artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== "") {
-                              setSelectedLargeSizeProfileImg(
-                                `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistProfile.fanToken3DGifTeaser}.gif`
-                              );
+                              setSelectedLargeSizeTokenImg(`https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistProfile.fanToken3DGifTeaser}.gif`);
                             } else {
                               return;
                             }
@@ -917,14 +915,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         </div>
 
         {/* Show larger profile or token image modal */}
-        {selectedLargeSizeProfileImg && (
+        {selectedLargeSizeTokenImg && (
           <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
             <div className="relative max-w-4xl w-full">
-              <img src={selectedLargeSizeProfileImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
+              <img src={selectedLargeSizeTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
               <div>
                 <button
                   onClick={() => {
-                    setSelectedLargeSizeProfileImg(null);
+                    setSelectedLargeSizeTokenImg(null);
                   }}
                   className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
                   Close

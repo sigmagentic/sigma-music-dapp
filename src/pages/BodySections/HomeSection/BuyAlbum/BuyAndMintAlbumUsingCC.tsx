@@ -29,6 +29,8 @@ export const BuyAndMintAlbumUsingCC = ({
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState("");
   const { userInfo } = useWeb3Auth();
+  const [hoveredLargeSizeTokenImg, setHoveredLargeSizeTokenImg] = useState<string | null>(null);
+  const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -157,8 +159,6 @@ export const BuyAndMintAlbumUsingCC = ({
 
   let isCCPaymentsDisabled = !ENABLE_CC_PAYMENTS || ENABLE_CC_PAYMENTS !== "1" || !STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "";
 
-  console.log("albumToBuyAndMint", albumToBuyAndMint);
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
       {showStripePaymentPopup && <StripePaymentPopup />}
@@ -184,11 +184,43 @@ export const BuyAndMintAlbumUsingCC = ({
           <div className="space-y-4 w-full flex flex-col items-center">
             <div className="flex flex-col items-center p-4 w-full">
               <div className="relative group mb-6 flex justify-center w-full">
-                <img
-                  src={albumToBuyAndMint.img}
-                  alt={albumToBuyAndMint.title}
-                  className="w-40 h-40 md:w-56 md:h-56 lg:w-80 lg:h-80 object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.02] mx-auto"
-                />
+                <div
+                  className={`albumImg w-40 h-40 md:w-56 md:h-56 lg:w-80 lg:h-80 bg-no-repeat bg-cover rounded-md md:m-auto relative group ${hoveredLargeSizeTokenImg ? "cursor-pointer" : ""}`}
+                  style={{
+                    "backgroundImage": `url(${albumToBuyAndMint.img})`,
+                  }}
+                  onClick={() => {
+                    // if there is a token image, show it in a large version
+                    if (hoveredLargeSizeTokenImg) {
+                      setSelectedLargeSizeTokenImg(hoveredLargeSizeTokenImg);
+                    } else {
+                      return;
+                    }
+                  }}>
+                  {hoveredLargeSizeTokenImg && (
+                    <>
+                      <div className="absolute inset-0 bg-black opacity-[70%] group-hover:opacity-[80%] transition-opacity duration-300 rounded-lg" />
+                      <div
+                        className="absolute inset-0 bg-no-repeat bg-cover rounded-lg opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{
+                          "backgroundImage": `url(${hoveredLargeSizeTokenImg})`,
+                          "backgroundPosition": "center",
+                          "backgroundSize": "contain",
+                        }}
+                      />
+
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-300 pointer-events-none z-10">
+                        <div
+                          className="relative bg-black/90 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap before:absolute before:inset-0 before:rounded-lg before:border before:border-emerald-400/50 
+                      after:absolute after:inset-0 after:rounded-lg after:border after:border-yellow-400/50">
+                          This version of the album comes with this collectible!
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black/90"></div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="text-center space-y-4 w-full">
@@ -204,11 +236,14 @@ export const BuyAndMintAlbumUsingCC = ({
         <div>
           <PurchaseOptions
             isPaymentsDisabled={isCCPaymentsDisabled}
+            buyNowMeta={albumToBuyAndMint._buyNowMeta}
+            disableActions={fetchingPaymentIntent}
             handlePaymentAndMint={(_albumSaleTypeOption: string) => {
               setAlbumSaleTypeOption(_albumSaleTypeOption);
             }}
-            buyNowMeta={albumToBuyAndMint._buyNowMeta}
-            disableActions={fetchingPaymentIntent}
+            handleShowLargeSizeTokenImg={(tokenImg: string | null) => {
+              setHoveredLargeSizeTokenImg(tokenImg);
+            }}
           />
           <div className="text-xs text-right mt-[5px]">
             <p>
@@ -224,6 +259,24 @@ export const BuyAndMintAlbumUsingCC = ({
         {backendErrorMessage && (
           <div className="flex flex-col gap-4 col-span-2">
             <p className="bg-red-500 p-4 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
+          </div>
+        )}
+
+        {/* Show larger profile or token image modal */}
+        {selectedLargeSizeTokenImg && (
+          <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+            <div className="relative max-w-4xl w-full">
+              <img src={selectedLargeSizeTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
+              <div>
+                <button
+                  onClick={() => {
+                    setSelectedLargeSizeTokenImg(null);
+                  }}
+                  className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

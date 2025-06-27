@@ -264,11 +264,13 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
     priceOption2: {
       canBeMinted: false,
       priceInUSD: null,
+      tokenImg: null,
     },
     priceOption3: {
       canBeMinted: false,
       IpTokenId: null,
       priceInUSD: null,
+      tokenImg: null,
     },
   };
 
@@ -293,11 +295,13 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
         priceOption2: {
           canBeMinted: data.canBeMinted,
           priceInUSD: null,
+          tokenImg: data.tokenImg || null,
         },
         priceOption3: {
           canBeMinted: data.t2CollectibleAvailable,
           IpTokenId: data.t2IpTokenId,
           priceInUSD: null,
+          tokenImg: data.tokenImg || null,
         },
       };
 

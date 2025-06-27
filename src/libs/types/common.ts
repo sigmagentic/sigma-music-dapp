@@ -62,11 +62,13 @@ export interface Album {
     priceOption2?: {
       canBeMinted: boolean;
       priceInUSD: string | null;
+      tokenImg: string | null;
     };
     priceOption3?: {
       canBeMinted: boolean;
       IpTokenId: string | null; // the story protocol IP token to issue licenses on
       priceInUSD: string | null;
+      tokenImg: string | null;
     };
   };
   _albumCanBeFastStreamed?: boolean;
