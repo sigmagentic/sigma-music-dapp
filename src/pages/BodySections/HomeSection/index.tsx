@@ -683,10 +683,22 @@ export const HomeSection = (props: HomeSectionProps) => {
                     <Slideshow
                       slides={[
                         {
+                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Cereals.png",
+                          imageCustomClass: "bg-top",
+                          alt: "YFGP Drops a Sigma Exclusive EP!",
+                          buttonText: "YFGP Drops a Sigma Exclusive EP!",
+                          onClick: () => {
+                            navigateToDeepAppView({
+                              artistSlug: "yfgp",
+                              albumId: "ar2_a9",
+                            });
+                          },
+                        },
+                        {
                           image: "https://api.itheumcloud.com/app_nftunes/assets/img/DuoDo.jpg",
                           imageCustomClass: "object-none",
-                          alt: "WSB Fan Collectibles Are Live!",
-                          buttonText: "Exclusive Music By Dúo Dø is Live!",
+                          alt: "New Music By Dúo Dø is Live!",
+                          buttonText: "New Music By Dúo Dø is Live!",
                           onClick: () => {
                             navigateToDeepAppView({
                               artistSlug: "dúo-dø",

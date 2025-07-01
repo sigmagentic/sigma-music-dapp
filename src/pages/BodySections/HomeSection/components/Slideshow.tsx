@@ -33,10 +33,13 @@ export const Slideshow: React.FC<SlideshowProps> = ({ slides, autoSlideInterval 
         {slides.map((slide, index) => (
           <div
             key={index}
-            className={`slide select-none h-full w-full bg-[#FaFaFa]/25 dark:bg-[#0F0F0F]/25 border-[1px] border-foreground/20 absolute flex flex-col items-center justify-center transition-transform duration-500 ${
+            className={`slide select-none h-full w-full bg-[#0F0F0F]/25 absolute flex flex-col items-center justify-center transition-transform duration-500 ${
               currentSlide === index ? "translate-x-0" : index < currentSlide ? "-translate-x-full" : "translate-x-full"
             }`}>
-            <img src={slide.image} alt={slide.alt} className={`w-full h-full ${slide.imageCustomClass || ""}`} />
+            <div
+              className={`w-full h-full bg-cover bg-center bg-no-repeat ${slide.imageCustomClass || ""}`}
+              style={{ backgroundImage: `url(${slide.image})` }}
+            />
             <div className="absolute inset-0 bg-black/50"></div>
             <Button
               onClick={slide.onClick}

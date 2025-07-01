@@ -5,6 +5,7 @@ import { SolContextProvider } from "contexts/sol/SolContextProvider";
 import { PageNotFound, Login, PaymentSuccess, StatusBoard, FAQ } from "pages";
 import { HomeSection } from "pages/BodySections/HomeSection";
 import { Legal } from "pages/Legal";
+import { MUI } from "pages/MUI";
 import { routeNames } from "routes";
 import { Web3AuthProvider } from "./contexts/sol/Web3AuthProvider";
 import { ThemeProvider } from "./contexts/ThemeProvider";
@@ -193,6 +194,7 @@ export const App = () => {
                 <Route path={routeNames.legal} element={<Legal />} />
                 <Route path={routeNames.whitepaper} element={<FAQ />} />
                 <Route path={routeNames.statusBoard} element={<StatusBoard />} />
+                <Route path={routeNames.mui} element={<MUI />} />
                 <Route path="*" element={<PageNotFound />} />
               </Routes>
             </Layout>

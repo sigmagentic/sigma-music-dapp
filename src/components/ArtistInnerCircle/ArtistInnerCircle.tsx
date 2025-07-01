@@ -25,7 +25,7 @@ const getPerkTypeIcon = (type: "virtual" | "physical" | "virtual") => {
         <div className="relative group">
           <UserGroupIcon className="h-6 w-6 text-green-400" />
           <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            Physical Perk
+            Real-Life Perk
           </div>
         </div>
       );

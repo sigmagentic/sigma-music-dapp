@@ -264,11 +264,13 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
     priceOption2: {
       canBeMinted: false,
       priceInUSD: null,
+      tokenImg: null,
     },
     priceOption3: {
       canBeMinted: false,
       IpTokenId: null,
       priceInUSD: null,
+      tokenImg: null,
     },
   };
 
@@ -293,11 +295,13 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
         priceOption2: {
           canBeMinted: data.canBeMinted,
           priceInUSD: null,
+          tokenImg: data.tokenImg || null,
         },
         priceOption3: {
           canBeMinted: data.t2CollectibleAvailable,
           IpTokenId: data.t2IpTokenId,
           priceInUSD: null,
+          tokenImg: data.tokenImg || null,
         },
       };
 
@@ -1096,5 +1100,58 @@ export const fetchBountySnapshotViaAPI = async () => {
     };
 
     return [];
+  }
+};
+
+const cache_doFastStreamOnAlbumCheck: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const doFastStreamOnAlbumCheckViaAPI = async (alId: string) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_doFastStreamOnAlbumCheck[`${alId}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
+      console.log(`doFastStreamOnAlbumCheckViaAPI: Getting doFastStreamOnAlbumCheck for alId: ${alId} from cache`);
+      return cacheEntry.data;
+    }
+
+    // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/fastStreamOnAlbumCheck?alId=${alId}`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      let albumCanBeStreamed = false;
+
+      if (data.albumCanBeStreamed) {
+        albumCanBeStreamed = true;
+      }
+      // Update cache
+      cache_doFastStreamOnAlbumCheck[`${alId}`] = {
+        data: albumCanBeStreamed,
+        timestamp: now,
+      };
+
+      return albumCanBeStreamed;
+    } else {
+      // Update cache (with [] as data)
+      cache_doFastStreamOnAlbumCheck[`${alId}`] = {
+        data: false,
+        timestamp: now,
+      };
+
+      return false;
+    }
+  } catch (error) {
+    console.error("doFastStreamOnAlbumCheckViaAPI: Error fetching doFastStreamOnAlbumCheck:", error);
+
+    // Update cache (with [] as data)
+    cache_doFastStreamOnAlbumCheck[`${alId}`] = {
+      data: false,
+      timestamp: now,
+    };
+
+    return false;
   }
 };

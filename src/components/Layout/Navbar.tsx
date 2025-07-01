@@ -5,7 +5,7 @@ declare const window: {
 import React, { useEffect, useState } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Menu } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import sigmaLogo from "assets/img/sigma-header-logo.png";
 import { SolBitzDropdown } from "components/BitzDropdown/SolBitzDropdown";
 import { DISABLE_BITZ_FEATURES } from "config";
@@ -16,7 +16,6 @@ import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libCompo
 import { sleep } from "libs/utils";
 import { routeNames } from "routes";
 import { useNftsStore } from "store/nfts";
-import { DataNftAirdropsBannerCTA } from "../DataNftAirdropsBannerCTA";
 import { ProductTour } from "../ProductTour/ProductTour";
 import { PlayXPGameModal } from "../XPSystem/PlayXPGameModal";
 
@@ -268,16 +267,6 @@ export const Navbar = ({
           />
         )}
       </div>
-
-      {publicKeySol && walletType !== "web3auth" && (
-        <div className="flex flex-row justify-between items-center mx-[1rem] md:mx-[1rem]">
-          <DataNftAirdropsBannerCTA
-            onRemoteTriggerOfBiTzPlayModel={(open: boolean) => {
-              setShowPlayBitzModal(open);
-            }}
-          />
-        </div>
-      )}
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirmation && (
