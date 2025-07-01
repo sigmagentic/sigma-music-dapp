@@ -89,6 +89,7 @@ export interface Artist {
   tikTokLink?: string;
   instaLink?: string;
   otherLink1: string;
+  fanTokenNftMarketplaceLink?: string;
   isArtistFeatured: string;
   isDeprioritized: string;
   creatorPaymentsWallet: string;

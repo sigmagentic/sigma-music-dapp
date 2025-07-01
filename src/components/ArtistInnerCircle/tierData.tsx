@@ -31,9 +31,9 @@ export const perksData: Perk[] = [
   },
   {
     pid: "p4",
-    name: "10 Min Meet and Greet at My Performances",
+    name: "Meet Me at My Performances",
     type: "physical" as const,
-    description: "If I perform at an event, you can use your NFT to meet me",
+    description: "If I perform at an event, you can use your Fan NFT to meet me",
     terms: "Note that this only applies to performances that have a meet and greet planned (which are most events with paid tickets)",
     howToClaim: "Hold and present the Inner Circle fan membership NFT to the artist's crew at the event",
     comingSoon: true,

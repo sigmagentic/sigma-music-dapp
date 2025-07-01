@@ -901,7 +901,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
                               artistId={artistProfile.artistId}
                               filterByArtistCampaignCode={filterByArtistCampaignCode}
-                              nftMarketplaceLink={artistProfile.otherLink1 || ""}
+                              nftMarketplaceLink={artistProfile.fanTokenNftMarketplaceLink || ""}
                             />
                           </div>
                         )}
