@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import {
-  Gift,
   Loader,
   AudioWaveform,
   Pause,
@@ -18,14 +17,15 @@ import {
   Image,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import ratingR from "assets/img/nf-tunes/rating-R.png";
-import { APP_NETWORK, DISABLE_BITZ_FEATURES, ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS, LICENSE_TERMS_MAP } from "config";
+import ratingE from "assets/img/icons/rating-E.png";
+import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
+import { APP_NETWORK, DISABLE_BITZ_FEATURES, LICENSE_TERMS_MAP } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { fetchSolNfts } from "libs/sol/SolViewData";
 import { AlbumSaleTypeOption, BountyBitzSumMapping } from "libs/types";
 import { Artist, Album, EntitlementForMusicAsset } from "libs/types";
-import { checkIfAlbumCanBeMintedViaAPI, getPaymentLogsViaAPI, isMostLikelyMobile } from "libs/utils/misc";
+import { checkIfAlbumCanBeMintedViaAPI, doFastStreamOnAlbumCheckViaAPI, getPaymentLogsViaAPI, isMostLikelyMobile } from "libs/utils/misc";
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -33,7 +33,6 @@ import { useNftsStore } from "store/nfts";
 import { BuyAndMintAlbumUsingCC } from "./BuyAlbum/BuyAndMintAlbumUsingCC";
 import { BuyAndMintAlbumUsingSOL } from "./BuyAlbum/BuyAndMintAlbumUsingSOL";
 import { getBestBuyCtaLink } from "./types/utils";
-import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
 
 type ArtistDiscographyProps = {
   albums: Album[];
@@ -92,6 +91,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const [showEntitlementsModal, setShowEntitlementsModal] = useState(false);
   const [selectedAlbumToShowEntitlements, setSelectedAlbumToShowEntitlements] = useState<Album | null>(null);
   const [entitlementsForSelectedAlbum, setEntitlementsForSelectedAlbum] = useState<EntitlementForMusicAsset | null>(null);
+  const [showSigmaExclusiveModal, setShowSigmaExclusiveModal] = useState(false);
+  const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
 
   useEffect(() => {
     if (artistProfile && albums.length > 0) {
@@ -106,9 +107,11 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         const albumsWithCanBeMinted = await Promise.all(
           albums.map(async (album) => {
             const meta = await checkIfAlbumCanBeMintedViaAPI(album.albumId);
+            const albumCanBeFastStreamed = await doFastStreamOnAlbumCheckViaAPI(`${album.albumId}-1`); // we check if the first track is loaded and if so, we know it can be fast streamed
             return {
               ...album,
               _buyNowMeta: isValidBuyNowMetaAfterOption2DoubleCheckApiCall(meta) ? meta : undefined,
+              _albumCanBeFastStreamed: Boolean(albumCanBeFastStreamed),
             };
           })
         );
@@ -314,13 +317,83 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         orderedAlbums.map((album: Album, idx: number) => (
           <div
             key={`${album.albumId}-${idx}`}
-            className={`album flex flex-col my-3 p-2 md:p-5 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
+            className={`album relative flex flex-col my-3 p-2 md:p-5 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
+            {album.isSigmaExclusive && album.isSigmaExclusive === "1" && (
+              <>
+                <div className="absolute top-0 right-0 z-10">
+                  <div className="relative inline-block overflow-hidden rounded-bl-lg cursor-pointer" onClick={() => setShowSigmaExclusiveModal(true)}>
+                    <div className="relative bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-bl-lg font-semibold text-sm shadow-lg border border-red-400/50">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                        Sigma Exclusive
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sigma Exclusive Modal */}
+                {showSigmaExclusiveModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+                    <div className="bg-[#1A1A1A] rounded-lg p-6  max-w-2xl w-full mx-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xl font-bold text-white">Sigma Music Exclusive!</h3>
+                        <button onClick={() => setShowSigmaExclusiveModal(false)} className="text-gray-400 hover:text-white">
+                          <X size={24} />
+                        </button>
+                      </div>
+                      <div className="text-white py-2">
+                        <strong className="text-red-400">Sigma Exclusive</strong> albums, EPs, and singles are <strong>ONLY</strong> available on the Sigma
+                        Music platform. Listen for free, purchase as collectibles, or get commercial licenses. These are super rare!
+                      </div>
+                      <div className="flex justify-center mt-4">
+                        <Button variant="outline" className="text-sm px-6" onClick={() => setShowSigmaExclusiveModal(false)}>
+                          Close
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
             <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
               <div
-                className="albumImg bg1-red-200 border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto"
+                className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group ${album._buyNowMeta?.priceOption2?.tokenImg ? "cursor-pointer" : ""}`}
                 style={{
                   "backgroundImage": `url(${album.img})`,
-                }}></div>
+                }}
+                onClick={() => {
+                  // if there is a token image, show it in a large version
+                  if (album._buyNowMeta?.priceOption2?.tokenImg) {
+                    setSelectedLargeSizeTokenImg(album._buyNowMeta?.priceOption2?.tokenImg);
+                  } else {
+                    return;
+                  }
+                }}>
+                {album._buyNowMeta?.priceOption2?.tokenImg && (
+                  <>
+                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-[80%] transition-opacity duration-300 rounded-lg" />
+                    <div
+                      className="absolute inset-0 bg-no-repeat bg-cover rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{
+                        "backgroundImage": `url(${album._buyNowMeta?.priceOption2?.tokenImg})`,
+                        "backgroundPosition": "center",
+                        "backgroundSize": "contain",
+                      }}
+                    />
+
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-300 pointer-events-none z-10">
+                      <div
+                        className="relative bg-black/90 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap before:absolute before:inset-0 before:rounded-lg before:border before:border-emerald-400/50 
+                      after:absolute after:inset-0 after:rounded-lg after:border after:border-yellow-400/50">
+                        The premium version of this album comes with this collectible!
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black/90"></div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
 
               <div className="albumText flex flex-col mt-5 md:mt-0 md:ml-5 md:pr-2 flex-1 mb-5 md:mb-0">
                 <h3 className="!text-xl mb-2 flex items-baseline">
@@ -335,7 +408,12 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     )}
                   </span>
                   {album.isExplicit && album.isExplicit === "1" && (
-                    <img className="max-h-[20px] ml-[10px] dark:bg-white" src={ratingR} alt="Warning: Explicit Content" title="Warning: Explicit Content" />
+                    <img
+                      className="max-h-[20px] relative top-[2px] ml-[5px] rounded-md"
+                      src={ratingE}
+                      alt="Warning: Explicit Content"
+                      title="Warning: Explicit Content"
+                    />
                   )}
                 </h3>
                 <p className="text-sm">{album.desc}</p>
@@ -385,34 +463,31 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             </div>
 
             <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
-              {!ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId) &&
-                album.ctaPreviewStream &&
-                !inCollectedAlbumsView &&
-                checkOwnershipOfMusicAsset(album) === -1 && (
-                  <div>
-                    <Button
-                      disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
-                      className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
-                      variant="outline"
-                      onClick={() => {
-                        if (playPausePreview) {
-                          playPausePreview(album.ctaPreviewStream, album.albumId);
-                        }
-                      }}>
-                      {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
-                        <>
-                          {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
-                          <span className="ml-2"> {currentTime} - Stop Playing </span>
-                        </>
-                      ) : (
-                        <>
-                          {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <Play />}
-                          <span className="ml-2">Play Preview</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
+              {!album._albumCanBeFastStreamed && album.ctaPreviewStream && !inCollectedAlbumsView && checkOwnershipOfMusicAsset(album) === -1 && (
+                <div>
+                  <Button
+                    disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
+                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
+                    variant="outline"
+                    onClick={() => {
+                      if (playPausePreview) {
+                        playPausePreview(album.ctaPreviewStream, album.albumId);
+                      }
+                    }}>
+                    {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
+                      <>
+                        {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
+                        <span className="ml-2"> {currentTime} - Stop Playing </span>
+                      </>
+                    ) : (
+                      <>
+                        {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <Play />}
+                        <span className="ml-2">Play Preview</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
 
               {/* when not logged in, show this to convert the wallet into user account */}
               {!publicKeySol && !album._buyNowMeta?.priceOption1 && (
@@ -431,7 +506,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 </div>
               )}
 
-              {(ENABLE_FREE_ALBUM_PLAY_ON_ALBUMS.includes(album.albumId) || (publicKeySol && checkOwnershipOfMusicAsset(album) > -1)) && (
+              {(album._albumCanBeFastStreamed || (publicKeySol && checkOwnershipOfMusicAsset(album) > -1)) && (
                 <>
                   <div className="relative group">
                     <Button
@@ -680,7 +755,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         <span>View PIL (Programmatic IP License) Legal Document</span>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                           <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                          <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                          <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5z" />
                         </svg>
                       </a>
                       <a
@@ -749,6 +824,24 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             />
           ))}
       </>
+
+      {/* Show larger profile or token image modal */}
+      {selectedLargeSizeTokenImg && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-4xl w-full">
+            <img src={selectedLargeSizeTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
+            <div>
+              <button
+                onClick={() => {
+                  setSelectedLargeSizeTokenImg(null);
+                }}
+                className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

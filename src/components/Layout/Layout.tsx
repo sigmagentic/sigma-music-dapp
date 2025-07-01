@@ -52,7 +52,10 @@ export const Layout = ({
   const paymentInProgress = useAppStore((state) => state.paymentInProgress);
   const isLoginRoute = location.pathname === routeNames.login;
   const isInSectionWeShouldNotShowSideMenu =
-    location.pathname === routeNames.faq || location.pathname === routeNames.whitepaper || location.pathname === routeNames.legal;
+    location.pathname === routeNames.faq ||
+    location.pathname === routeNames.whitepaper ||
+    location.pathname === routeNames.legal ||
+    location.pathname === routeNames.mui;
   const isLoggedIn = !!publicKeySol;
 
   return (

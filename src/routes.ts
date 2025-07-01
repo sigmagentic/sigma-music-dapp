@@ -10,6 +10,7 @@ export const routeNames = {
   faq: "/faq",
   legal: "/legal",
   whitepaper: "/whitepaper",
+  mui: "/mui",
 };
 
 // interface RouteType {

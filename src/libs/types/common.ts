@@ -54,6 +54,7 @@ export interface Album {
   albumPriceOption1?: string; // digital album  + download only
   albumPriceOption2?: string; // digital album + download + NFT
   albumPriceOption3?: string; // digital album + commercial license + download + NFT
+  isSigmaExclusive?: string; // 0 or 1 indicated if the album is a sigma exclusive album
   _buyNowMeta?: {
     priceOption1?: {
       priceInUSD: string | null;
@@ -61,13 +62,16 @@ export interface Album {
     priceOption2?: {
       canBeMinted: boolean;
       priceInUSD: string | null;
+      tokenImg: string | null;
     };
     priceOption3?: {
       canBeMinted: boolean;
       IpTokenId: string | null; // the story protocol IP token to issue licenses on
       priceInUSD: string | null;
+      tokenImg: string | null;
     };
   };
+  _albumCanBeFastStreamed?: boolean;
 }
 
 export interface Artist {
@@ -85,6 +89,7 @@ export interface Artist {
   tikTokLink?: string;
   instaLink?: string;
   otherLink1: string;
+  fanTokenNftMarketplaceLink?: string;
   isArtistFeatured: string;
   isDeprioritized: string;
   creatorPaymentsWallet: string;

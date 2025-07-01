@@ -41,8 +41,6 @@ export async function getArtistsAlbumsData() {
         return 0;
       });
 
-      console.log("dataset", dataset);
-
       let cloneDataset = [...dataset];
       let cloneDatasetEverything = [...dataset];
 
