@@ -1117,7 +1117,7 @@ export const doFastStreamOnAlbumCheckViaAPI = async (alId: string) => {
     }
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/fastStreamOnAlbumCheck?alId=${alId}`);
+    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/fastStreamOnAlbumCheck?alId=${alId}`);
 
     if (response.ok) {
       const data = await response.json();
