@@ -318,6 +318,25 @@ export const FeaturedBanners = ({
                 setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
                 setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
               />
+              <PlaylistTile
+                genre={{
+                  code: "CP_wir",
+                  label: "Walrus.INK",
+                  tier: null,
+                  tileImgBg: "https://walrus.tusky.io/2W2hZjxCruJCFgFilvBH4s-hwa1m7BhWxs636FWsHbE",
+                }}
+                color={RANDOM_COLORS[13]}
+                selectedPlaylistGenre={selectedPlaylistGenre}
+                lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
+                assetPlayIsQueued={assetPlayIsQueued}
+                onCloseMusicPlayer={onCloseMusicPlayer}
+                setLastClickedGenreForPlaylist={setLastClickedGenreForPlaylist}
+                isMusicPlayerOpen={isMusicPlayerOpen}
+                updateAssetPlayIsQueued={updateAssetPlayIsQueued}
+                onPlaylistGenreUpdate={onPlaylistGenreUpdate}
+                setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
+                setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
+              />
               {tier1Genres.map((genreCode, idx) => {
                 const genreObj = ALL_MUSIC_GENRES.find((g) => g.code === genreCode);
                 if (!genreObj) return null;
