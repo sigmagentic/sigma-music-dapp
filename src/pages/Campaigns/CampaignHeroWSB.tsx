@@ -33,7 +33,7 @@ type CampaignHeroProps = {
   navigateToDeepAppView: (logicParams: any) => void;
 };
 
-export const CampaignHero = (props: CampaignHeroProps) => {
+export const CampaignHeroWSB = (props: CampaignHeroProps) => {
   const { setCampaignCodeFilter, navigateToDeepAppView } = props;
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCountry, setSelectedCountry] = useState<string | null>(searchParams.get("country"));

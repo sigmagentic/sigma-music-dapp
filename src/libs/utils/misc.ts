@@ -566,7 +566,7 @@ export const fetchStreamsLeaderboardByArtistViaAPI = async (artistId: string) =>
     }
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/streamsLeaderboardByArtist?arId=${artistId}`);
+    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/streamsLeaderboardByArtist?arId=${artistId}`);
 
     if (response.ok) {
       const data = await response.json();
