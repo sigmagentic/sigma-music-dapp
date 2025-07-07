@@ -50,7 +50,6 @@ export const App = () => {
     navigateToDeepAppViewLogic();
 
     function navigateToDeepAppViewLogic() {
-      debugger;
       function artistSlugStateUpdateLogic() {
         if (artistSlug) {
           let slugToUse = artistSlug;
