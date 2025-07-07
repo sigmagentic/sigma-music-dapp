@@ -129,6 +129,10 @@ export const App = () => {
           setTimeout(() => {
             setHomeMode(`campaigns-wsb-${new Date().getTime()}`);
           }, 100);
+        } else if (artistCampaignCode === "wir") {
+          setTimeout(() => {
+            setHomeMode(`campaigns-wir-${new Date().getTime()}`);
+          }, 100);
         }
       } else {
         if (artistSlug) {

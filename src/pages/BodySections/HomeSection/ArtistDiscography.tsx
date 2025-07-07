@@ -150,7 +150,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
   useEffect(() => {
     if (selectedAlbumToShowEntitlements && (myMusicAssetPurchases.length > 0 || solMusicAssetNfts.length > 0)) {
-      debugger;
       const entitlementsMap: EntitlementForMusicAsset = {
         mp3TrackUrls: [],
         licenseTerms: {

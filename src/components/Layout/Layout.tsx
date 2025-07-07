@@ -12,6 +12,7 @@ import {
   UserIcon,
   GlobeEuropeAfricaIcon,
   CurrencyDollarIcon,
+  MusicalNoteIcon,
 } from "@heroicons/react/24/outline";
 import { AwardIcon } from "lucide-react";
 import { Toaster } from "react-hot-toast";
@@ -262,6 +263,25 @@ export const Layout = ({
                       <AwardIcon className="h-6 w-6 mr-1 md:mr-0" />
                       <span className="md:hidden w-max">Leaderboards</span>
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">Leaderboards</span>}
+                    </button>
+                  </Tooltip>
+                  <Tooltip text="Walrus.INK Records">
+                    <button
+                      onClick={() => {
+                        setHomeMode(`campaigns-wir-${new Date().getTime()}`);
+                      }}
+                      disabled={homeMode.includes("campaigns-wir")}
+                      className={`
+                      flex items-center flex-shrink-0
+                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
+                      py-3 px-4 rounded-lg transition-colors text-lg 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:text-orange-500
+                      peer
+                    `}>
+                      <MusicalNoteIcon className="h-6 w-6 mr-1 md:mr-0" />
+                      <span className="md:hidden w-max">WIR</span>
+                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">WIR</span>}
                     </button>
                   </Tooltip>
                   <Tooltip text="World Supremacy Battle Campaign">
