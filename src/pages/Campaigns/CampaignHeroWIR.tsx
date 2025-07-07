@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Loader } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import CAMPAIGN_WIR_HERO from "assets/img/campaigns/campaign-wir-hero.png";
 import SIGMA_MUSIC_LOGO from "assets/img/campaigns/wir/sigmamusic-logo.png";
@@ -10,6 +9,7 @@ import { StreamMetricData } from "libs/types/common";
 import { fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/misc";
 import { useAppStore } from "store/app";
 import { useAudioPlayerStore } from "store/audioPlayer";
+import { PlaylistTile } from "../BodySections/HomeSection/components/PlaylistTile";
 
 type CampaignHeroProps = {
   setCampaignCodeFilter: (campaignCode: string | undefined) => void;
@@ -21,26 +21,6 @@ type CampaignHeroProps = {
   setLaunchPlaylistPlayerWithDefaultTracks: (value: boolean) => void;
   setLaunchPlaylistPlayer: (value: boolean) => void;
 };
-
-interface PlaylistTileProps {
-  genre: {
-    code: string;
-    label: string;
-    tier: any;
-    tileImgBg: string;
-  };
-  color: string;
-  selectedPlaylistGenre: string;
-  lastClickedGenreForPlaylist: string;
-  assetPlayIsQueued: boolean;
-  onCloseMusicPlayer: () => void;
-  setLastClickedGenreForPlaylist: (genre: string) => void;
-  isMusicPlayerOpen: boolean;
-  updateAssetPlayIsQueued: (value: boolean) => void;
-  onPlaylistGenreUpdate: (genre: string) => void;
-  setLaunchPlaylistPlayerWithDefaultTracks: (value: boolean) => void;
-  setLaunchPlaylistPlayer: (value: boolean) => void;
-}
 
 interface FeaturedAlbum {
   albumId: string;
@@ -55,9 +35,7 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
     setCampaignCodeFilter,
     navigateToDeepAppView,
     selectedPlaylistGenre,
-
     onCloseMusicPlayer,
-
     isMusicPlayerOpen,
     onPlaylistGenreUpdate,
     setLaunchPlaylistPlayerWithDefaultTracks,
@@ -93,13 +71,14 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
     };
   }, []);
 
-  // // Effect to listen to the URL search params and find the "artist=" param
-  // useEffect(() => {
-  //   const artist = searchParams.get("artist");
-  //   if (artist) {
-  //     setSelectedArtist(artist);
-  //   }
-  // }, [searchParams]);
+  useEffect(() => {
+    const artist = searchParams.get("artist");
+    if (artist) {
+      const currentParams = Object.fromEntries(searchParams.entries());
+      delete currentParams["artist"];
+      setSearchParams(currentParams);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadArtistData = async () => {
@@ -198,95 +177,20 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
       className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
       style={{
         backgroundImage: `url(${CAMPAIGN_WIR_HERO})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundSize: "initial",
+        backgroundPosition: "bottom",
         backgroundBlendMode: "multiply",
         backgroundColor: "#161616d4",
         backgroundRepeat: "no-repeat",
-        filter: "grayscale(100%)",
       }}>
       <div className="text-center mt-4">
         <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">Next Track Loading...</div>
-        <Button className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors">Vote with XP</Button>
+        <Button className="pointer-events-none opacity-50 mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors">
+          Vote with XP
+        </Button>
       </div>
     </div>
   );
-
-  const PlaylistTile = ({
-    genre,
-    color,
-    selectedPlaylistGenre,
-    lastClickedGenreForPlaylist,
-    assetPlayIsQueued,
-    onCloseMusicPlayer,
-    setLastClickedGenreForPlaylist,
-    isMusicPlayerOpen,
-    updateAssetPlayIsQueued,
-    onPlaylistGenreUpdate,
-    setLaunchPlaylistPlayerWithDefaultTracks,
-    setLaunchPlaylistPlayer,
-  }: PlaylistTileProps) => {
-    const handleClick = () => {
-      onCloseMusicPlayer();
-      setLastClickedGenreForPlaylist(genre.code);
-
-      if (isMusicPlayerOpen) {
-        updateAssetPlayIsQueued(true);
-        setTimeout(() => {
-          onPlaylistGenreUpdate(genre.code);
-          setLaunchPlaylistPlayerWithDefaultTracks(false);
-          setLaunchPlaylistPlayer(true);
-          updateAssetPlayIsQueued(false);
-        }, 5000);
-      } else {
-        onPlaylistGenreUpdate(genre.code);
-        setLaunchPlaylistPlayerWithDefaultTracks(false);
-        setLaunchPlaylistPlayer(true);
-        updateAssetPlayIsQueued(false);
-      }
-    };
-
-    const image = genre.tileImgBg;
-
-    return (
-      <div
-        key={genre.code}
-        onClick={handleClick}
-        className={`flex-shrink-0 h-[130px] rounded-xl p-0 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group shadow-lg
-          ${assetPlayIsQueued ? "pointer-events-none cursor-not-allowed" : ""}
-          ${selectedPlaylistGenre === genre.code ? "ring-2 ring-yellow-300" : ""}`}
-        style={{ background: color }}>
-        {/* Genre Title */}
-        <div className="absolute top-4 left-5 z-5">
-          <span className="text-white text-2xl font-bold drop-shadow-lg">{genre.label}</span>
-        </div>
-        {/* Loader/Playing indicator */}
-        {selectedPlaylistGenre === "" && lastClickedGenreForPlaylist === genre.code && (
-          <div className="absolute top-4 right-5 z-5">
-            <Loader className="animate-spin text-white" />
-          </div>
-        )}
-        {selectedPlaylistGenre === genre.code ? (
-          <div className="absolute top-4 right-5 z-10">
-            <span className="text-white text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Playing</span>
-          </div>
-        ) : (
-          <div className="absolute top-4 right-5 z-10">
-            <span className="text-white text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Click to Play</span>
-          </div>
-        )}
-        {/* Angled image in bottom right */}
-        <div className="absolute bottom-0 right-0 z-5" style={{ transform: "rotate(12deg) translate(20px, 20px)" }}>
-          <img
-            src={image}
-            alt={genre.label}
-            className="w-24 h-24 object-cover rounded-lg shadow-xl border-4 border-white"
-            style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.25)" }}
-          />
-        </div>
-      </div>
-    );
-  };
 
   return (
     <>
@@ -314,12 +218,15 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
                   tileImgBg: "https://walrus.tusky.io/2W2hZjxCruJCFgFilvBH4s-hwa1m7BhWxs636FWsHbE",
                 }}
                 color={"#161616d4"}
+                hoverBgColor={"yellow-300"}
                 selectedPlaylistGenre={selectedPlaylistGenre}
                 lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
                 assetPlayIsQueued={assetPlayIsQueued}
+                isMusicPlayerOpen={isMusicPlayerOpen}
+                extendTileToFullWidth={true}
+                showClickToPlay={true}
                 onCloseMusicPlayer={onCloseMusicPlayer}
                 setLastClickedGenreForPlaylist={setLastClickedGenreForPlaylist}
-                isMusicPlayerOpen={isMusicPlayerOpen}
                 updateAssetPlayIsQueued={updateAssetPlayIsQueued}
                 onPlaylistGenreUpdate={onPlaylistGenreUpdate}
                 setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
@@ -445,12 +352,12 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Button
                 className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-black rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                onClick={() => window.open("https://forms.google.com/dummy-commercial", "_blank")}>
+                onClick={() => window.open("https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform", "_blank")}>
                 Launch Commercial Music
               </Button>
               <Button
                 className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold bg-transparent border-2 border-orange-500 hover:bg-orange-500/10 text-orange-500 hover:text-orange-400 rounded-lg transition-all duration-300 transform hover:scale-105"
-                onClick={() => window.open("https://forms.google.com/dummy-free", "_blank")}>
+                onClick={() => window.open("https://docs.google.com/forms/d/e/1FAIpQLScSnDHp7vHvj9N8mcdI4nWFle2NDY03Tf128AePwVMhnOp1ag/viewform", "_blank")}>
                 Launch Free Music
               </Button>
             </div>
@@ -565,17 +472,16 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
                         className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
                         style={{
                           backgroundImage: `url(${CAMPAIGN_WIR_HERO})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
+                          backgroundSize: "initial",
+                          backgroundPosition: "bottom",
                           backgroundBlendMode: "multiply",
                           backgroundColor: "#161616d4",
                           backgroundRepeat: "no-repeat",
-                          filter: "grayscale(100%)",
                         }}>
                         <div className="text-center mt-4">
                           <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">Next Album Coming</div>
                           <div className="text-sm text-white/70 mb-2">By Young Tusk</div>
-                          <Button className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors">
+                          <Button className="pointer-events-none opacity-50 mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors">
                             Your Music Could Be Here
                           </Button>
                         </div>

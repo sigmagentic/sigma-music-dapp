@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -190,7 +188,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
       const campaignCode = searchParams.get("campaign") || "";
 
-      if (campaignCode && campaignCode !== "") {
+      if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
         // for campiagns, we jump to the fan tab
         setActiveTab("fan");
         setTabsOrdered(["fan", "leaderboard", "artistStats"]);
