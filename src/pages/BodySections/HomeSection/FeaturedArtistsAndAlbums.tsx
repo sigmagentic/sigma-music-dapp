@@ -646,6 +646,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                         creatorIcon: artistProfile.img,
                                         creatorName: artistProfile.name,
                                         creatorSlug: artistProfile.slug,
+                                        creatorXLink: artistProfile.xLink,
                                         giveBitzToWho: artistProfile.creatorWallet,
                                         giveBitzToCampaignId: artistProfile.bountyId,
                                       });
@@ -682,6 +683,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                           creatorIcon: artistProfile.img,
                                           creatorName: artistProfile.name,
                                           creatorSlug: artistProfile.slug,
+                                          creatorXLink: artistProfile.xLink,
                                           giveBitzToWho: artistProfile.creatorWallet,
                                           giveBitzToCampaignId: artistProfile.bountyId,
                                         });
@@ -896,6 +898,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             <ArtistInnerCircle
                               artistName={artistProfile.name.replaceAll("_", " ")}
                               artistSlug={artistProfile.slug}
+                              artistXLink={artistProfile.xLink}
                               creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
                               artistId={artistProfile.artistId}
                               filterByArtistCampaignCode={filterByArtistCampaignCode}

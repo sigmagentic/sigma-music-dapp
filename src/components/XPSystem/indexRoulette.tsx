@@ -513,9 +513,9 @@ const GetBitzSol = (props: any) => {
                           </>
                         )}
 
-                        <div className="bg-black rounded-full p-[10px] -z-1 ">
+                        <div className="bg-yellow-300 rounded-full p-[10px] -z-1 ">
                           <a
-                            className="z-1 bg-black text-white  rounded-3xl gap-2 flex flex-row justify-center items-center"
+                            className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
                             href={"https://twitter.com/intent/tweet?" + tweetText}
                             data-size="large"
                             target="_blank"

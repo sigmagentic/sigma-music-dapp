@@ -9,9 +9,10 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { Artist, Album, AlbumSaleTypeOption } from "libs/types";
-import { toastSuccess } from "libs/utils";
+import { injectXUserNameIntoTweet, toastSuccess } from "libs/utils";
 import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
+import { useAppStore } from "store/app";
 import PurchaseOptions from "./PurchaseOptions";
 
 export const BuyAndMintAlbumUsingSOL = ({
@@ -33,12 +34,15 @@ export const BuyAndMintAlbumUsingSOL = ({
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
   const [digitalAlbumOnlyPurchaseStatus, setDigitalAlbumOnlyPurchaseStatus] = useState<"idle" | "processing" | "confirmed">("idle");
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm?artist=${artistProfile.slug}`)}&text=${encodeURIComponent(
-    `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on @SigmaXMusic and I'm excited to stream it!`
-  )}`;
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
   const [hoveredLargeSizeTokenImg, setHoveredLargeSizeTokenImg] = useState<string | null>(null);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
+  const [tweetText, setTweetText] = useState<string>("");
+  const { artistLookupEverything } = useAppStore();
+
+  // const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm?artist=${artistProfile.slug}`)}&text=${encodeURIComponent(
+  //   `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on @SigmaXMusic and I'm excited to stream it!`
+  // )}`;
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -88,6 +92,23 @@ export const BuyAndMintAlbumUsingSOL = ({
     };
     fetchBalance();
   }, [publicKey, connection]);
+
+  useEffect(() => {
+    if (albumToBuyAndMint.title && albumToBuyAndMint.title !== "") {
+      const findArtistUsingAlbumId = Object.values(artistLookupEverything).find((artist: Artist) =>
+        artist.albums.find((album: Album) => album.albumId === albumToBuyAndMint.albumId)
+      );
+
+      const albumDeepSlug = `artist=${artistProfile.slug}~${albumToBuyAndMint.albumId}`;
+
+      const tweetMsg = injectXUserNameIntoTweet(
+        `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} _(xUsername)_on @SigmaXMusic and I'm excited to stream it!`,
+        findArtistUsingAlbumId?.xLink
+      );
+
+      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm?${albumDeepSlug}`)}&text=${encodeURIComponent(tweetMsg)}`);
+    }
+  }, [albumToBuyAndMint]);
 
   const handlePaymentConfirmation = async () => {
     if (!publicKey || !requiredSolAmount) return;
@@ -520,9 +541,9 @@ export const BuyAndMintAlbumUsingSOL = ({
                 Back to Artist Page
               </Button>
 
-              <div className="bg-black rounded-full p-[10px] -z-1 ">
+              <div className="bg-yellow-300 rounded-full p-[10px] -z-1 ">
                 <a
-                  className="z-1 bg-black text-white  rounded-3xl gap-2 flex flex-row justify-center items-center"
+                  className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
                   href={"https://twitter.com/intent/tweet?" + tweetText}
                   data-size="large"
                   target="_blank"

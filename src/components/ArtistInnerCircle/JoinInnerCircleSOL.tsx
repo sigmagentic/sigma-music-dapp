@@ -8,7 +8,7 @@ import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS } from "confi
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { toastSuccess } from "libs/utils";
+import { injectXUserNameIntoTweet, toastSuccess } from "libs/utils";
 import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
 import { useAccountStore } from "store/account";
 import { tierData } from "./tierData";
@@ -17,6 +17,7 @@ export const JoinInnerCircleSOL = ({
   onCloseModal,
   artistName,
   artistSlug,
+  artistXLink,
   creatorPaymentsWallet,
   membershipId,
   creatorFanMembershipAvailability,
@@ -25,6 +26,7 @@ export const JoinInnerCircleSOL = ({
   onCloseModal: (isMintingSuccess: boolean) => void;
   artistName: string;
   artistSlug: string;
+  artistXLink: string | undefined;
   creatorPaymentsWallet: string;
   membershipId: string;
   creatorFanMembershipAvailability: Record<string, any>;
@@ -38,10 +40,12 @@ export const JoinInnerCircleSOL = ({
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
-    `I just joined ${artistName}'s exclusive Inner Circle fan club on @SigmaXMusic. Come and join me!`
-  )}`;
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
+  const [tweetText, setTweetText] = useState<string>("");
+
+  // const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
+  //   `I just joined ${artistName}'s exclusive Inner Circle fan club on @SigmaXMusic. Come and join me!`
+  // )}`;
 
   // S: Cached Signature Store Items
   const solPreaccessNonce = useAccountStore((state: any) => state.solPreaccessNonce);
@@ -91,6 +95,17 @@ export const JoinInnerCircleSOL = ({
     };
     fetchBalance();
   }, [publicKey, connection]);
+
+  useEffect(() => {
+    if (artistName && artistName !== "") {
+      const tweetMsg = injectXUserNameIntoTweet(
+        `I just joined ${artistName}'s _(xUsername)_exclusive Inner Circle fan club on @SigmaXMusic. Come and join me!`,
+        artistXLink
+      );
+
+      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(tweetMsg)}`);
+    }
+  }, [artistXLink, artistName]);
 
   const handlePaymentConfirmation = async () => {
     if (!publicKey || !requiredSolAmount) return;
@@ -165,6 +180,7 @@ export const JoinInnerCircleSOL = ({
     }
   };
 
+  /*
   const handlePaymentConfirmation_Simulate = async () => {
     if (!publicKey || !requiredSolAmount) return;
 
@@ -189,6 +205,7 @@ export const JoinInnerCircleSOL = ({
       setMintingStatus("failed");
     }
   };
+  */
 
   const handleMinting = async ({ paymentMadeTx, solSignature, signatureNonce }: { paymentMadeTx: string; solSignature: string; signatureNonce: string }) => {
     setMintingStatus("processing");
@@ -228,6 +245,7 @@ export const JoinInnerCircleSOL = ({
     }
   };
 
+  /*
   const handleMinting_Simulate = async () => {
     setMintingStatus("processing");
 
@@ -255,6 +273,7 @@ export const JoinInnerCircleSOL = ({
       setMintingStatus("failed");
     }
   };
+  */
 
   const handlePaymentAndMint = async () => {
     if (!publicKey?.toBase58()) {
@@ -458,9 +477,9 @@ export const JoinInnerCircleSOL = ({
                 Back to Artist Page
               </Button>
 
-              <div className="bg-black rounded-full p-[10px] -z-1 ">
+              <div className="bg-yellow-300 rounded-full p-[10px] -z-1 ">
                 <a
-                  className="z-1 bg-black text-white  rounded-3xl gap-2 flex flex-row justify-center items-center"
+                  className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
                   href={"https://twitter.com/intent/tweet?" + tweetText}
                   data-size="large"
                   target="_blank"

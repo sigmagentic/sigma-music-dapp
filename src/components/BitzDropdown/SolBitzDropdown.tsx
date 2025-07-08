@@ -2,7 +2,6 @@ import React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Speaker } from "lucide-react";
 import Countdown from "react-countdown";
-import { Link } from "react-router-dom";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { Popover, PopoverContent, PopoverTrigger } from "libComponents/Popover";
@@ -80,9 +79,8 @@ export const ClaimBitzButton = (props: any) => {
   const { solBitzNfts } = useNftsStore();
 
   return (
-    <Link
+    <div
       className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px]"
-      to={"#"}
       onClick={() => {
         if (cooldown > -2 && handlePlayActionBtn && solBitzNfts.length > 0) {
           handlePlayActionBtn();
@@ -130,7 +128,7 @@ export const ClaimBitzButton = (props: any) => {
           </PopoverPrimitive.PopoverClose>
         )}
       </span>
-    </Link>
+    </div>
   );
 };
 

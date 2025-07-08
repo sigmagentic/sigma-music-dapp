@@ -672,6 +672,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         creatorIcon: song.cover_art_url,
         creatorName: `${song.artist}'s ${song.album}`,
         creatorSlug: undefined,
+        creatorXLink: undefined,
         giveBitzToWho: bitzGiftingMeta.creatorWallet,
         giveBitzToCampaignId: bitzGiftingMeta.giveBitzToCampaignId,
         isLikeMode: true,
