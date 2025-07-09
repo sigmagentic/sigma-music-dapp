@@ -217,7 +217,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
       <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
         <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
           <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
-            Music Collectibles isSolCoreLoading: {isSolCoreLoading.toString()}
+            Music Collectibles
           </span>
         </div>
 

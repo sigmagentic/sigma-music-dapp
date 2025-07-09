@@ -294,6 +294,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     }
   }
 
+  console.log("albumsWithCanBeMintedFlags", albumsWithCanBeMintedFlags);
+
   return (
     <>
       {albums.length === 0 && (

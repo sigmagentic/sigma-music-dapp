@@ -700,6 +700,18 @@ export const HomeSection = (props: HomeSectionProps) => {
                     <Slideshow
                       slides={[
                         {
+                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/April_Four_Amendment_Cover.jpg",
+                          imageCustomClass: "bg-center",
+                          alt: "Artist Spotlight on April Four",
+                          buttonText: "Artist Spotlight on April Four",
+                          onClick: () => {
+                            navigateToDeepAppView({
+                              artistSlug: "april-four",
+                              albumId: "ar23",
+                            });
+                          },
+                        },
+                        {
                           image: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Cereals.png",
                           imageCustomClass: "bg-top",
                           alt: "YFGP Drops a Sigma Exclusive EP!",
