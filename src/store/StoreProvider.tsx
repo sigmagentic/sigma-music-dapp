@@ -51,7 +51,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     solBitzNfts,
     solNfts,
     updateSolNfts,
-    updateIsLoadingSol,
+    updateIsSolCoreLoading,
     updateSolBitzNfts,
     updateSolNFMeIdNfts,
     updateSolMusicAssetNfts,
@@ -128,21 +128,16 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   // Logged in - bootstrap nft store and other account data
   useEffect(() => {
     async function getAllUsersSolNftsAndRefreshSignatureSession() {
-      updateIsLoadingSol(true);
+      updateIsSolCoreLoading(true);
 
       // the user might have just logged in or swapped wallets via phantom, so we force refresh the signature session so it's accurate
       // Note that this is the where the 1st time the signature session is cached (i.e. sign message after login)
       await cacheSolSignatureSession();
 
-      if (!addressSol) {
-        updateSolNfts([]);
-      } else {
-        const _allDataNfts = await fetchSolNfts(addressSol);
+      const _allDataNfts = await fetchSolNfts(addressSol);
+      updateSolNfts(_allDataNfts);
 
-        updateSolNfts(_allDataNfts);
-      }
-
-      updateIsLoadingSol(false);
+      updateIsSolCoreLoading(false);
     }
 
     async function getAllPaymentLogs() {
@@ -183,7 +178,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     }
 
     (async () => {
-      updateIsLoadingSol(true);
+      updateIsSolCoreLoading(true);
 
       // get users bitz data nfts
       const _bitzDataNfts: DasApiAsset[] = IS_DEVNET
@@ -226,7 +221,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       updateSolMusicAssetNfts(_musicAssetNfts);
       updateSolFanMembershipNfts(_fanMembershipNfts);
 
-      updateIsLoadingSol(false);
+      updateIsSolCoreLoading(false);
     })();
   }, [publicKeySol, solNfts]);
 

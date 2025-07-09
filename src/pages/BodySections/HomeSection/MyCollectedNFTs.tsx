@@ -47,7 +47,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     setHomeMode,
     navigateToDeepAppView,
   } = props;
-  const { isLoadingSol, solBitzNfts, solMusicAssetNfts, solFanMembershipNfts } = useNftsStore();
+  const { isSolCoreLoading, solBitzNfts, solMusicAssetNfts, solFanMembershipNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [myCollectedArtistsAlbums, setMyCollectedArtistsAlbums] = useState<any[]>([]);
   const [allOwnedAlbums, setAllOwnedAlbums] = useState<any[]>([]);
@@ -166,6 +166,8 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
           setAllOwnedAlbums(_allOwnedAlbums);
           setDataLoaded(true);
         })();
+      } else {
+        setDataLoaded(true);
       }
     }
   }, [artistAlbumDataset, solMusicAssetNfts, artistLookupEverything, solFanMembershipNfts]);
@@ -215,7 +217,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
       <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
         <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
           <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
-            Music Collectibles
+            Music Collectibles isSolCoreLoading: {isSolCoreLoading.toString()}
           </span>
         </div>
 
@@ -224,7 +226,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             <div className="flex flex-col gap-4 items-start bg-background min-h-[200px] w-[100%]">
               <>
                 <div className="flex flex-col justify-center w-[100%]">
-                  {isLoadingSol ? (
+                  {isSolCoreLoading ? (
                     <div className="m-auto w-full">
                       <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
                         {[...Array(3)].map((_, index) => (
@@ -315,7 +317,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             <div className="flex flex-col md:flex-row w-[100%] items-start">
               <div className="flex flex-col gap-4 items-start bg-background min-h-[200px] w-[100%]">
                 <div className="flex flex-col justify-center w-[100%]">
-                  {isLoadingSol ? (
+                  {isSolCoreLoading ? (
                     <div className="m-auto w-full">
                       <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
                         {[...Array(3)].map((_, index) => (

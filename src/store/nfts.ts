@@ -7,7 +7,7 @@ type State = {
   isLoadingMvx: boolean;
   solNfts: DasApiAsset[];
   solBitzNfts: DasApiAsset[];
-  isLoadingSol: boolean;
+  isSolCoreLoading: boolean;
   solNFMeIdNfts: DasApiAsset[];
   solMusicAssetNfts: DasApiAsset[];
   solFanMembershipNfts: DasApiAsset[];
@@ -18,7 +18,7 @@ type Action = {
   updateIsLoadingMvx: (isLoading: boolean) => void;
   updateSolNfts: (solNfts: State["solNfts"]) => void;
   updateSolBitzNfts: (solBitzNfts: State["solBitzNfts"]) => void;
-  updateIsLoadingSol: (isLoading: boolean) => void;
+  updateIsSolCoreLoading: (isLoading: boolean) => void;
   updateSolNFMeIdNfts: (nfts: DasApiAsset[]) => void;
   updateSolMusicAssetNfts: (nfts: DasApiAsset[]) => void;
   updateSolFanMembershipNfts: (nfts: DasApiAsset[]) => void;
@@ -29,7 +29,7 @@ export const useNftsStore = create<State & Action>((set) => ({
   isLoadingMvx: false,
   solNfts: [],
   solBitzNfts: [],
-  isLoadingSol: false,
+  isSolCoreLoading: false,
   solNFMeIdNfts: [],
   solMusicAssetNfts: [],
   solFanMembershipNfts: [],
@@ -37,7 +37,7 @@ export const useNftsStore = create<State & Action>((set) => ({
   updateIsLoadingMvx: (value: boolean) => set(() => ({ isLoadingMvx: value })),
   updateSolNfts: (value: DasApiAsset[]) => set(() => ({ solNfts: value })),
   updateSolBitzNfts: (value: DasApiAsset[]) => set(() => ({ solBitzNfts: value })),
-  updateIsLoadingSol: (value: boolean) => set(() => ({ isLoadingSol: value })),
+  updateIsSolCoreLoading: (value: boolean) => set(() => ({ isSolCoreLoading: value })),
   updateSolNFMeIdNfts: (nfts: DasApiAsset[]) => set(() => ({ solNFMeIdNfts: nfts })),
   updateSolMusicAssetNfts: (nfts: DasApiAsset[]) => set(() => ({ solMusicAssetNfts: nfts })),
   updateSolFanMembershipNfts: (nfts: DasApiAsset[]) => set(() => ({ solFanMembershipNfts: nfts })),

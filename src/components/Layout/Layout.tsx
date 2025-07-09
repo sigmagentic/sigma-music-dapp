@@ -265,7 +265,7 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">Leaderboards</span>}
                     </button>
                   </Tooltip>
-                  <Tooltip text="Walrus.INK Records">
+                  {/* <Tooltip text="Walrus.INK Records">
                     <button
                       onClick={() => {
                         setHomeMode(`campaigns-wir-${new Date().getTime()}`);
@@ -302,7 +302,7 @@ export const Layout = ({
                       <span className="md:hidden w-max">WSB</span>
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">WSB</span>}
                     </button>
-                  </Tooltip>
+                  </Tooltip> */}
                   {isLoggedIn && (
                     <>
                       <Tooltip text="Your Collectibles Wallet">
