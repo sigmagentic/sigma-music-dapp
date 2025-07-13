@@ -258,6 +258,8 @@ const cache_checkIfAlbumCanBeMinted: { [key: string]: CacheEntry_DataWithTimesta
 export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
   const now = Date.now();
   const baseNothingAvailable = {
+    rarityGrade: "Common", // default to Common if not set
+    maxMints: 0, // 0 means unlimited and is the default for Common
     priceOption1: {
       priceInUSD: null,
     },
@@ -289,6 +291,8 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
 
       // the above API trumps of if option 2 and 3 is actually available (as it needs to be minted)
       const _buyNowMeta = {
+        rarityGrade: data.rarityGrade || "Common", // default to Common if not set
+        maxMints: typeof data.maxMints !== "undefined" && !isNaN(parseInt(data.maxMints)) ? parseInt(data.maxMints) : 0, // 0 means unlimited and is the default for Common
         priceOption1: {
           priceInUSD: null,
         },

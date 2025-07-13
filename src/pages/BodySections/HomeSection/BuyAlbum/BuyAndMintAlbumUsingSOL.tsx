@@ -68,8 +68,9 @@ export const BuyAndMintAlbumUsingSOL = ({
         const { currentSolPrice } = await fetchSolPrice();
 
         // Calculate required SOL amount based on USD price
-        const solAmount =
-          Number(albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD) / currentSolPrice;
+        const priceOption = albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta];
+        const priceInUSD = typeof priceOption === "object" && priceOption !== null && "priceInUSD" in priceOption ? priceOption.priceInUSD : null;
+        const solAmount = Number(priceInUSD) / currentSolPrice;
         setRequiredSolAmount(Number(solAmount.toFixed(4))); // Round to 4 decimal places
       } catch (error) {
         console.error("Failed to fetch SOL price:", error);
@@ -164,7 +165,10 @@ export const BuyAndMintAlbumUsingSOL = ({
         task: "buyAlbum",
         type: "sol",
         amount: requiredSolAmount.toString(),
-        priceInUSD: albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD,
+        priceInUSD: (() => {
+          const priceOption = albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta];
+          return typeof priceOption === "object" && priceOption !== null && "priceInUSD" in priceOption ? priceOption.priceInUSD : null;
+        })(),
         creatorWallet: artistProfile.creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         albumId: albumToBuyAndMint.albumId,
         albumSaleTypeOption: AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption],
@@ -350,7 +354,12 @@ export const BuyAndMintAlbumUsingSOL = ({
             <div className="space-y-4">
               <p>
                 Amount to pay: {requiredSolAmount ?? "..."} SOL ($
-                {Number(albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD)})
+                {(() => {
+                  const priceOption = albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta];
+                  const priceInUSD = typeof priceOption === "object" && priceOption !== null && "priceInUSD" in priceOption ? priceOption.priceInUSD : null;
+                  return Number(priceInUSD);
+                })()}
+                )
               </p>
               <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
 
@@ -442,7 +451,7 @@ export const BuyAndMintAlbumUsingSOL = ({
                       }}>
                       {hoveredLargeSizeTokenImg && (
                         <>
-                          <div className="absolute inset-0 bg-black opacity-[70%] group-hover:opacity-[80%] transition-opacity duration-300 rounded-lg" />
+                          <div className="absolute inset-0 bg-black opacity-[70%] group-hover:opacity-[80%] transition-opacity duration-300" />
                           <div
                             className="absolute inset-0 bg-no-repeat bg-cover rounded-lg opacity-80 group-hover:opacity-100 transition-opacity duration-300"
                             style={{

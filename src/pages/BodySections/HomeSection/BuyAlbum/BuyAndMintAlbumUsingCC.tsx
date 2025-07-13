@@ -59,7 +59,10 @@ export const BuyAndMintAlbumUsingCC = ({
     setFetchingPaymentIntent(true);
 
     const intentExtraParams: Record<string, any> = {
-      amountToPay: albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD,
+      amountToPay: (() => {
+        const priceOption = albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta];
+        return typeof priceOption === "object" && priceOption !== null && "priceInUSD" in priceOption ? priceOption.priceInUSD : null;
+      })(),
       type: "album",
       albumId: albumToBuyAndMint.albumId,
       artistSlug: artistProfile.slug,
@@ -119,13 +122,21 @@ export const BuyAndMintAlbumUsingCC = ({
                 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
                   <h3 className="text-xl font-bold mb-4">Secure Payment</h3>
                   <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                    $ {albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD} USD
+                    ${" "}
+                    {(() => {
+                      const priceOption = albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta];
+                      return typeof priceOption === "object" && priceOption !== null && "priceInUSD" in priceOption ? priceOption.priceInUSD : null;
+                    })()}{" "}
+                    USD
                   </span>
                   <div className="mt-2">
                     <StripeCheckoutFormAlbum
                       artistProfile={artistProfile}
                       albumToBuyAndMint={albumToBuyAndMint}
-                      priceInUSD={albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta]?.priceInUSD || null}
+                      priceInUSD={(() => {
+                        const priceOption = albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta];
+                        return typeof priceOption === "object" && priceOption !== null && "priceInUSD" in priceOption ? priceOption.priceInUSD : null;
+                      })()}
                       albumSaleTypeOption={albumSaleTypeOption}
                       closeStripePaymentPopup={() => {
                         setShowStripePaymentPopup(false);
@@ -199,7 +210,7 @@ export const BuyAndMintAlbumUsingCC = ({
                   }}>
                   {hoveredLargeSizeTokenImg && (
                     <>
-                      <div className="absolute inset-0 bg-black opacity-[70%] group-hover:opacity-[80%] transition-opacity duration-300 rounded-lg" />
+                      <div className="absolute inset-0 bg-black opacity-[70%] group-hover:opacity-[80%] transition-opacity duration-300" />
                       <div
                         className="absolute inset-0 bg-no-repeat bg-cover rounded-lg opacity-80 group-hover:opacity-100 transition-opacity duration-300"
                         style={{

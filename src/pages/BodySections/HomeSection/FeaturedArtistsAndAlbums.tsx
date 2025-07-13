@@ -453,7 +453,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   return (
     <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
-        <div className="text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full">
+        <div className="text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] md:w-full">
           <div className="flex flex-col md:flex-row justify-between w-full">
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
               <div className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
