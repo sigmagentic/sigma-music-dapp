@@ -220,3 +220,12 @@ export const formatFriendlyDate = (dateNum: number) => {
   const minutesStr = minutes < 10 ? `0${minutes}` : minutes;
   return `${day} ${month} at ${hours}:${minutesStr}${ampm}`;
 };
+
+export const injectXUserNameIntoTweet = (tweet: string, xUserNameFullUrl?: string) => {
+  if (!xUserNameFullUrl || xUserNameFullUrl === "") return tweet.replace("_(xUsername)_", ``); // just do it as is and remove the placeholder
+
+  // need to pull out duodomusica from https://x.com/duodomusica
+  const xUserName = xUserNameFullUrl.split("/").pop();
+
+  return tweet.replace("_(xUsername)_", `(@${xUserName}) `);
+};

@@ -17,6 +17,7 @@ export const JoinInnerCircleCC = ({
   onCloseModal,
   artistName,
   artistSlug,
+  artistXLink,
   creatorPaymentsWallet,
   membershipId,
   artistId,
@@ -25,6 +26,7 @@ export const JoinInnerCircleCC = ({
   onCloseModal: () => void;
   artistName: string;
   artistSlug: string;
+  artistXLink: string | undefined;
   creatorPaymentsWallet: string;
   membershipId: string;
   artistId: string;
@@ -61,47 +63,6 @@ export const JoinInnerCircleCC = ({
       document.body.style.overflow = "unset";
     };
   }, []);
-
-  // useEffect(() => {
-  //   if (!publicKey || !creatorPaymentsWallet || !membershipId) return;
-
-  //   const intentExtraParams: Record<string, any> = {
-  //     amountToPay: (tierData[membershipId].defaultPriceUSD * totalQuantity).toString(),
-  //     type: "fan",
-  //     creatorAndMembershipTierId: `fan-${creatorPaymentsWallet.trim().toLowerCase()}-${artistId.trim()}-${membershipId}`,
-  //     artistSlug,
-  //     artistName,
-  //     buyerSolAddress: publicKey.toBase58(),
-  //     totalQuantity: totalQuantity.toString(),
-  //   };
-
-  //   if (userInfo.email) {
-  //     intentExtraParams.accountEmail = userInfo.email;
-  //   }
-
-  //   // Fetch payment intent clientSecret from your backend
-  //   fetch(`${getApiWeb2Apps()}/datadexapi/sigma/paymentCreateIntent`, {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify(intentExtraParams),
-  //   })
-  //     .then((res) => {
-  //       if (!res.ok) {
-  //         throw new Error(`HTTP error! status: ${res.status}`);
-  //       }
-  //       return res.json();
-  //     })
-  //     .then((data) => {
-  //       setClientSecret(data.clientSecret);
-  //       setPaymentIntentReceived(true);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error creating payment intent:", error);
-  //       setBackendErrorMessage("Failed to initialize payment. Please try again later.");
-  //     });
-  // }, [publicKey, creatorPaymentsWallet, membershipId]);
 
   useEffect(() => {
     if (paymentIntentReceived && clientSecret && clientSecret !== "" && !fetchingPaymentIntent) {

@@ -12,7 +12,7 @@ import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types
 import { getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/misc";
 import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
-import { CampaignHero } from "pages/Campaigns/CampaignHero";
+import { CampaignHeroWSB } from "pages/Campaigns/CampaignHeroWSB";
 import { Remix } from "pages/Remix";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
@@ -28,6 +28,7 @@ import { MyProfile } from "./MyProfile";
 import { RewardPools } from "./RewardPools";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import { CampaignHeroWIR } from "pages/Campaigns/CampaignHeroWIR";
 
 type HomeSectionProps = {
   homeMode: string;
@@ -90,10 +91,19 @@ export const HomeSection = (props: HomeSectionProps) => {
     creatorIcon: string | undefined;
     creatorName: string | undefined;
     creatorSlug: string | undefined;
+    creatorXLink: string | undefined;
     giveBitzToWho: string;
     giveBitzToCampaignId: string;
     isLikeMode?: boolean | undefined;
-  }>({ creatorIcon: undefined, creatorName: undefined, creatorSlug: undefined, giveBitzToWho: "", giveBitzToCampaignId: "", isLikeMode: undefined });
+  }>({
+    creatorIcon: undefined,
+    creatorName: undefined,
+    creatorSlug: undefined,
+    creatorXLink: undefined,
+    giveBitzToWho: "",
+    giveBitzToCampaignId: "",
+    isLikeMode: undefined,
+  });
 
   // this is a copy of the bitz balances bounties are getting (inside FeaturedArtistsAndAlbums.tsx) during the users ui session
   // ... but it only get progressively loaded as the user moves between tabs to see the artist and their albums (so its not a complete state)
@@ -174,7 +184,11 @@ export const HomeSection = (props: HomeSectionProps) => {
 
     if (homeMode.includes("campaigns")) {
       const currentParams = Object.fromEntries(searchParams.entries());
-      currentParams["campaign"] = "wsb";
+      if (homeMode.includes("campaigns-wsb")) {
+        currentParams["campaign"] = "wsb";
+      } else if (homeMode.includes("campaigns-wir")) {
+        currentParams["campaign"] = "wir";
+      }
       delete currentParams["section"];
       delete currentParams["poolId"];
       setSearchParams({ ...currentParams });
@@ -608,6 +622,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     creatorIcon,
     creatorName,
     creatorSlug,
+    creatorXLink,
     giveBitzToWho,
     giveBitzToCampaignId,
     isLikeMode,
@@ -615,6 +630,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     creatorIcon: string;
     creatorName: string;
     creatorSlug: string | undefined;
+    creatorXLink: string | undefined;
     giveBitzToWho: string;
     giveBitzToCampaignId: string;
     isLikeMode?: boolean;
@@ -623,6 +639,7 @@ export const HomeSection = (props: HomeSectionProps) => {
       creatorIcon,
       creatorName,
       creatorSlug,
+      creatorXLink,
       giveBitzToWho,
       giveBitzToCampaignId,
       isLikeMode,
@@ -682,6 +699,18 @@ export const HomeSection = (props: HomeSectionProps) => {
                   <div className="flex flex-col-reverse md:flex-row gap-4">
                     <Slideshow
                       slides={[
+                        {
+                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/April_Four_Amendment_Cover.jpg",
+                          imageCustomClass: "bg-center",
+                          alt: "Artist Spotlight on April Four",
+                          buttonText: "Artist Spotlight on April Four",
+                          onClick: () => {
+                            navigateToDeepAppView({
+                              artistSlug: "april-four",
+                              albumId: "ar23",
+                            });
+                          },
+                        },
                         {
                           image: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Cereals.png",
                           imageCustomClass: "bg-top",
@@ -744,7 +773,25 @@ export const HomeSection = (props: HomeSectionProps) => {
             </div>
           )}
 
-          {homeMode.includes("campaigns-wsb") && <CampaignHero setCampaignCodeFilter={setCampaignCodeFilter} navigateToDeepAppView={navigateToDeepAppView} />}
+          {homeMode.includes("campaigns-wsb") && (
+            <CampaignHeroWSB setCampaignCodeFilter={setCampaignCodeFilter} navigateToDeepAppView={navigateToDeepAppView} />
+          )}
+
+          {homeMode.includes("campaigns-wir") && (
+            <CampaignHeroWIR
+              setCampaignCodeFilter={setCampaignCodeFilter}
+              navigateToDeepAppView={navigateToDeepAppView}
+              selectedPlaylistGenre={selectedPlaylistGenre}
+              isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
+              onCloseMusicPlayer={resetMusicPlayerState}
+              setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
+              setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
+              onPlaylistGenreUpdate={(genre: string) => {
+                setSelectedGenreForPlaylist(""); // clear any previous genre selection immediately
+                debouncedGenrePlaylistUpdate(genre); // but debounce the actual logic in case the user is click spamming the genre buttons
+              }}
+            />
+          )}
 
           {/* Artists and their Albums */}
           {(homeMode.includes("artists") || homeMode.includes("albums") || homeMode.includes("campaigns-wsb")) && (
@@ -936,6 +983,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                 creatorIcon: undefined,
                 creatorName: undefined,
                 creatorSlug: undefined,
+                creatorXLink: undefined,
                 giveBitzToWho: "",
                 giveBitzToCampaignId: "",
                 isLikeMode: undefined,

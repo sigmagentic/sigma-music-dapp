@@ -3,7 +3,7 @@ import { MembershipType, Perk } from "libs/types/common";
 export const perksData: Perk[] = [
   {
     pid: "p1",
-    name: "Upto 10 Free EPs or Single per year",
+    name: "Upto 10 free EPs or singles per year",
     type: "virtual" as const,
     description: "If I drop a new EP or Single as a NFT, you get to own a copy (as a NFT) for free and stream all bonus tracks",
     terms: "Upto 10 EPs or Singles per year. Please note that I reserve the right to decide which EPs or Singles are eligible for this perk at any time",
@@ -12,7 +12,7 @@ export const perksData: Perk[] = [
   },
   {
     pid: "p2",
-    name: "Monthly Video Group Call with all Fans",
+    name: "Monthly video call with all fans",
     type: "physical" as const,
     description: "I'll hold a monthly video call with all fans who hold this tier and tell you all about what I'm working on and you can ask me anything",
     terms:
@@ -22,7 +22,7 @@ export const perksData: Perk[] = [
   },
   {
     pid: "p3",
-    name: "10% Revenue Share on All My Album and Fan Membership Sales",
+    name: "10% revenue share on all my album and fan membership sales",
     type: "physical" as const,
     description: "Help promote my music and grow my fanbase and you can share in the revenue. Share in my success and I'll share in yours",
     terms:
@@ -31,34 +31,31 @@ export const perksData: Perk[] = [
   },
   {
     pid: "p4",
-    name: "Meet Me at My Performances",
+    name: "Meet me at my performances",
     type: "physical" as const,
     description: "If I perform at an event, you can use your Fan NFT to meet me",
     terms: "Note that this only applies to performances that have a meet and greet planned (which are most events with paid tickets)",
     howToClaim: "Hold and present the Inner Circle fan membership NFT to the artist's crew at the event",
-    comingSoon: true,
   },
   {
     pid: "p5",
-    name: "Access to VIP Lounge at My Performances",
+    name: "Access to VIP lounge at my performances",
     type: "physical" as const,
     description: "If I perform at an event, you can use your NFT to chill at my VIP lounge",
     terms: "Note that this only applies to performances that have a VIP lounge planned",
     howToClaim: "Hold and present the Inner Circle fan membership NFT to the artist's crew at the event",
-    comingSoon: true,
   },
   {
     pid: "p6",
-    name: "Take a Photo with Me at My Performances",
+    name: "Take a photo with me at my performances",
     type: "physical" as const,
     description: "If I perform at an event, you can use your NFT to take a photo with me",
     terms: "Note that this only applies to performances that allow photo ops",
     howToClaim: "Hold and present the Inner Circle fan membership NFT to the artist's crew at the event",
-    comingSoon: true,
   },
   {
     pid: "p7",
-    name: "Personalized Video Message",
+    name: "Personalized video message",
     type: "physical" as const,
     description: "I'll record a personalized video message for you",
     terms: "Can be redeemed once a year. Please note that my fans should join my group of the Sigma Discord server so we can coordinate",

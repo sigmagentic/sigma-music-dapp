@@ -672,6 +672,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         creatorIcon: song.cover_art_url,
         creatorName: `${song.artist}'s ${song.album}`,
         creatorSlug: undefined,
+        creatorXLink: undefined,
         giveBitzToWho: bitzGiftingMeta.creatorWallet,
         giveBitzToCampaignId: bitzGiftingMeta.giveBitzToCampaignId,
         isLikeMode: true,
@@ -1109,7 +1110,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           <div className="relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 max-w-xl">
             {/* Close button */}
             <button
-              onClick={() => setShowBonusTrackModal(false)}
+              onClick={() => {
+                setShowBonusTrackModal(false);
+                handleNextButton();
+              }}
               className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
               ✕
             </button>

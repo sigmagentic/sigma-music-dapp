@@ -150,7 +150,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
   useEffect(() => {
     if (selectedAlbumToShowEntitlements && (myMusicAssetPurchases.length > 0 || solMusicAssetNfts.length > 0)) {
-      debugger;
       const entitlementsMap: EntitlementForMusicAsset = {
         mp3TrackUrls: [],
         licenseTerms: {
@@ -182,6 +181,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       const findMusicNft = solMusicAssetNfts.find((nft) => {
         const nftPrefix = nft.content.metadata.name.split(/[-\s]/)[0];
         const albumPrefix = selectedAlbumToShowEntitlements.solNftName.split(/[-\s]/)[0];
+        // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2)
         return (
           nftPrefix.toLowerCase() === albumPrefix.toLowerCase() ||
           (selectedAlbumToShowEntitlements.solNftAltCodes !== "" && selectedAlbumToShowEntitlements.solNftAltCodes?.includes(nftPrefix))
@@ -356,6 +356,24 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               </>
             )}
 
+            {/* Rarity and Max Mints Badge */}
+            {album?._buyNowMeta?.priceOption2?.canBeMinted && (
+              <div className={`absolute bottom-[-7px] right-0 z-10 ${album?._buyNowMeta?.rarityGrade === "Common" ? "opacity-50" : ""}`}>
+                <div className="relative inline-block overflow-hidden rounded-tl-lg">
+                  <div className="relative px-3 py-1.5 rounded-tl-lg font-semibold text-sm border border-orange-400 text-orange-400">
+                    <span className="flex items-center gap-1 text-xs">
+                      <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                      <span className="font-bold text-yellow-400">{album?._buyNowMeta?.rarityGrade}</span> Collectible •{" "}
+                      {album?._buyNowMeta?.maxMints && album?._buyNowMeta?.maxMints > 0 ? `only ${album?._buyNowMeta?.maxMints} available` : "Unlimited"}
+                      {album?._buyNowMeta?.rarityGrade !== "Common" && album?._buyNowMeta?.rarityGrade !== "Uncommon" && (
+                        <span className="text-yellow-400 pulse">🔥</span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
               <div
                 className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group ${album._buyNowMeta?.priceOption2?.tokenImg ? "cursor-pointer" : ""}`}
@@ -429,6 +447,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                           creatorIcon: album.img,
                           creatorName: `${artistProfile.name}'s ${album.title}`,
                           creatorSlug: artistProfile.slug,
+                          creatorXLink: artistProfile.xLink,
                           giveBitzToWho: artistProfile.creatorWallet,
                           giveBitzToCampaignId: album.bountyId,
                           isLikeMode: true,
@@ -447,6 +466,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                               creatorIcon: album.img,
                               creatorName: `${artistProfile.name}'s ${album.title}`,
                               creatorSlug: artistProfile.slug,
+                              creatorXLink: artistProfile.xLink,
                               giveBitzToWho: artistProfile.creatorWallet,
                               giveBitzToCampaignId: album.bountyId,
                               isLikeMode: true,
@@ -662,7 +682,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               </>
             </div>
 
-            <span className="text-xs text-gray-700 ml-2 text-right mt-2">id: {album.albumId}</span>
+            <span className="text-xs text-gray-700 ml-0 text-left mt-2 mb-[15px]">id: {album.albumId}</span>
           </div>
         ))}
 

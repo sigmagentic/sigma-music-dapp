@@ -8,6 +8,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem, viewDataWrapperSol } from "libs/sol/SolViewData";
 import { sleep } from "libs/utils";
+import { injectXUserNameIntoTweet } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
@@ -18,6 +19,7 @@ type SendBitzPowerUpProps = {
     creatorIcon?: string | undefined;
     creatorName?: string | undefined;
     creatorSlug?: string | undefined;
+    creatorXLink?: string | undefined;
     giveBitzToWho: string;
     giveBitzToCampaignId: string;
     isLikeMode?: boolean;
@@ -27,7 +29,7 @@ type SendBitzPowerUpProps = {
 
 export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { giveBitzForMusicBountyConfig, onCloseModal } = props;
-  const { creatorIcon, creatorName, giveBitzToWho, giveBitzToCampaignId, isLikeMode } = giveBitzForMusicBountyConfig;
+  const { creatorIcon, creatorName, creatorXLink, giveBitzToWho, giveBitzToCampaignId, isLikeMode } = giveBitzForMusicBountyConfig;
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol } = useSolanaWallet();
   const [giftBitzWorkflow, setGiftBitzWorkflow] = useState<boolean>(false);
@@ -41,10 +43,11 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
 
   const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
+  const [tweetText, setTweetText] = useState<string>("");
 
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
-    `I just supported ${creatorName} on @SigmaXMusic by giving them ${bitzValToGift} of my XP!`
-  )}`;
+  // const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
+  //   `I just supported ${creatorName} _(creatorXUsername)_ on @SigmaXMusic by giving them ${bitzValToGift} of my XP!`
+  // )}`;
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -73,6 +76,17 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
       setGiftBitzWorkflow(true);
     }
   }, [giveBitzToWho, giveBitzToCampaignId, bitBalanceOnChain, powerUpSuccessfullyDone]);
+
+  useEffect(() => {
+    if (creatorName && creatorName !== "") {
+      const tweetMsg = injectXUserNameIntoTweet(
+        `I just supported ${creatorName} _(xUsername)_on @SigmaXMusic by giving them ${bitzValToGift} of my XP!`,
+        creatorXLink
+      );
+
+      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(tweetMsg)}`);
+    }
+  }, [creatorXLink, creatorName, bitzValToGift]);
 
   async function sendPowerUpSol() {
     setPoweringUpInProgress(true);
@@ -267,9 +281,9 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                   {powerUpSuccessfullyDone && (
                     <div className="h-[100px] text-lg mt-1">
                       <div>Success! thank you for supporting this creator.</div>
-                      <div className="bg-black mt-1 rounded-full p-[10px] -z-1 w-[269px]">
+                      <div className="bg-yellow-300 mt-1 rounded-full p-[10px] -z-1 w-[269px]">
                         <a
-                          className="z-1 bg-black text-white text-sm rounded-3xl gap-2 flex flex-row justify-center items-center"
+                          className="z-1 bg-yellow-300 text-black text-sm rounded-3xl gap-2 flex flex-row justify-center items-center"
                           href={"https://twitter.com/intent/tweet?" + tweetText}
                           data-size="large"
                           target="_blank"
