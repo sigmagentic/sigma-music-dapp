@@ -12,7 +12,7 @@ import {
   fetchSolPrice,
   sleep,
 } from "libs/utils/misc";
-import { convertTokenImageUrl, formatFriendlyDate, scrollToTopOnMainContentArea } from "libs/utils/ui";
+import { convertTokenImageUrl, formatFriendlyDate, injectXUserNameIntoTweet, scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
 import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
@@ -53,6 +53,7 @@ const getPerkTypeColor = (type: "virtual" | "physical" | "virtual") => {
 interface ArtistInnerCircleProps {
   artistName: string;
   artistSlug: string;
+  artistXLink?: string;
   creatorPaymentsWallet: string;
   artistId: string;
   filterByArtistCampaignCode?: string | number;
@@ -62,6 +63,7 @@ interface ArtistInnerCircleProps {
 export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   artistName,
   artistSlug,
+  artistXLink,
   creatorPaymentsWallet,
   artistId,
   filterByArtistCampaignCode,
@@ -79,9 +81,10 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [joinInnerCircleModalOpen, setJoinInnerCircleModalOpen] = useState<boolean>(false);
   const [selectedTokenImg, setSelectedTokenImg] = useState<string | null>(null);
-  const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
-    `I am part of ${artistName}'s exclusive Inner Circle fan club on @SigmaXMusic. Come and join me!`
-  )}`;
+  const [tweetText, setTweetText] = useState<string>("");
+  // const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
+  //   `I am part of ${artistName}'s exclusive Inner Circle fan club on @SigmaXMusic. Come and join me!`
+  // )}`;
 
   useEffect(() => {
     if (!creatorPaymentsWallet) {
@@ -177,6 +180,17 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
       fetchLiveMintStats();
     }
   }, [selectedArtistMembership, artistId, creatorPaymentsWallet, artistsMembershipOptions]);
+
+  useEffect(() => {
+    if (artistName && artistName !== "") {
+      const tweetMsg = injectXUserNameIntoTweet(
+        `I am part of ${artistName}'s _(xUsername)_exclusive Inner Circle fan club on @SigmaXMusic. Come join me!`,
+        artistXLink
+      );
+
+      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(tweetMsg)}`);
+    }
+  }, [artistName, artistXLink]);
 
   const fetchPriceInSol = async () => {
     try {
@@ -512,9 +526,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   </div>
                 ))}
               </div>
-              <div className="bg-black rounded-full p-[10px] -z-1 mt-4">
+              <div className="bg-yellow-300 rounded-full p-[10px] -z-1 mt-4">
                 <a
-                  className="z-1 bg-black text-white  rounded-3xl gap-2 flex flex-row justify-center items-center"
+                  className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
                   href={"https://twitter.com/intent/tweet?" + tweetText}
                   data-size="large"
                   target="_blank"
@@ -746,9 +760,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
           <div className="relative max-w-4xl w-full">
             <img src={selectedTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
             <div>
-              <div className="bg-black rounded-full p-[10px] -z-1 mt-4">
+              <div className="bg-yellow-300 rounded-full p-[10px] -z-1 mt-4">
                 <a
-                  className="z-1 bg-black text-white  rounded-3xl gap-2 flex flex-row justify-center items-center"
+                  className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
                   href={"https://twitter.com/intent/tweet?" + tweetText}
                   data-size="large"
                   target="_blank"
@@ -780,6 +794,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
               <JoinInnerCircleSOL
                 artistName={artistName}
                 artistSlug={artistSlug}
+                artistXLink={artistXLink}
                 creatorPaymentsWallet={creatorPaymentsWallet}
                 membershipId={selectedArtistMembership}
                 artistId={artistId}
@@ -795,6 +810,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
               <JoinInnerCircleCC
                 artistName={artistName}
                 artistSlug={artistSlug}
+                artistXLink={artistXLink}
                 creatorPaymentsWallet={creatorPaymentsWallet}
                 membershipId={selectedArtistMembership}
                 artistId={artistId}

@@ -51,12 +51,14 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
     useAccountStore();
   const { signMessage } = useWallet();
   const { publicKey } = useSolanaWallet();
+  const [trackIdxListSoFar, setTrackIdxListSoFar] = useState<string>("");
+  const [trackIdxNextGuess, setTrackIdxNextGuess] = useState<number>(1);
 
   useEffect(() => {
     setFormData({
-      idx: -1,
+      idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
       arId: artistId,
-      alId: `${albumId}-X`,
+      alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
       bonus: 0,
       category: "",
       cover_art_url: "",
@@ -65,7 +67,14 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
     });
 
     setIsFormView(false);
-  }, [artistId, albumId]);
+  }, [artistId, albumId, trackIdxNextGuess]);
+
+  useEffect(() => {
+    if (tracks.length > 0) {
+      setTrackIdxListSoFar(tracks.map((track) => track.idx).join(","));
+      setTrackIdxNextGuess(tracks.length + 1);
+    }
+  }, [tracks]);
 
   const handleAddTrackToFastStream = () => {
     setIsFormView(true);
@@ -74,9 +83,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
   const handleCancelForm = () => {
     setIsFormView(false);
     setFormData({
-      idx: -1,
+      idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
       arId: artistId,
-      alId: `${albumId}-X`,
+      alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
       bonus: 0,
       category: "",
       cover_art_url: "",
@@ -146,9 +155,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
         setIsFormView(false);
         onTracksUpdated(); // Refresh the track list
         setFormData({
-          idx: -1,
+          idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
           arId: artistId,
-          alId: `${albumId}-1`,
+          alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
           bonus: 0,
           category: "",
           cover_art_url: "",
@@ -166,7 +175,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
     }
   };
 
-  const renderFormView = () => (
+  const renderNewTrackFormView = () => (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -184,6 +193,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Track Number *</label>
           <Input type="number" min="1" value={formData.idx} onChange={(e) => handleFormChange("idx", parseInt(e.target.value) || 1)} placeholder="1" required />
+          <span className="text-xs text-gray-600">track numbers used so far (make sure it's in sequence with no duplicates): {trackIdxListSoFar}</span>
         </div>
 
         {/* Artist ID (Read-only) */}
@@ -356,9 +366,11 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
     </div>
   );
 
+  console.log("tracks", tracks);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`${albumTitle} - Fast Stream Tracks`} size="lg">
-      {isFormView ? renderFormView() : renderTrackListView()}
+      {isFormView ? renderNewTrackFormView() : renderTrackListView()}
     </Modal>
   );
 };

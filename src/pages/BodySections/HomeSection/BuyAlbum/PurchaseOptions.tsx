@@ -57,6 +57,21 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
           </div>
         )}
         <div className={`bg-black rounded-lg p-4 relative ${!available ? "opacity-20 pointer-events-none" : ""}`}>
+          {/* Rarity and Max Mints Badge */}
+          {option !== "priceOption1" && available && buyNowMeta?.priceOption2?.canBeMinted && (
+            <div className={`absolute bottom-[-7px] right-0 z-10 ${buyNowMeta?.rarityGrade === "Common" ? "opacity-50" : ""}`}>
+              <div className="relative inline-block overflow-hidden rounded-tl-lg">
+                <div className="relative px-3 py-1.5 rounded-tl-lg font-semibold text-sm border border-orange-400 text-orange-400">
+                  <span className="flex items-center gap-1 text-xs">
+                    <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                    <span className="font-bold text-yellow-400">{buyNowMeta?.rarityGrade}</span> Collectible •{" "}
+                    {buyNowMeta?.maxMints && buyNowMeta?.maxMints > 0 ? `only ${buyNowMeta?.maxMints} available` : "Unlimited"}
+                    {buyNowMeta?.rarityGrade !== "Common" && buyNowMeta?.rarityGrade !== "Uncommon" && <span className="text-yellow-400 pulse">🔥</span>}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
           <div
             className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
             onMouseEnter={() => {

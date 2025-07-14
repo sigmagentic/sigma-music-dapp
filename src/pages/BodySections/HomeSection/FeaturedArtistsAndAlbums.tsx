@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { faHandPointer } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -15,7 +13,7 @@ import { Button } from "libComponents/Button";
 import { GiftBitzToArtistMeta } from "libs/types";
 import { Artist, Album, AlbumWithArtist } from "libs/types";
 import { BountyBitzSumMapping } from "libs/types";
-import { sleep, scrollToTopOnMainContentArea, isMostLikelyMobile } from "libs/utils";
+import { sleep, scrollToTopOnMainContentArea, isMostLikelyMobile, injectXUserNameIntoTweet } from "libs/utils";
 import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
@@ -87,6 +85,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan"]);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
+  const [tweetText, setTweetText] = useState<string>("");
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -190,7 +189,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
       const campaignCode = searchParams.get("campaign") || "";
 
-      if (campaignCode && campaignCode !== "") {
+      if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
         // for campiagns, we jump to the fan tab
         setActiveTab("fan");
         setTabsOrdered(["fan", "leaderboard", "artistStats"]);
@@ -280,6 +279,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       handleBackToArtistTileView();
     }
   }, [loadIntoTileView]);
+
+  useEffect(() => {
+    if (artistProfile) {
+      const tweetMsg = injectXUserNameIntoTweet(
+        `${artistProfile.name}'s _(xUsername)_Sigma Music (@SigmaXMusic) profile looks so cool! Check it out!`,
+        artistProfile.xLink
+      );
+
+      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(tweetMsg)}`);
+    }
+  }, [artistProfile]);
 
   async function fetchAndUpdateArtistAlbumDataIntoView() {
     setArtistAlbumDataLoading(true);
@@ -443,8 +453,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   return (
     <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
-        <div className="text-2xl xl:text-3xl cursor-pointer mb-3 mr-auto ml-[8px]">
-          <div className="flex flex-col md:flex-row justify-between">
+        <div className="text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] md:w-full">
+          <div className="flex flex-col md:flex-row justify-between w-full">
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
               <div className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
                 <Button
@@ -648,6 +658,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                         creatorIcon: artistProfile.img,
                                         creatorName: artistProfile.name,
                                         creatorSlug: artistProfile.slug,
+                                        creatorXLink: artistProfile.xLink,
                                         giveBitzToWho: artistProfile.creatorWallet,
                                         giveBitzToCampaignId: artistProfile.bountyId,
                                       });
@@ -684,6 +695,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                           creatorIcon: artistProfile.img,
                                           creatorName: artistProfile.name,
                                           creatorSlug: artistProfile.slug,
+                                          creatorXLink: artistProfile.xLink,
                                           giveBitzToWho: artistProfile.creatorWallet,
                                           giveBitzToCampaignId: artistProfile.bountyId,
                                         });
@@ -765,6 +777,22 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                 )}
                               </div>
                             )}
+                          </div>
+
+                          <div className="border border-yellow-600 rounded-full p-[10px] -z-1 w-[269px] mt-5">
+                            <a
+                              className="z-1 text-white text-sm rounded-3xl gap-2 flex flex-row justify-center items-center"
+                              href={"https://twitter.com/intent/tweet?" + tweetText}
+                              data-size="large"
+                              target="_blank"
+                              rel="noreferrer">
+                              <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                                  <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                                </svg>
+                              </span>
+                              <p className="z-10">Share this artist profile on X</p>
+                            </a>
                           </div>
                         </div>
                       </div>
@@ -898,6 +926,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             <ArtistInnerCircle
                               artistName={artistProfile.name.replaceAll("_", " ")}
                               artistSlug={artistProfile.slug}
+                              artistXLink={artistProfile.xLink}
                               creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
                               artistId={artistProfile.artistId}
                               filterByArtistCampaignCode={filterByArtistCampaignCode}
