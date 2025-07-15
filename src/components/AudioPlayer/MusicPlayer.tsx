@@ -30,7 +30,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BountyBitzSumMapping, MusicTrack } from "libs/types";
-import { logStreamViaAPI } from "libs/utils/misc";
+import { logStreamViaAPI } from "libs/utils/api";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";

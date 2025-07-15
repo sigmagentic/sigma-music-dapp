@@ -25,7 +25,7 @@ import { Button } from "libComponents/Button";
 import { fetchSolNfts } from "libs/sol/SolViewData";
 import { AlbumSaleTypeOption, BountyBitzSumMapping } from "libs/types";
 import { Artist, Album, EntitlementForMusicAsset } from "libs/types";
-import { checkIfAlbumCanBeMintedViaAPI, doFastStreamOnAlbumCheckViaAPI, getPaymentLogsViaAPI, isMostLikelyMobile } from "libs/utils/misc";
+import { checkIfAlbumCanBeMintedViaAPI, doFastStreamOnAlbumCheckViaAPI, getPaymentLogsViaAPI, isMostLikelyMobile } from "libs/utils";
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";

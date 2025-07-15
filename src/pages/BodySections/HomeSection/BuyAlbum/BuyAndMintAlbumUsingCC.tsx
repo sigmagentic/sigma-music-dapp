@@ -7,7 +7,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import StripeCheckoutFormAlbum from "libs/stripe/StripeCheckoutFormAlbum";
 import { Artist, Album, AlbumSaleTypeOption } from "libs/types";
-import { getApiWeb2Apps } from "libs/utils/misc";
+import { getApiWeb2Apps } from "libs/utils";
 import PurchaseOptions from "./PurchaseOptions";
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);

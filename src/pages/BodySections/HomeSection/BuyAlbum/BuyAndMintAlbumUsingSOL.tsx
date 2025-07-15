@@ -10,7 +10,7 @@ import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { Artist, Album, AlbumSaleTypeOption } from "libs/types";
 import { injectXUserNameIntoTweet, toastSuccess } from "libs/utils";
-import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
+import { fetchSolPriceViaAPI, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import PurchaseOptions from "./PurchaseOptions";
@@ -65,7 +65,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
     const fetchPrice = async () => {
       try {
-        const { currentSolPrice } = await fetchSolPrice();
+        const { currentSolPrice } = await fetchSolPriceViaAPI();
 
         // Calculate required SOL amount based on USD price
         const priceOption = albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta];

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { BountyBitzSumMapping } from "libs/types";
-import { sleep } from "libs/utils/misc";
+import { sleep } from "libs/utils";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";

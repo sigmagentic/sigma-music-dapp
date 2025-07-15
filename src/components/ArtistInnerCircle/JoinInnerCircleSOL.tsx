@@ -8,8 +8,8 @@ import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS } from "confi
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { injectXUserNameIntoTweet, toastSuccess } from "libs/utils";
-import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
+import { injectXUserNameIntoTweet, toastSuccess, sleep } from "libs/utils";
+import { fetchSolPriceViaAPI, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI } from "libs/utils/api";
 import { useAccountStore } from "store/account";
 import { tierData } from "./tierData";
 
@@ -69,7 +69,7 @@ export const JoinInnerCircleSOL = ({
   useEffect(() => {
     const fetchPrice = async () => {
       try {
-        const { currentSolPrice } = await fetchSolPrice();
+        const { currentSolPrice } = await fetchSolPriceViaAPI();
 
         // Calculate required SOL amount based on USD price
         const solAmount = tierData[membershipId].defaultPriceUSD / currentSolPrice;
@@ -510,8 +510,8 @@ export const JoinInnerCircleSOL = ({
                 Make a SOL payment of{" "}
                 <span className="text-orange-600 contents">
                   {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
-                </span>{" "}
-                to Sigma's wallet. This is used to pay for the membership tokenization
+                </span>
+                . This is used to pay for the membership tokenization
               </li>
               <li className="flex gap-2">
                 <span className="text-cyan-400 font-bold">2.</span>

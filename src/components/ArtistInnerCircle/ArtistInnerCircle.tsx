@@ -9,9 +9,9 @@ import {
   fetchCreatorFanMembershipAvailabilityViaAPI,
   fetchMintsByTemplatePrefix,
   fetchMyFanMembershipsForArtistViaAPI,
-  fetchSolPrice,
+  fetchSolPriceViaAPI,
   sleep,
-} from "libs/utils/misc";
+} from "libs/utils";
 import { convertTokenImageUrl, formatFriendlyDate, injectXUserNameIntoTweet, scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
@@ -204,7 +204,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
         return;
       }
 
-      const { currentSolPrice } = await fetchSolPrice();
+      const { currentSolPrice } = await fetchSolPriceViaAPI();
 
       // Calculate required SOL amount based on USD price
       const solAmount = artistsMembershipOptions[selectedArtistMembership].defaultPriceUSD / currentSolPrice;

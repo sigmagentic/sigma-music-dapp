@@ -9,7 +9,7 @@ import { MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier, isUIDebugM
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
-import { getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/misc";
+import { getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/api";
 import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { CampaignHeroWSB } from "pages/Campaigns/CampaignHeroWSB";

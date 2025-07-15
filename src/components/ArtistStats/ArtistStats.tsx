@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
 import { StreamMetricData } from "libs/types/common";
-import { fetchArtistSalesViaAPI, fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/misc";
+import { fetchArtistSalesViaAPI, fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/api";
 import { useAppStore } from "store/app";
 
 interface ArtistSale {

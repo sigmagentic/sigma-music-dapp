@@ -9,7 +9,7 @@ import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
 import { AlbumTrackCatalog, MusicAssetOwned } from "libs/types";
 import { computeRemainingCooldown } from "libs/utils/functions";
-import { fetchMintsLeaderboardByMonth, getLoggedInUserProfileAPI, getPaymentLogsViaAPI } from "libs/utils/misc";
+import { fetchMintsLeaderboardByMonthViaAPI, getLoggedInUserProfileAPI, getPaymentLogsViaAPI } from "libs/utils/api";
 import { getAlbumTrackCatalogData, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
@@ -119,7 +119,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
       // lets so this here as it's used in many places in our app
       if (mintsLeaderboard.length === 0) {
-        const _mintsLeaderboard = await fetchMintsLeaderboardByMonth("0_0");
+        const _mintsLeaderboard = await fetchMintsLeaderboardByMonthViaAPI("0_0");
         updateMintsLeaderboard(_mintsLeaderboard);
       }
     })();

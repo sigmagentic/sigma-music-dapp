@@ -1,4 +1,4 @@
-import { getApiWeb2Apps } from "libs/utils/misc";
+import { getApiWeb2Apps } from "libs/utils/api";
 import { MusicCollectibleMetadataFormData, FanCollectibleMetadataFormData } from "../components/CollectibleMetadataModal";
 
 // Types for admin API responses

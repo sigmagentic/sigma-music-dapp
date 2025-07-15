@@ -9,7 +9,7 @@ import { LAUNCH_MUSIC_MEME_PRICE_IN_USD, SOLANA_NETWORK_RPC, SIGMA_SERVICE_PAYME
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI } from "libs/utils/misc";
+import { fetchSolPriceViaAPI, getApiWeb2Apps, logPaymentToAPI, logStatusChangeToAPI } from "libs/utils/api";
 import { mergeImages } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -82,7 +82,7 @@ export const LaunchToPumpFun = ({
   useEffect(() => {
     const fetchPrice = async () => {
       try {
-        const { currentSolPrice } = await fetchSolPrice();
+        const { currentSolPrice } = await fetchSolPriceViaAPI();
 
         // Calculate required SOL amount based on USD price
         const solAmount = LAUNCH_MUSIC_MEME_PRICE_IN_USD / currentSolPrice;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { SparklesIcon } from "@heroicons/react/24/solid";
-import { getApiWeb2Apps } from "libs/utils/misc";
 import { Loader } from "lucide-react";
+import { getApiWeb2Apps } from "libs/utils/api";
 
 interface LeaderboardEntry {
   dataNFTIdAndGetter: string;

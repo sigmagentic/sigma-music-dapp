@@ -3,7 +3,7 @@ import { IS_LIVE_DEMO_MODE } from "appsConfig";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { AlbumTrackCatalog, GiftBitzToArtistMeta, MusicTrack } from "libs/types";
-import { getApiWeb2Apps, fetchBitSumAndGiverCountsViaAPI } from "libs/utils/misc";
+import { getApiWeb2Apps, fetchBitSumAndGiverCountsViaAPI } from "libs/utils";
 
 // get and cache the artists and albums data locally
 let _artistsAlbumsDataCachedOnWindow: any[] = [];
