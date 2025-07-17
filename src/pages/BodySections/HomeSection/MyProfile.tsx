@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
+import { Loader } from "lucide-react";
 import { GetNFMeModal } from "components/GetNFMeModal";
 import { NFMePreferencesModal } from "components/NFMePreferencesModal";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { PulseLoader } from "libComponents/animated/PulseLoader";
 import { getPayoutLogsViaAPI } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
@@ -28,6 +28,7 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
   const [payoutLogs, setPayoutLogs] = useState<any[]>([]);
   const [loadingPayouts, setLoadingPayouts] = useState<boolean>(false);
   const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases } = useAccountStore();
+  const [totalPayout, setTotalPayout] = useState<number>(0);
 
   // Tab state - default to "artist" if user is an artist, otherwise "app"
   const [activeTab, setActiveTab] = useState<ProfileTab>(userWeb2AccountDetails.isArtist ? "artist" : "app");
@@ -55,6 +56,7 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
         setLoadingPayouts(true);
         try {
           const payouts = await getPayoutLogsViaAPI({ addressSol: displayPublicKey?.toString() || "" });
+          setTotalPayout(payouts.reduce((acc: number, log: any) => acc + parseFloat(log.amount), 0));
           setPayoutLogs(payouts || []);
         } catch (error) {
           console.error("Error fetching payout logs:", error);
@@ -67,6 +69,17 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
       fetchPayoutLogs();
     }
   }, [activeTab, userWeb2AccountDetails.isArtist]);
+
+  const parseTypeCodeToLabel = (typeCode: string) => {
+    switch (typeCode) {
+      case "bonus":
+        return "Bonus Payout";
+      case "sales-split":
+        return "Artist revenue from sales";
+      default:
+        return typeCode;
+    }
+  };
 
   // Render the app profile content
   const renderAppProfile = () => (
@@ -212,7 +225,6 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
                       </>
                     </td>
                     <td className="py-3">
-                      {" "}
                       <div className="text-sm text-gray-400">
                         {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
                         {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
@@ -328,10 +340,18 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
     <>
       {/* Artist Payouts Section */}
       <div className="bg-black rounded-lg p-6">
-        <h2 className="!text-2xl font-bold mb-4">Artist Payouts</h2>
+        <div className="flex flex-col md:flex-row items-center justify-between mb-4">
+          <h2 className="!text-2xl !md:text-2xl font-bold mb-4 text-center md:text-left">Artist Payouts</h2>
+          {payoutLogs.length > 0 && (
+            <div className="text-md text-yellow-300 font-bold border-2 border-yellow-300 rounded-lg p-2">
+              Total Payout: <span className="text-2xl font-bold">${totalPayout.toFixed(2)}</span>
+            </div>
+          )}
+        </div>
+
         {loadingPayouts ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <PulseLoader cusStyle="text-lg" />
+            <Loader className="animate-spin" size={30} />
           </div>
         ) : payoutLogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
@@ -342,25 +362,25 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
             <table className="w-full">
               <thead>
                 <tr className="text-left border-b border-gray-700">
-                  <th className="pb-3">Date</th>
-                  <th className="pb-3">Amount</th>
-                  <th className="pb-3">Type</th>
-                  <th className="pb-3">Info</th>
-                  <th className="pb-3">Transaction</th>
+                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Date</th>
+                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Amount</th>
+                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Type</th>
+                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Info</th>
+                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Transaction</th>
                 </tr>
               </thead>
               <tbody>
                 {payoutLogs.map((log, index) => (
                   <tr key={index} className="border-b border-gray-700">
-                    <td className="py-3">{new Date(log.paymentTS).toLocaleString()}</td>
-                    <td className="py-3">
+                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">{new Date(log.paymentTS).toLocaleString()}</td>
+                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">
                       {log.amount} {log.token}
                     </td>
-                    <td className="py-3">
-                      <span className="capitalize">{log.type}</span>
+                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">
+                      <span className="capitalize">{parseTypeCodeToLabel(log.type)}</span>
                     </td>
-                    <td className="py-3">{log.info}</td>
-                    <td className="py-3">
+                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">{log.info}</td>
+                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">
                       {log.tx && (
                         <a href={`https://solscan.io/tx/${log.tx}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
                           View on Solscan
