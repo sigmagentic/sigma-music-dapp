@@ -6,7 +6,7 @@ import { SOL_ENV_ENUM } from "config";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { AlbumSaleTypeOption } from "libs/types";
-import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep, updateUserProfileOnBackEndAPI } from "libs/utils/misc";
+import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep, updateUserProfileOnBackEndAPI } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";

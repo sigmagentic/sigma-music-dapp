@@ -642,7 +642,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                         {/* artists details and power up */}
                         <div className="details-container p-2 md:p-5 pt-2 flex-1 flex flex-col md:block items-baseline">
-                          <h2 className={`!text-xl !text-white lg:!text-3xl text-nowrap mb-5 text-center md:text-left mt-5`}>
+                          <h2 className={`!text-xl !text-white lg:!text-3xl text-nowrap mb-5 text-center md:text-left mt-5 md:mt-0`}>
                             {artistProfile.name.replaceAll("_", " ")}
                           </h2>
 
@@ -710,7 +710,21 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           )}
 
                           <div className={`artist-bio-n-links flex flex-col items-baseline md:block`}>
-                            <p className="artist-who text-sm">{artistProfile.bio}</p>
+                            <div className="relative">
+                              <p
+                                className="artist-who text-sm overflow-hidden"
+                                style={{
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 3,
+                                  WebkitBoxOrient: "vertical",
+                                  maxHeight: "4.5rem", // Approximately 3 lines of text
+                                }}
+                                title={artistProfile.bio}>
+                                {artistProfile.bio}
+                              </p>
+                              {/* Dark shadow overlay to indicate more content */}
+                              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-[#171717] to-transparent pointer-events-none"></div>
+                            </div>
 
                             {(artistProfile.dripLink !== "" ||
                               artistProfile.xLink !== "" ||
@@ -835,7 +849,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                       : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                   }
                                 `}>
-                                Inner Circle Fan Membership
+                                Inner Circle Fan Club
                               </button>
                             )}
                             {tabsOrdered.includes("leaderboard") && (
@@ -854,7 +868,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                       : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
                                   }
                                 `}>
-                                Power-Up Leaderboard
+                                Fan Leaderboard
                               </button>
                             )}
                             {tabsOrdered.includes("artistStats") && (

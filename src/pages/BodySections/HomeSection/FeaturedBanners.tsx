@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ALL_MUSIC_GENRES, RANDOM_COLORS, GenreTier } from "config";
 import { Button } from "libComponents/Button";
 import { StreamMetricData } from "libs/types/common";
-import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestCollectiblesAvailableViaAPI } from "libs/utils/misc";
+import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestCollectiblesAvailableViaAPI } from "libs/utils/api";
 import { convertTokenImageUrl } from "libs/utils/ui";
 import { useAppStore } from "store/app";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -69,6 +69,7 @@ export const FeaturedBanners = ({
   const { musicTrackLookup, artistLookup, albumLookup, artistLookupEverything, mintsLeaderboard } = useAppStore();
   const [latestInnerCircleOptions, setLatestInnerCircleOptions] = useState<LatestFanCollectibleOption[]>([]);
   const [latestAlbumOptions, setLatestAlbumOptions] = useState<LatestAlbumCollectibleOption[]>([]);
+  const [aiRemixReadyAlbums, setAiRemixReadyAlbums] = useState<LatestAlbumCollectibleOption[]>([]);
   const [isLoadingLatestInnerCircleOptions, setIsLoadingLatestInnerCircleOptions] = useState(true);
   const [isLoadingLatestAlbumOptions, setIsLoadingLatestAlbumOptions] = useState(true);
   const [lastClickedGenreForPlaylist, setLastClickedGenreForPlaylist] = useState<string>("");
@@ -139,11 +140,16 @@ export const FeaturedBanners = ({
         setLatestInnerCircleOptions(latestInnerCircleOptionsData);
 
         const latestAlbumOptionsData = await fetchLatestCollectiblesAvailableViaAPI("album", 20);
+        const latestAlbumsFromEnv = await fetchLatestCollectiblesAvailableViaAPI("album", 100, false);
 
-        // let filter own any items that have a _t2 substring in the collectibleId
+        // let filter out any items that have a _t2 substring in the collectibleId
         const filteredLatestAlbumOptionsData = latestAlbumOptionsData.filter((item: any) => !item.collectibleId.includes("_t2"));
 
+        // items with t2 can be saves as aiRemixReadyAlbums
+        const _aiRemixReadyAlbums = latestAlbumsFromEnv.filter((item: any) => item.collectibleId.includes("_t2"));
+
         setLatestAlbumOptions(filteredLatestAlbumOptionsData);
+        setAiRemixReadyAlbums(_aiRemixReadyAlbums);
       } catch (error) {
         console.error("Error fetching Inner Circle collectible options:", error);
       } finally {
@@ -196,13 +202,13 @@ export const FeaturedBanners = ({
   return (
     <div className="flex flex-col justify-center items-center w-full">
       {/* Tier 1 Genre Playlists */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-5">
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-2">
         <div className="text-xl cursor-pointer w-full">
           <span>Exclusive Music Playlists</span>
         </div>
         <div className="relative w-full">
           <div
-            className="overflow-x-auto pb-4 mt-5
+            className="overflow-x-auto pb-4 mt-2
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -226,25 +232,6 @@ export const FeaturedBanners = ({
                 setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
                 setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
               />
-              {/* <PlaylistTile
-                genre={{
-                  code: "CP_wir",
-                  label: "Walrus.INK",
-                  tier: null,
-                  tileImgBg: "https://walrus.tusky.io/2W2hZjxCruJCFgFilvBH4s-hwa1m7BhWxs636FWsHbE",
-                }}
-                color={RANDOM_COLORS[13]}
-                selectedPlaylistGenre={selectedPlaylistGenre}
-                lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
-                assetPlayIsQueued={assetPlayIsQueued}
-                onCloseMusicPlayer={onCloseMusicPlayer}
-                setLastClickedGenreForPlaylist={setLastClickedGenreForPlaylist}
-                isMusicPlayerOpen={isMusicPlayerOpen}
-                updateAssetPlayIsQueued={updateAssetPlayIsQueued}
-                onPlaylistGenreUpdate={onPlaylistGenreUpdate}
-                setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
-                setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
-              /> */}
               {tier1Genres.map((genreCode, idx) => {
                 const genreObj = ALL_MUSIC_GENRES.find((g) => g.code === genreCode);
                 if (!genreObj) return null;
@@ -272,7 +259,7 @@ export const FeaturedBanners = ({
       </div>
 
       {/* Most streamed songs */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
           <span className="">Most Streamed Songs</span>
         </div>
@@ -283,7 +270,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-5
+              className="overflow-x-auto pb-4 mt-2
                 [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -329,8 +316,72 @@ export const FeaturedBanners = ({
         )}
       </div>
 
+      {/* AI Remix Ready Albums */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="">AI Remix Ready Albums</span>
+        </div>
+        {isLoadingLatestAlbumOptions ? (
+          <LoadingSkeleton />
+        ) : aiRemixReadyAlbums.length === 0 ? (
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No AI remix ready albums available</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-2
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {aiRemixReadyAlbums.map((option) => {
+                  // e.g. collectibleId: "ar21_a3_t2"
+                  const artistId = option.collectibleId.split("_")[0];
+                  const albumId = `${artistId}_${option.collectibleId.split("_")[1]}`;
+                  const artistInfo = artistLookupEverything[artistId];
+                  const albumInfo = artistInfo?.albums?.find((album: { albumId: string }) => album.albumId === albumId);
+
+                  return (
+                    <div
+                      key={option.collectibleId}
+                      className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                      style={{
+                        backgroundImage: `url(${albumInfo?.img})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundBlendMode: "multiply",
+                        backgroundColor: "#161616d4",
+                        backgroundRepeat: "no-repeat",
+                      }}>
+                      <div className="text-center">
+                        <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
+                          {albumInfo?.title || "Unknown Album"}
+                        </div>
+                        <div className="text-sm text-white/70 mb-2">By {artistInfo?.name || "Unknown Artist"}</div>
+                        <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
+                        <Button
+                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                          onClick={() => {
+                            if (artistInfo?.slug) {
+                              onFeaturedArtistDeepLinkSlug(`${artistInfo.slug}~${albumId}`);
+                            }
+                          }}>
+                          Listen & Collect
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {aiRemixReadyAlbums.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Featured albums */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
           <span className="">Featured Albums</span>
         </div>
@@ -381,7 +432,7 @@ export const FeaturedBanners = ({
       </div>
 
       {/* Featured artists */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
           <span className="">Featured Artists</span>
         </div>
@@ -392,7 +443,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-5
+              className="overflow-x-auto pb-4 mt-2
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -431,7 +482,7 @@ export const FeaturedBanners = ({
       </div>
 
       {/* Latest Music Collectible For Sale */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
           <span className="">Latest Music Collectibles For Sale</span>
         </div>
@@ -442,7 +493,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-5
+              className="overflow-x-auto pb-4 mt-2
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -492,10 +543,10 @@ export const FeaturedBanners = ({
         )}
       </div>
 
-      {/* Latest Artist Fan Clubs For Sale */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+      {/* Latest Artist Fan Clubs */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="">Latest Artist Fan Clubs For Sale</span>
+          <span className="">Latest Artist Fan Clubs</span>
         </div>
         {isLoadingLatestInnerCircleOptions ? (
           <LoadingSkeleton />
@@ -504,7 +555,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-5
+              className="overflow-x-auto pb-4 mt-2
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -565,101 +616,103 @@ export const FeaturedBanners = ({
           </div>
         )}
       </div>
-
-      {/* Most sold collectibles */}
-      {mintsLeaderboard.length > 0 && (
-        <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-          <div className="text-xl cursor-pointer w-full">
-            <span className="">Most Sold Collectibles</span>
-          </div>
-          {isLoadingLatestInnerCircleOptions ? (
-            <LoadingSkeleton />
-          ) : mintsLeaderboard.length === 0 ? (
-            <p className="text-xl mb-10 text-center md:text-left opacity-50">No collectibles purchased yet</p>
-          ) : (
-            <div className="relative w-full">
-              <div
-                className="overflow-x-auto pb-4 mt-5
-                [&::-webkit-scrollbar]:h-2
-                dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-                dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-                <div className="flex space-x-4 min-w-max">
-                  {mintsLeaderboard.map((item, idx) => {
-                    const artistInfo = artistLookupEverything[item.arId];
-                    return (
-                      <div
-                        key={item.mintTemplatePrefix}
-                        className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
-                        style={{
-                          backgroundImage: `url(${item.nftType === "fan" && artistInfo?.fanToken3DGifTeaser && artistInfo.fanToken3DGifTeaser !== "" ? `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistInfo.fanToken3DGifTeaser}.gif` : artistInfo?.img})`,
-                          backgroundSize: "contain",
-                          backgroundPosition: "center",
-                          backgroundBlendMode: "multiply",
-                          backgroundColor: "#161616d4",
-                          backgroundRepeat: "no-repeat",
-                        }}>
-                        {/* NFT type label, rotated on the left */}
-                        <div className="absolute left-0 top-10 flex items-center" style={{ height: "100%" }}>
-                          <span
-                            className="text-xs font-bold text-orange-500 bg-black/40 px-2 py-1 rounded-r-lg"
-                            style={{
-                              writingMode: "vertical-rl",
-                              transform: "rotate(-180deg)",
-                              letterSpacing: "0.1em",
-                              marginLeft: "-0.5rem",
-                              opacity: 0.8,
-                            }}>
-                            {item.nftType === "fan" ? "Fan Collectible" : "Album Collectible"}
-                          </span>
-                        </div>
-                        {/* Ranking and Medal */}
-                        <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{idx + 1}</div>
-                        <div className="absolute top-2 right-4 text-4xl">
-                          {idx === 0 && <span>🥇</span>}
-                          {idx === 1 && <span>🥈</span>}
-                          {idx === 2 && <span>🥉</span>}
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
-                            {artistInfo?.name || "Unknown Artist"}
-                          </div>
-                          <div className="text-3xl font-bold text-orange-500">{item.mints}</div>
-                          <div className="text-sm text-white/70 mb-2">Sold</div>
-                          <Button
-                            className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
-                            onClick={() => {
-                              if (artistInfo?.slug) {
-                                if (item.nftType === "album") {
-                                  onFeaturedArtistDeepLinkSlug(artistInfo.slug);
-                                } else {
-                                  const campaign = artistInfo?.artistCampaignCode;
-                                  const country = artistInfo?.artistSubGroup1Code;
-                                  const team = artistInfo?.artistSubGroup2Code;
-
-                                  navigateToDeepAppView({
-                                    artistCampaignCode: campaign,
-                                    artistSubGroup1Code: country,
-                                    artistSubGroup2Code: team,
-                                    artistSlug: artistInfo?.slug,
-                                  });
-                                }
-                              }
-                            }}>
-                            View
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              {mintsLeaderboard.length > 3 && (
-                <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-              )}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
+
+{
+  /* Most sold collectibles */
+}
+// {mintsLeaderboard.length > 0 && (
+//   <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
+//     <div className="text-xl cursor-pointer w-full">
+//       <span className="">Most Sold Collectibles</span>
+//     </div>
+//     {isLoadingLatestInnerCircleOptions ? (
+//       <LoadingSkeleton />
+//     ) : mintsLeaderboard.length === 0 ? (
+//       <p className="text-xl mb-10 text-center md:text-left opacity-50">No collectibles purchased yet</p>
+//     ) : (
+//       <div className="relative w-full">
+//         <div
+//           className="overflow-x-auto pb-4 mt-2
+//           [&::-webkit-scrollbar]:h-2
+//           dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+//           dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+//           <div className="flex space-x-4 min-w-max">
+//             {mintsLeaderboard.map((item, idx) => {
+//               const artistInfo = artistLookupEverything[item.arId];
+//               return (
+//                 <div
+//                   key={item.mintTemplatePrefix}
+//                   className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+//                   style={{
+//                     backgroundImage: `url(${item.nftType === "fan" && artistInfo?.fanToken3DGifTeaser && artistInfo.fanToken3DGifTeaser !== "" ? `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistInfo.fanToken3DGifTeaser}.gif` : artistInfo?.img})`,
+//                     backgroundSize: "contain",
+//                     backgroundPosition: "center",
+//                     backgroundBlendMode: "multiply",
+//                     backgroundColor: "#161616d4",
+//                     backgroundRepeat: "no-repeat",
+//                   }}>
+//                   {/* NFT type label, rotated on the left */}
+//                   <div className="absolute left-0 top-10 flex items-center" style={{ height: "100%" }}>
+//                     <span
+//                       className="text-xs font-bold text-orange-500 bg-black/40 px-2 py-1 rounded-r-lg"
+//                       style={{
+//                         writingMode: "vertical-rl",
+//                         transform: "rotate(-180deg)",
+//                         letterSpacing: "0.1em",
+//                         marginLeft: "-0.5rem",
+//                         opacity: 0.8,
+//                       }}>
+//                       {item.nftType === "fan" ? "Fan Collectible" : "Album Collectible"}
+//                     </span>
+//                   </div>
+//                   {/* Ranking and Medal */}
+//                   <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{idx + 1}</div>
+//                   <div className="absolute top-2 right-4 text-4xl">
+//                     {idx === 0 && <span>🥇</span>}
+//                     {idx === 1 && <span>🥈</span>}
+//                     {idx === 2 && <span>🥉</span>}
+//                   </div>
+//                   <div className="text-center">
+//                     <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
+//                       {artistInfo?.name || "Unknown Artist"}
+//                     </div>
+//                     <div className="text-3xl font-bold text-orange-500">{item.mints}</div>
+//                     <div className="text-sm text-white/70 mb-2">Sold</div>
+//                     <Button
+//                       className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+//                       onClick={() => {
+//                         if (artistInfo?.slug) {
+//                           if (item.nftType === "album") {
+//                             onFeaturedArtistDeepLinkSlug(artistInfo.slug);
+//                           } else {
+//                             const campaign = artistInfo?.artistCampaignCode;
+//                             const country = artistInfo?.artistSubGroup1Code;
+//                             const team = artistInfo?.artistSubGroup2Code;
+
+//                             navigateToDeepAppView({
+//                               artistCampaignCode: campaign,
+//                               artistSubGroup1Code: country,
+//                               artistSubGroup2Code: team,
+//                               artistSlug: artistInfo?.slug,
+//                             });
+//                           }
+//                         }
+//                       }}>
+//                       View
+//                     </Button>
+//                   </div>
+//                 </div>
+//               );
+//             })}
+//           </div>
+//         </div>
+//         {mintsLeaderboard.length > 3 && (
+//           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+//         )}
+//       </div>
+//     )}
+//   </div>
+// )}

@@ -6,7 +6,7 @@ import TUSKY_LOGO from "assets/img/campaigns/wir/tusky-logo.jpg";
 import WALRUS_INK_LOGO from "assets/img/campaigns/wir/walrus-logo.jpg";
 import { Button } from "libComponents/Button";
 import { StreamMetricData } from "libs/types/common";
-import { fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/misc";
+import { fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/api";
 import { useAppStore } from "store/app";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { PlaylistTile } from "../BodySections/HomeSection/components/PlaylistTile";
