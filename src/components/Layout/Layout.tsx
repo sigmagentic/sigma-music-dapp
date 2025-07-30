@@ -165,7 +165,7 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">Albums</span>}
                     </button>
                   </Tooltip>
-                  <Tooltip text="Sigma: AI Music Agent">
+                  {/* <Tooltip text="Sigma: AI Music Agent">
                     <button
                       onClick={() => {
                         window.open("https://x.com/sigmaXMusic", "_blank");
@@ -182,7 +182,7 @@ export const Layout = ({
                       <span className="md:hidden w-max">AI Agent</span>
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI Agent</span>}
                     </button>
-                  </Tooltip>
+                  </Tooltip> */}
                   <Tooltip text="AI REMiX : Generate & Own Royalty-Free Viral AI Music">
                     <button
                       onClick={() => {
@@ -203,7 +203,7 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI REMiX</span>}
                     </button>
                   </Tooltip>
-                  <Tooltip text="Play Music Mini-Games">
+                  {/* <Tooltip text="Play Music Mini-Games">
                     <button
                       onClick={() => {
                         setHomeMode(`games`);
@@ -226,8 +226,8 @@ export const Layout = ({
                       <span className="md:hidden w-max">Games</span>
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">Games</span>}
                     </button>
-                  </Tooltip>
-                  <Tooltip text="Reward Pools">
+                  </Tooltip> */}
+                  {/* <Tooltip text="Reward Pools">
                     <button
                       onClick={() => {
                         setHomeMode(`reward-pools-${new Date().getTime()}`);
@@ -245,7 +245,7 @@ export const Layout = ({
                       <span className="md:hidden w-max">Reward Pools</span>
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">Rewards</span>}
                     </button>
-                  </Tooltip>
+                  </Tooltip> */}
                   <Tooltip text="XP Leaderboards">
                     <button
                       onClick={() => {
@@ -366,7 +366,7 @@ export const Layout = ({
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500
             `}>
-            <AlertBanner />
+            {/* <AlertBanner /> */}
             <main className="flex flex-col flex-auto md:mx-[1rem] min-h-[80dvh] px-4 md:px-0">{children}</main>
           </div>
         </div>

@@ -25,6 +25,7 @@ export enum MVX_ENV_ENUM {
 
 export const DISABLE_BITZ_FEATURES = import.meta.env.VITE_ENV_DISABLE_BITZ_FEATURES || false;
 export const DISABLE_REMIX_LAUNCH_BUTTON = import.meta.env.VITE_ENV_DISABLE_REMIX_LAUNCH || false;
+export const DISABLE_COMMERCIAL_LICENSE_BUY_OPTION = import.meta.env.VITE_ENV_DISABLE_COMMERCIAL_LICENSE_BUY_OPTION || true;
 
 export const GENERATE_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0
 export const LAUNCH_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0
@@ -79,7 +80,12 @@ export const RANDOM_COLORS = [
 ];
 
 export const ALL_MUSIC_GENRES = [
-  { code: "ai music", label: "AI Music", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/OllyGMonaLisaRapSymphony.jpg" },
+  {
+    code: "ai music",
+    label: "AIM (AI Music)",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/OllyGMonaLisaRapSymphony.jpg",
+  },
   { code: "electronic", label: "Electronic", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PixelJedi_Absolute.jpg" },
   { code: "dnb", label: "Drum & Bass", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PhysixDudeAnglesOfIdentity.jpg" },
   { code: "hip hop", label: "Hip Hop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Streetz_Cover.jpg" },
@@ -175,7 +181,7 @@ export const LICENSE_TERMS_MAP = {
     urlToLicense: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
   },
   [AlbumSaleTypeOption.priceOption3]: {
-    shortDescription: "Commercial Remix. CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution",
+    shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license",
     urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
   },
 };

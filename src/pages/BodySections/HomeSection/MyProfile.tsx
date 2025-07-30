@@ -120,8 +120,12 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
               <p className="text-lg">{userWeb2AccountDetails.billingEmail || "Not provided"}</p>
             </div>
             <div>
-              <label className="text-gray-400 text-sm">Wallet Address</label>
+              <label className="text-gray-400 text-sm">Solana Wallet Address</label>
               <p className="text-lg font-mono">{displayPublicKey ? displayPublicKey.toString() : "Not connected"}</p>
+            </div>
+            <div>
+              <label className="text-gray-400 text-sm">Story Protocol Address</label>
+              <p className="text-lg font-mono">{userWeb2AccountDetails.storyProtocolAddress || "Not connected"}</p>
             </div>
             <div>
               <label className="text-gray-400 text-sm">Last Login Session</label>

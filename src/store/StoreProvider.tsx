@@ -8,8 +8,8 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
 import { AlbumTrackCatalog, MusicAssetOwned } from "libs/types";
+import { fetchMintsLeaderboardByMonthViaAPI, fetchMyAlbumsFromMintLogsViaAPI, getLoggedInUserProfileAPI, getPaymentLogsViaAPI } from "libs/utils/api";
 import { computeRemainingCooldown } from "libs/utils/functions";
-import { fetchMintsLeaderboardByMonthViaAPI, getLoggedInUserProfileAPI, getPaymentLogsViaAPI } from "libs/utils/api";
 import { getAlbumTrackCatalogData, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import useSolBitzStore from "store/solBitz";
 import { useAccountStore } from "./account";
@@ -46,6 +46,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     updateMyMusicAssetPurchases,
     updateMyRawPaymentLogs,
     updateUserWeb2AccountDetails,
+    updateMyAlbumMintLogs,
   } = useAccountStore();
   const {
     solBitzNfts,
@@ -145,9 +146,15 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
       updateMyRawPaymentLogs(_paymentLogs);
     }
 
+    async function getAllAlbumMintLogs() {
+      const _albumMintLogs = await fetchMyAlbumsFromMintLogsViaAPI(addressSol!);
+      updateMyAlbumMintLogs(_albumMintLogs);
+    }
+
     if (publicKeySol) {
       getAllUsersSolNftsAndRefreshSignatureSession();
       getAllPaymentLogs();
+      getAllAlbumMintLogs();
     }
   }, [publicKeySol]);
 

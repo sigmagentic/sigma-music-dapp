@@ -42,19 +42,11 @@ export const JoinInnerCircleSOL = ({
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
+  const [notEnoughBalance, setNotEnoughBalance] = useState(true);
 
-  // const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
-  //   `I just joined ${artistName}'s exclusive Inner Circle fan club on @SigmaXMusic. Come and join me!`
-  // )}`;
-
-  // S: Cached Signature Store Items
-  const solPreaccessNonce = useAccountStore((state: any) => state.solPreaccessNonce);
-  const solPreaccessSignature = useAccountStore((state: any) => state.solPreaccessSignature);
-  const solPreaccessTimestamp = useAccountStore((state: any) => state.solPreaccessTimestamp);
-  const updateSolPreaccessNonce = useAccountStore((state: any) => state.updateSolPreaccessNonce);
-  const updateSolPreaccessTimestamp = useAccountStore((state: any) => state.updateSolPreaccessTimestamp);
-  const updateSolSignedPreaccess = useAccountStore((state: any) => state.updateSolSignedPreaccess);
-  // E: Cached Signature Store Items
+  // Cached Signature Store Items
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -106,6 +98,14 @@ export const JoinInnerCircleSOL = ({
       setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(tweetMsg)}`);
     }
   }, [artistXLink, artistName]);
+
+  useEffect(() => {
+    if (walletBalance && requiredSolAmount && walletBalance < requiredSolAmount) {
+      setNotEnoughBalance(true);
+    } else {
+      setNotEnoughBalance(false);
+    }
+  }, [walletBalance, requiredSolAmount]);
 
   const handlePaymentConfirmation = async () => {
     if (!publicKey || !requiredSolAmount) return;
@@ -449,10 +449,16 @@ export const JoinInnerCircleSOL = ({
                     </div>
                   )}
 
+                  {notEnoughBalance && (
+                    <div className="flex-1 bg-red-500 text-white p-2 rounded-lg text-sm">
+                      <p>You do not have enough SOL to purchase this album.</p>
+                    </div>
+                  )}
+
                   <Button
                     onClick={handlePaymentAndMint}
                     className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
-                    disabled={isSolPaymentsDisabled}>
+                    disabled={isSolPaymentsDisabled || notEnoughBalance}>
                     Make Payment and Mint Fan Collectible
                   </Button>
                 </>

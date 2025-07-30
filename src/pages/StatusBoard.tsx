@@ -14,6 +14,7 @@ export const StatusBoard = () => {
   const [minterBalance, setMinterBalance] = useState<number | null>(null);
   const [recentMints, setRecentMints] = useState<MintTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [storyMinterBalance, setStoryMinterBalance] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchMinterData = async () => {
@@ -97,6 +98,16 @@ export const StatusBoard = () => {
               ) : (
                 <div className="text-gray-400">No recent mint transactions found</div>
               )}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-black text-white rounded-lg shadow p-6">
+          <h2 className="text-2xl font-semibold mb-4">Story Protocol</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-400">Minter Wallet Balance:</span>
+              <span className="font-mono">{storyMinterBalance !== null ? `${storyMinterBalance.toFixed(4)} IP` : "Loading..."}</span>
             </div>
           </div>
         </section>

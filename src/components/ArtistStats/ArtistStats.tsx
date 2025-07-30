@@ -104,12 +104,12 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
     <>
       {isLoading ? (
         <div className="h-[100px] flex items-center justify-center">
-          <Loader className="animate-spin" size={30} />
+          <Loader className="animate-spin text-yellow-300" size={30} />
         </div>
       ) : (
         <>
           <div className="streams-leaderboard-container">
-            <h1 className="!text-3xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
+            <h1 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
               Most Streamed Songs
             </h1>
             {streamMetricData.length === 0 ? (
@@ -163,7 +163,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
           </div>
 
           <div className="sales-insights-container">
-            <h1 className="!text-3xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
+            <h1 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
               Sales Insights
             </h1>
             {artistStats.length === 0 && <p className="text-xl mb-10 text-center md:text-left opacity-50">No sales data yet</p>}

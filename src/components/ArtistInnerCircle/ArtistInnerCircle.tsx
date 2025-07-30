@@ -82,9 +82,6 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   const [joinInnerCircleModalOpen, setJoinInnerCircleModalOpen] = useState<boolean>(false);
   const [selectedTokenImg, setSelectedTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
-  // const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
-  //   `I am part of ${artistName}'s exclusive Inner Circle fan club on @SigmaXMusic. Come and join me!`
-  // )}`;
 
   useEffect(() => {
     if (!creatorPaymentsWallet) {
@@ -407,7 +404,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   if (isLoading) {
     return (
       <div className="h-[100px] flex items-center justify-center">
-        <Loader className="animate-spin" size={30} />
+        <Loader className="animate-spin text-yellow-300" size={30} />
       </div>
     );
   }
@@ -415,10 +412,10 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   if (creatorFanMembershipAvailability && Object.keys(creatorFanMembershipAvailability).length === 0) {
     return (
       <div className="max-w-4xl mx-auto md:m-[initial] p-6 flex flex-col">
-        <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
+        <h2 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
           No Inner Circle Available
         </h2>
-        <p className="text-gray-400 text-center md:text-left">{artistName} hasn't set up their Inner Circle fan membership program yet.</p>
+        <p className="text-gray-400 text-center md:text-left">{artistName} hasn't set up their Inner Circle fan club program yet.</p>
       </div>
     );
   }
@@ -471,7 +468,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   return (
     <>
       <div className="max-w-4xl mx-auto md:m-[initial] p-6 flex flex-col">
-        <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
+        <h2 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
           Join {artistName}'s Inner Circle
         </h2>
         <p className="text-gray-400 mb-8 text-center md:text-left">An exclusive fan membership program only for hardcore fans!</p>
@@ -660,7 +657,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                     }}>
                     <>
                       <ShoppingCart />
-                      <span className="ml-2">Or Find On External NFT Market</span>
+                      <span className="ml-2">Or Buy on NFT Market</span>
                     </>
                   </Button>
                 </div>

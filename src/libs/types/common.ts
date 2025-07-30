@@ -220,3 +220,17 @@ export interface EntitlementForMusicAsset {
   };
   nftAssetIdOnBlockchain: string | null;
 }
+
+export interface MyAlbumMintLog {
+  mintTemplate: string;
+  assetId: string;
+  paymentHash: string;
+  creatorWallet: string;
+  createdOnTS: number;
+  updatedOnTS?: number;
+  normalizedAddr: string;
+  ipTokenId: string;
+  storyProtocolLicenseMintingSQSMessageId?: string;
+  storyProtocolLicenseTokenId?: string;
+  storyProtocolLicenseMintingTxHash?: string;
+}

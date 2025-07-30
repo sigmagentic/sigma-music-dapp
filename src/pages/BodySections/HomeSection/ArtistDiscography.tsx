@@ -15,23 +15,31 @@ import {
   ExternalLink,
   X,
   Image,
+  List,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingE from "assets/img/icons/rating-E.png";
-import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
+import { StoryIPLicenseDisplay } from "components/StoryIPLicenseDisplay";
 import { APP_NETWORK, DISABLE_BITZ_FEATURES, LICENSE_TERMS_MAP } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { fetchSolNfts } from "libs/sol/SolViewData";
 import { AlbumSaleTypeOption, BountyBitzSumMapping } from "libs/types";
 import { Artist, Album, EntitlementForMusicAsset } from "libs/types";
-import { checkIfAlbumCanBeMintedViaAPI, doFastStreamOnAlbumCheckViaAPI, getPaymentLogsViaAPI, isMostLikelyMobile } from "libs/utils";
+import {
+  checkIfAlbumCanBeMintedViaAPI,
+  doFastStreamOnAlbumCheckViaAPI,
+  fetchMyAlbumsFromMintLogsViaAPI,
+  getPaymentLogsViaAPI,
+  isMostLikelyMobile,
+} from "libs/utils";
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
 import { BuyAndMintAlbumUsingCC } from "./BuyAlbum/BuyAndMintAlbumUsingCC";
 import { BuyAndMintAlbumUsingSOL } from "./BuyAlbum/BuyAndMintAlbumUsingSOL";
+import { TrackList } from "./components/TrackList";
 import { getBestBuyCtaLink } from "./types/utils";
 
 type ArtistDiscographyProps = {
@@ -87,12 +95,14 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const [queueAlbumPlay, setQueueAlbumPlay] = useState(false);
   const [albumToBuyAndMint, setAlbumToBuyAndMint] = useState<Album | undefined>();
   const [albumsWithCanBeMintedFlags, setAlbumsWithCanBeMintedFlags] = useState<Album[]>([]);
-  const { updateMyRawPaymentLogs, myMusicAssetPurchases } = useAccountStore();
+  const { updateMyRawPaymentLogs, myMusicAssetPurchases, myAlbumMintLogs, updateMyAlbumMintLogs } = useAccountStore();
   const [showEntitlementsModal, setShowEntitlementsModal] = useState(false);
   const [selectedAlbumToShowEntitlements, setSelectedAlbumToShowEntitlements] = useState<Album | null>(null);
   const [entitlementsForSelectedAlbum, setEntitlementsForSelectedAlbum] = useState<EntitlementForMusicAsset | null>(null);
   const [showSigmaExclusiveModal, setShowSigmaExclusiveModal] = useState(false);
+  const [selectedAlbumForTrackList, setSelectedAlbumForTrackList] = useState<Album | null>(null);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
+  const [ownedStoryProtocolCommercialLicense, setOwnedStoryProtocolCommercialLicense] = useState<any | null>(null);
 
   useEffect(() => {
     if (artistProfile && albums.length > 0) {
@@ -197,20 +207,35 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     }
   }, [selectedAlbumToShowEntitlements, myMusicAssetPurchases, solMusicAssetNfts]);
 
-  function thisIsPlayingOnMusicPlayer(album: any) {
+  useEffect(() => {
+    if (selectedAlbumToShowEntitlements && entitlementsForSelectedAlbum && entitlementsForSelectedAlbum.licenseTerms.ipTokenId && myAlbumMintLogs.length > 0) {
+      // mintTemplate: "album-ar21_a3-1752833831760" so we need to check if the albumId is in the mintTemplate
+      const findStoryProtocolLicense = myAlbumMintLogs.find(
+        (mintLog) =>
+          mintLog.ipTokenId === entitlementsForSelectedAlbum.licenseTerms.ipTokenId && mintLog.mintTemplate.includes(selectedAlbumToShowEntitlements.albumId)
+      );
+
+      if (findStoryProtocolLicense) {
+        setOwnedStoryProtocolCommercialLicense(findStoryProtocolLicense);
+      }
+    }
+  }, [entitlementsForSelectedAlbum, selectedAlbumToShowEntitlements, myAlbumMintLogs]);
+
+  function thisIsPlayingOnMusicPlayer(album: any): boolean {
     if (albumIdBeingPlayed) {
       return albumIdBeingPlayed === album.albumId;
     } else {
-      return (
+      return !!(
         dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName ||
-        dataNftPlayingOnMainPlayer?.content.metadata.name.includes(album?.solNftAltCodes || "")
+        dataNftPlayingOnMainPlayer?.content.metadata.name?.includes(album?.solNftAltCodes || "")
       );
     }
   }
 
   function handlePlayMusicAsset(
     album: any,
-    { artistId, albumId, artistName, albumName }: { artistId?: string; albumId?: string; artistName?: string; albumName?: string } = {}
+    { artistId, albumId, artistName, albumName }: { artistId?: string; albumId?: string; artistName?: string; albumName?: string } = {},
+    jumpToPlaylistTrackIndex?: number
   ) {
     let playAlbumNowParams = null;
     // play now feature
@@ -220,6 +245,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         albumId,
         artistName,
         albumName,
+        jumpToPlaylistTrackIndex,
       };
     }
 
@@ -245,6 +271,11 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     updateSolNfts(_allDataNfts);
   }
 
+  async function handleRefreshMyStoryProtocolLicenses() {
+    const _albumMintLogs = await fetchMyAlbumsFromMintLogsViaAPI(addressSol!);
+    updateMyAlbumMintLogs(_albumMintLogs);
+  }
+
   // if we fetch the latest logs, the app store propogates all the music asset purchases for the user
   async function refreshPurchasedLogsViaAPI() {
     const _paymentLogs = await getPaymentLogsViaAPI({ addressSol: addressSol! });
@@ -261,7 +292,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     ];
   }, [albumsWithCanBeMintedFlags, highlightAlbumId]);
 
-  function handlePlayAlbumNow(selectedAlbumToPlay: Album | null) {
+  function handlePlayAlbumNow(selectedAlbumToPlay: Album | null, jumpToPlaylistTrackIndex?: number) {
     // if the user is jumping between multiple albums, the audio player was getting into some weird state
     // .... to deal with this, we check if something is playing and then queue the next album and wait for 5 seconds
     // @TODO: we can improve UX by using some global store state to toggle "queuing" of music when tracks are loading, or are in some
@@ -274,22 +305,30 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       onCloseMusicPlayer();
 
       setTimeout(() => {
-        handlePlayMusicAsset(selectedAlbumToPlay, {
-          artistId: artistProfile.artistId,
-          albumId: selectedAlbumToPlay.albumId,
-          artistName: artistProfile.name,
-          albumName: selectedAlbumToPlay.title,
-        });
+        handlePlayMusicAsset(
+          selectedAlbumToPlay,
+          {
+            artistId: artistProfile.artistId,
+            albumId: selectedAlbumToPlay.albumId,
+            artistName: artistProfile.name,
+            albumName: selectedAlbumToPlay.title,
+          },
+          jumpToPlaylistTrackIndex
+        );
         setQueueAlbumPlay(false);
         updateAssetPlayIsQueued(false);
       }, 5000);
     } else {
-      handlePlayMusicAsset(selectedAlbumToPlay, {
-        artistId: artistProfile.artistId,
-        albumId: selectedAlbumToPlay.albumId,
-        artistName: artistProfile.name,
-        albumName: selectedAlbumToPlay.title,
-      });
+      handlePlayMusicAsset(
+        selectedAlbumToPlay,
+        {
+          artistId: artistProfile.artistId,
+          albumId: selectedAlbumToPlay.albumId,
+          artistName: artistProfile.name,
+          albumName: selectedAlbumToPlay.title,
+        },
+        jumpToPlaylistTrackIndex
+      );
       setQueueAlbumPlay(false);
       updateAssetPlayIsQueued(false);
     }
@@ -298,8 +337,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   return (
     <>
       {albums.length === 0 && (
-        <div className="max-w-4xl mx-auto md:m-[initial] p-6 flex flex-col">
-          <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
+        <div className="max-w-4xl mx-auto md:m-[initial] p-3 flex flex-col">
+          <h2 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
             No Playable Content Yet
           </h2>
         </div>
@@ -308,12 +347,26 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       {albums.length > 0 && albumsWithCanBeMintedFlags.length === 0 && (
         <div className="h-[100px] flex items-center justify-center">
           <>
-            <Loader className="animate-spin" size={30} />
+            <Loader className="animate-spin text-yellow-300" size={30} />
           </>
         </div>
       )}
 
-      {albumsWithCanBeMintedFlags.length > 0 &&
+      {selectedAlbumForTrackList ? (
+        <div className="mx-auto md:m-[initial] p-3">
+          <TrackList
+            album={selectedAlbumForTrackList}
+            artistId={artistProfile.artistId}
+            artistName={artistProfile.name}
+            onBack={() => setSelectedAlbumForTrackList(null)}
+            onPlayTrack={handlePlayAlbumNow}
+            checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
+            trackPlayIsQueued={trackPlayIsQueued}
+            assetPlayIsQueued={assetPlayIsQueued}
+          />
+        </div>
+      ) : (
+        albumsWithCanBeMintedFlags.length > 0 &&
         orderedAlbums.map((album: Album, idx: number) => (
           <div
             key={`${album.albumId}-${idx}`}
@@ -376,7 +429,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
             <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
               <div
-                className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group ${album._buyNowMeta?.priceOption2?.tokenImg ? "cursor-pointer" : ""}`}
+                className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group cursor-pointer`}
                 style={{
                   "backgroundImage": `url(${album.img})`,
                 }}
@@ -385,7 +438,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   if (album._buyNowMeta?.priceOption2?.tokenImg) {
                     setSelectedLargeSizeTokenImg(album._buyNowMeta?.priceOption2?.tokenImg);
                   } else {
-                    return;
+                    // load the track list for the album if we dont have a collectible img to show
+                    setSelectedAlbumForTrackList(album);
                   }
                 }}>
                 {album._buyNowMeta?.priceOption2?.tokenImg && (
@@ -434,7 +488,22 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     />
                   )}
                 </h3>
-                <p className="text-sm">{album.desc}</p>
+                <div className="relative">
+                  <p
+                    className="text-sm overflow-hidden"
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      maxHeight: "4.5rem", // Approximately 3 lines of text
+                    }}
+                    title={album.desc}>
+                    {album.desc}
+                  </p>
+                  {/* Dark shadow overlay to indicate more content */}
+                  <div
+                    className={`absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t ${highlightAlbumId === album.albumId ? "from-bg-yellow-500/10" : "from-[#171717]"}  to-transparent pointer-events-none`}></div>
+                </div>
               </div>
 
               {!DISABLE_BITZ_FEATURES && (
@@ -483,6 +552,14 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             </div>
 
             <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
+              <Button
+                variant="outline"
+                className="text-sm px-3 py-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                onClick={() => setSelectedAlbumForTrackList(album)}>
+                <List className="w-4 h-4 mr-2" />
+                Track List
+              </Button>
+
               {!album._albumCanBeFastStreamed && album.ctaPreviewStream && !inCollectedAlbumsView && checkOwnershipOfMusicAsset(album) === -1 && (
                 <div>
                   <Button
@@ -537,7 +614,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         trackPlayIsQueued ||
                         assetPlayIsQueued
                       }
-                      className={`!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r ${checkOwnershipOfMusicAsset(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px] mr-2`}
+                      variant="outline"
+                      className={`!text-black text-sm px-[2.35rem] bg-gradient-to-r ${checkOwnershipOfMusicAsset(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer mr-2`}
                       onClick={() => {
                         handlePlayAlbumNow(album);
                       }}>
@@ -627,20 +705,21 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                           }}>
                           <>
                             <ShoppingCart />
-                            <span className="ml-2">Find On External NFT Market</span>
+                            <span className="ml-2">Buy on NFT Market</span>
                           </>
                         </Button>
                       </div>
                     )}
 
                     {album._buyNowMeta?.priceOption1?.priceInUSD && !inCollectedAlbumsView && (
-                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px] ${!addressSol ? "w-[222px]" : "w-[222px]"}`}>
+                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px]`}>
                         {/* Animated border background */}
                         <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
 
                         {/* Button content */}
                         <Button
                           className={`relative z-2 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100`}
+                          variant="outline"
                           onClick={() => {
                             if (addressSol) {
                               setAlbumToBuyAndMint(album);
@@ -654,7 +733,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                             <span className="ml-2">
                               {checkOwnershipOfMusicAsset(album) > -1
                                 ? "Buy More Album Copies Now"
-                                : `${addressSol ? `Buy (From  $${album._buyNowMeta?.priceOption1?.priceInUSD})` : `Login to Buy (From $${album._buyNowMeta?.priceOption1?.priceInUSD})`}`}
+                                : `${addressSol ? `Buy (From $${album._buyNowMeta?.priceOption1?.priceInUSD})` : `Login to Buy (From $${album._buyNowMeta?.priceOption1?.priceInUSD})`}`}
                             </span>
                           </>
                         </Button>
@@ -684,7 +763,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
             <span className="text-xs text-gray-700 ml-0 text-left mt-2 mb-[15px]">id: {album.albumId}</span>
           </div>
-        ))}
+        ))
+      )}
 
       {/* Entitlements Modal */}
       {showEntitlementsModal && selectedAlbumToShowEntitlements && (
@@ -706,111 +786,79 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             <p className="text-gray-300 mb-4">You have purchased this asset and these are your entitlements:</p>
 
             <div className="space-y-4">
-              {/* Play Premium Album Section */}
-              <div className="">
-                <h4 className="!text-lg font-semibold text-white">Play Premium Album</h4>
-                <Button
-                  disabled={thisIsPlayingOnMusicPlayer(selectedAlbumToShowEntitlements) || queueAlbumPlay || trackPlayIsQueued || assetPlayIsQueued}
-                  className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
-                  onClick={() => {
-                    handlePlayAlbumNow(selectedAlbumToShowEntitlements);
-                    setShowEntitlementsModal(false);
-                    setSelectedAlbumToShowEntitlements(null);
-                    setEntitlementsForSelectedAlbum(null);
-                  }}>
-                  <AudioWaveform className="w-4 h-4" />
-                  <span className="ml-2">Play Now</span>
-                </Button>
-              </div>
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* Play Premium Album Section */}
+                <div className="">
+                  <h4 className="!text-lg font-semibold text-white">Play Premium Album</h4>
+                  <Button
+                    disabled={thisIsPlayingOnMusicPlayer(selectedAlbumToShowEntitlements) || queueAlbumPlay || trackPlayIsQueued || assetPlayIsQueued}
+                    className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
+                    onClick={() => {
+                      handlePlayAlbumNow(selectedAlbumToShowEntitlements);
+                      setShowEntitlementsModal(false);
+                      setSelectedAlbumToShowEntitlements(null);
+                      setEntitlementsForSelectedAlbum(null);
+                    }}>
+                    <AudioWaveform className="w-4 h-4" />
+                    <span className="ml-2">Play Now</span>
+                  </Button>
+                </div>
 
-              {/* Download Premium Album Files Section */}
-              <div
-                className={`${entitlementsForSelectedAlbum?.mp3TrackUrls.length && entitlementsForSelectedAlbum?.mp3TrackUrls.length > 0 ? "" : "opacity-50 pointer-events-none cursor-not-allowed"}`}>
-                <h4 className="!text-lg font-semibold text-white">Download Premium Album Files (Coming Soon)</h4>
-                <Button
-                  className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
-                  onClick={() => {
-                    // TODO: Implement download functionality
-                    window.open(selectedAlbumToShowEntitlements.ctaBuy, "_blank");
-                  }}>
-                  <Download className="w-4 h-4" />
-                  <span className="ml-2">Download Files</span>
-                </Button>
+                {/* Download Premium Album Files Section */}
+                <div
+                  className={`${entitlementsForSelectedAlbum?.mp3TrackUrls.length && entitlementsForSelectedAlbum?.mp3TrackUrls.length > 0 ? "" : "opacity-50 pointer-events-none cursor-not-allowed"}`}>
+                  <h4 className="!text-lg font-semibold text-white">Download Files (Coming Soon)</h4>
+                  <Button
+                    className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
+                    onClick={() => {
+                      // TODO: Implement download functionality
+                      window.open(selectedAlbumToShowEntitlements.ctaBuy, "_blank");
+                    }}>
+                    <Download className="w-4 h-4" />
+                    <span className="ml-2">Download Files</span>
+                  </Button>
+                </div>
               </div>
 
               {/* Usage License Section */}
               <div className="">
                 <h4 className="!text-lg font-semibold text-white">Your Usage License</h4>
-                <p className="text-gray-300">{entitlementsForSelectedAlbum?.licenseTerms.shortDescription}</p>
-                <Button
-                  className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
-                  onClick={() => {
-                    if (entitlementsForSelectedAlbum?.licenseTerms.urlToLicense) {
-                      window.open(entitlementsForSelectedAlbum?.licenseTerms.urlToLicense, "_blank");
-                    }
-                  }}>
-                  <ExternalLink className="w-4 h-4" />
-                  <span className="ml-2">View License Details</span>
-                </Button>
+                <div className="flex flex-col md:flex-row items-center justify-between">
+                  <p className="text-gray-300">{entitlementsForSelectedAlbum?.licenseTerms.shortDescription}</p>
+                  <Button
+                    className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
+                    onClick={() => {
+                      if (entitlementsForSelectedAlbum?.licenseTerms.urlToLicense) {
+                        window.open(entitlementsForSelectedAlbum?.licenseTerms.urlToLicense, "_blank");
+                      }
+                    }}>
+                    <ExternalLink className="w-4 h-4" />
+                    <span className="ml-2">View License Details</span>
+                  </Button>
+                </div>
 
-                {entitlementsForSelectedAlbum?.licenseTerms.ipTokenId && (
-                  <div className="mt-2">
-                    You have been also allocated an on-chain legal license via Story Protocol.
-                    <div className="flex items-baseline gap-2">
-                      <a href={`https://www.ipontop.com/ip/${entitlementsForSelectedAlbum?.licenseTerms.ipTokenId}`} target="_blank" rel="noopener noreferrer">
-                        <div
-                          className="w-[112px] h-[25px] rounded-md overflow-hidden mt-2 hover:scale-105 transition-all duration-300"
-                          style={{
-                            backgroundImage: `url(${storyProtocolIpOpen})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            backgroundRepeat: "no-repeat",
-                          }}></div>
-                      </a>
-                      <a
-                        href="https://github.com/piplabs/pil-document/blob/v1.3.0/Story%20Foundation%20-%20Programmable%20IP%20License%20(1.31.25).pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-yellow-300 cursor-pointer flex items-center gap-2 hover:opacity-80 transition-colors">
-                        <span>View PIL (Programmatic IP License) Legal Document</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                          <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5z" />
-                        </svg>
-                      </a>
-                      <a
-                        href="https://github.com/piplabs/pil-document/blob/ad67bb632a310d2557f8abcccd428e4c9c798db1/off-chain-terms/CommercialRemix.json"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-yellow-300 cursor-pointer flex items-center gap-2 hover:opacity-80 transition-colors">
-                        <span>View Off-Chain Terms</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                          <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                )}
+                {ownedStoryProtocolCommercialLicense && <StoryIPLicenseDisplay license={ownedStoryProtocolCommercialLicense} />}
               </div>
 
               {/* View Collectible Section */}
               <div className={`${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain ? "" : "opacity-50 pointer-events-none cursor-not-allowed"}`}>
                 <h4 className="!text-lg font-semibold text-white">View Collectible</h4>
-                <p className="text-gray-300">View your NFT collectible on the blockchain.</p>
-                <Button
-                  className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
-                  onClick={() => {
-                    window.open(
-                      APP_NETWORK === "devnet"
-                        ? `https://solscan.io/token/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}?cluster=devnet`
-                        : `https://solana.fm/address/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}/transactions?cluster=mainnet-alpha`,
-                      "_blank"
-                    );
-                  }}>
-                  <Image className="w-4 h-4" />
-                  <span className="ml-2">View on Blockchain</span>
-                </Button>
+                <div className="flex flex-col md:flex-row items-center justify-between">
+                  <p className="text-gray-300">View your NFT collectible on the blockchain.</p>
+                  <Button
+                    className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
+                    onClick={() => {
+                      window.open(
+                        APP_NETWORK === "devnet"
+                          ? `https://solscan.io/token/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}?cluster=devnet`
+                          : `https://solana.fm/address/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}/transactions?cluster=mainnet-alpha`,
+                        "_blank"
+                      );
+                    }}>
+                    <Image className="w-4 h-4" />
+                    <span className="ml-2">View on Blockchain</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -829,6 +877,11 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
                 if (isMintingSuccess) {
                   refreshPurchasedAlbumCollectiblesViaRPC();
+
+                  // if the album is a commercial license, we need to refresh the myStoryProtocolLicenses
+                  if (albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId) {
+                    handleRefreshMyStoryProtocolLicenses();
+                  }
                 }
 
                 refreshPurchasedLogsViaAPI();

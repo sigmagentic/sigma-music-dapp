@@ -28,16 +28,16 @@ const slides: Slide[] = [
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-3-join-fan-membership.png",
-    text: "Love a musician? Join their Inner Circle fan membership and get a unique fan collectible, perks, and share in revenue!",
+    text: "Love a musician? Join their Inner Circle fan club and get a unique fan collectible, perks, and share in revenue!",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4-join-live-campaigns-for-irl-collectibles.png",
     text: "Join Real World Events via Campaigns like the World Supremacy Battleground Dance Competition, collect unique collectibles, support artists, and share in revenue!",
   },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4a-reward-pools.png",
-    text: "Participate in Reward Pools and win a share of app revenue!",
-  },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4a-reward-pools.png",
+  //   text: "Participate in Reward Pools and win a share of app revenue!",
+  // },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-5-collect-free-xp.png",
     text: "Play an XP game every 6 hours and get free app XP",
