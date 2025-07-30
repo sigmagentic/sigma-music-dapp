@@ -3,15 +3,15 @@ import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import CAMPAIGN_WSB_CTA from "assets/img/campaigns/campaign-wsb-home-cta.png";
 import { MusicPlayer } from "components/AudioPlayer/MusicPlayer";
 import { MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier, isUIDebugMode } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
-import { getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/misc";
+import { getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/api";
 import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
+import { CampaignHeroWIR } from "pages/Campaigns/CampaignHeroWIR";
 import { CampaignHeroWSB } from "pages/Campaigns/CampaignHeroWSB";
 import { Remix } from "pages/Remix";
 import { useAccountStore } from "store/account";
@@ -28,7 +28,6 @@ import { MyProfile } from "./MyProfile";
 import { RewardPools } from "./RewardPools";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
-import { CampaignHeroWIR } from "pages/Campaigns/CampaignHeroWIR";
 
 type HomeSectionProps = {
   homeMode: string;
@@ -67,7 +66,15 @@ export const HomeSection = (props: HomeSectionProps) => {
     creatorWallet: string;
   } | null>(null);
   const [userHasNoBitzDataNftYet, setUserHasNoBitzDataNftYet] = useState(false);
-  const { assetPlayIsQueued, trackPlayIsQueued, updateAssetPlayIsQueued, albumIdBeingPlayed, updateAlbumIdBeingPlayed } = useAudioPlayerStore();
+  const {
+    assetPlayIsQueued,
+    trackPlayIsQueued,
+    updateAssetPlayIsQueued,
+    albumIdBeingPlayed,
+    updateAlbumIdBeingPlayed,
+    updatePlaylistTrackIndexBeingPlayed,
+    updateJumpToTrackIndexInAlbumBeingPlayed,
+  } = useAudioPlayerStore();
   const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
   const { artistLookupEverything } = useAppStore();
@@ -115,6 +122,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   // Player state control (for both album and playlist)
   const [musicPlayerTrackListFromDb, setMusicPlayerTrackListFromDb] = useState<boolean>(false);
   const [musicPlayerAlbumTrackList, setMusicPlayerAlbumTrackList] = useState<MusicTrack[]>([]);
+  const [jumpToPlaylistTrackIndex, setJumpToPlaylistTrackIndex] = useState<number | undefined>(undefined);
   const [musicPlayerPlaylistTrackList, setMusicPlayerPlaylistTrackList] = useState<MusicTrack[]>([]);
   const [musicPlayerDefaultPlaylistTrackList, setMusicPlayerDefaultPlaylistTrackList] = useState<MusicTrack[]>([]);
   const [launchPlaylistPlayer, setLaunchPlaylistPlayer] = useState(false); // control the visibility base music player in PLAYLIST play mode
@@ -546,6 +554,11 @@ export const HomeSection = (props: HomeSectionProps) => {
       // save in global state the albumId being played
       updateAlbumIdBeingPlayed(playAlbumNowParams.albumId);
       setLaunchPlaylistPlayerWithDefaultTracks(false); // reset this value in-case user was listening to a default playlist before playing an album
+
+      // set the jumpToPlaylistTrackIndex to the first track if it exists
+      if (playAlbumNowParams.jumpToPlaylistTrackIndex) {
+        setJumpToPlaylistTrackIndex(playAlbumNowParams.jumpToPlaylistTrackIndex);
+      }
     } catch (err) {
       console.error(err);
       toastClosableError("Generic error via on-chain data loading, error: " + (err as Error).message);
@@ -653,6 +666,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     setCurrentDataNftIndex(-1);
     setMusicPlayerPlaylistTrackList([]);
     setMusicPlayerAlbumTrackList([]);
+    setJumpToPlaylistTrackIndex(undefined);
     setMusicPlayerTrackListFromDb(false);
     setLaunchAlbumPlayer(false);
     setLaunchPlaylistPlayer(false);
@@ -662,6 +676,8 @@ export const HomeSection = (props: HomeSectionProps) => {
     setViewSolDataHasError(false);
     setSelectedGenreForPlaylist("");
     updateAlbumIdBeingPlayed(undefined);
+    updatePlaylistTrackIndexBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
+    updateJumpToTrackIndexInAlbumBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
   }
 
   useEffect(() => {
@@ -700,14 +716,26 @@ export const HomeSection = (props: HomeSectionProps) => {
                     <Slideshow
                       slides={[
                         {
-                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/April_Four_Amendment_Cover.jpg",
-                          imageCustomClass: "bg-center",
-                          alt: "Artist Spotlight on April Four",
-                          buttonText: "Artist Spotlight on April Four",
+                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/Bobby_Ibo_Underdogs.JPG",
+                          imageCustomClass: "object-none",
+                          alt: "New EP by Bobby Ibo is Live!",
+                          buttonText: "New EP by Bobby Ibo is Live!",
                           onClick: () => {
                             navigateToDeepAppView({
-                              artistSlug: "april-four",
-                              albumId: "ar23",
+                              artistSlug: "bobby-ibo",
+                              albumId: "ar20_a2",
+                            });
+                          },
+                        },
+                        {
+                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/OLLYG_Avatar_Cover.jpeg",
+                          imageCustomClass: "bg-top",
+                          alt: "Olly'G Drops a Sigma Exclusive EP!",
+                          buttonText: "Olly'G Drops a Sigma Exclusive EP!",
+                          onClick: () => {
+                            navigateToDeepAppView({
+                              artistSlug: "olly-g",
+                              albumId: "ar14_a5",
                             });
                           },
                         },
@@ -724,6 +752,18 @@ export const HomeSection = (props: HomeSectionProps) => {
                           },
                         },
                         {
+                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/April_Four_Amendment_Cover.jpg",
+                          imageCustomClass: "bg-center",
+                          alt: "Artist Spotlight on April Four",
+                          buttonText: "Artist Spotlight on April Four",
+                          onClick: () => {
+                            navigateToDeepAppView({
+                              artistSlug: "april-four",
+                              albumId: "ar23",
+                            });
+                          },
+                        },
+                        {
                           image: "https://api.itheumcloud.com/app_nftunes/assets/img/DuoDo.jpg",
                           imageCustomClass: "object-none",
                           alt: "New Music By Dúo Dø is Live!",
@@ -734,18 +774,12 @@ export const HomeSection = (props: HomeSectionProps) => {
                             });
                           },
                         },
-                        {
-                          image: CAMPAIGN_WSB_CTA,
-                          imageCustomClass: "object-cover",
-                          alt: "WSB Fan Collectibles Are Live!",
-                          buttonText: "WSB Collectibles Now Live!",
-                          onClick: () => setHomeMode(`campaigns-wsb-${new Date().getTime()}`),
-                        },
                       ]}
                     />
                     <div className="flex flex-col flex-1 text-left align-center justify-center p-2 md:p-5">
-                      <span className="text-center font-[Clash-Medium] text-2xl md:text-3xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
-                        Your Music Super App for Exclusive Fan Experiences
+                      <span className="text-center font-[Clash-Medium] text-xl md:text-3xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
+                        {/* Royalty-free AI remixes powered by real artists. */}
+                        Buy Rare Music Collectibles. Publish IP-Safe AI Remixes. Stream Great Music!
                       </span>
                     </div>
                   </div>
@@ -931,6 +965,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                 onCloseMusicPlayer={resetMusicPlayerState}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
                 viewSolDataHasError={viewSolDataHasError}
+                jumpToPlaylistTrackIndex={jumpToPlaylistTrackIndex}
                 loadIntoDockedMode={false}
                 navigateToDeepAppView={navigateToDeepAppView}
               />
@@ -955,6 +990,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                 onCloseMusicPlayer={resetMusicPlayerState}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
                 viewSolDataHasError={false}
+                jumpToPlaylistTrackIndex={jumpToPlaylistTrackIndex}
                 loadIntoDockedMode={loadPlaylistPlayerIntoDockedMode}
                 navigateToDeepAppView={navigateToDeepAppView}
               />

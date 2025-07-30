@@ -7,7 +7,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { Button } from "libComponents/Button";
 import StripeCheckoutFormFanMembership from "libs/stripe/StripeCheckoutFormFanMembership";
-import { getApiWeb2Apps } from "libs/utils/misc";
+import { getApiWeb2Apps } from "libs/utils/api";
 import { convertTokenImageUrl } from "libs/utils/ui";
 import { tierData } from "./tierData";
 

@@ -176,7 +176,7 @@ const faqSections: FAQSection[] = [
 
               <div>
                 <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <span>💎</span> Inner Circle Fan Memberships
+                  <span>💎</span> Inner Circle Fan Clubs
                 </h4>
                 <p>
                   Buy a one-time or monthly membership to support your fav artists. You'll get exclusive access, perks, shoutouts—and a chance to win in
@@ -252,7 +252,7 @@ const faqSections: FAQSection[] = [
                 <p>We take random snapshots of users who hold:</p>
                 <ul className="list-disc pl-6 space-y-2 mt-2">
                   <li>🎵 Music NFTs</li>
-                  <li>🌟 Inner Circle Fan Membership NFTs</li>
+                  <li>🌟 Inner Circle Fan Club NFTs</li>
                   <li>💰 $FAN tokens worth at least $9.99 (the price of a fan membership)</li>
                 </ul>
               </div>

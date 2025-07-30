@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
+import { Loader, RefreshCcw } from "lucide-react";
+import { StoryIPLicenseDisplay } from "components/StoryIPLicenseDisplay";
 import { DISABLE_BITZ_FEATURES } from "config";
-import { BountyBitzSumMapping } from "libs/types";
-import { sleep } from "libs/utils/misc";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { Album, BountyBitzSumMapping } from "libs/types";
+import { fetchMyAlbumsFromMintLogsViaAPI, sleep } from "libs/utils";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
+import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
@@ -47,6 +51,8 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     setHomeMode,
     navigateToDeepAppView,
   } = props;
+  const { publicKey: publicKeySol } = useSolanaWallet();
+  const addressSol = publicKeySol?.toBase58();
   const { isSolCoreLoading, solBitzNfts, solMusicAssetNfts, solFanMembershipNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [myCollectedArtistsAlbums, setMyCollectedArtistsAlbums] = useState<any[]>([]);
@@ -54,6 +60,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   const [allOwnedFanMemberships, setAllOwnedFanMemberships] = useState<any[]>([]);
   const { artistLookupEverything } = useAppStore();
   const [dataLoaded, setDataLoaded] = useState(false);
+  const { myAlbumMintLogs, updateMyAlbumMintLogs } = useAccountStore();
+  const [isLoadingStoryLicenses, setIsLoadingStoryLicenses] = useState(false);
+  const [myStoryProtocolLicenses, setMyStoryProtocolLicenses] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -173,6 +182,40 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
     }
   }, [artistAlbumDataset, solMusicAssetNfts, artistLookupEverything, solFanMembershipNfts]);
 
+  useEffect(() => {
+    if (myAlbumMintLogs.length > 0 && artistAlbumDataset.length > 0) {
+      const _myStoryProtocolLicenses = myAlbumMintLogs
+        .filter((log) => log.ipTokenId)
+        .map((log) => ({
+          ipTokenId: log.ipTokenId,
+          storyProtocolLicenseMintingSQSMessageId: log.storyProtocolLicenseMintingSQSMessageId,
+          storyProtocolLicenseTokenId: log.storyProtocolLicenseTokenId,
+          storyProtocolLicenseMintingTxHash: log.storyProtocolLicenseMintingTxHash,
+          createdOnTS: log.createdOnTS,
+          updatedOnTS: log.updatedOnTS,
+          mintTemplate: log.mintTemplate,
+        }));
+
+      // e.g. mintTemplate: "album-ar21_a3-1752833831760"
+      // we need to extract the albumId from the mintTemplate and then get the album name and image from the albumArtistLookupData
+      const _myStoryProtocolLicensesWithAlbumDetails = _myStoryProtocolLicenses.map((log) => {
+        const albumId = log.mintTemplate.split("-")[1];
+        const album = artistAlbumDataset
+          .map((artist) => artist.albums)
+          .flat()
+          .find((_album: Album) => _album.albumId === albumId);
+        return {
+          ...log,
+          albumId: albumId,
+          albumName: album?.title,
+          albumImage: album?.img,
+        };
+      });
+
+      setMyStoryProtocolLicenses(_myStoryProtocolLicensesWithAlbumDetails);
+    }
+  }, [myAlbumMintLogs, artistAlbumDataset]);
+
   async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {
     // we throttle this so that we don't overwhelm the server and also, the local state updates dont fire if they are all too close together
     for (let i = 0; i < allOwnedAlbums.length; i++) {
@@ -211,6 +254,15 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
       console.error("Error extracting fan token 3D gif teaser from token img url:", error);
       return null;
     }
+  }
+
+  async function handleRefreshMyStoryProtocolLicenses() {
+    setIsLoadingStoryLicenses(true);
+
+    const _albumMintLogs = await fetchMyAlbumsFromMintLogsViaAPI(addressSol!);
+    updateMyAlbumMintLogs(_albumMintLogs);
+
+    setIsLoadingStoryLicenses(false);
   }
 
   return (
@@ -268,7 +320,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                           })}
                         </>
                       ) : (
-                        <div className="">
+                        <div className="text-lg">
                           ⚠️ You have not collected any albums. Let's fix that!
                           <span className="hidden">Get your </span>
                           <span
@@ -311,7 +363,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
       {allOwnedFanMemberships.length > 0 && (
         <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
           <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
-            <span className="m-auto md:m-0">Inner Circle Fan Collectibles</span>
+            <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+              Inner Circle Fan Collectibles
+            </span>
           </div>
 
           {dataLoaded && (
@@ -334,7 +388,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                           {allOwnedFanMemberships.length} {allOwnedFanMemberships.length > 1 ? `fan memberships` : `fan membership`}
                         </span>
                       </div>
-                      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border">
+                      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {allOwnedFanMemberships.map((membership: any, index: number) => {
                           const handleClick = () => {
                             if (membership.slug) {
@@ -380,6 +434,87 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
           )}
         </div>
       )}
+
+      <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
+        <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full items-center justify-between">
+          <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+            Commercial Licenses
+          </span>
+          <div
+            className={`cursor-pointer flex items-center gap-2 text-sm ${isLoadingStoryLicenses ? "opacity-50" : ""}`}
+            onClick={() => {
+              if (!isLoadingStoryLicenses) {
+                handleRefreshMyStoryProtocolLicenses();
+              }
+            }}>
+            {isLoadingStoryLicenses ? (
+              <Loader className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <RefreshCcw className="w-5 h-5" />
+                Refresh
+              </>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col md:flex-row w-[100%] items-start">
+          <div className="flex flex-col gap-4 items-start bg-background min-h-[200px] w-[100%]">
+            <div className="flex flex-col justify-center w-[100%]">
+              {isLoadingStoryLicenses ? (
+                <div className="m-auto w-full">
+                  <div className="w-full flex flex-col items-center h-[300px] md:h-[100%] md:grid md:grid-rows-[300px] md:auto-rows-[300px] md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] md:gap-[10px]">
+                    {[...Array(3)].map((_, index) => (
+                      <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="my-2 font-bold text-2xl mb-5">
+                    {myStoryProtocolLicenses.length > 0 ? (
+                      <>
+                        You have {myStoryProtocolLicenses.length} {myStoryProtocolLicenses.length > 1 ? `licenses` : `license`}
+                      </>
+                    ) : (
+                      <p className="text-lg">⚠️ You have not collected any commercial licenses</p>
+                    )}
+                  </div>
+                  <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {myStoryProtocolLicenses.map((license: any, index: number) => {
+                      const img = license.albumImage;
+                      const albumName = license.albumName;
+                      return (
+                        <div key={index} className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors">
+                          <div
+                            className="w-full h-full flex items-center justify-center"
+                            onClick={() => {
+                              // get the artist slug from the albumId
+                              const artistId = license.albumId.split("_")[0];
+                              const slug = artistLookupEverything[artistId]?.slug;
+                              navigateToDeepAppView({
+                                artistSlug: slug,
+                                albumId: license.albumId,
+                              });
+                            }}>
+                            {img ? (
+                              <img src={img} alt={albumName} className="h-48 w-48 object-cover rounded-lg mb-4" />
+                            ) : (
+                              <div className="h-48 w-48 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-lg mb-4">No Image</div>
+                            )}
+                          </div>
+                          <div className="text-center max-w-[300px]">{albumName}</div>
+
+                          <StoryIPLicenseDisplay license={license} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { SparklesIcon } from "@heroicons/react/24/solid";
 import { Loader } from "lucide-react";
 import { DEFAULT_BITZ_COLLECTION_SOL } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
-import { fetchFullXPLeaderboardViaAPI, fetchMyPlaceOnFullXPLeaderboardViaAPI, fetchBountySnapshotViaAPI } from "libs/utils/misc";
+import { fetchFullXPLeaderboardViaAPI, fetchMyPlaceOnFullXPLeaderboardViaAPI, fetchBountySnapshotViaAPI } from "libs/utils/api";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";

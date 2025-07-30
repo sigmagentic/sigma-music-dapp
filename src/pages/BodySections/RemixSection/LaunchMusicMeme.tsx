@@ -9,7 +9,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { toastSuccess } from "libs/utils";
-import { fetchSolPrice, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/misc";
+import { fetchSolPriceViaAPI, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/api";
 import { useAccountStore } from "store/account";
 
 const EXAMPLE_THEMES = ["Degen Trader", "Meme Galore", "Moon Mission", "Diamond Hands"];
@@ -69,7 +69,7 @@ export const LaunchMusicMeme = ({ onCloseModal }: { onCloseModal: () => void }) 
   useEffect(() => {
     const fetchPrice = async () => {
       try {
-        const { currentSolPrice } = await fetchSolPrice();
+        const { currentSolPrice } = await fetchSolPriceViaAPI();
 
         // Calculate required SOL amount based on USD price
         const solAmount = GENERATE_MUSIC_MEME_PRICE_IN_USD / currentSolPrice;

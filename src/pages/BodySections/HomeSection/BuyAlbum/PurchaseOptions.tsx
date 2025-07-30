@@ -1,7 +1,7 @@
 import React from "react";
 import { Loader } from "lucide-react";
 import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
-import { LICENSE_TERMS_MAP } from "config";
+import { APP_NETWORK, LICENSE_TERMS_MAP, DISABLE_COMMERCIAL_LICENSE_BUY_OPTION } from "config";
 import { Button } from "libComponents/Button";
 import { Album, AlbumSaleTypeOption } from "libs/types";
 
@@ -23,6 +23,8 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
   const isOptionAvailable = (option: "priceOption1" | "priceOption2" | "priceOption3") => {
     if (option === "priceOption1") {
       return buyNowMeta?.[option]?.priceInUSD && buyNowMeta[option]?.priceInUSD !== "";
+    } else if (DISABLE_COMMERCIAL_LICENSE_BUY_OPTION && option === "priceOption3") {
+      return false;
     } else {
       return buyNowMeta?.[option]?.priceInUSD && buyNowMeta[option]?.priceInUSD !== "" && buyNowMeta[option]?.canBeMinted;
     }
@@ -53,10 +55,13 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
       <div className="relative">
         {!available && (
           <div className="absolute inset-0 flex items-center justify-center z-20">
-            <span className="bg-white text-black px-4 py-2 rounded-lg font-semibold shadow-lg">Currently Not Offered</span>
+            <span className="bg-white text-black px-4 py-2 rounded-lg font-semibold shadow-lg">
+              {DISABLE_COMMERCIAL_LICENSE_BUY_OPTION && option === "priceOption3" ? "Currently Offline" : "Currently Not Offered"}
+            </span>
           </div>
         )}
-        <div className={`bg-black rounded-lg p-4 relative ${!available ? "opacity-20 pointer-events-none" : ""}`}>
+
+        <div className={`bg-black rounded-lg p-4 pb-8 relative ${!available ? "opacity-20 pointer-events-none" : ""}`}>
           {/* Rarity and Max Mints Badge */}
           {option !== "priceOption1" && available && buyNowMeta?.priceOption2?.canBeMinted && (
             <div className={`absolute bottom-[-7px] right-0 z-10 ${buyNowMeta?.rarityGrade === "Common" ? "opacity-50" : ""}`}>
@@ -75,7 +80,6 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
           <div
             className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
             onMouseEnter={() => {
-              console.log("tokenImg", tokenImg);
               handleShowLargeSizeTokenImg(tokenImg || null);
             }}>
             {/* Details (left) */}
@@ -90,16 +94,20 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
               </p>
               {ipTokenId && (
                 <>
-                  <a href={`https://www.ipontop.com/ip/${ipTokenId}`} target="_blank" rel="noopener noreferrer">
-                    <div
-                      className="w-[112px] h-[25px] rounded-md overflow-hidden mt-2 hover:scale-105 transition-all duration-300"
-                      style={{
-                        backgroundImage: `url(${storyProtocolIpOpen})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundRepeat: "no-repeat",
-                      }}></div>
-                  </a>
+                  <div
+                    className="w-[112px] h-[25px] rounded-md overflow-hidden mt-2 hover:scale-105 transition-all duration-300"
+                    onClick={() => {
+                      window.open(
+                        APP_NETWORK === "devnet" ? `https://aeneid.explorer.story.foundation/ipa/${ipTokenId}` : `https://www.ipontop.com/ip/${ipTokenId}`,
+                        "_blank"
+                      );
+                    }}
+                    style={{
+                      backgroundImage: `url(${storyProtocolIpOpen})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat",
+                    }}></div>
                 </>
               )}
             </div>

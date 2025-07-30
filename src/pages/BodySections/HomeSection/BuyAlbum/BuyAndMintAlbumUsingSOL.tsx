@@ -10,7 +10,7 @@ import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { Artist, Album, AlbumSaleTypeOption } from "libs/types";
 import { injectXUserNameIntoTweet, toastSuccess } from "libs/utils";
-import { fetchSolPrice, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils/misc";
+import { fetchSolPriceViaAPI, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, sleep } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import PurchaseOptions from "./PurchaseOptions";
@@ -39,10 +39,7 @@ export const BuyAndMintAlbumUsingSOL = ({
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
   const { artistLookupEverything } = useAppStore();
-
-  // const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm?artist=${artistProfile.slug}`)}&text=${encodeURIComponent(
-  //   `I just bought ${albumToBuyAndMint.title} by ${artistProfile.name} on @SigmaXMusic and I'm excited to stream it!`
-  // )}`;
+  const [notEnoughBalance, setNotEnoughBalance] = useState(true);
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -65,7 +62,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
     const fetchPrice = async () => {
       try {
-        const { currentSolPrice } = await fetchSolPrice();
+        const { currentSolPrice } = await fetchSolPriceViaAPI();
 
         // Calculate required SOL amount based on USD price
         const priceOption = albumToBuyAndMint._buyNowMeta?.[albumSaleTypeOption as keyof typeof albumToBuyAndMint._buyNowMeta];
@@ -93,6 +90,14 @@ export const BuyAndMintAlbumUsingSOL = ({
     };
     fetchBalance();
   }, [publicKey, connection]);
+
+  useEffect(() => {
+    if (walletBalance && requiredSolAmount && walletBalance < requiredSolAmount) {
+      setNotEnoughBalance(true);
+    } else {
+      setNotEnoughBalance(false);
+    }
+  }, [walletBalance, requiredSolAmount]);
 
   useEffect(() => {
     if (albumToBuyAndMint.title && albumToBuyAndMint.title !== "") {
@@ -378,9 +383,21 @@ export const BuyAndMintAlbumUsingSOL = ({
                   <Button
                     onClick={handlePaymentConfirmation}
                     className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
-                    disabled={isSolPaymentsDisabled || !requiredSolAmount}>
+                    disabled={isSolPaymentsDisabled || notEnoughBalance}>
                     Proceed
                   </Button>
+                </div>
+              )}
+
+              {isSolPaymentsDisabled && (
+                <div className="flex gap-4 bg-red-500 p-4 rounded-lg text-sm">
+                  <p className="text-white">SOL payments are currently disabled. Please try again later.</p>
+                </div>
+              )}
+
+              {notEnoughBalance && (
+                <div className="flex-1 bg-red-500 text-white p-2 rounded-lg text-sm">
+                  <p>You do not have enough SOL to purchase this album.</p>
                 </div>
               )}
             </div>

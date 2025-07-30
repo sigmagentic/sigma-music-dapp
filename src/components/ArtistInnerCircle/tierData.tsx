@@ -7,7 +7,7 @@ export const perksData: Perk[] = [
     type: "virtual" as const,
     description: "If I drop a new EP or Single as a NFT, you get to own a copy (as a NFT) for free and stream all bonus tracks",
     terms: "Upto 10 EPs or Singles per year. Please note that I reserve the right to decide which EPs or Singles are eligible for this perk at any time",
-    howToClaim: "Hold the Inner Circle fan membership NFT",
+    howToClaim: "Hold the Inner Circle fan club NFT",
     comingSoon: true,
   },
   {
@@ -17,7 +17,7 @@ export const perksData: Perk[] = [
     description: "I'll hold a monthly video call with all fans who hold this tier and tell you all about what I'm working on and you can ask me anything",
     terms:
       "Please note that my fans should join my group of the Sigma Discord server so we can coordinate the call. There may be months when this call may not happen if I'm busy or if there are not many fans who want to join",
-    howToClaim: "Hold the Inner Circle fan membership NFT",
+    howToClaim: "Hold the Inner Circle fan club NFT",
     comingSoon: true,
   },
   {
@@ -35,7 +35,7 @@ export const perksData: Perk[] = [
     type: "physical" as const,
     description: "If I perform at an event, you can use your Fan NFT to meet me",
     terms: "Note that this only applies to performances that have a meet and greet planned (which are most events with paid tickets)",
-    howToClaim: "Hold and present the Inner Circle fan membership NFT to the artist's crew at the event",
+    howToClaim: "Hold and present the Inner Circle fan club NFT to the artist's crew at the event",
   },
   {
     pid: "p5",
@@ -43,7 +43,7 @@ export const perksData: Perk[] = [
     type: "physical" as const,
     description: "If I perform at an event, you can use your NFT to chill at my VIP lounge",
     terms: "Note that this only applies to performances that have a VIP lounge planned",
-    howToClaim: "Hold and present the Inner Circle fan membership NFT to the artist's crew at the event",
+    howToClaim: "Hold and present the Inner Circle fan club NFT to the artist's crew at the event",
   },
   {
     pid: "p6",
@@ -51,7 +51,7 @@ export const perksData: Perk[] = [
     type: "physical" as const,
     description: "If I perform at an event, you can use your NFT to take a photo with me",
     terms: "Note that this only applies to performances that allow photo ops",
-    howToClaim: "Hold and present the Inner Circle fan membership NFT to the artist's crew at the event",
+    howToClaim: "Hold and present the Inner Circle fan club NFT to the artist's crew at the event",
   },
   {
     pid: "p7",
@@ -84,7 +84,7 @@ export const perksData: Perk[] = [
     description: "Help promote my work and grow my fanbase and you can share in the revenue. Share in my success and I'll share in yours",
     linkedRewardPool: "rp1",
     terms:
-      "Only applicable to the linked reward pool. Each Inner Circle fan token = 1 raffle ticket to win a shre of 10% of total sales of this collectible. You need to hold the Inner Circle fan membership collectible for a whole week to be eligible for this competition. All winners are selected at random and are non negotiable.",
+      "Only applicable to the linked reward pool. Each Inner Circle fan token = 1 raffle ticket to win a shre of 10% of total sales of this collectible. You need to hold the Inner Circle fan club collectible for a whole week to be eligible for this competition. All winners are selected at random and are non negotiable.",
   },
 ];
 
@@ -94,7 +94,7 @@ export const perksData: Perk[] = [
     name: "Everything in the Base Tier",
     type: "physical" as const,
     description: "Access to everything in the base tier",
-    terms: "Hold the Inner Circle fan membership NFT",
+    terms: "Hold the Inner Circle fan club NFT",
   },
 
 */
@@ -135,21 +135,21 @@ export const tierData: Record<string, MembershipType> = {
                       description: "If I perform at an event, you can use your NFT to meet me",
                       terms: "Note that this only applies to performances that have a meet and greet planned (which are most events with paid tickets)",
                       howToClaim:
-                        "Hold the Inner Circle fan membership NFT and you'll automatically receive the highest rarity tier for free each time the artist releases a new Music Album NFT",
+                        "Hold the Inner Circle fan club NFT and you'll automatically receive the highest rarity tier for free each time the artist releases a new Music Album NFT",
                     },
                     {
                       name: "20 Min Voice Call",
                       type: "virtual" as const,
                       description: "I'll give you a 20-minute voice call to chat",
                       terms: "Can be redeemed once a month per user who holds this tier",
-                      howToClaim: "Hold the Inner Circle fan membership NFT, DM me on X and we can arrange a time to chat",
+                      howToClaim: "Hold the Inner Circle fan club NFT, DM me on X and we can arrange a time to chat",
                     },
                     {
                       name: "10 Min Video Call",
                       type: "virtual" as const,
                       description: "I'll give you a 10-minute video call to chat",
                       terms: "Can be redeemed once a month per user who holds this tier",
-                      howToClaim: "Hold the Inner Circle fan membership NFT, DM me on X and we can arrange a time to chat",
+                      howToClaim: "Hold the Inner Circle fan club NFT, DM me on X and we can arrange a time to chat",
                     },
                   ],
                 },
@@ -188,28 +188,28 @@ export const tierData: Record<string, MembershipType> = {
                       description: "Each time I drop a new Music Album NFT, you get the highest rarity tier for free",
                       terms: "",
                       howToClaim:
-                        "Hold the Inner Circle fan membership NFT and you'll automatically receive the highest rarity tier for free each time the artist releases a new Music Album NFT",
+                        "Hold the Inner Circle fan club NFT and you'll automatically receive the highest rarity tier for free each time the artist releases a new Music Album NFT",
                     },
                     {
                       name: "10 Min Meet and Greet at My Performances",
                       type: "physical" as const,
                       description: "If I perform at an event, you can use your NFT to meet me",
                       terms: "Note that this only applies to performances that have a meet and greet planned (which are most events with paid tickets)",
-                      howToClaim: "Hold the Inner Circle fan membership NFT and show it to the artist's crew at the event",
+                      howToClaim: "Hold the Inner Circle fan club NFT and show it to the artist's crew at the event",
                     },
                     {
                       name: "20 Min Voice Call",
                       type: "virtual" as const,
                       description: "I'll give you a 20-minute voice call to chat",
                       terms: "Can be redeemed once a month per user who holds this tier",
-                      howToClaim: "Hold the Inner Circle fan membership NFT, DM me on X and we can arrange a time to chat",
+                      howToClaim: "Hold the Inner Circle fan club NFT, DM me on X and we can arrange a time to chat",
                     },
                     {
                       name: "10 Min Video Call",
                       type: "virtual" as const,
                       description: "I'll give you a 10-minute video call to chat",
                       terms: "Can be redeemed once a month per user who holds this tier",
-                      howToClaim: "Hold the Inner Circle fan membership NFT, DM me on X and we can arrange a time to chat",
+                      howToClaim: "Hold the Inner Circle fan club NFT, DM me on X and we can arrange a time to chat",
                     },
                   ],
                 },

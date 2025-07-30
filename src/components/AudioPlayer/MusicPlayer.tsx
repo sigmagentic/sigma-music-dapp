@@ -30,7 +30,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BountyBitzSumMapping, MusicTrack } from "libs/types";
-import { logStreamViaAPI } from "libs/utils/misc";
+import { logStreamViaAPI } from "libs/utils/api";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -50,6 +50,7 @@ type MusicPlayerProps = {
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   loadIntoDockedMode?: boolean;
   viewSolDataHasError?: boolean;
+  jumpToPlaylistTrackIndex?: number;
   onSendBitzForMusicBounty: (e: any) => any;
   onCloseMusicPlayer: () => void;
   onPlayHappened: () => void;
@@ -122,12 +123,13 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     isPlaylistPlayer,
     loadIntoDockedMode,
     viewSolDataHasError,
+    jumpToPlaylistTrackIndex,
     onSendBitzForMusicBounty,
     onCloseMusicPlayer,
     onPlayHappened,
     navigateToDeepAppView,
   } = props;
-  const { updateTrackPlayIsQueued } = useAudioPlayerStore();
+  const { updateTrackPlayIsQueued, updatePlaylistTrackIndexBeingPlayed, jumpToTrackIndexInAlbumBeingPlayed } = useAudioPlayerStore();
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState("00:00");
@@ -357,6 +359,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     setTimeInSecondsListenedToTrack(0);
     setLoggedStreamMetricForTrack(0);
     streamLogEventSentToAPI = false;
+
+    updatePlaylistTrackIndexBeingPlayed(currentTrackIndex);
   }, [currentTrackIndex]);
 
   useEffect(() => {
@@ -371,6 +375,20 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       logStreamViaAPI({ streamerAddr: publicKey?.toBase58() || "0", albumTrackId: trackList[currentTrackIndex].albumTrackId });
     }
   }, [timeInSecondsListenedToTrack, publicKey, trackList]);
+
+  useEffect(() => {
+    if (typeof jumpToPlaylistTrackIndex === "number" && trackList.length > 0 && jumpToPlaylistTrackIndex <= trackList.length) {
+      const finalTrackIndex = trackList.findIndex((track: any) => track.idx === jumpToPlaylistTrackIndex);
+      setCurrentTrackIndex(finalTrackIndex);
+    }
+  }, [jumpToPlaylistTrackIndex]);
+
+  useEffect(() => {
+    if (typeof jumpToTrackIndexInAlbumBeingPlayed === "number" && trackList.length > 0 && jumpToTrackIndexInAlbumBeingPlayed <= trackList.length) {
+      const finalTrackIndex = trackList.findIndex((track: any) => track.idx === jumpToTrackIndexInAlbumBeingPlayed);
+      setCurrentTrackIndex(finalTrackIndex);
+    }
+  }, [jumpToTrackIndexInAlbumBeingPlayed]);
 
   const pauseMusicPlayer = () => {
     if (isPlaying) {
@@ -737,7 +755,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       className={`relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black transition-all duration-300 ${
         isFullScreen ? "fixed inset-0 z-[9999] rounded-none h-screen w-screen overflow-hidden" : ""
       }`}>
-      <div className="debug hidden bg-yellow-900 p-2 w-full text-xs absolute top-0 left-0">
+      <div className="debug hidden bg-yellow-900 p-2 w-full text-xs">
         {/* <p className="mb-2">isFullScreen = {isFullScreen.toString()}</p> */}
         {/* <p className="mb-2">loadIntoDockedMode = {loadIntoDockedMode?.toString()}</p> */}
         {/* <p className="mb-2">trackList = {JSON.stringify(trackList)}</p> */}
@@ -745,6 +763,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         {/* <p className="mb-2">isPlaying = {isPlaying.toString()}</p> */}
         {/* <p className="mb-2">pauseAsOtherAudioPlaying = {pauseAsOtherAudioPlaying?.toString()}</p> */}
         {/* <p className="mb-2">musicPlayerAudio.src = {musicPlayerAudio.src}</p> */}
+        <p className="mb-2">jumpToPlaylistTrackIndex = {jumpToPlaylistTrackIndex}</p>
+        <p className="mb-2">currentTrackIndex = {currentTrackIndex}</p>
         {trackList[currentTrackIndex]?.albumTrackId && (
           <p className="mb-2">
             isPlaying = {isPlaying.toString()} progress = {progress} timeInSecondsListenedToTrack = {timeInSecondsListenedToTrack} albumTrackId ={" "}

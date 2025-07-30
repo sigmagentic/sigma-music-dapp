@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuTrigg
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libComponents/NavigationMenu";
 import { sleep } from "libs/utils";
 import { routeNames } from "routes";
+import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import { ProductTour } from "../ProductTour/ProductTour";
 import { PlayXPGameModal } from "../XPSystem/PlayXPGameModal";
@@ -37,6 +38,7 @@ export const Navbar = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { solBitzNfts } = useNftsStore();
+  const { userWeb2AccountDetails } = useAccountStore();
 
   useEffect(() => {
     // if the user is logged in (even after they reload page and still have a session)
@@ -129,6 +131,19 @@ export const Navbar = ({
                 </Button>
               </div>
             </NavigationMenuItem>
+            {userWeb2AccountDetails.isArtist && (
+              <NavigationMenuItem>
+                <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
+                  <Button
+                    className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[48px] text-yellow-300"
+                    onClick={() => {
+                      setHomeMode("profile");
+                    }}>
+                    Artist Dashboard
+                  </Button>
+                </div>
+              </NavigationMenuItem>
+            )}
             {/* XP Button */}
             {!DISABLE_BITZ_FEATURES && isLoggedInSol && solBitzNfts.length > 0 && (
               <>
@@ -142,7 +157,6 @@ export const Navbar = ({
                 </NavigationMenuItem>
               </>
             )}
-
             {location.pathname !== routeNames.login && (
               <NavigationMenuItem>
                 {!publicKeySol ? (

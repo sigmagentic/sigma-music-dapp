@@ -1,14 +1,11 @@
 import { LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
+import { CACHE_DURATION_2_MIN, CACHE_DURATION_60_MIN, CACHE_DURATION_HALF_MIN } from "./constant";
 import { PaymentLog } from "../types/common";
 
 interface CacheEntry_DataWithTimestamp {
   data: boolean | [] | Record<string, any> | number | null;
   timestamp: number;
 }
-
-const CACHE_DURATION_HALF_MIN = 30 * 1000; // 30 seconds in milliseconds
-const CACHE_DURATION_2_MIN = 2 * 60 * 1000; // 2 minutes in milliseconds
-const CACHE_DURATION_60_MIN = 1 * 60 * 1000; // 60 minutes in milliseconds
 
 export const getApiDataMarshal = () => {
   // we can call this without chainID (e.g. solana mode or no login mode), and we get the API endpoint based on ENV
@@ -17,14 +14,6 @@ export const getApiDataMarshal = () => {
   } else {
     return "https://api.itheumcloud-stg.com/datamarshalapi/router/v1";
   }
-};
-
-export const sleep = (sec: number) => {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, sec * 1000);
-  });
 };
 
 export const getApiWeb2Apps = (alwaysUseProd = false) => {
@@ -36,62 +25,17 @@ export const getApiWeb2Apps = (alwaysUseProd = false) => {
   }
 };
 
-export const isMostLikelyMobile = () => {
-  return window?.screen?.width <= 450;
-};
-
-export const gtagGo = (category: string, action: any, label?: any, value?: any) => {
-  /*
-  e.g.
-  Category: 'Videos', Action: 'Play', Label: 'Gone With the Wind'
-  Category: 'Videos'; Action: 'Play - Mac Chrome'
-  Category: 'Videos', Action: 'Video Load Time', Label: 'Gone With the Wind', Value: downloadTime
-
-  // AUTH
-  Category: 'Auth', Action: 'Login', Label: 'Metamask'
-  Category: 'Auth', Action: 'Login - Success', Label: 'Metamask'
-  Category: 'Auth', Action: 'Login', Label: 'DeFi'
-  Category: 'Auth', Action: 'Login', Label: 'Ledger'
-  Category: 'Auth', Action: 'Login', Label: 'xPortalApp'
-  Category: 'Auth', Action: 'Login', Label: 'WebWallet'
-
-  Category: 'Auth', Action: 'Logout', Label: 'WebWallet'
-  */
-
-  if (!action || !category) {
-    console.error("gtag tracking needs both action and category");
-    return;
-  }
-
-  const eventObj: Record<string, string> = {
-    event_category: category,
-  };
-
-  if (label) {
-    eventObj["event_label"] = label;
-  }
-
-  if (value) {
-    eventObj["event_value"] = value;
-  }
-
-  // only track mainnet so we have good data on GA
-  if (window.location.hostname !== "localhost" && import.meta.env.VITE_ENV_NETWORK === "mainnet") {
-    (window as any).gtag("event", action, eventObj);
-  }
-};
-
 const solPriceCache: CacheEntry_DataWithTimestamp = {
   data: -1,
   timestamp: 0,
 };
 
-export const fetchSolPrice = async () => {
+export const fetchSolPriceViaAPI = async () => {
   const now = Date.now();
 
   // Check if we have a valid cache entry
   if (solPriceCache.timestamp && now - solPriceCache.timestamp < CACHE_DURATION_2_MIN) {
-    console.log(`fetchSolPrice: Using cached SOL price`);
+    console.log(`fetchSolPriceViaAPI: Using cached SOL price`);
     return { currentSolPrice: solPriceCache.data };
   }
 
@@ -106,7 +50,7 @@ export const fetchSolPrice = async () => {
 
     return { currentSolPrice };
   } catch (error) {
-    console.error("fetchSolPrice: Failed to fetch SOL price:", error);
+    console.error("fetchSolPriceViaAPI: Failed to fetch SOL price:", error);
     solPriceCache.data = -2; // means error
     solPriceCache.timestamp = now;
     throw new Error("Failed to fetch SOL price");
@@ -284,7 +228,7 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
       return cacheEntry.data;
     }
 
-    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/mintAlbumNFTCanBeMinted?albumId=${albumId}`);
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumNFTCanBeMinted?albumId=${albumId}`);
 
     if (response.ok) {
       const data = await response.json();
@@ -506,6 +450,53 @@ export const fetchMyFanMembershipsForArtistViaAPI = async (
   }
 };
 
+const cache_myAlbumsFromMinLogs: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const fetchMyAlbumsFromMintLogsViaAPI = async (addressSol: string, bypassCacheAsNewDataAdded = false) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_myAlbumsFromMinLogs[`${addressSol}-myAlbumsFromMinLogs`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN && !bypassCacheAsNewDataAdded) {
+      console.log(`fetchMyAlbumsFromMintLogsViaAPI: Getting albums from min logs for addressSol: ${addressSol} from cache`);
+      return cacheEntry.data;
+    }
+
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/getUserMintLogs?forSolAddr=${addressSol}&mintTemplateSearchString=album`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_myAlbumsFromMinLogs[`${addressSol}-myAlbumsFromMinLogs`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      // Update cache (with [] as data)
+      cache_myAlbumsFromMinLogs[`${addressSol}-myAlbumsFromMinLogs`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("fetchMyAlbumsFromMintLogsViaAPI: Error fetching albums from min logs:", error);
+
+    // Update cache (with [] as data)
+    cache_myAlbumsFromMinLogs[`${addressSol}-myAlbumsFromMinLogs`] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
 const cache_artistSales: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
 export const fetchArtistSalesViaAPI = async (creatorPaymentsWallet: string, artistId: string) => {
@@ -694,7 +685,7 @@ export const logStreamViaAPI = async (streamLogData: { streamerAddr: string; alb
 
 const cache_latestInnerCircleNFTOptions: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "fan", limit: number = 20) => {
+export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "fan", limit: number = 20, alwaysUseProd = true) => {
   const now = Date.now();
 
   try {
@@ -706,7 +697,7 @@ export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "
     }
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
-    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/latestCollectiblesAvailable?nftType=${nftType}`);
+    const response = await fetch(`${getApiWeb2Apps(alwaysUseProd)}/datadexapi/sigma/latestCollectiblesAvailable?nftType=${nftType}`);
 
     if (response.ok) {
       let data = await response.json();
@@ -804,14 +795,14 @@ export const fetchMintsByTemplatePrefix = async (templatePrefix: string) => {
 
 const cache_mintsLeaderboardByMonth: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchMintsLeaderboardByMonth = async (MMYYString: string) => {
+export const fetchMintsLeaderboardByMonthViaAPI = async (MMYYString: string) => {
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_mintsLeaderboardByMonth[`${MMYYString}`];
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
-      console.log(`fetchMintsLeaderboardByMonth: Getting mints leaderboard for MMYYString: ${MMYYString} from cache`);
+      console.log(`fetchMintsLeaderboardByMonthViaAPI: Getting mints leaderboard for MMYYString: ${MMYYString} from cache`);
       return cacheEntry.data;
     }
 
@@ -838,7 +829,7 @@ export const fetchMintsLeaderboardByMonth = async (MMYYString: string) => {
       return [];
     }
   } catch (error) {
-    console.error("fetchMintsLeaderboardByMonth: Error fetching mints leaderboard:", error);
+    console.error("fetchMintsLeaderboardByMonthViaAPI: Error fetching mints leaderboard:", error);
 
     // Update cache (with [] as data)
     cache_mintsLeaderboardByMonth[`${MMYYString}`] = {
@@ -1159,3 +1150,42 @@ export const doFastStreamOnAlbumCheckViaAPI = async (alId: string) => {
     return false;
   }
 };
+
+const cache_payoutLogs: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export async function getPayoutLogsViaAPI({ addressSol }: { addressSol: string }): Promise<any> {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_payoutLogs["payoutLogs"];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_HALF_MIN) {
+      console.log(`getPayoutLogsViaAPI: Getting payout logs from cache`);
+      return cacheEntry.data;
+    }
+    let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/payoutLogs?receiverAddr=${addressSol}`;
+
+    const res = await fetch(callUrl);
+
+    const data: PaymentLog[] = await res.json();
+
+    // Update cache
+    cache_payoutLogs["payoutLogs"] = {
+      data: data,
+      timestamp: now,
+    };
+
+    return data;
+  } catch (err: any) {
+    const message = "Getting payout logs failed :" + err.message;
+    console.error(message);
+
+    // Update cache (with [] as data)
+    cache_payoutLogs["payoutLogs"] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return false;
+  }
+}
