@@ -142,6 +142,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   });
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
+  const [volumeBeforeMute, setVolumeBeforeMute] = useState(0);
   const [progress, setProgress] = useState(0);
   const [timeInSecondsListenedToTrack, setTimeInSecondsListenedToTrack] = useState(0);
   const [duration, setDuration] = useState("00:00");
@@ -1073,7 +1074,19 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
               {!isSmallScreen && (
                 <div className="ml-2 xl:pl-8 flex">
-                  {volume === 0 ? <VolumeX /> : volume >= 0.5 ? <Volume2 /> : <Volume1 />}
+                  <span
+                    onClick={() => {
+                      if (volume === 0 && volumeBeforeMute > 0) {
+                        handleVolumeChange(volumeBeforeMute);
+                        setVolumeBeforeMute(0);
+                        return;
+                      } else {
+                        setVolumeBeforeMute(volume);
+                        handleVolumeChange(0);
+                      }
+                    }}>
+                    {volume === 0 ? <VolumeX /> : volume >= 0.5 ? <Volume2 /> : <Volume1 />}
+                  </span>
                   <input
                     type="range"
                     min="0"
@@ -1081,7 +1094,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                     step="0.01"
                     value={volume}
                     onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                    className="accent-black dark:accent-white w-[70%] cursor-pointer ml-2 "></input>
+                    className="accent-black dark:accent-white w-[70%] cursor-pointer ml-2"></input>
                 </div>
               )}
 

@@ -429,7 +429,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
             <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
               <div
-                className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group cursor-pointer`}
+                className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group ${album._albumCanBeFastStreamed ? "cursor-pointer" : ""}`}
                 style={{
                   "backgroundImage": `url(${album.img})`,
                 }}
@@ -437,7 +437,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   // if there is a token image, show it in a large version
                   if (album._buyNowMeta?.priceOption2?.tokenImg) {
                     setSelectedLargeSizeTokenImg(album._buyNowMeta?.priceOption2?.tokenImg);
-                  } else {
+                  } else if (album._albumCanBeFastStreamed) {
                     // load the track list for the album if we dont have a collectible img to show
                     setSelectedAlbumForTrackList(album);
                   }
@@ -552,19 +552,22 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             </div>
 
             <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
-              <Button
-                variant="outline"
-                className="text-sm px-3 py-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
-                onClick={() => setSelectedAlbumForTrackList(album)}>
-                <List className="w-4 h-4 mr-2" />
-                Track List
-              </Button>
+              {/* track list button */}
+              {album._albumCanBeFastStreamed && (
+                <Button
+                  variant="outline"
+                  className="text-sm px-3 py-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                  onClick={() => setSelectedAlbumForTrackList(album)}>
+                  <List className="w-4 h-4 mr-2" />
+                  Track List
+                </Button>
+              )}
 
               {!album._albumCanBeFastStreamed && album.ctaPreviewStream && !inCollectedAlbumsView && checkOwnershipOfMusicAsset(album) === -1 && (
                 <div>
                   <Button
                     disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
-                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
+                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
                     variant="outline"
                     onClick={() => {
                       if (playPausePreview) {
