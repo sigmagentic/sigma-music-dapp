@@ -278,7 +278,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
         .map((log) => ({
           purchasedOn: log.createdOn,
           tx: log.tx,
-          albumSaleTypeOption: log.albumSaleTypeOption,
+          albumSaleTypeOption: log.albumSaleTypeOption || "",
           albumId: log.albumId,
           type: "sol",
           artistId: log.artistId,

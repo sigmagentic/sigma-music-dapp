@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { MusicAssetOwned, MyAlbumMintLog, PaymentLog } from "libs/types";
+import { AiRemixRawTrack, MusicAssetOwned, MyAlbumMintLog, PaymentLog } from "libs/types";
 
 type State = {
   solPreaccessNonce: string;
@@ -10,6 +10,7 @@ type State = {
   myPaymentLogs: PaymentLog[];
   myMusicAssetPurchases: MusicAssetOwned[];
   myAlbumMintLogs: MyAlbumMintLog[];
+  myAiRemixRawTracks: AiRemixRawTrack[];
 };
 
 type Action = {
@@ -21,6 +22,7 @@ type Action = {
   updateMyRawPaymentLogs: (myRawPaymentLogs: State["myRawPaymentLogs"]) => void;
   updateMyMusicAssetPurchases: (myMusicAssetPurchases: State["myMusicAssetPurchases"]) => void;
   updateMyAlbumMintLogs: (myAlbumMintLogs: State["myAlbumMintLogs"]) => void;
+  updateMyAiRemixRawTracks: (myAiRemixRawTracks: State["myAiRemixRawTracks"]) => void;
 };
 
 export const useAccountStore = create<State & Action>((set) => ({
@@ -32,6 +34,7 @@ export const useAccountStore = create<State & Action>((set) => ({
   myPaymentLogs: [],
   myMusicAssetPurchases: [],
   myAlbumMintLogs: [],
+  myAiRemixRawTracks: [],
   updateSolPreaccessNonce: (value: string) => set(() => ({ solPreaccessNonce: value })),
   updateSolSignedPreaccess: (value: string) => set(() => ({ solPreaccessSignature: value })),
   updateSolPreaccessTimestamp: (value: number) => set(() => ({ solPreaccessTimestamp: value })),
@@ -40,4 +43,5 @@ export const useAccountStore = create<State & Action>((set) => ({
   updateMyRawPaymentLogs: (value: PaymentLog[]) => set(() => ({ myRawPaymentLogs: value })),
   updateMyMusicAssetPurchases: (value: MusicAssetOwned[]) => set(() => ({ myMusicAssetPurchases: value })),
   updateMyAlbumMintLogs: (value: MyAlbumMintLog[]) => set(() => ({ myAlbumMintLogs: value })),
+  updateMyAiRemixRawTracks: (value: AiRemixRawTrack[]) => set(() => ({ myAiRemixRawTracks: value })),
 }));

@@ -145,12 +145,13 @@ export const Layout = ({
                   <Tooltip text="Albums">
                     <button
                       onClick={() => {
+                        removeDeepSectionParamsFromUrl();
                         setHomeMode(`albums-${new Date().getTime()}`);
 
-                        // need to put it on a timer for some reason (otherwise seems the params come back to the url)
-                        setTimeout(() => {
-                          removeDeepSectionParamsFromUrl();
-                        }, 1000);
+                        // // need to put it on a timer for some reason (otherwise seems the params come back to the url)
+                        // setTimeout(() => {
+                        //   removeDeepSectionParamsFromUrl();
+                        // }, 1000);
                       }}
                       className={`
                       flex items-center flex-shrink-0
@@ -183,13 +184,13 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI Agent</span>}
                     </button>
                   </Tooltip> */}
-                  <Tooltip text="AI REMiX : Generate & Own Royalty-Free Viral AI Music">
+                  <Tooltip text="AI REMiX : Create & Publish IP-Safe AI Remixes">
                     <button
                       onClick={() => {
                         removeDeepSectionParamsFromUrl();
-                        setHomeMode(`remix`);
+                        setHomeMode(`ai-remix-${new Date().getTime()}`);
                       }}
-                      disabled={homeMode === "remix"}
+                      disabled={homeMode.includes("ai-remix")}
                       className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
@@ -308,14 +309,9 @@ export const Layout = ({
                       <Tooltip text="Your Collectibles Wallet">
                         <button
                           onClick={() => {
-                            setHomeMode("wallet");
-
-                            // need to put it on a timer for some reason (otherwise seems the params come back to the url)
-                            setTimeout(() => {
-                              removeDeepSectionParamsFromUrl();
-                            }, 1000);
+                            setHomeMode(`wallet-${new Date().getTime()}`);
                           }}
-                          disabled={homeMode === "wallet"}
+                          disabled={homeMode.includes("wallet")}
                           className={`
                           flex items-center flex-shrink-0
                           ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
@@ -332,14 +328,9 @@ export const Layout = ({
                       <Tooltip text="Your Profile">
                         <button
                           onClick={() => {
-                            setHomeMode("profile");
-
-                            // need to put it on a timer for some reason (otherwise seems the params come back to the url)
-                            setTimeout(() => {
-                              removeDeepSectionParamsFromUrl();
-                            }, 1000);
+                            setHomeMode(`profile-${new Date().getTime()}`);
                           }}
-                          disabled={homeMode === "profile"}
+                          disabled={homeMode.includes("profile")}
                           className={`
                           flex items-center flex-shrink-0
                           ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 

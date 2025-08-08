@@ -6,19 +6,24 @@ import { GetNFMeModal } from "components/GetNFMeModal";
 import { NFMePreferencesModal } from "components/NFMePreferencesModal";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { getPayoutLogsViaAPI } from "libs/utils";
+import { Album, AiRemixRawTrack, MusicTrack } from "libs/types";
+import { getPayoutLogsViaAPI, getRemixLaunchesViaAPI, mergeRawAiRemixTracks } from "libs/utils";
 import { useAccountStore } from "store/account";
+import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
+import { TrackList } from "./components/TrackList";
 
 const nfMeIdBrandingHide = true;
 
 type MyProfileProps = {
   navigateToDeepAppView: (e: any) => any;
+  viewSolData: (e: number, f?: any, g?: boolean, h?: MusicTrack[]) => void;
+  onCloseMusicPlayer: () => void;
 };
 
 type ProfileTab = "artist" | "app";
 
-export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
+export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlayer }: MyProfileProps) => {
   const { userInfo, publicKey: web3AuthPublicKey } = useWeb3Auth();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
   const { solNFMeIdNfts } = useNftsStore();
@@ -27,11 +32,15 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
   const [nfMeIdImageUrl, setNfMeIdImageUrl] = useState<string | null>(null);
   const [payoutLogs, setPayoutLogs] = useState<any[]>([]);
   const [loadingPayouts, setLoadingPayouts] = useState<boolean>(false);
-  const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases } = useAccountStore();
+  const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases, myAiRemixRawTracks, updateMyAiRemixRawTracks } = useAccountStore();
   const [totalPayout, setTotalPayout] = useState<number>(0);
 
   // Tab state - default to "artist" if user is an artist, otherwise "app"
   const [activeTab, setActiveTab] = useState<ProfileTab>(userWeb2AccountDetails.isArtist ? "artist" : "app");
+  const [isUserArtist, setIsUserArtist] = useState<boolean>(userWeb2AccountDetails.isArtist);
+  const [virtualAiRemixAlbum, setVirtualAiRemixAlbum] = useState<Album | null>(null);
+  const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
+  const { updateAssetPlayIsQueued } = useAudioPlayerStore();
 
   // Use the appropriate public key based on wallet type
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey;
@@ -70,6 +79,69 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
     }
   }, [activeTab, userWeb2AccountDetails.isArtist]);
 
+  useEffect(() => {
+    if (myAiRemixRawTracks.length === 0 && displayPublicKey) {
+      // we need to check if this user has made any remixes and if so, we can flag them as an artist
+      try {
+        const fetchRemixLaunches = async () => {
+          const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: displayPublicKey?.toString() || null });
+          const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: displayPublicKey?.toString() || null });
+          const responseC = await getRemixLaunchesViaAPI({ launchStatus: "launched", addressSol: displayPublicKey?.toString() || null });
+
+          if (responseA.length > 0 || responseB.length > 0 || responseC.length > 0) {
+            const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, responseC);
+
+            mapRawAiRemixTracksToMusicTracks(allMyRemixes);
+            updateMyAiRemixRawTracks(allMyRemixes);
+            setIsUserArtist(true);
+          }
+        };
+
+        fetchRemixLaunches();
+      } catch (error) {
+        console.error("Error refreshing graduated data:", error);
+      }
+    } else if (myAiRemixRawTracks.length > 0) {
+      mapRawAiRemixTracksToMusicTracks(myAiRemixRawTracks);
+      // if the user has made tracks, then we can flag them as an artist (in runtime)
+      setIsUserArtist(true);
+    }
+  }, [myAiRemixRawTracks, displayPublicKey]);
+
+  function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]) {
+    // lets create a "virtual album" for the user that contains all their remixes
+    const virtualAlbum: Album = {
+      albumId: "virtual-album-" + displayPublicKey?.toString(),
+      title: "My AI Remixes",
+      desc: "My AI Remixes",
+      ctaPreviewStream: "",
+      ctaBuy: "",
+      dripSet: "",
+      bountyId: "",
+      img: "",
+      isExplicit: "",
+      isPodcast: "",
+      isFeatured: "",
+      isSigmaRemixAlbum: "",
+      solNftName: "",
+    };
+
+    // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
+    const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
+      idx: index,
+      artist: "My AI Remixes",
+      category: "Remix",
+      album: "My AI Remixes",
+      cover_art_url: remix.image,
+      title: remix.songTitle,
+      stream: remix.streamUrl,
+      bountyId: remix.bountyId,
+    }));
+
+    setVirtualAiRemixAlbum(virtualAlbum);
+    setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
+  }
+
   const parseTypeCodeToLabel = (typeCode: string) => {
     switch (typeCode) {
       case "bonus":
@@ -95,7 +167,7 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
 
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           {/* Profile Image */}
-          <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-900 border-2 border-gray-700">
+          <div className="w-32 h-32 rounded-md overflow-hidden bg-gray-900 border-2 border-gray-700">
             {userInfo.profileImage ? (
               <img src={userInfo.profileImage} alt="Profile" className="w-full h-full object-cover" />
             ) : (
@@ -268,7 +340,7 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
                   <tr key={index} className="border-b border-gray-700">
                     <td className="py-3">{new Date(log.createdOn).toLocaleString()}</td>
                     <td className="py-3">
-                      {log.task === "buyAlbum" ? (
+                      {log.task === "buyAlbum" && (
                         <>
                           <div
                             className="cursor-pointer hover:underline text-blue-400"
@@ -281,7 +353,9 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
                             {log.albumSaleTypeOption === "3" && "Digital Album + Commercial License + Download + Collectible (NFT)"}
                           </div>
                         </>
-                      ) : (
+                      )}
+
+                      {log.task === "joinFanClub" && (
                         <>
                           <div
                             className="cursor-pointer hover:underline text-blue-400"
@@ -307,6 +381,16 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
                           <div>Membership ID: {log.membershipId}</div>
                         </>
                       )}
+
+                      {log.task === "remix" && (
+                        <>
+                          <div
+                            className="cursor-pointer hover:underline text-blue-400"
+                            onClick={() => navigateToDeepAppView({ appSection: "remix", sectionView: "myRemixJobs" })}>
+                            Remix Track: {log.promptParams?.songTitle} based on {log.promptParams?.refTrack_alId}
+                          </div>
+                        </>
+                      )}
                     </td>
                     <td className="py-3">
                       <span
@@ -317,10 +401,11 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
                               ? "bg-red-900 text-red-300"
                               : "bg-yellow-900 text-yellow-300"
                         }`}>
-                        {log.paymentStatus.charAt(0).toUpperCase() + log.paymentStatus.slice(1)}
+                        {log.task === "remix" && log.paymentStatus === "new" && "Pending AI Remix..."}
+                        {!(log.task === "remix" && log.paymentStatus === "new") && log.paymentStatus.charAt(0).toUpperCase() + log.paymentStatus.slice(1)}
                       </span>
                     </td>
-                    <td className="py-3">{log.type === "cc" ? `$${log.amount}` : `${log.amount} SOL ($${log.priceInUSD})`}</td>
+                    <td className="py-3">{log.type === "cc" ? `$${log.amount}` : `${log.amount} SOL`}</td>
                     <td className="py-3">{log.type === "sol" ? "SOL" : "Credit Card"}</td>
                     <td className="py-3">
                       {log.type === "sol" && log.tx && (
@@ -342,8 +427,57 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
   // Render the artist profile content
   const renderArtistProfile = () => (
     <>
-      {/* Artist Payouts Section */}
+      {/* Artist Remixes Section */}
       <div className="bg-black rounded-lg p-6">
+        <h2 className="!text-2xl font-bold mb-4">Your Music</h2>
+
+        {myAiRemixRawTracks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <p className="text-xl text-gray-400">No remixes found</p>
+          </div>
+        ) : (
+          <>
+            {virtualAiRemixAlbum && virtualAiRemixAlbumTracks.length > 0 && (
+              <div className="mx-auto md:m-[initial] p-3">
+                <TrackList
+                  album={virtualAiRemixAlbum}
+                  artistId={"virtual-artist-id-" + displayPublicKey?.toString()}
+                  artistName={"My AI Remixes"}
+                  virtualTrackList={virtualAiRemixAlbumTracks}
+                  onBack={() => {
+                    onCloseMusicPlayer();
+                  }}
+                  onPlayTrack={(album, jumpToPlaylistTrackIndex) => {
+                    updateAssetPlayIsQueued(true);
+                    onCloseMusicPlayer();
+
+                    setTimeout(() => {
+                      viewSolData(
+                        0,
+                        {
+                          artistId: "virtual-artist-id-" + displayPublicKey?.toString(),
+                          albumId: virtualAiRemixAlbum.albumId,
+                          jumpToPlaylistTrackIndex: jumpToPlaylistTrackIndex,
+                        },
+                        false,
+                        virtualAiRemixAlbumTracks
+                      );
+
+                      updateAssetPlayIsQueued(false);
+                    }, 5000);
+                  }}
+                  checkOwnershipOfMusicAsset={() => 0}
+                  trackPlayIsQueued={false}
+                  assetPlayIsQueued={false}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Artist Payouts Section */}
+      <div className="bg-black rounded-lg p-6 mt-6">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4">
           <h2 className="!text-2xl !md:text-2xl font-bold mb-4 text-center md:text-left">Artist Payouts</h2>
           {payoutLogs.length > 0 && (
@@ -404,7 +538,7 @@ export const MyProfile = ({ navigateToDeepAppView }: MyProfileProps) => {
   return (
     <div className="flex flex-col w-full px-4">
       {/* Tab Navigation - Only show if user is an artist */}
-      {userWeb2AccountDetails.isArtist && (
+      {(userWeb2AccountDetails.isArtist || isUserArtist) && (
         <div className="mt-3 mb-6">
           <div className="flex space-x-4">
             <button

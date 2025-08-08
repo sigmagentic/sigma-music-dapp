@@ -9,7 +9,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
 import { getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/api";
-import { scrollToTopOnMainContentArea } from "libs/utils/ui";
+import { removeAllDeepSectionParamsFromUrlExceptSection, scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { CampaignHeroWIR } from "pages/Campaigns/CampaignHeroWIR";
 import { CampaignHeroWSB } from "pages/Campaigns/CampaignHeroWSB";
@@ -144,14 +144,6 @@ export const HomeSection = (props: HomeSectionProps) => {
       return;
     }
 
-    const isFeaturedArtistDeepLink = searchParams.get("artist");
-
-    if (isFeaturedArtistDeepLink) {
-      // user reloaded into a artist deep link, all we need to do is set the home mode to artists, then the below home mode effect takes care of the rest
-      setHomeMode(`artists-${new Date().getTime()}`);
-      return;
-    }
-
     const isSectionMode = searchParams.get("section");
 
     if (isSectionMode && isSectionMode === "reward-pools") {
@@ -161,6 +153,34 @@ export const HomeSection = (props: HomeSectionProps) => {
 
     if (isSectionMode && isSectionMode === "xp-leaderboards") {
       setHomeMode(`xp-leaderboards-${new Date().getTime()}`);
+      return;
+    }
+
+    if (isSectionMode && isSectionMode === "ai-remix") {
+      setHomeMode(`ai-remix-${new Date().getTime()}`);
+      return;
+    }
+
+    if (isSectionMode && isSectionMode === "profile") {
+      setHomeMode(`profile-${new Date().getTime()}`);
+      return;
+    }
+
+    if (isSectionMode && isSectionMode === "wallet") {
+      setHomeMode(`wallet-${new Date().getTime()}`);
+      return;
+    }
+
+    if (isSectionMode && isSectionMode === "albums") {
+      setHomeMode(`albums-${new Date().getTime()}`);
+      return;
+    }
+
+    const isFeaturedArtistDeepLink = searchParams.get("artist");
+
+    if (isFeaturedArtistDeepLink || (isSectionMode && isSectionMode === "artists")) {
+      // user reloaded into a artist deep link, all we need to do is set the home mode to artists, then the below home mode effect takes care of the rest
+      setHomeMode(`artists-${new Date().getTime()}`);
       return;
     }
   }, []);
@@ -184,10 +204,18 @@ export const HomeSection = (props: HomeSectionProps) => {
         setFeaturedArtistDeepLinkSlug(isFeaturedArtistDeepLink.trim());
         setLoadIntoTileView(false);
       }
+
+      if (homeMode.includes("artists")) {
+        const newSearchParams = removeAllDeepSectionParamsFromUrlExceptSection("artists", searchParams);
+        setSearchParams({ ...newSearchParams });
+      }
     }
 
     if (homeMode.includes("albums")) {
       setLoadIntoTileView(true);
+
+      const newSearchParams = removeAllDeepSectionParamsFromUrlExceptSection("albums", searchParams);
+      setSearchParams({ ...newSearchParams });
     }
 
     if (homeMode.includes("campaigns")) {
@@ -203,27 +231,28 @@ export const HomeSection = (props: HomeSectionProps) => {
     }
 
     if (homeMode.includes("reward-pools")) {
-      const currentParams = Object.fromEntries(searchParams.entries());
-      currentParams["section"] = "reward-pools";
-      delete currentParams["campaign"];
-      delete currentParams["artist"];
-      delete currentParams["tab"];
-      delete currentParams["action"];
-      delete currentParams["country"];
-      delete currentParams["team"];
-      setSearchParams({ ...currentParams });
+      const newSearchParams = removeAllDeepSectionParamsFromUrlExceptSection("reward-pools", searchParams);
+      setSearchParams({ ...newSearchParams });
     }
 
     if (homeMode.includes("xp-leaderboards")) {
-      const currentParams = Object.fromEntries(searchParams.entries());
-      currentParams["section"] = "xp-leaderboards";
-      delete currentParams["campaign"];
-      delete currentParams["artist"];
-      delete currentParams["tab"];
-      delete currentParams["action"];
-      delete currentParams["country"];
-      delete currentParams["team"];
-      setSearchParams({ ...currentParams });
+      const newSearchParams = removeAllDeepSectionParamsFromUrlExceptSection("xp-leaderboards", searchParams);
+      setSearchParams({ ...newSearchParams });
+    }
+
+    if (homeMode.includes("ai-remix")) {
+      const newSearchParams = removeAllDeepSectionParamsFromUrlExceptSection("ai-remix", searchParams);
+      setSearchParams({ ...newSearchParams });
+    }
+
+    if (homeMode.includes("wallet")) {
+      const newSearchParams = removeAllDeepSectionParamsFromUrlExceptSection("wallet", searchParams);
+      setSearchParams({ ...newSearchParams });
+    }
+
+    if (homeMode.includes("profile")) {
+      const newSearchParams = removeAllDeepSectionParamsFromUrlExceptSection("profile", searchParams);
+      setSearchParams({ ...newSearchParams });
     }
 
     // dont do this if there is country or team in the search params as those sub pages look janky
@@ -416,7 +445,7 @@ export const HomeSection = (props: HomeSectionProps) => {
         }
 
         const musicTrack: MusicTrack = {
-          idx: (index + 1).toString(),
+          idx: index + 1,
           artist: artistData.name,
           category: track.category, // note that we get "all" here for "foryou" playlist on some tracks. This needs to be fixed in the db
           album: albumData.title,
@@ -438,13 +467,31 @@ export const HomeSection = (props: HomeSectionProps) => {
     return augmentedTracks;
   }
 
-  async function viewSolData(albumInOwnershipListIndex: number, playAlbumNowParams?: any, userOwnsAlbum?: boolean) {
+  async function viewSolData(albumInOwnershipListIndex: number, playAlbumNowParams?: any, userOwnsAlbum?: boolean, virtualTrackList?: MusicTrack[]) {
     try {
       setIsFetchingDataMarshal(true);
       resetMusicPlayerState();
       setViewSolDataHasError(false);
 
       let _musicPlayerTrackListFromDb = false;
+
+      if (virtualTrackList && virtualTrackList.length > 0) {
+        setMusicPlayerAlbumTrackList(virtualTrackList);
+        setFirstAlbumSongBlobUrl(virtualTrackList[0].stream);
+        setIsFetchingDataMarshal(false);
+        setMusicPlayerTrackListFromDb(true);
+        updateAlbumIdBeingPlayed(playAlbumNowParams.albumId);
+        setLaunchPlaylistPlayerWithDefaultTracks(false); // reset this value in-case user was listening to a default playlist before playing an album
+
+        if (playAlbumNowParams?.jumpToPlaylistTrackIndex) {
+          setJumpToPlaylistTrackIndex(playAlbumNowParams.jumpToPlaylistTrackIndex);
+        }
+
+        setLaunchAlbumPlayer(true);
+        setStopPreviewPlaying(true);
+        return;
+      }
+
       let albumTracksFromDb = await getAlbumTracksFromDBViaAPI(playAlbumNowParams.artistId, playAlbumNowParams.albumId, userOwnsAlbum);
       const artistData = artistLookupEverything[playAlbumNowParams.artistId];
 
@@ -680,14 +727,15 @@ export const HomeSection = (props: HomeSectionProps) => {
     updateJumpToTrackIndexInAlbumBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
   }
 
-  useEffect(() => {
-    if (!isHovered) {
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev === 1 ? 0 : 1));
-      }, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [isHovered]);
+  // this is causing all the children to re-render
+  // useEffect(() => {
+  //   if (!isHovered) {
+  //     const interval = setInterval(() => {
+  //       setCurrentSlide((prev) => (prev === 1 ? 0 : 1));
+  //     }, 3000);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [isHovered]);
 
   return (
     <>
@@ -807,96 +855,52 @@ export const HomeSection = (props: HomeSectionProps) => {
             </div>
           )}
 
-          {homeMode.includes("campaigns-wsb") && (
-            <CampaignHeroWSB setCampaignCodeFilter={setCampaignCodeFilter} navigateToDeepAppView={navigateToDeepAppView} />
-          )}
+          {/* App Sections */}
+          <>
+            {homeMode.includes("campaigns-wsb") && (
+              <CampaignHeroWSB setCampaignCodeFilter={setCampaignCodeFilter} navigateToDeepAppView={navigateToDeepAppView} />
+            )}
 
-          {homeMode.includes("campaigns-wir") && (
-            <CampaignHeroWIR
-              setCampaignCodeFilter={setCampaignCodeFilter}
-              navigateToDeepAppView={navigateToDeepAppView}
-              selectedPlaylistGenre={selectedPlaylistGenre}
-              isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
-              onCloseMusicPlayer={resetMusicPlayerState}
-              setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
-              setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
-              onPlaylistGenreUpdate={(genre: string) => {
-                setSelectedGenreForPlaylist(""); // clear any previous genre selection immediately
-                debouncedGenrePlaylistUpdate(genre); // but debounce the actual logic in case the user is click spamming the genre buttons
-              }}
-            />
-          )}
+            {homeMode.includes("campaigns-wir") && (
+              <CampaignHeroWIR
+                setCampaignCodeFilter={setCampaignCodeFilter}
+                navigateToDeepAppView={navigateToDeepAppView}
+                selectedPlaylistGenre={selectedPlaylistGenre}
+                isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
+                onCloseMusicPlayer={resetMusicPlayerState}
+                setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
+                setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
+                onPlaylistGenreUpdate={(genre: string) => {
+                  setSelectedGenreForPlaylist(""); // clear any previous genre selection immediately
+                  debouncedGenrePlaylistUpdate(genre); // but debounce the actual logic in case the user is click spamming the genre buttons
+                }}
+              />
+            )}
 
-          {/* Artists and their Albums */}
-          {(homeMode.includes("artists") || homeMode.includes("albums") || homeMode.includes("campaigns-wsb")) && (
-            <>
-              <div className={`w-full ${homeMode.includes("campaigns-wsb") ? "mt-0" : "mt-5"}`}>
-                <FeaturedArtistsAndAlbums
-                  viewSolData={viewSolData}
-                  stopPreviewPlayingNow={stopPreviewPlaying}
-                  featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
-                  onFeaturedArtistDeepLinkSlug={(artistSlug: string, albumId?: string) => {
-                    let slugToUse = artistSlug;
-
-                    if (albumId) {
-                      slugToUse = `${artistSlug}~${albumId}`;
-                    }
-
-                    setFeaturedArtistDeepLinkSlug(slugToUse);
-                  }}
-                  onPlayHappened={() => {
-                    // pause the preview tracks if playing
-                    setStopPreviewPlaying(false);
-                    // pause the main player if playing
-                    setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
-                  }}
-                  checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
-                  openActionFireLogic={(_bitzGiftingMeta?: any) => {
-                    setLaunchAlbumPlayer(true);
-                    setStopPreviewPlaying(true);
-
-                    if (_bitzGiftingMeta) {
-                      setBitzGiftingMeta(_bitzGiftingMeta);
-                    }
-                  }}
-                  onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
-                  bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                  setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
-                  userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
-                  dataNftPlayingOnMainPlayer={solMusicAssetNfts[currentDataNftIndex]}
-                  onCloseMusicPlayer={resetMusicPlayerState}
-                  isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
-                  loadIntoTileView={loadIntoTileView}
-                  setLoadIntoTileView={setLoadIntoTileView}
-                  isAllAlbumsMode={homeMode.includes("albums")}
-                  filterByArtistCampaignCode={homeMode.includes("campaigns-wsb") ? campaignCodeFilter : -1}
-                />
-              </div>
-            </>
-          )}
-
-          {/* Ny Collected Music Data NFTs */}
-          {homeMode === "wallet" && (
-            <>
-              {publicKeySol && (
-                <div className="w-full mt-5">
-                  <MyCollectedNFTs
+            {/* Artists and their Albums */}
+            {(homeMode.includes("artists") || homeMode.includes("albums") || homeMode.includes("campaigns-wsb")) && (
+              <>
+                <div className={`w-full ${homeMode.includes("campaigns-wsb") ? "mt-0" : "mt-5"}`}>
+                  <FeaturedArtistsAndAlbums
                     viewSolData={viewSolData}
-                    isFetchingDataMarshal={isFetchingDataMarshal}
-                    viewDataRes={viewDataRes}
-                    currentDataNftIndex={currentDataNftIndex}
-                    dataMarshalResponse={dataMarshalResponse}
-                    firstSongBlobUrl={firstAlbumSongBlobUrl}
-                    setStopPreviewPlaying={setStopPreviewPlaying}
-                    setBitzGiftingMeta={setBitzGiftingMeta}
-                    onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
-                    bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                    checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
-                    userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
-                    setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
-                    setFeaturedArtistDeepLinkSlug={(slug: string) => {
-                      setFeaturedArtistDeepLinkSlug(slug);
+                    stopPreviewPlayingNow={stopPreviewPlaying}
+                    featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
+                    onFeaturedArtistDeepLinkSlug={(artistSlug: string, albumId?: string) => {
+                      let slugToUse = artistSlug;
+
+                      if (albumId) {
+                        slugToUse = `${artistSlug}~${albumId}`;
+                      }
+
+                      setFeaturedArtistDeepLinkSlug(slugToUse);
                     }}
+                    onPlayHappened={() => {
+                      // pause the preview tracks if playing
+                      setStopPreviewPlaying(false);
+                      // pause the main player if playing
+                      setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
+                    }}
+                    checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                     openActionFireLogic={(_bitzGiftingMeta?: any) => {
                       setLaunchAlbumPlayer(true);
                       setStopPreviewPlaying(true);
@@ -905,46 +909,93 @@ export const HomeSection = (props: HomeSectionProps) => {
                         setBitzGiftingMeta(_bitzGiftingMeta);
                       }
                     }}
+                    onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
+                    bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                    setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
+                    userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
                     dataNftPlayingOnMainPlayer={solMusicAssetNfts[currentDataNftIndex]}
                     onCloseMusicPlayer={resetMusicPlayerState}
                     isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
-                    setHomeMode={setHomeMode}
-                    navigateToDeepAppView={navigateToDeepAppView}
+                    loadIntoTileView={loadIntoTileView}
+                    setLoadIntoTileView={setLoadIntoTileView}
+                    isAllAlbumsMode={homeMode.includes("albums")}
+                    filterByArtistCampaignCode={homeMode.includes("campaigns-wsb") ? campaignCodeFilter : -1}
                   />
                 </div>
-              )}
-            </>
-          )}
+              </>
+            )}
 
-          {homeMode === "games" && (
-            <div className="w-full mt-5">
-              <MiniGames playlistTracks={musicPlayerPlaylistTrackList} isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer} />
-            </div>
-          )}
+            {/* Ny Collected Music Data NFTs */}
+            {homeMode.includes("wallet") && (
+              <>
+                {publicKeySol && (
+                  <div className="w-full mt-5">
+                    <MyCollectedNFTs
+                      viewSolData={viewSolData}
+                      isFetchingDataMarshal={isFetchingDataMarshal}
+                      viewDataRes={viewDataRes}
+                      currentDataNftIndex={currentDataNftIndex}
+                      dataMarshalResponse={dataMarshalResponse}
+                      firstSongBlobUrl={firstAlbumSongBlobUrl}
+                      setStopPreviewPlaying={setStopPreviewPlaying}
+                      setBitzGiftingMeta={setBitzGiftingMeta}
+                      onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
+                      bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
+                      checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
+                      userHasNoBitzDataNftYet={userHasNoBitzDataNftYet}
+                      setMusicBountyBitzSumGlobalMapping={setMusicBountyBitzSumGlobalMapping}
+                      setFeaturedArtistDeepLinkSlug={(slug: string) => {
+                        setFeaturedArtistDeepLinkSlug(slug);
+                      }}
+                      openActionFireLogic={(_bitzGiftingMeta?: any) => {
+                        setLaunchAlbumPlayer(true);
+                        setStopPreviewPlaying(true);
 
-          {homeMode.includes("reward-pools") && (
-            <div className="w-full mt-5">
-              <RewardPools />
-            </div>
-          )}
+                        if (_bitzGiftingMeta) {
+                          setBitzGiftingMeta(_bitzGiftingMeta);
+                        }
+                      }}
+                      dataNftPlayingOnMainPlayer={solMusicAssetNfts[currentDataNftIndex]}
+                      onCloseMusicPlayer={resetMusicPlayerState}
+                      isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
+                      setHomeMode={setHomeMode}
+                      navigateToDeepAppView={navigateToDeepAppView}
+                    />
+                  </div>
+                )}
+              </>
+            )}
 
-          {homeMode.includes("xp-leaderboards") && (
-            <div className="w-full mt-5">
-              <Leaderboards navigateToDeepAppView={navigateToDeepAppView} />
-            </div>
-          )}
+            {homeMode === "games" && (
+              <div className="w-full mt-5">
+                <MiniGames playlistTracks={musicPlayerPlaylistTrackList} isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer} />
+              </div>
+            )}
 
-          {homeMode === "profile" && (
-            <div className="w-full mt-5">
-              <MyProfile navigateToDeepAppView={navigateToDeepAppView} />
-            </div>
-          )}
+            {homeMode.includes("reward-pools") && (
+              <div className="w-full mt-5">
+                <RewardPools />
+              </div>
+            )}
 
-          {homeMode === "remix" && (
-            <div className="w-full mt-5">
-              <Remix />
-            </div>
-          )}
+            {homeMode.includes("xp-leaderboards") && (
+              <div className="w-full mt-5">
+                <Leaderboards navigateToDeepAppView={navigateToDeepAppView} />
+              </div>
+            )}
+
+            {homeMode.includes("profile") && (
+              <div className="w-full mt-5">
+                <MyProfile navigateToDeepAppView={navigateToDeepAppView} viewSolData={viewSolData} onCloseMusicPlayer={resetMusicPlayerState} />
+              </div>
+            )}
+
+            {homeMode.includes("ai-remix") && (
+              <div className="w-full mt-5">
+                <Remix />
+              </div>
+            )}
+          </>
 
           {/* The album player footer bar */}
           {launchAlbumPlayer && (

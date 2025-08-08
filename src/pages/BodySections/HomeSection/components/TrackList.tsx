@@ -11,6 +11,7 @@ interface TrackListProps {
   album: Album;
   artistId: string;
   artistName: string;
+  virtualTrackList?: MusicTrack[];
   onBack: () => void;
   onPlayTrack: (album: any, jumpToPlaylistTrackIndex?: number) => void;
   checkOwnershipOfMusicAsset: (album: any) => number;
@@ -22,6 +23,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   album,
   artistId,
   artistName,
+  virtualTrackList,
   onBack,
   onPlayTrack,
   checkOwnershipOfMusicAsset,
@@ -52,8 +54,13 @@ export const TrackList: React.FC<TrackListProps> = ({
       }
     };
 
-    fetchTracks();
-  }, [artistId, album.albumId]);
+    if (!virtualTrackList || virtualTrackList.length === 0) {
+      fetchTracks(); // get live tracks from the DB
+    } else {
+      setTracks(virtualTrackList); // we are loading a manual virtual track list (e.g. for the user's remixes)
+      setLoading(false);
+    }
+  }, [artistId, album.albumId, virtualTrackList]);
 
   const handleTrackClick = (track: MusicTrack, trackIndex: number) => {
     // Don't allow clicking if audio player is being loaded
@@ -77,12 +84,12 @@ export const TrackList: React.FC<TrackListProps> = ({
 
     // if this album is already playing, we shortcut the MusicPlayer by getting the current player to jump to track the user wants to play
     if (albumIdBeingPlayed === album.albumId) {
-      updateJumpToTrackIndexInAlbumBeingPlayed(parseInt(track.idx));
+      updateJumpToTrackIndexInAlbumBeingPlayed(track.idx);
       return;
     }
 
     // Use the same play logic as the album play button
-    onPlayTrack(album, parseInt(track.idx));
+    onPlayTrack(album, track.idx);
   };
 
   const userOwnsAlbum = checkOwnershipOfMusicAsset(album) > -1;
@@ -99,10 +106,12 @@ export const TrackList: React.FC<TrackListProps> = ({
     <div className="w-full">
       {/* Header */}
       <div>
-        <Button variant="outline" className="text-sm px-3 py-2" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Albums
-        </Button>
+        {!virtualTrackList && (
+          <Button variant="outline" className="text-sm px-3 py-2" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Albums
+          </Button>
+        )}
         <div className="flex items-center justify-between mb-6 mt-3">
           <div className="flex items-center gap-6">
             {/* Large Circular Play Button */}

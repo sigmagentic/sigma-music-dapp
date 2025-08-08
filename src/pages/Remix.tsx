@@ -1,5 +1,5 @@
 import * as React from "react";
-import { RemixSection } from "pages/BodySections/RemixSection";
+import { RemixMusicSectionContent } from "pages/BodySections/RemixMusicSection";
 // import { routeNames } from "routes";
 
 // export function returnRoute(routeKey: string) {
@@ -7,5 +7,5 @@ import { RemixSection } from "pages/BodySections/RemixSection";
 // }
 
 export const Remix = () => {
-  return <RemixSection />;
+  return <RemixMusicSectionContent />;
 };

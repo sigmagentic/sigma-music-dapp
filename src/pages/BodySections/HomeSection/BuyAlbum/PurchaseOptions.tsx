@@ -23,7 +23,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
   const isOptionAvailable = (option: "priceOption1" | "priceOption2" | "priceOption3") => {
     if (option === "priceOption1") {
       return buyNowMeta?.[option]?.priceInUSD && buyNowMeta[option]?.priceInUSD !== "";
-    } else if (DISABLE_COMMERCIAL_LICENSE_BUY_OPTION && option === "priceOption3") {
+    } else if (DISABLE_COMMERCIAL_LICENSE_BUY_OPTION === "1" && option === "priceOption3") {
       return false;
     } else {
       return buyNowMeta?.[option]?.priceInUSD && buyNowMeta[option]?.priceInUSD !== "" && buyNowMeta[option]?.canBeMinted;
@@ -56,7 +56,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
         {!available && (
           <div className="absolute inset-0 flex items-center justify-center z-20">
             <span className="bg-white text-black px-4 py-2 rounded-lg font-semibold shadow-lg">
-              {DISABLE_COMMERCIAL_LICENSE_BUY_OPTION && option === "priceOption3" ? "Currently Offline" : "Currently Not Offered"}
+              {DISABLE_COMMERCIAL_LICENSE_BUY_OPTION === "1" && option === "priceOption3" ? "Currently Offline" : "Currently Not Offered"}
             </span>
           </div>
         )}

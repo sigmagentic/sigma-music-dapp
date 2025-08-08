@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram } from "lucide-react";
+import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram, ChevronDown } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import TikTokIcon from "assets/img/icons/tiktok-icon.png";
@@ -10,9 +10,8 @@ import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLead
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
-import { GiftBitzToArtistMeta } from "libs/types";
-import { Artist, Album, AlbumWithArtist } from "libs/types";
-import { BountyBitzSumMapping } from "libs/types";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "libComponents/DropdownMenu";
+import { Artist, Album, AlbumWithArtist, GiftBitzToArtistMeta, BountyBitzSumMapping } from "libs/types";
 import { sleep, scrollToTopOnMainContentArea, isMostLikelyMobile, injectXUserNameIntoTweet } from "libs/utils";
 import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
@@ -86,6 +85,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan"]);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
+  const [selectedFilter, setSelectedFilter] = useState<string>("Featured");
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -260,6 +260,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         currentParams["artist"] = selDataItem.slug;
       }
 
+      // if the section is "albums", we need to make it "artists" as user is going into a deep album link inside the artist profile view
+      if (searchParams.get("section") === "albums") {
+        currentParams["section"] = "artists";
+      }
+
       setSearchParams({ ...currentParams });
     }
 
@@ -291,6 +296,13 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     }
   }, [artistProfile]);
 
+  useEffect(() => {
+    if (selectedFilter && albumsDataset.length > 0) {
+      console.log("albumsDataset", albumsDataset);
+      console.log("selectedFilter", selectedFilter);
+    }
+  }, [selectedFilter, albumsDataset]);
+
   async function fetchAndUpdateArtistAlbumDataIntoView() {
     setArtistAlbumDataLoading(true);
     updateTileDataCollectionLoadingInProgress(true);
@@ -300,12 +312,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     const { albumArtistLookupData, albumArtistLookupDataOrganizedBySections } = await getArtistsAlbumsData();
     let allAlbumsData: AlbumWithArtist[] = [];
 
-    const artistDataToUse =
+    const artistMasterCatalogueToUse =
       filterByArtistCampaignCode && filterByArtistCampaignCode !== -1
         ? albumArtistLookupDataOrganizedBySections[filterByArtistCampaignCode]?.filteredItems || []
         : albumArtistLookupData;
 
-    allAlbumsData = artistDataToUse.flatMap((artist: Artist) =>
+    allAlbumsData = artistMasterCatalogueToUse.flatMap((artist: Artist) =>
       artist.albums.map(
         (album: Album): AlbumWithArtist => ({
           ...album,
@@ -324,7 +336,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     // await sleep(2);
 
-    setArtistAlbumDataset(artistDataToUse);
+    console.log("artistMasterCatalogueToUse", artistMasterCatalogueToUse);
+
+    setArtistAlbumDataset(artistMasterCatalogueToUse);
     setAlbumsDataset(allAlbumsData);
 
     // update the album master lookup
@@ -438,6 +452,13 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     delete currentParams["artist"];
     delete currentParams["tab"];
     delete currentParams["action"];
+
+    // when we are coming into a album from the albums list view, we change the url section to "artists" so there is a link back to the artist deep link (in case they share the URL)
+    // .. when if they going back to the albums list view, we change the url section back to "albums"
+    if (isAllAlbumsMode) {
+      currentParams["section"] = "albums";
+    }
+
     setSearchParams(currentParams);
 
     // reset the featuredArtistDeepLinkSlug
@@ -471,16 +492,44 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               <>
                 {!filterByArtistCampaignCode ||
                   (filterByArtistCampaignCode === -1 && (
-                    <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
-                      {isAllAlbumsMode ? "Albums" : "Artists"}
-                    </span>
+                    <div className="flex flex-row justify-between w-full">
+                      <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+                        {isAllAlbumsMode ? "Albums" : "Artists"}
+                      </span>
+                      <div className="mr-3">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500">
+                              {selectedFilter}
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => setSelectedFilter("Featured")} className="cursor-pointer">
+                              Featured
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSelectedFilter("Recently Added")} className="cursor-pointer">
+                              Recently Added
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSelectedFilter("Featuring AI Remix Licenses")} className="cursor-pointer">
+                              With AI Remix Licenses
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSelectedFilter("Alphabetical")} className="cursor-pointer">
+                              Alphabetical
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
                   ))}
               </>
             )}
           </div>
         </div>
 
-        <div id="artist-profile" className="flex flex-col md:flex-row w-[100%] items-start">
+        <div className="flex flex-col md:flex-row w-[100%] items-start">
           {artistAlbumDataLoading || artistAlbumDataset.length === 0 ? (
             <div className="flex flex-col gap-4 p-2 items-start bg-background rounded-lg min-h-[250px] w-full">
               {artistAlbumDataLoading ? (

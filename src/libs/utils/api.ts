@@ -1,5 +1,5 @@
 import { LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
-import { CACHE_DURATION_2_MIN, CACHE_DURATION_60_MIN, CACHE_DURATION_HALF_MIN } from "./constant";
+import { CACHE_DURATION_2_MIN, CACHE_DURATION_60_MIN, CACHE_DURATION_FIVE_SECONDS, CACHE_DURATION_HALF_MIN } from "./constant";
 import { PaymentLog } from "../types/common";
 
 interface CacheEntry_DataWithTimestamp {
@@ -892,9 +892,14 @@ export async function getMusicTracksByGenreViaAPI({ genre, pageSize = 50, pageTo
   }
 }
 
-export async function getPaymentLogsViaAPI({ addressSol }: { addressSol: string }): Promise<any> {
+export async function getPaymentLogsViaAPI({ addressSol, byTaskFilter }: { addressSol: string; byTaskFilter?: string }): Promise<any> {
   try {
     let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/paymentLogs?payer=${addressSol}`;
+
+    // if byTaskFilter is provided, then we filter the payment logs by the type (e.g. "remix")
+    if (byTaskFilter) {
+      callUrl += `&byTaskFilter=${byTaskFilter}`;
+    }
 
     const res = await fetch(callUrl);
 
@@ -906,6 +911,60 @@ export async function getPaymentLogsViaAPI({ addressSol }: { addressSol: string 
     const message = "Getting payment logs failed :" + err.message;
     console.error(message);
     return false;
+  }
+}
+
+const cache_remixLaunches: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export async function getRemixLaunchesViaAPI({ launchStatus, addressSol }: { launchStatus: string; addressSol: string | null }): Promise<any> {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_remixLaunches[`${launchStatus}-${addressSol || "all"}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_FIVE_SECONDS) {
+      console.log(`getRemixLaunchesViaAPI: Getting remix launches for launchStatus: ${launchStatus} and addressSol: ${addressSol || "all"} from cache`);
+      return cacheEntry.data;
+    }
+
+    try {
+      let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/newLaunchesByStatus/${launchStatus}`;
+
+      // if addressSol is provided then only get the remixes for the logged in user
+      if (addressSol) {
+        callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/newLaunchesByStatusAndRemixedBy/${launchStatus}?remixedBy=${addressSol}`;
+      }
+
+      const res = await fetch(callUrl);
+      const toJson = await res.json();
+
+      const data: PaymentLog[] = toJson.items || [];
+
+      // Update cache
+      cache_remixLaunches[`${launchStatus}-${addressSol || "all"}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } catch (err: any) {
+      const message = "Getting remix launches failed :" + err.message;
+      console.error(message);
+      // Update cache (with [] as data)
+      cache_remixLaunches[`${launchStatus}-${addressSol || "all"}`] = {
+        data: [],
+        timestamp: now,
+      };
+      return [];
+    }
+  } catch (error) {
+    console.error("Error getting remix launches:", error);
+    // Update cache (with [] as data)
+    cache_remixLaunches[`${launchStatus}-${addressSol || "all"}`] = {
+      data: [],
+      timestamp: now,
+    };
+    return [];
   }
 }
 

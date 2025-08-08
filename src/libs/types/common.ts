@@ -14,7 +14,7 @@ export interface ExtendedViewDataReturnType extends ViewDataReturnType {
 }
 
 export interface MusicTrack {
-  idx: string;
+  idx: number;
   nftCollection?: string;
   solNftName?: string;
   solNftAltCodes?: string; // can be a , separated list of alt codes prefixes for the album (e.g. MUSSM1). but intially we only support 1 (if we add more, code repo changes are needed)
@@ -44,7 +44,7 @@ export interface Album {
   desc: string;
   ctaPreviewStream: string;
   ctaBuy: string;
-  dripSet: string;
+  dripSet?: string;
   bountyId: string;
   img: string;
   isExplicit: string;
@@ -176,18 +176,18 @@ export enum AlbumSaleTypeOption {
 }
 
 export interface PaymentLog {
-  task: "buyAlbum" | "joinFanClub"; // buyAlbum or joinFanClub
-  paymentStatus: "new" | "success" | "failed"; // new, success, failed (not sure if we use this)
+  task: "buyAlbum" | "joinFanClub" | "remix"; // buyAlbum or joinFanClub or remix
+  paymentStatus: "new" | "success" | "failed" | "uncertain"; // new, success, failed (not sure if we use this)
   createdOn: number;
   tx: string;
   amount: string;
-  creatorWallet: string;
   payer: string;
-  paymentStatusAddedOn: number;
-  albumSaleTypeOption: string; // 1 (digital album + download only), 2 (digital album + download + NFT), 3 (digital album + commercial license + download + NFT)
+  type: "sol" | "cc"; // sol or cc
+  creatorWallet?: string;
+  paymentStatusAddedOn?: number;
+  albumSaleTypeOption?: string; // 1 (digital album + download only), 2 (digital album + download + NFT), 3 (digital album + commercial license + download + NFT)
   priceInUSD?: string; // only when type is sol
   albumId?: string;
-  type: "sol" | "cc"; // sol or cc
   artistId?: string;
   membershipId?: string;
   _artistSlug?: string; // we add this inside the app
@@ -196,6 +196,14 @@ export interface PaymentLog {
   _artistCampaignCode?: string; // we add this inside the app
   _artistSubGroup1Code?: string; // we add this inside the app
   _artistSubGroup2Code?: string; // we add this inside the app
+  asyncTaskJobTraceId?: string; // the SQS message ID of the job that processed the payment
+  promptParams?: {
+    songTitle: string;
+    genre: string;
+    mood: string;
+    refTrack_alId: string;
+    refTrack_file: string;
+  };
 }
 
 export interface MusicAssetOwned {
@@ -233,4 +241,45 @@ export interface MyAlbumMintLog {
   storyProtocolLicenseMintingSQSMessageId?: string;
   storyProtocolLicenseTokenId?: string;
   storyProtocolLicenseMintingTxHash?: string;
+}
+
+// AI Remix based
+export interface AiRemixTrackVersion {
+  bountyId: string;
+  streamUrl: string;
+  deepLinkSlugToTrackInAlbum?: string;
+}
+
+export interface AiRemixLaunch {
+  image: string;
+  createdOn: number; // Unix timestamp
+  lastStatusUpdateOn?: number; // Unix timestamp
+  remixedBy: string;
+  launchId: string;
+  paymentTxHash: string;
+  status?: string;
+  versions: AiRemixTrackVersion[];
+  promptParams: {
+    songTitle: string;
+    genre: string;
+    mood: string;
+    refTrack_alId: string;
+    refTrack_file: string;
+  };
+  graduated?: number;
+  graduatedStreamUrl?: string;
+  votes?: number; // Optional as it might not be present in all responses
+  votesNeeded?: number; // Optional as it might not be present in all responses
+}
+
+export interface AiRemixRawTrack {
+  createdOn: number;
+  songTitle: string;
+  genre: string;
+  mood: string;
+  image: string;
+  streamUrl: string;
+  status: "new" | "graduated" | "published";
+  bountyId: string;
+  refTrack_alId?: string;
 }
