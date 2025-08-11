@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram, ChevronDown } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import TikTokIcon from "assets/img/icons/tiktok-icon.png";
+import ArtistAiRemixes from "components/ArtistAiRemixes/ArtistAiRemixes";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
 import ArtistStats from "components/ArtistStats/ArtistStats";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
@@ -18,6 +19,9 @@ import { routeNames } from "routes";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
+
+let originalSortedArtistAlbumDataset: Artist[] = []; // sorted by "Featured", this is the original "master" copy we always resort or filter from
+let originalSortedAlbumsDataset: AlbumWithArtist[] = []; // sorted by "Featured", this is the original "master" copy we always resort or filter from
 
 type FeaturedArtistsAndAlbumsProps = {
   stopPreviewPlayingNow?: boolean;
@@ -82,10 +86,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState("discography");
   const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
-  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan"]);
+  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("Featured");
+  const prevIsAllAlbumsModeRef = useRef<boolean | undefined>(isAllAlbumsMode);
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -175,7 +180,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         setArtistAlbumDataLoading(true);
         updateTileDataCollectionLoadingInProgress(true);
         setArtistAlbumDataset([]);
+        originalSortedArtistAlbumDataset = [];
         setAlbumsDataset([]);
+        originalSortedAlbumsDataset = [];
         setArtistAlbumDataLoading(false);
         updateTileDataCollectionLoadingInProgress(false);
       }
@@ -192,9 +199,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
         // for campiagns, we jump to the fan tab
         setActiveTab("fan");
-        setTabsOrdered(["fan", "leaderboard", "artistStats"]);
+        setTabsOrdered(["fan", "leaderboard", "artistStats", "aiRemixes"]);
       } else {
-        setTabsOrdered(["discography", "leaderboard", "artistStats", "fan"]);
+        setTabsOrdered(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
       }
 
       // on mobile, we scroll to the top of the page as the user navigates to the various artist profile pages
@@ -297,11 +304,81 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   }, [artistProfile]);
 
   useEffect(() => {
-    if (selectedFilter && albumsDataset.length > 0) {
-      console.log("albumsDataset", albumsDataset);
-      console.log("selectedFilter", selectedFilter);
+    if (!isAllAlbumsMode) {
+      let reSortedTileData = [...originalSortedArtistAlbumDataset];
+
+      switch (selectedFilter) {
+        case "Featured":
+          reSortedTileData = originalSortedArtistAlbumDataset;
+          break;
+        case "Recently Added":
+          // each items will have an albums array, and each Album inside that array will have a .timestampAlbumAdded property.
+          // which can be "0" value (which means it's old) and a value like "1749620368" which is a unix epoch time in seconds (note that they are both in strings),
+          // we need to order the artists in reSortedTileData based on which artist launched the most recent album. for each artist, we get the timestamp of the most recent album and then we sort the artists by this value, most recent first
+          reSortedTileData = reSortedTileData.sort((a, b) => {
+            const aMostRecentAlbumTimestamp = a.albums.reduce((max, album) => {
+              const timestamp = parseInt(album.timestampAlbumAdded || "0");
+              return Math.max(max, timestamp);
+            }, 0);
+            const bMostRecentAlbumTimestamp = b.albums.reduce((max, album) => {
+              const timestamp = parseInt(album.timestampAlbumAdded || "0");
+              return Math.max(max, timestamp);
+            }, 0);
+            return bMostRecentAlbumTimestamp - aMostRecentAlbumTimestamp;
+          });
+          break;
+        case "Featuring AI Remix Licenses":
+          // each items will have an albums array, and each Album inside that array will have a .albumPriceOption3 property. if this property is not empty, then we add it to the reSortedTileData
+          reSortedTileData = reSortedTileData.filter((item) => item.albums.some((album) => album.albumPriceOption3 && album.albumPriceOption3 !== ""));
+          break;
+        case "Alphabetical":
+          // each item in sortedTileData will have a .name property, lets sort them alphabetically using this. from A to Z
+          reSortedTileData = reSortedTileData.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+      }
+
+      setArtistAlbumDataset(reSortedTileData);
+    } else {
+      let reSortedTileData = [...originalSortedAlbumsDataset];
+
+      switch (selectedFilter) {
+        case "Featured":
+          reSortedTileData = originalSortedAlbumsDataset;
+          break;
+        case "Recently Added":
+          // each item will have a .timestampAlbumAdded which can be "0" value (which means it's old) and a value like "1749620368" which is a unix epoch time in seconds (note that they are both in strings), we need to sort them by this value. order by most recent first
+          reSortedTileData = reSortedTileData.sort((a, b) => {
+            const aTimestamp = parseInt(a.timestampAlbumAdded || "0");
+            const bTimestamp = parseInt(b.timestampAlbumAdded || "0");
+            return bTimestamp - aTimestamp;
+          });
+          break;
+        case "Featuring AI Remix Licenses":
+          // each item will have .albumPriceOption3 property, if this is not empty, then we add it to the reSortedTileData
+          reSortedTileData = reSortedTileData.filter((item) => item.albumPriceOption3 && item.albumPriceOption3 !== "");
+          break;
+        case "Alphabetical":
+          // each item in sortedTileData will have a .title property, lets sort them alphabetically using this. from A to Z
+          reSortedTileData = reSortedTileData.sort((a, b) => a.title.localeCompare(b.title));
+          break;
+      }
+
+      setAlbumsDataset(reSortedTileData);
     }
-  }, [selectedFilter, albumsDataset]);
+  }, [selectedFilter, isAllAlbumsMode]);
+
+  useEffect(() => {
+    const prevValue = prevIsAllAlbumsModeRef.current;
+    const currentValue = isAllAlbumsMode;
+
+    // Only run custom logic if the value has changed
+    if (prevValue !== currentValue) {
+      setSelectedFilter("Featured"); // revert to the default filter if user swapped between artist and album view
+    }
+
+    // Update the ref to the current value for the next effect run
+    prevIsAllAlbumsModeRef.current = currentValue;
+  }, [isAllAlbumsMode]);
 
   async function fetchAndUpdateArtistAlbumDataIntoView() {
     setArtistAlbumDataLoading(true);
@@ -339,7 +416,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     console.log("artistMasterCatalogueToUse", artistMasterCatalogueToUse);
 
     setArtistAlbumDataset(artistMasterCatalogueToUse);
+    originalSortedArtistAlbumDataset = artistMasterCatalogueToUse;
     setAlbumsDataset(allAlbumsData);
+    originalSortedAlbumsDataset = allAlbumsData;
 
     // update the album master lookup
     updateAlbumMasterLookup(
@@ -939,6 +1018,25 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                 Artist Insights
                               </button>
                             )}
+                            {tabsOrdered.includes("aiRemixes") && (
+                              <button
+                                onClick={() => {
+                                  setActiveTab("aiRemixes");
+                                  const currentParams = Object.fromEntries(searchParams.entries());
+                                  delete currentParams["tab"];
+                                  delete currentParams["action"];
+                                  setSearchParams(currentParams);
+                                }}
+                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "aiRemixes"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                                AI Remixes
+                              </button>
+                            )}
                           </div>
                         </div>
                         {/* Tabs Content */}
@@ -994,6 +1092,17 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistId={artistProfile.artistId}
                               filterByArtistCampaignCode={filterByArtistCampaignCode}
                               nftMarketplaceLink={artistProfile.fanTokenNftMarketplaceLink || ""}
+                            />
+                          </div>
+                        )}
+                        {tabsOrdered.includes("aiRemixes") && activeTab === "aiRemixes" && (
+                          <div className="artist-album-sales w-full">
+                            <ArtistAiRemixes
+                              artistId={artistProfile.artistId}
+                              setActiveTab={setActiveTab}
+                              onFeaturedArtistDeepLinkSlug={onFeaturedArtistDeepLinkSlug}
+                              onCloseMusicPlayer={onCloseMusicPlayer}
+                              viewSolData={viewSolData}
                             />
                           </div>
                         )}

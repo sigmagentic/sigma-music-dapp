@@ -1138,7 +1138,8 @@ export const LaunchMusicTrack = ({ onCloseModal }: { onCloseModal: (refreshPayme
         "streamUrl": "https://gateway.lighthouse.storage/ipfs/bafybeiamazbh6gdjztniyhmkj3gwbk627jr2gcvrtbnfviq3pzdgitpazq"
         }
       ]
-      }
+      },
+      "ref_artistId": "ar21"
 
       && 
 
@@ -1173,7 +1174,8 @@ export const LaunchMusicTrack = ({ onCloseModal }: { onCloseModal: (refreshPayme
    "bountyId": "asdt4-2",
    "streamUrl": "https://gateway.lighthouse.storage/ipfs/bafybeiamazbh6gdjztniyhmkj3gwbk627jr2gcvrtbnfviq3pzdgitpazq"
   }
- ]
+ ],
+ "ref_artistId": "ar21"
 }
 
 4 step
@@ -1204,6 +1206,7 @@ export const LaunchMusicTrack = ({ onCloseModal }: { onCloseModal: (refreshPayme
    "streamUrl": "https://gateway.lighthouse.storage/ipfs/bafybeiamazbh6gdjztniyhmkj3gwbk627jr2gcvrtbnfviq3pzdgitpazq",
     "deepLinkSlugToTrackInAlbum": "young-tusk~ar135_a1"
   }
- ]
+ ],
+ "ref_artistId": "ar21"
 }
       */

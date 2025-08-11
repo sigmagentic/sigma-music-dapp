@@ -55,6 +55,7 @@ export interface Album {
   albumPriceOption2?: string; // digital album + download + NFT
   albumPriceOption3?: string; // digital album + commercial license + download + NFT
   isSigmaExclusive?: string; // 0 or 1 indicated if the album is a sigma exclusive album
+  timestampAlbumAdded?: string; // the timestamp of the album added to the database
   _buyNowMeta?: {
     rarityGrade?: string; // the rarity of the album (e.g. "common", "uncommon", "rare", "epic", "legendary")
     maxMints?: number; // the max number of mints for the album (0 means unlimited)

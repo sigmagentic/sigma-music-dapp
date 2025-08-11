@@ -7,7 +7,7 @@ import { NFMePreferencesModal } from "components/NFMePreferencesModal";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { Album, AiRemixRawTrack, MusicTrack } from "libs/types";
-import { getPayoutLogsViaAPI, getRemixLaunchesViaAPI, mergeRawAiRemixTracks } from "libs/utils";
+import { getPayoutLogsViaAPI, getRemixLaunchesViaAPI, mergeRawAiRemixTracks, mapRawAiRemixTracksToMusicTracks } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
@@ -91,7 +91,10 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
           if (responseA.length > 0 || responseB.length > 0 || responseC.length > 0) {
             const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, responseC);
 
-            mapRawAiRemixTracksToMusicTracks(allMyRemixes);
+            const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
+            setVirtualAiRemixAlbum(virtualAlbum);
+            setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
+
             updateMyAiRemixRawTracks(allMyRemixes);
             setIsUserArtist(true);
           }
@@ -102,45 +105,47 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         console.error("Error refreshing graduated data:", error);
       }
     } else if (myAiRemixRawTracks.length > 0) {
-      mapRawAiRemixTracksToMusicTracks(myAiRemixRawTracks);
+      const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(myAiRemixRawTracks);
+      setVirtualAiRemixAlbum(virtualAlbum);
+      setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
       // if the user has made tracks, then we can flag them as an artist (in runtime)
       setIsUserArtist(true);
     }
   }, [myAiRemixRawTracks, displayPublicKey]);
 
-  function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]) {
-    // lets create a "virtual album" for the user that contains all their remixes
-    const virtualAlbum: Album = {
-      albumId: "virtual-album-" + displayPublicKey?.toString(),
-      title: "My AI Remixes",
-      desc: "My AI Remixes",
-      ctaPreviewStream: "",
-      ctaBuy: "",
-      dripSet: "",
-      bountyId: "",
-      img: "",
-      isExplicit: "",
-      isPodcast: "",
-      isFeatured: "",
-      isSigmaRemixAlbum: "",
-      solNftName: "",
-    };
+  // function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]) {
+  //   // lets create a "virtual album" for the user that contains all their remixes
+  //   const virtualAlbum: Album = {
+  //     albumId: "virtual-album-" + displayPublicKey?.toString(),
+  //     title: "My AI Remixes",
+  //     desc: "My AI Remixes",
+  //     ctaPreviewStream: "",
+  //     ctaBuy: "",
+  //     dripSet: "",
+  //     bountyId: "",
+  //     img: "",
+  //     isExplicit: "",
+  //     isPodcast: "",
+  //     isFeatured: "",
+  //     isSigmaRemixAlbum: "",
+  //     solNftName: "",
+  //   };
 
-    // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
-    const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
-      idx: index,
-      artist: "My AI Remixes",
-      category: "Remix",
-      album: "My AI Remixes",
-      cover_art_url: remix.image,
-      title: remix.songTitle,
-      stream: remix.streamUrl,
-      bountyId: remix.bountyId,
-    }));
+  //   // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
+  //   const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
+  //     idx: index,
+  //     artist: "My AI Remixes",
+  //     category: "Remix",
+  //     album: "My AI Remixes",
+  //     cover_art_url: remix.image,
+  //     title: remix.songTitle,
+  //     stream: remix.streamUrl,
+  //     bountyId: remix.bountyId,
+  //   }));
 
-    setVirtualAiRemixAlbum(virtualAlbum);
-    setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
-  }
+  //   setVirtualAiRemixAlbum(virtualAlbum);
+  //   setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
+  // }
 
   const parseTypeCodeToLabel = (typeCode: string) => {
     switch (typeCode) {

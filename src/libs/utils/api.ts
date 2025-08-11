@@ -1,6 +1,6 @@
 import { LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
 import { CACHE_DURATION_2_MIN, CACHE_DURATION_60_MIN, CACHE_DURATION_FIVE_SECONDS, CACHE_DURATION_HALF_MIN } from "./constant";
-import { PaymentLog } from "../types/common";
+import { AiRemixLaunch, PaymentLog } from "../types/common";
 
 interface CacheEntry_DataWithTimestamp {
   data: boolean | [] | Record<string, any> | number | null;
@@ -1246,5 +1246,54 @@ export async function getPayoutLogsViaAPI({ addressSol }: { addressSol: string }
     };
 
     return false;
+  }
+}
+
+const cache_artistAiRemix: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export async function getArtistAiRemixViaAPI({ artistId }: { artistId: string }): Promise<any> {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_artistAiRemix[`${artistId}`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_FIVE_SECONDS) {
+      console.log(`getArtistAiRemixViaAPI: Getting artistAiRemix for artistId: ${artistId} from cache`);
+      return cacheEntry.data;
+    }
+
+    try {
+      let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/aiRemixesByArtist/${artistId}`;
+
+      const res = await fetch(callUrl);
+      const toJson = await res.json();
+
+      const data: AiRemixLaunch[] = toJson.items || [];
+
+      // Update cache
+      cache_artistAiRemix[`${artistId}`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } catch (err: any) {
+      const message = "Getting artistAiRemix failed :" + err.message;
+      console.error(message);
+      // Update cache (with [] as data)
+      cache_artistAiRemix[`${artistId}`] = {
+        data: [],
+        timestamp: now,
+      };
+      return [];
+    }
+  } catch (error) {
+    console.error("Error getting artistAiRemix:", error);
+    // Update cache (with [] as data)
+    cache_artistAiRemix[`${artistId}`] = {
+      data: [],
+      timestamp: now,
+    };
+    return [];
   }
 }

@@ -1,7 +1,7 @@
 import { clsx, ClassValue } from "clsx";
 import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
-import { AiRemixRawTrack, AiRemixLaunch } from "libs/types";
+import { AiRemixRawTrack, AiRemixLaunch, MusicTrack, Album } from "libs/types";
 
 /*
     UI should import Toaster
@@ -243,7 +243,7 @@ export const removeAllDeepSectionParamsFromUrlExceptSection = (section: string, 
   return currentParams;
 };
 
-export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTracks: AiRemixLaunch[], publishedTracks: AiRemixLaunch[]) => {
+export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTracks: AiRemixLaunch[] = [], publishedTracks: AiRemixLaunch[] = []) => {
   const allAiRemixRawTracks: AiRemixRawTrack[] = [...newTracks, ...graduatedTracks, ...publishedTracks].flatMap((track: any) =>
     track.versions.map((version: any, index: number) => ({
       createdOn: track.createdOn,
@@ -260,3 +260,36 @@ export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTrack
 
   return allAiRemixRawTracks;
 };
+
+export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]) {
+  // lets create a "virtual album" for the user that contains all their remixes
+  const virtualAlbum: Album = {
+    albumId: "virtual-album-PF6xCtUzeCMqXVdvqLCkZGsajKoz2XZ5JJJjuMRcjxD",
+    title: "Licensed AI Remixes",
+    desc: "Licensed AI Remixes",
+    ctaPreviewStream: "",
+    ctaBuy: "",
+    dripSet: "",
+    bountyId: "",
+    img: "",
+    isExplicit: "",
+    isPodcast: "",
+    isFeatured: "",
+    isSigmaRemixAlbum: "",
+    solNftName: "",
+  };
+
+  // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
+  const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
+    idx: index,
+    artist: "Licensed AI Remixes",
+    category: "Remix",
+    album: "Licensed AI Remixes",
+    cover_art_url: remix.image,
+    title: remix.songTitle,
+    stream: remix.streamUrl,
+    bountyId: remix.bountyId,
+  }));
+
+  return { virtualAlbum, allMyRemixesAsMusicTracks };
+}
