@@ -246,4 +246,8 @@ export const LICENSE_TERMS_MAP = {
     shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license",
     urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
   },
+  [AlbumSaleTypeOption.priceOption4]: {
+    shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license",
+    urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
+  },
 };

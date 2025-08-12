@@ -16,6 +16,7 @@ import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { LaunchMusicTrack } from "./LaunchMusicTrack";
+import { routeNames } from "routes";
 
 const VOTES_TO_GRADUATE = 5;
 // const HOURS_TO_GRADUATE = 24;
@@ -95,7 +96,11 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
 
 let newJobsInterval: NodeJS.Timeout | null = null;
 
-export const RemixMusicSectionContent = () => {
+interface RemixMusicSectionContentProps {
+  navigateToDeepAppView: (e: any) => void;
+}
+
+export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSectionContentProps) => {
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
@@ -139,7 +144,7 @@ export const RemixMusicSectionContent = () => {
   >([]);
 
   const [isJobsModalOpen, setIsJobsModalOpen] = useState(false);
-  const [showAllMusic, setShowAllMusic] = useState(false); // Add state for music filter toggle
+  const [showAllMusic, setShowAllMusic] = useState(true); // Add state for music filter toggle
   const [shouldRefreshData, setShouldRefreshData] = useState(false); // Add new state to track pending refreshes
   const [checkingIfNewJobsHaveCompleted, setCheckingIfNewJobsHaveCompleted] = useState(false);
 
@@ -200,7 +205,7 @@ export const RemixMusicSectionContent = () => {
     if (shouldRefreshData) {
       debouncedRefreshData();
     }
-  }, [shouldRefreshData, debouncedRefreshData]);
+  }, [shouldRefreshData]);
 
   useEffect(() => {
     if (showAllMusic) {
@@ -208,7 +213,7 @@ export const RemixMusicSectionContent = () => {
     } else {
       fetchDataAllSwimLaneData(true); // this will fetch all the data for all users
     }
-  }, [showAllMusic, addressSol]);
+  }, [showAllMusic]);
 
   useEffect(() => {
     if (newLaunchesData.length > 0 || graduatedLaunchesData.length > 0) {
@@ -247,7 +252,13 @@ export const RemixMusicSectionContent = () => {
         }
       };
     }
-  }, [myJobsPayments]);
+  }, [myJobsPayments, addressSol]);
+
+  useEffect(() => {
+    if (addressSol) {
+      setShowAllMusic(false);
+    }
+  }, [addressSol]);
 
   const fetchDataAllSwimLaneData = async (showMyMusicOnly: boolean) => {
     try {
@@ -258,10 +269,8 @@ export const RemixMusicSectionContent = () => {
 
       const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setNewLaunchesData(responseA);
-
       const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setGraduatedLaunchesData(responseB);
-
       const responseC = await getRemixLaunchesViaAPI({ launchStatus: "published", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setOnPumpFunLaunchesData(responseC);
 
@@ -922,18 +931,21 @@ export const RemixMusicSectionContent = () => {
   const GenerateMusicMemeButton = () => {
     return (
       <Button
-        disabled={!addressSol || DISABLE_REMIX_LAUNCH_BUTTON || walletType !== "phantom"}
+        disabled={DISABLE_REMIX_LAUNCH_BUTTON}
         className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm text-center p-2 md:p-4 rounded-lg h-[48px]"
         onClick={() => {
-          setLaunchMusicMemeModalOpen(true);
+          if (!addressSol) {
+            window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
+            return;
+          } else {
+            setLaunchMusicMemeModalOpen(true);
+          }
         }}>
         <div>
           {DISABLE_REMIX_LAUNCH_BUTTON ? (
             <div>Create New AI Music Remix! (Offline For Now!)</div>
           ) : !addressSol ? (
-            <div>Create New AI Music Remix! Login First</div>
-          ) : walletType !== "phantom" ? (
-            <div>Create New AI Music Remix! (Currently only Phantom Wallet is supported)</div>
+            <div>Login to Create New AI Music Remix!</div>
           ) : (
             <div>Create New AI Music Remix!</div>
           )}
@@ -941,8 +953,6 @@ export const RemixMusicSectionContent = () => {
       </Button>
     );
   };
-
-  console.log("myJobsPayments", myJobsPayments);
 
   return (
     <>
@@ -956,12 +966,14 @@ export const RemixMusicSectionContent = () => {
           </div>
 
           <div className="flex flex-col md:flex-row md:gap-4 gap-2">
-            <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3">
-              <span className="text-sm font-medium text-gray-300">My Music Only</span>
+            {addressSol && (
+              <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3">
+                <span className="text-sm font-medium text-gray-300">My Music Only</span>
 
-              <Switch checked={showAllMusic} onCheckedChange={setShowAllMusic} className="" />
-              <span className="text-sm font-medium text-gray-300">All Music</span>
-            </div>
+                <Switch checked={showAllMusic} onCheckedChange={setShowAllMusic} className="" />
+                <span className="text-sm font-medium text-gray-300">All Music</span>
+              </div>
+            )}
             {myJobsPayments.length > 0 && walletType === "phantom" && (
               <div className="relative">
                 <Button
@@ -1219,6 +1231,7 @@ export const RemixMusicSectionContent = () => {
                 }
                 setLaunchMusicMemeModalOpen(false);
               }}
+              navigateToDeepAppView={navigateToDeepAppView}
             />
           )}
         </>

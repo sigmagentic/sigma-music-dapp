@@ -23,6 +23,13 @@ import { ArtistDiscography } from "./ArtistDiscography";
 let originalSortedArtistAlbumDataset: Artist[] = []; // sorted by "Featured", this is the original "master" copy we always resort or filter from
 let originalSortedAlbumsDataset: AlbumWithArtist[] = []; // sorted by "Featured", this is the original "master" copy we always resort or filter from
 
+const filterNames = {
+  featured: "Featured",
+  recent_added: "Recent Added",
+  with_ai_remix_licenses: "With AI Remix Licenses",
+  alphabetical: "Alphabetical",
+};
+
 type FeaturedArtistsAndAlbumsProps = {
   stopPreviewPlayingNow?: boolean;
   featuredArtistDeepLinkSlug?: string;
@@ -89,7 +96,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
-  const [selectedFilter, setSelectedFilter] = useState<string>("Featured");
+  const [selectedFilter, setSelectedFilter] = useState<string>("featured");
   const prevIsAllAlbumsModeRef = useRef<boolean | undefined>(isAllAlbumsMode);
 
   function eventToAttachEnded() {
@@ -304,14 +311,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   }, [artistProfile]);
 
   useEffect(() => {
+    if (artistAlbumDataLoading || originalSortedArtistAlbumDataset.length === 0 || originalSortedAlbumsDataset.length === 0) {
+      return;
+    }
+
     if (!isAllAlbumsMode) {
       let reSortedTileData = [...originalSortedArtistAlbumDataset];
 
       switch (selectedFilter) {
-        case "Featured":
+        case "featured":
           reSortedTileData = originalSortedArtistAlbumDataset;
           break;
-        case "Recently Added":
+        case "recent_added":
           // each items will have an albums array, and each Album inside that array will have a .timestampAlbumAdded property.
           // which can be "0" value (which means it's old) and a value like "1749620368" which is a unix epoch time in seconds (note that they are both in strings),
           // we need to order the artists in reSortedTileData based on which artist launched the most recent album. for each artist, we get the timestamp of the most recent album and then we sort the artists by this value, most recent first
@@ -327,11 +338,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             return bMostRecentAlbumTimestamp - aMostRecentAlbumTimestamp;
           });
           break;
-        case "Featuring AI Remix Licenses":
+        case "with_ai_remix_licenses":
           // each items will have an albums array, and each Album inside that array will have a .albumPriceOption3 property. if this property is not empty, then we add it to the reSortedTileData
           reSortedTileData = reSortedTileData.filter((item) => item.albums.some((album) => album.albumPriceOption3 && album.albumPriceOption3 !== ""));
           break;
-        case "Alphabetical":
+        case "alphabetical":
           // each item in sortedTileData will have a .name property, lets sort them alphabetically using this. from A to Z
           reSortedTileData = reSortedTileData.sort((a, b) => a.name.localeCompare(b.name));
           break;
@@ -342,10 +353,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       let reSortedTileData = [...originalSortedAlbumsDataset];
 
       switch (selectedFilter) {
-        case "Featured":
+        case "featured":
           reSortedTileData = originalSortedAlbumsDataset;
           break;
-        case "Recently Added":
+        case "recent_added":
           // each item will have a .timestampAlbumAdded which can be "0" value (which means it's old) and a value like "1749620368" which is a unix epoch time in seconds (note that they are both in strings), we need to sort them by this value. order by most recent first
           reSortedTileData = reSortedTileData.sort((a, b) => {
             const aTimestamp = parseInt(a.timestampAlbumAdded || "0");
@@ -353,11 +364,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             return bTimestamp - aTimestamp;
           });
           break;
-        case "Featuring AI Remix Licenses":
+        case "with_ai_remix_licenses":
           // each item will have .albumPriceOption3 property, if this is not empty, then we add it to the reSortedTileData
           reSortedTileData = reSortedTileData.filter((item) => item.albumPriceOption3 && item.albumPriceOption3 !== "");
           break;
-        case "Alphabetical":
+        case "alphabetical":
           // each item in sortedTileData will have a .title property, lets sort them alphabetically using this. from A to Z
           reSortedTileData = reSortedTileData.sort((a, b) => a.title.localeCompare(b.title));
           break;
@@ -365,7 +376,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
       setAlbumsDataset(reSortedTileData);
     }
-  }, [selectedFilter, isAllAlbumsMode]);
+  }, [selectedFilter, isAllAlbumsMode, artistAlbumDataLoading]);
 
   useEffect(() => {
     const prevValue = prevIsAllAlbumsModeRef.current;
@@ -373,12 +384,36 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     // Only run custom logic if the value has changed
     if (prevValue !== currentValue) {
-      setSelectedFilter("Featured"); // revert to the default filter if user swapped between artist and album view
+      setSelectedFilter("featured"); // revert to the default filter if user swapped between artist and album view
     }
 
     // Update the ref to the current value for the next effect run
     prevIsAllAlbumsModeRef.current = currentValue;
   }, [isAllAlbumsMode]);
+
+  useEffect(() => {
+    if (searchParams.get("view") && searchParams.get("view") !== "" && searchParams.get("view") !== "featured") {
+      setSelectedFilter(searchParams.get("view") as string);
+    }
+  }, [searchParams]);
+
+  function updateUrlWithSelectedFilter(newFilter: string) {
+    const currentParams = Object.fromEntries(searchParams.entries());
+
+    if (newFilter !== "featured") {
+      currentParams["view"] = newFilter;
+    } else {
+      delete currentParams["view"];
+    }
+
+    setSearchParams({ ...currentParams });
+
+    // search params change triggers the searchParams effect above to change the setSelectedFilter which then triggers the actual data change
+    // ... but for featured, we dont change the search params so we manaully change the filter here to sort the data
+    if (newFilter === "featured") {
+      setSelectedFilter("featured");
+    }
+  }
 
   async function fetchAndUpdateArtistAlbumDataIntoView() {
     setArtistAlbumDataLoading(true);
@@ -412,8 +447,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     }
 
     // await sleep(2);
-
-    console.log("artistMasterCatalogueToUse", artistMasterCatalogueToUse);
 
     setArtistAlbumDataset(artistMasterCatalogueToUse);
     originalSortedArtistAlbumDataset = artistMasterCatalogueToUse;
@@ -581,21 +614,21 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             <Button
                               variant="outline"
                               className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500">
-                              {selectedFilter}
+                              {filterNames[selectedFilter as keyof typeof filterNames]}
                               <ChevronDown className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => setSelectedFilter("Featured")} className="cursor-pointer">
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("featured")} className="cursor-pointer">
                               Featured
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedFilter("Recently Added")} className="cursor-pointer">
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("recent_added")} className="cursor-pointer">
                               Recently Added
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedFilter("Featuring AI Remix Licenses")} className="cursor-pointer">
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("with_ai_remix_licenses")} className="cursor-pointer">
                               With AI Remix Licenses
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedFilter("Alphabetical")} className="cursor-pointer">
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("alphabetical")} className="cursor-pointer">
                               Alphabetical
                             </DropdownMenuItem>
                           </DropdownMenuContent>

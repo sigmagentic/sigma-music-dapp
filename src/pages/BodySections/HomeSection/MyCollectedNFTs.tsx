@@ -321,25 +321,17 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                         </>
                       ) : (
                         <div className="text-lg">
-                          ⚠️ You have not collected any albums. Let's fix that!
-                          <span className="hidden">Get your </span>
-                          <span
-                            className="hidden text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
-                            onClick={() => {
-                              window.scrollTo({
-                                top: 0,
-                                behavior: "smooth",
-                              });
-                            }}>
-                            free airdrop on top of this page (if you are eligible)
-                          </span>{" "}
-                          Get some by{" "}
+                          <span>⚠️ You have not collected any albums.</span>{" "}
                           <span
                             className="text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
                             onClick={() => {
-                              setHomeMode(`artists-${new Date().getTime()}`);
+                              // setHomeMode(`artists-${new Date().getTime()}`);
+
+                              navigateToDeepAppView({
+                                toSection: "artists",
+                              });
                             }}>
-                            exploring artists and albums
+                            Explore artists and albums and buy some rare music collectibles!
                           </span>
                         </div>
                       )}
@@ -476,7 +468,19 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                         You have {myStoryProtocolLicenses.length} {myStoryProtocolLicenses.length > 1 ? `licenses` : `license`}
                       </>
                     ) : (
-                      <p className="text-lg">⚠️ You have not collected any commercial licenses</p>
+                      <div className="text-lg">
+                        <span>⚠️ You have not purchased any commercial licenses yet.</span>
+                        <span
+                          className="ml-2 text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
+                          onClick={() => {
+                            navigateToDeepAppView({
+                              toSection: "albums",
+                              toView: "with_ai_remix_licenses",
+                            });
+                          }}>
+                          Click to find and buy commercial licenses from real-world artists!
+                        </span>
+                      </div>
                     )}
                   </div>
                   <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

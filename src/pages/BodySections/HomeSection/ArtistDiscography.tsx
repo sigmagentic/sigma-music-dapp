@@ -109,7 +109,9 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       // check and attach the _buyNowMeta to each album based on a realtime call to the backend
       const isValidBuyNowMetaAfterOption2DoubleCheckApiCall = (meta: any): meta is Album["_buyNowMeta"] => {
         return (
-          typeof meta === "object" && meta !== null && (meta.priceOption1 !== undefined || meta.priceOption2 !== undefined || meta.priceOption3 !== undefined)
+          typeof meta === "object" &&
+          meta !== null &&
+          (meta.priceOption1 !== undefined || meta.priceOption2 !== undefined || meta.priceOption3 !== undefined || meta.priceOption4 !== undefined)
         );
       };
 
@@ -145,6 +147,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
             if (album.albumPriceOption3 && album.albumPriceOption3 !== "") {
               adjustedWithFlatPurchaseData._buyNowMeta!.priceOption3!.priceInUSD = album.albumPriceOption3;
+            }
+
+            if (album.albumPriceOption4 && album.albumPriceOption4 !== "") {
+              adjustedWithFlatPurchaseData._buyNowMeta!.priceOption4!.priceInUSD = album.albumPriceOption4;
             }
           }
 

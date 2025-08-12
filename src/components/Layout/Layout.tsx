@@ -147,11 +147,6 @@ export const Layout = ({
                       onClick={() => {
                         removeDeepSectionParamsFromUrl();
                         setHomeMode(`albums-${new Date().getTime()}`);
-
-                        // // need to put it on a timer for some reason (otherwise seems the params come back to the url)
-                        // setTimeout(() => {
-                        //   removeDeepSectionParamsFromUrl();
-                        // }, 1000);
                       }}
                       className={`
                       flex items-center flex-shrink-0

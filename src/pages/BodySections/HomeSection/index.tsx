@@ -82,6 +82,10 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
+  // Animated text rotation words
+  const rotatingWords = ["New", "AI", "Web3", "Innovative", "Sassy", "IP-Secure", "Agentic", "Exclusive", "Fan-First", "Mind-Blowing", "Sigma"];
+  const { currentWord, isTransitioning } = useAnimatedTextRotation(rotatingWords, 3000);
+
   // Cached Signature Store Items
   const {
     solPreaccessNonce,
@@ -825,9 +829,21 @@ export const HomeSection = (props: HomeSectionProps) => {
                       ]}
                     />
                     <div className="flex flex-col flex-1 text-left align-center justify-center p-2 md:p-5">
-                      <span className="text-center font-[Clash-Medium] text-xl md:text-3xl xl:text-4xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
-                        {/* Royalty-free AI remixes powered by real artists. */}
-                        Buy Rare Music Collectibles. Publish IP-Safe AI Remixes. Stream Great Music!
+                      <span className="text-right font-[Clash-Medium] text-3xl md:text-5xl xl:text-5xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
+                        <p className="mb-2">Monetize Your Music in</p>
+                        <p
+                          style={{
+                            display: "inline-block",
+                            minWidth: "fit-content",
+                            textAlign: "center",
+                            opacity: isTransitioning ? 0 : 1,
+                            transform: isTransitioning ? "scale(0.9) translateY(2px)" : "scale(1) translateY(0px)",
+                            transition: "all 800ms ease-in-out",
+                            textShadow: isTransitioning ? "none" : "1px 1px 1px rgba(251, 191, 36, 1",
+                          }}>
+                          {currentWord}
+                        </p>
+                        <span className="ml-3">Ways</span>
                       </span>
                     </div>
                   </div>
@@ -992,7 +1008,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
             {homeMode.includes("ai-remix") && (
               <div className="w-full mt-5">
-                <Remix />
+                <Remix navigateToDeepAppView={navigateToDeepAppView} />
               </div>
             )}
           </>
@@ -1102,4 +1118,28 @@ export const HomeSection = (props: HomeSectionProps) => {
       </div>
     </>
   );
+};
+
+// Custom hook for animated text rotation
+const useAnimatedTextRotation = (words: string[], intervalMs: number = 3000) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      console.log("Starting transition...");
+      setIsTransitioning(true);
+
+      // Wait for transition animation to complete before changing word
+      setTimeout(() => {
+        console.log("Changing word from", words[currentIndex], "to", words[(currentIndex + 1) % words.length]);
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % words.length);
+        setIsTransitioning(false);
+      }, 800); // Longer transition to make it more visible
+    }, intervalMs);
+
+    return () => clearInterval(timer);
+  }, [words.length, intervalMs, currentIndex]);
+
+  return { currentWord: words[currentIndex], isTransitioning };
 };

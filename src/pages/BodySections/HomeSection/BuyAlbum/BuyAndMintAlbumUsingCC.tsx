@@ -171,7 +171,7 @@ export const BuyAndMintAlbumUsingCC = ({
   let isCCPaymentsDisabled = !ENABLE_CC_PAYMENTS || ENABLE_CC_PAYMENTS !== "1" || !STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "";
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-start md:items-center md:justify-center z-50">
       {showStripePaymentPopup && <StripePaymentPopup />}
 
       <div

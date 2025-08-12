@@ -6,6 +6,6 @@ import { RemixMusicSectionContent } from "pages/BodySections/RemixMusicSection";
 //   return (routeNames as any)[routeKey];
 // }
 
-export const Remix = () => {
-  return <RemixMusicSectionContent />;
+export const Remix = ({ navigateToDeepAppView }: { navigateToDeepAppView: (e: any) => void }) => {
+  return <RemixMusicSectionContent navigateToDeepAppView={navigateToDeepAppView} />;
 };

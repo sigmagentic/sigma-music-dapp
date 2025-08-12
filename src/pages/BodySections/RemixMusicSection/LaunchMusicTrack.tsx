@@ -19,7 +19,12 @@ import { useAppStore } from "store/app";
 
 const MAX_TITLE_LENGTH = 50;
 
-export const LaunchMusicTrack = ({ onCloseModal }: { onCloseModal: (refreshPaymentLogs: boolean) => void }) => {
+interface LaunchMusicTrackProps {
+  onCloseModal: (refreshPaymentLogs: boolean) => void;
+  navigateToDeepAppView: (e: any) => void;
+}
+
+export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: LaunchMusicTrackProps) => {
   const { connection } = useConnection();
   const { sendTransaction, signMessage } = useWallet();
   const { publicKey } = useSolanaWallet();
@@ -893,7 +898,7 @@ export const LaunchMusicTrack = ({ onCloseModal }: { onCloseModal: (refreshPayme
                       <span className="text-sm text-gray-400">Loading licenses...</span>
                     </div>
                   ) : myStoryProtocolLicenses.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-3 overflow-y-auto max-h-[calc(80vh-200px)]">
                       {myStoryProtocolLicenses.map((license: any, index: number) => (
                         <div
                           key={index}
@@ -915,8 +920,17 @@ export const LaunchMusicTrack = ({ onCloseModal }: { onCloseModal: (refreshPayme
                     </div>
                   ) : (
                     <div className="text-center py-6">
-                      <p className="text-sm text-gray-400 mb-2">You don't have any commercial licenses</p>
-                      <p className="text-xs text-gray-500">Purchase album licenses to use as reference tracks</p>
+                      <p className="text-sm text-gray-400 mb-2">⚠️ You need a commercial license to generate new AI remixes and you don't have any yet.</p>
+                      <p
+                        className="text-sm text-yellow-300 cursor-pointer"
+                        onClick={() => {
+                          navigateToDeepAppView({
+                            toSection: "albums",
+                            toView: "with_ai_remix_licenses",
+                          });
+                        }}>
+                        Click to find and buy commercial licenses from real-world artists!
+                      </p>
                     </div>
                   )}
                 </div>

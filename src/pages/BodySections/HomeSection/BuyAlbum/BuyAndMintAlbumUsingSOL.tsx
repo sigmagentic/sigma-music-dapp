@@ -422,12 +422,14 @@ export const BuyAndMintAlbumUsingSOL = ({
     return mintingStatus === "confirmed" || digitalAlbumOnlyPurchaseStatus === "confirmed";
   }
 
+  console.log("albumToBuyAndMint = ", albumToBuyAndMint);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-start md:items-center md:justify-center z-50">
       {showPaymentConfirmation && <PaymentConfirmationPopup />}
 
       <div
-        className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4   ${musicAssetProcurementFullyDone() ? "max-w-lg" : "grid grid-cols-1 md:grid-cols-2 max-w-6xl"} gap-6`}>
+        className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 ${musicAssetProcurementFullyDone() ? "max-w-lg" : "grid grid-cols-1 md:grid-cols-2 max-w-6xl"} gap-6`}>
         {/* Close button  */}
         {(paymentStatus === "idle" || mintingStatus === "failed" || musicAssetProcurementFullyDone()) && (
           <button

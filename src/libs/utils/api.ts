@@ -218,6 +218,10 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
       priceInUSD: null,
       tokenImg: null,
     },
+    priceOption4: {
+      IpTokenId: null,
+      priceInUSD: null,
+    },
   };
 
   try {
@@ -250,6 +254,10 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
           IpTokenId: data.t2IpTokenId,
           priceInUSD: null,
           tokenImg: data.tokenImg || null,
+        },
+        priceOption4: {
+          IpTokenId: data.t2IpTokenId, // the IP token will be the same as priceOption3
+          priceInUSD: null,
         },
       };
 

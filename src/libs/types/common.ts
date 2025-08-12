@@ -54,6 +54,7 @@ export interface Album {
   albumPriceOption1?: string; // digital album  + download only
   albumPriceOption2?: string; // digital album + download + NFT
   albumPriceOption3?: string; // digital album + commercial license + download + NFT
+  albumPriceOption4?: string; // digital album + commercial license
   isSigmaExclusive?: string; // 0 or 1 indicated if the album is a sigma exclusive album
   timestampAlbumAdded?: string; // the timestamp of the album added to the database
   _buyNowMeta?: {
@@ -72,6 +73,10 @@ export interface Album {
       IpTokenId: string | null; // the story protocol IP token to issue licenses on
       priceInUSD: string | null;
       tokenImg: string | null;
+    };
+    priceOption4?: {
+      IpTokenId: string | null; // the story protocol IP token to issue licenses on
+      priceInUSD: string | null;
     };
   };
   _albumCanBeFastStreamed?: boolean;
@@ -174,6 +179,7 @@ export enum AlbumSaleTypeOption {
   priceOption1 = "1", // Digital Album + Download Only
   priceOption2 = "2", // Digital Album + Download + NFT
   priceOption3 = "3", // Digital Album + Commercial License + Download + NFT
+  priceOption4 = "4", // Digital Album + Commercial License
 }
 
 export interface PaymentLog {
