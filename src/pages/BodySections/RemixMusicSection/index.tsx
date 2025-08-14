@@ -467,7 +467,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                     href={`https://solscan.io/account/${item.remixedBy}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-yellow-300 hover:underline">
+                    className="text-yellow-300 hover:underline mr-1">
                     {formatAddress(item.remixedBy)}
                   </a>
                 )}

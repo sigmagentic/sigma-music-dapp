@@ -835,7 +835,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
             <Button
               onClick={() => setShowHowItWorks(true)}
               variant="outline"
-              className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:text-black  py-2 px-4 rounded-lg hover:opacity-90 transition-opacity text-sm h-[40px] opacity-80">
+              className="bg-gradient-to-r from-gray-200 to-gray-500 text-black hover:text-black  py-2 px-4 rounded-lg hover:opacity-90 transition-opacity text-sm h-[40px] opacity-80">
               How it works?
             </Button>
           </div>
@@ -898,39 +898,60 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
                       <span className="text-sm text-gray-400">Loading licenses...</span>
                     </div>
                   ) : myStoryProtocolLicenses.length > 0 ? (
-                    <div className="space-y-3 overflow-y-auto max-h-[calc(80vh-200px)]">
-                      {myStoryProtocolLicenses.map((license: any, index: number) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-4 p-3 hover:bg-[#3A3A3A] rounded-lg cursor-pointer transition-colors border border-transparent hover:border-gray-600"
-                          onClick={() => handleAlbumClick(license)}>
-                          {license.albumImage ? (
-                            <img src={license.albumImage} alt={license.albumName} className="w-12 h-12 object-cover rounded-lg" />
-                          ) : (
-                            <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
-                              <span className="text-lg text-gray-400">🎵</span>
+                    <>
+                      <div className="space-y-3 overflow-y-auto max-h-[calc(80vh-200px)]">
+                        {myStoryProtocolLicenses.map((license: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-4 p-3 hover:bg-[#3A3A3A] rounded-lg cursor-pointer transition-colors border border-transparent hover:border-gray-600"
+                            onClick={() => handleAlbumClick(license)}>
+                            {license.albumImage ? (
+                              <img src={license.albumImage} alt={license.albumName} className="w-12 h-12 object-cover rounded-lg" />
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
+                                <span className="text-lg text-gray-400">🎵</span>
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{license.albumName || "Unknown Album"}</p>
+                              <p className="text-xs text-gray-400">Commercial License</p>
                             </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{license.albumName || "Unknown Album"}</p>
-                            <p className="text-xs text-gray-400">Commercial License</p>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+
+                      <div>
+                        <Button
+                          onClick={() => {
+                            navigateToDeepAppView({
+                              toSection: "albums",
+                              toView: "with_ai_remix_licenses",
+                            });
+                          }}
+                          variant="outline"
+                          className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:text-black py-2 px-4 rounded-lg hover:opacity-90 transition-opacity text-sm h-[40px] mt-5">
+                          Buy More Commercial Licenses
+                        </Button>
+                      </div>
+                    </>
                   ) : (
                     <div className="text-center py-6">
-                      <p className="text-sm text-gray-400 mb-2">⚠️ You need a commercial license to generate new AI remixes and you don't have any yet.</p>
-                      <p
-                        className="text-sm text-yellow-300 cursor-pointer"
+                      <p className="text-sm text-gray-400 mb-2">
+                        <span className="text-xl">⚠️</span> <br />
+                        You need a commercial license to generate new AI remixes and you don't have any yet.
+                      </p>
+
+                      <Button
                         onClick={() => {
                           navigateToDeepAppView({
                             toSection: "albums",
                             toView: "with_ai_remix_licenses",
                           });
-                        }}>
-                        Click to find and buy commercial licenses from real-world artists!
-                      </p>
+                        }}
+                        variant="outline"
+                        className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:text-black py-2 px-4 rounded-lg hover:opacity-90 transition-opacity text-sm h-[40px]">
+                        Buy Commercial Licenses
+                      </Button>
                     </div>
                   )}
                 </div>

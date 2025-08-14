@@ -31,8 +31,10 @@ import {
   doFastStreamOnAlbumCheckViaAPI,
   fetchMyAlbumsFromMintLogsViaAPI,
   getPaymentLogsViaAPI,
+  injectXUserNameIntoTweet,
   isMostLikelyMobile,
 } from "libs/utils";
+import { showSuccessConfetti } from "libs/utils/uiShared";
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -100,9 +102,12 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const [selectedAlbumToShowEntitlements, setSelectedAlbumToShowEntitlements] = useState<Album | null>(null);
   const [entitlementsForSelectedAlbum, setEntitlementsForSelectedAlbum] = useState<EntitlementForMusicAsset | null>(null);
   const [showSigmaExclusiveModal, setShowSigmaExclusiveModal] = useState(false);
+  const [showCommercialLicenseModal, setShowCommercialLicenseModal] = useState(false);
   const [selectedAlbumForTrackList, setSelectedAlbumForTrackList] = useState<Album | null>(null);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
   const [ownedStoryProtocolCommercialLicense, setOwnedStoryProtocolCommercialLicense] = useState<any | null>(null);
+  const [showAlbumPurchasedCongratsModal, setShowAlbumPurchasedCongratsModal] = useState(false);
+  const [tweetText, setTweetText] = useState<string>("");
 
   useEffect(() => {
     if (artistProfile && albums.length > 0) {
@@ -165,6 +170,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   }, [artistProfile, albums]);
 
   useEffect(() => {
+    // this effect gets called 1st when user clicks on the show entitlements button
     if (selectedAlbumToShowEntitlements && (myMusicAssetPurchases.length > 0 || solMusicAssetNfts.length > 0)) {
       const entitlementsMap: EntitlementForMusicAsset = {
         mp3TrackUrls: [],
@@ -181,6 +187,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       if (assetPurchaseThatMatches && assetPurchaseThatMatches.albumSaleTypeOption) {
         entitlementsMap.licenseTerms.shortDescription =
           LICENSE_TERMS_MAP[assetPurchaseThatMatches.albumSaleTypeOption as keyof typeof LICENSE_TERMS_MAP].shortDescription;
+        // this is the IP license that wil apply to both priceOption3 and priceOption4 as we store the ipasset in priceOption3
+        // ... (in the next effect) we check the logs for a payment made against for this iptoken
         entitlementsMap.licenseTerms.urlToLicense =
           LICENSE_TERMS_MAP[assetPurchaseThatMatches.albumSaleTypeOption as keyof typeof LICENSE_TERMS_MAP].urlToLicense;
         entitlementsMap.licenseTerms.ipTokenId = selectedAlbumToShowEntitlements._buyNowMeta?.priceOption3?.IpTokenId || null;
@@ -214,6 +222,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   }, [selectedAlbumToShowEntitlements, myMusicAssetPurchases, solMusicAssetNfts]);
 
   useEffect(() => {
+    // this effect gets called 2nd when user clicks on the show entitlements button
     if (selectedAlbumToShowEntitlements && entitlementsForSelectedAlbum && entitlementsForSelectedAlbum.licenseTerms.ipTokenId && myAlbumMintLogs.length > 0) {
       // mintTemplate: "album-ar21_a3-1752833831760" so we need to check if the albumId is in the mintTemplate
       const findStoryProtocolLicense = myAlbumMintLogs.find(
@@ -226,6 +235,43 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       }
     }
   }, [entitlementsForSelectedAlbum, selectedAlbumToShowEntitlements, myAlbumMintLogs]);
+
+  // if the user just paid for an album, we need to show a congrats modal and refres some core data
+  useEffect(() => {
+    if (!artistProfile || !addressSol) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get("action");
+
+    if (action === "justpaid") {
+      // remove action from the url (as we dont want them share that on X for e.g)
+      const url = new URL(window.location.href);
+      url.searchParams.delete("action");
+      window.history.replaceState({}, "", url.toString());
+
+      (async () => {
+        // the user just bought an album using a credit card, lets refresh any ownership data collections from the backend
+        await refreshPurchasedAlbumCollectiblesViaRPC();
+
+        await handleRefreshMyStoryProtocolLicenses({ bypassCacheAsNewDataAdded: true });
+
+        await refreshPurchasedLogsViaAPI();
+      })();
+
+      // need to pull it out of the ui thread of for some reason the confetti goes first
+      setTimeout(() => {
+        showSuccessConfetti();
+      }, 500);
+
+      const tweetMsg = injectXUserNameIntoTweet(
+        `I just bought a new album from ${artistProfile.name} _(xUsername)_ on @SigmaXMusic and can't wait to stream it!`,
+        artistProfile.xLink
+      );
+
+      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(tweetMsg)}`);
+      setShowAlbumPurchasedCongratsModal(true);
+    }
+  }, [addressSol, artistProfile]); // Only re-run if addressSol changes
 
   function thisIsPlayingOnMusicPlayer(album: any): boolean {
     if (albumIdBeingPlayed) {
@@ -277,8 +323,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     updateSolNfts(_allDataNfts);
   }
 
-  async function handleRefreshMyStoryProtocolLicenses() {
-    const _albumMintLogs = await fetchMyAlbumsFromMintLogsViaAPI(addressSol!);
+  async function handleRefreshMyStoryProtocolLicenses({ bypassCacheAsNewDataAdded = false }: { bypassCacheAsNewDataAdded?: boolean } = {}) {
+    const _albumMintLogs = await fetchMyAlbumsFromMintLogsViaAPI(addressSol!, bypassCacheAsNewDataAdded);
     updateMyAlbumMintLogs(_albumMintLogs);
   }
 
@@ -376,48 +422,90 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         orderedAlbums.map((album: Album, idx: number) => (
           <div
             key={`${album.albumId}-${idx}`}
-            className={`album relative flex flex-col my-3 p-2 md:p-5 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
-            {album.isSigmaExclusive && album.isSigmaExclusive === "1" && (
-              <>
-                <div className="absolute top-0 right-0 z-10">
-                  <div className="relative inline-block overflow-hidden rounded-bl-lg cursor-pointer" onClick={() => setShowSigmaExclusiveModal(true)}>
-                    <div className="relative bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-bl-lg font-semibold text-sm shadow-lg border border-red-400/50">
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                        Sigma Exclusive
-                      </span>
+            className={`album relative flex flex-col my-3 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
+            {/* Commercial License Badge */}
+            <div className="flex flex-col relative">
+              {/* Sigma Exclusive Badge */}
+              {album.isSigmaExclusive && album.isSigmaExclusive === "1" && (
+                <>
+                  <div className="absolute top-0 right-0 z-[9]">
+                    <div className="relative inline-block overflow-hidden rounded-bl-lg cursor-pointer" onClick={() => setShowSigmaExclusiveModal(true)}>
+                      <div className="relative bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-bl-lg rounded-tr-sm font-semibold text-sm shadow-lg border border-white">
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                          Sigma Exclusive
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Sigma Exclusive Modal */}
-                {showSigmaExclusiveModal && (
-                  <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-                    <div className="bg-[#1A1A1A] rounded-lg p-6  max-w-2xl w-full mx-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-xl font-bold text-white">Sigma Music Exclusive!</h3>
-                        <button onClick={() => setShowSigmaExclusiveModal(false)} className="text-gray-400 hover:text-white">
-                          <X size={24} />
-                        </button>
+                  {/* Sigma Exclusive Modal */}
+                  {showSigmaExclusiveModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+                      <div className="bg-[#1A1A1A] rounded-lg p-6  max-w-2xl w-full mx-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="text-xl font-bold text-white">Sigma Music Exclusive!</h3>
+                          <button onClick={() => setShowSigmaExclusiveModal(false)} className="text-gray-400 hover:text-white">
+                            <X size={24} />
+                          </button>
+                        </div>
+                        <div className="text-white py-2">
+                          <strong className="text-red-400">Sigma Exclusive</strong> albums, EPs, and singles are <strong>ONLY</strong> available on the Sigma
+                          Music platform. Listen for free, purchase as collectibles, or get commercial licenses. These are super rare!
+                        </div>
+                        <div className="flex justify-center mt-4">
+                          <Button variant="outline" className="text-sm px-6" onClick={() => setShowSigmaExclusiveModal(false)}>
+                            Close
+                          </Button>
+                        </div>
                       </div>
-                      <div className="text-white py-2">
-                        <strong className="text-red-400">Sigma Exclusive</strong> albums, EPs, and singles are <strong>ONLY</strong> available on the Sigma
-                        Music platform. Listen for free, purchase as collectibles, or get commercial licenses. These are super rare!
-                      </div>
-                      <div className="flex justify-center mt-4">
-                        <Button variant="outline" className="text-sm px-6" onClick={() => setShowSigmaExclusiveModal(false)}>
-                          Close
-                        </Button>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {album.albumPriceOption4 && album.albumPriceOption4 !== "" && album?._buyNowMeta?.priceOption4?.priceInUSD && (
+                <>
+                  <div className={`absolute top-0 right-[${album.isSigmaExclusive && album.isSigmaExclusive === "1" ? "140px" : "0"}] z-[9]`}>
+                    <div className="relative inline-block overflow-hidden rounded-bl-lg cursor-pointer" onClick={() => setShowCommercialLicenseModal(true)}>
+                      <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-3 py-1.5 rounded-bl-lg rounded-tr-sm font-semibold text-sm shadow-lg border border-yellow-400/50">
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 bg-black rounded-full animate-pulse"></span>
+                          Commercial License Available
+                        </span>
                       </div>
                     </div>
                   </div>
-                )}
-              </>
-            )}
+
+                  {/* Commercial License Modal */}
+                  {showCommercialLicenseModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+                      <div className="bg-[#1A1A1A] rounded-lg p-6  max-w-2xl w-full mx-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="text-xl font-bold text-white">Commercial License Available!</h3>
+                          <button onClick={() => setShowCommercialLicenseModal(false)} className="text-gray-400 hover:text-white">
+                            <X size={24} />
+                          </button>
+                        </div>
+                        <div className="text-white py-2">
+                          <strong className="text-yellow-400">Commercial License</strong> is available for this album. If you buy a commercical license, you can
+                          AI Remix any track inside this album!
+                        </div>
+                        <div className="flex justify-center mt-4">
+                          <Button variant="outline" className="text-sm px-6" onClick={() => setShowCommercialLicenseModal(false)}>
+                            Close
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
 
             {/* Rarity and Max Mints Badge */}
             {album?._buyNowMeta?.priceOption2?.canBeMinted && (
-              <div className={`absolute bottom-[-7px] right-0 z-10 ${album?._buyNowMeta?.rarityGrade === "Common" ? "opacity-50" : ""}`}>
+              <div className={`absolute bottom-[-7px] right-0 z-9 ${album?._buyNowMeta?.rarityGrade === "Common" ? "opacity-50" : ""}`}>
                 <div className="relative inline-block overflow-hidden rounded-tl-lg">
                   <div className="relative px-3 py-1.5 rounded-tl-lg font-semibold text-sm border border-orange-400 text-orange-400">
                     <span className="flex items-center gap-1 text-xs">
@@ -433,226 +521,227 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               </div>
             )}
 
-            <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
-              <div
-                className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group ${album._albumCanBeFastStreamed ? "cursor-pointer" : ""}`}
-                style={{
-                  "backgroundImage": `url(${album.img})`,
-                }}
-                onClick={() => {
-                  // if there is a token image, show it in a large version
-                  if (album._buyNowMeta?.priceOption2?.tokenImg) {
-                    setSelectedLargeSizeTokenImg(album._buyNowMeta?.priceOption2?.tokenImg);
-                  } else if (album._albumCanBeFastStreamed) {
-                    // load the track list for the album if we dont have a collectible img to show
-                    setSelectedAlbumForTrackList(album);
-                  }
-                }}>
-                {album._buyNowMeta?.priceOption2?.tokenImg && (
-                  <>
-                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-[80%] transition-opacity duration-300 rounded-lg" />
-                    <div
-                      className="absolute inset-0 bg-no-repeat bg-cover rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      style={{
-                        "backgroundImage": `url(${album._buyNowMeta?.priceOption2?.tokenImg})`,
-                        "backgroundPosition": "center",
-                        "backgroundSize": "contain",
-                      }}
-                    />
-
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-300 pointer-events-none z-10">
+            <div className="p-2 md:p-5">
+              <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
+                <div
+                  className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group ${album._albumCanBeFastStreamed ? "cursor-pointer" : ""}`}
+                  style={{
+                    "backgroundImage": `url(${album.img})`,
+                  }}
+                  onClick={() => {
+                    // if there is a token image, show it in a large version
+                    if (album._buyNowMeta?.priceOption2?.tokenImg) {
+                      setSelectedLargeSizeTokenImg(album._buyNowMeta?.priceOption2?.tokenImg);
+                    } else if (album._albumCanBeFastStreamed) {
+                      // load the track list for the album if we dont have a collectible img to show
+                      setSelectedAlbumForTrackList(album);
+                    }
+                  }}>
+                  {album._buyNowMeta?.priceOption2?.tokenImg && (
+                    <>
+                      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-[80%] transition-opacity duration-300 rounded-lg" />
                       <div
-                        className="relative bg-black/90 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap before:absolute before:inset-0 before:rounded-lg before:border before:border-emerald-400/50 
+                        className="absolute inset-0 bg-no-repeat bg-cover rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{
+                          "backgroundImage": `url(${album._buyNowMeta?.priceOption2?.tokenImg})`,
+                          "backgroundPosition": "center",
+                          "backgroundSize": "contain",
+                        }}
+                      />
+
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-300 pointer-events-none z-10">
+                        <div
+                          className="relative bg-black/90 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap before:absolute before:inset-0 before:rounded-lg before:border before:border-emerald-400/50 
                       after:absolute after:inset-0 after:rounded-lg after:border after:border-yellow-400/50">
-                        The premium version of this album comes with this collectible!
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black/90"></div>
+                          The premium version of this album comes with this collectible!
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black/90"></div>
+                        </div>
                       </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="albumText flex flex-col mt-5 md:mt-0 md:ml-5 md:pr-2 flex-1 mb-5 md:mb-0">
+                  <h3 className="!text-xl mb-2 flex items-baseline">
+                    <span>
+                      {album.title}
+                      {inCollectedAlbumsView ? (
+                        <>
+                          <span className="text-sm"> by</span> <span className="font-bold">{artistProfile.name.replaceAll("_", " ")}</span>
+                        </>
+                      ) : (
+                        ""
+                      )}
+                    </span>
+                    {album.isExplicit && album.isExplicit === "1" && (
+                      <img
+                        className="max-h-[20px] relative top-[2px] ml-[5px] rounded-md"
+                        src={ratingE}
+                        alt="Warning: Explicit Content"
+                        title="Warning: Explicit Content"
+                      />
+                    )}
+                  </h3>
+                  <div className="relative">
+                    <p
+                      className="text-sm overflow-hidden"
+                      style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        maxHeight: "4.5rem", // Approximately 3 lines of text
+                      }}
+                      title={album.desc}>
+                      {album.desc}
+                    </p>
+                    {/* Dark shadow overlay to indicate more content */}
+                    <div
+                      className={`absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t ${highlightAlbumId === album.albumId ? "from-bg-yellow-500/10" : "from-[#171717]"}  to-transparent pointer-events-none`}></div>
+                  </div>
+                </div>
+
+                {!DISABLE_BITZ_FEATURES && (
+                  <div className="albumLikes md:w-[135px] flex flex-col items-center">
+                    <div
+                      className={`${userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum !== "undefined" ? " hover:bg-orange-100 cursor-pointer dark:hover:text-orange-500" : ""} text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center`}
+                      onClick={() => {
+                        if (userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum !== "undefined") {
+                          onSendBitzForMusicBounty({
+                            creatorIcon: album.img,
+                            creatorName: `${artistProfile.name}'s ${album.title}`,
+                            creatorSlug: artistProfile.slug,
+                            creatorXLink: artistProfile.xLink,
+                            giveBitzToWho: artistProfile.creatorWallet,
+                            giveBitzToCampaignId: album.bountyId,
+                            isLikeMode: true,
+                          });
+                        }
+                      }}>
+                      {typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum === "undefined" ? (
+                        <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
+                      ) : (
+                        <div
+                          className="p-5 md:p-0 flex items-center gap-2"
+                          title={userLoggedInWithWallet ? "Boost This Album With 5 XP" : "Login to Boost This Album"}
+                          onClick={() => {
+                            if (userLoggedInWithWallet) {
+                              onSendBitzForMusicBounty({
+                                creatorIcon: album.img,
+                                creatorName: `${artistProfile.name}'s ${album.title}`,
+                                creatorSlug: artistProfile.slug,
+                                creatorXLink: artistProfile.xLink,
+                                giveBitzToWho: artistProfile.creatorWallet,
+                                giveBitzToCampaignId: album.bountyId,
+                                isLikeMode: true,
+                              });
+                            }
+                          }}>
+                          {bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum}
+                          <Rocket className="w-4 h-4" />
+                        </div>
+                      )}
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
 
-              <div className="albumText flex flex-col mt-5 md:mt-0 md:ml-5 md:pr-2 flex-1 mb-5 md:mb-0">
-                <h3 className="!text-xl mb-2 flex items-baseline">
-                  <span>
-                    {album.title}
-                    {inCollectedAlbumsView ? (
-                      <>
-                        <span className="text-sm"> by</span> <span className="font-bold">{artistProfile.name.replaceAll("_", " ")}</span>
-                      </>
-                    ) : (
-                      ""
-                    )}
-                  </span>
-                  {album.isExplicit && album.isExplicit === "1" && (
-                    <img
-                      className="max-h-[20px] relative top-[2px] ml-[5px] rounded-md"
-                      src={ratingE}
-                      alt="Warning: Explicit Content"
-                      title="Warning: Explicit Content"
-                    />
-                  )}
-                </h3>
-                <div className="relative">
-                  <p
-                    className="text-sm overflow-hidden"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      maxHeight: "4.5rem", // Approximately 3 lines of text
-                    }}
-                    title={album.desc}>
-                    {album.desc}
-                  </p>
-                  {/* Dark shadow overlay to indicate more content */}
-                  <div
-                    className={`absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t ${highlightAlbumId === album.albumId ? "from-bg-yellow-500/10" : "from-[#171717]"}  to-transparent pointer-events-none`}></div>
-                </div>
-              </div>
-
-              {!DISABLE_BITZ_FEATURES && (
-                <div className="albumLikes md:w-[135px] flex flex-col items-center">
-                  <div
-                    className={`${userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum !== "undefined" ? " hover:bg-orange-100 cursor-pointer dark:hover:text-orange-500" : ""} text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center`}
-                    onClick={() => {
-                      if (userLoggedInWithWallet && typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum !== "undefined") {
-                        onSendBitzForMusicBounty({
-                          creatorIcon: album.img,
-                          creatorName: `${artistProfile.name}'s ${album.title}`,
-                          creatorSlug: artistProfile.slug,
-                          creatorXLink: artistProfile.xLink,
-                          giveBitzToWho: artistProfile.creatorWallet,
-                          giveBitzToCampaignId: album.bountyId,
-                          isLikeMode: true,
-                        });
-                      }
-                    }}>
-                    {typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum === "undefined" ? (
-                      <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
-                    ) : (
-                      <div
-                        className="p-5 md:p-0 flex items-center gap-2"
-                        title={userLoggedInWithWallet ? "Boost This Album With 5 XP" : "Login to Boost This Album"}
-                        onClick={() => {
-                          if (userLoggedInWithWallet) {
-                            onSendBitzForMusicBounty({
-                              creatorIcon: album.img,
-                              creatorName: `${artistProfile.name}'s ${album.title}`,
-                              creatorSlug: artistProfile.slug,
-                              creatorXLink: artistProfile.xLink,
-                              giveBitzToWho: artistProfile.creatorWallet,
-                              giveBitzToCampaignId: album.bountyId,
-                              isLikeMode: true,
-                            });
-                          }
-                        }}>
-                        {bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum}
-                        <Rocket className="w-4 h-4" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
-              {/* track list button */}
-              {album._albumCanBeFastStreamed && (
-                <Button
-                  variant="outline"
-                  className="text-sm px-3 py-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
-                  onClick={() => setSelectedAlbumForTrackList(album)}>
-                  <List className="w-4 h-4 mr-2" />
-                  Track List
-                </Button>
-              )}
-
-              {!album._albumCanBeFastStreamed && album.ctaPreviewStream && !inCollectedAlbumsView && checkOwnershipOfMusicAsset(album) === -1 && (
-                <div>
+              <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
+                {/* track list button */}
+                {album._albumCanBeFastStreamed && (
                   <Button
-                    disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
-                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
                     variant="outline"
-                    onClick={() => {
-                      if (playPausePreview) {
-                        playPausePreview(album.ctaPreviewStream, album.albumId);
-                      }
-                    }}>
-                    {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
-                      <>
-                        {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
-                        <span className="ml-2"> {currentTime} - Stop Playing </span>
-                      </>
-                    ) : (
-                      <>
-                        {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <Play />}
-                        <span className="ml-2">Play Preview</span>
-                      </>
-                    )}
+                    className="text-sm px-3 py-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                    onClick={() => setSelectedAlbumForTrackList(album)}>
+                    <List className="w-4 h-4 mr-2" />
+                    Track List
                   </Button>
-                </div>
-              )}
+                )}
 
-              {/* when not logged in, show this to convert the wallet into user account */}
-              {!publicKeySol && !album._buyNowMeta?.priceOption1 && (
-                <div className="relative w-full md:w-auto">
-                  <Button
-                    className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
-                    variant="outline"
-                    onClick={() => {
-                      window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
-                    }}>
-                    <>
-                      <WalletMinimal />
-                      <span className="ml-2">Login for Full Album</span>
-                    </>
-                  </Button>
-                </div>
-              )}
-
-              {(album._albumCanBeFastStreamed || (publicKeySol && checkOwnershipOfMusicAsset(album) > -1)) && (
-                <>
-                  <div className="relative group">
+                {!album._albumCanBeFastStreamed && album.ctaPreviewStream && !inCollectedAlbumsView && checkOwnershipOfMusicAsset(album) === -1 && (
+                  <div>
                     <Button
-                      disabled={
-                        (isPreviewPlaying && !previewIsReadyToPlay) ||
-                        thisIsPlayingOnMusicPlayer(album) ||
-                        queueAlbumPlay ||
-                        trackPlayIsQueued ||
-                        assetPlayIsQueued
-                      }
+                      disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
+                      className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
                       variant="outline"
-                      className={`!text-black text-sm px-[2.35rem] bg-gradient-to-r ${checkOwnershipOfMusicAsset(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer mr-2`}
                       onClick={() => {
-                        handlePlayAlbumNow(album);
+                        if (playPausePreview) {
+                          playPausePreview(album.ctaPreviewStream, album.albumId);
+                        }
+                      }}>
+                      {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
+                        <>
+                          {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
+                          <span className="ml-2"> {currentTime} - Stop Playing </span>
+                        </>
+                      ) : (
+                        <>
+                          {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <Play />}
+                          <span className="ml-2">Play Preview</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {/* when not logged in, show this to convert the wallet into user account */}
+                {!publicKeySol && !album._buyNowMeta?.priceOption1 && (
+                  <div className="relative w-full md:w-auto">
+                    <Button
+                      className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300 w-[222px]"
+                      variant="outline"
+                      onClick={() => {
+                        window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
                       }}>
                       <>
-                        {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <AudioWaveform />}
-                        <span className="ml-2">
-                          {thisIsPlayingOnMusicPlayer(album)
-                            ? "Playing"
-                            : queueAlbumPlay
-                              ? "Queued"
-                              : checkOwnershipOfMusicAsset(album) > -1
-                                ? "Play Premium Album"
-                                : "Play Free Album"}
-                        </span>
+                        <WalletMinimal />
+                        <span className="ml-2">Login for Full Album</span>
                       </>
                     </Button>
+                  </div>
+                )}
 
-                    {/* Tooltip */}
-                    <div
-                      className="
+                {(album._albumCanBeFastStreamed || (publicKeySol && checkOwnershipOfMusicAsset(album) > -1)) && (
+                  <>
+                    <div className="relative group">
+                      <Button
+                        disabled={
+                          (isPreviewPlaying && !previewIsReadyToPlay) ||
+                          thisIsPlayingOnMusicPlayer(album) ||
+                          queueAlbumPlay ||
+                          trackPlayIsQueued ||
+                          assetPlayIsQueued
+                        }
+                        variant="outline"
+                        className={`!text-black text-sm px-[2.35rem] bg-gradient-to-r ${checkOwnershipOfMusicAsset(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer`}
+                        onClick={() => {
+                          handlePlayAlbumNow(album);
+                        }}>
+                        <>
+                          {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <AudioWaveform />}
+                          <span className="ml-2">
+                            {thisIsPlayingOnMusicPlayer(album)
+                              ? "Playing"
+                              : queueAlbumPlay
+                                ? "Queued"
+                                : checkOwnershipOfMusicAsset(album) > -1
+                                  ? "Play Premium Album"
+                                  : "Play Free Album"}
+                          </span>
+                        </>
+                      </Button>
+
+                      {/* Tooltip */}
+                      <div
+                        className="
                     absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 
                     opacity-0 group-hover:opacity-100 
                     transition-opacity duration-200 delay-1000 
                     pointer-events-none 
                     w-full md:w-auto
                   ">
-                      <div
-                        className="
+                        <div
+                          className="
                       relative 
                       bg-black/90 
                       text-white text-sm 
@@ -662,115 +751,116 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       before:absolute before:inset-0 before:rounded-lg before:border before:border-emerald-400/50 
                       after:absolute after:inset-0 after:rounded-lg after:border after:border-yellow-400/50
                     ">
-                        <div
-                          className="
+                          <div
+                            className="
                         max-w-[200px] md:max-w-none 
                         break-words md:whitespace-nowrap 
                         text-center
                       ">
-                          {thisIsPlayingOnMusicPlayer(album)
-                            ? "This album is currently playing"
-                            : queueAlbumPlay
-                              ? "Album will start playing in 5 seconds"
-                              : checkOwnershipOfMusicAsset(album) > -1
-                                ? "Play your premium album with bonus tracks"
-                                : "Listen for free, or purchase this album to unlock premium bonus tracks"}
-                        </div>
-                        <div
-                          className="
+                            {thisIsPlayingOnMusicPlayer(album)
+                              ? "This album is currently playing"
+                              : queueAlbumPlay
+                                ? "Album will start playing in 5 seconds"
+                                : checkOwnershipOfMusicAsset(album) > -1
+                                  ? "Play your premium album with bonus tracks"
+                                  : "Listen for free, or purchase this album to unlock premium bonus tracks"}
+                          </div>
+                          <div
+                            className="
                         absolute top-full left-1/2 
                         transform -translate-x-1/2 
                         border-4 border-transparent border-t-black/90
                       "></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Entitlements Button */}
-                  {checkOwnershipOfMusicAsset(album) > -1 && (
-                    <Button
-                      className="!text-black text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer mr-2"
-                      onClick={() => {
-                        setSelectedAlbumToShowEntitlements(album);
-                        setShowEntitlementsModal(true);
-                      }}>
-                      <Briefcase className="w-4 h-4" />
-                      <span className="ml-2">Entitlements</span>
-                    </Button>
-                  )}
-                </>
-              )}
-
-              <>
-                {checkOwnershipOfMusicAsset(album) < 0 && (
-                  <>
-                    {walletType === "phantom" && getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }) && (
-                      <div>
-                        <Button
-                          className="text-sm cursor-pointer !text-orange-500 dark:!text-yellow-300 mr-2"
-                          variant="outline"
-                          onClick={() => {
-                            window.open(getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }))?.focus();
-                          }}>
-                          <>
-                            <ShoppingCart />
-                            <span className="ml-2">Buy on NFT Market</span>
-                          </>
-                        </Button>
-                      </div>
-                    )}
-
-                    {album._buyNowMeta?.priceOption1?.priceInUSD && !inCollectedAlbumsView && (
-                      <div className={`relative group overflow-hidden rounded-lg p-[1.5px]`}>
-                        {/* Animated border background */}
-                        <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
-
-                        {/* Button content */}
-                        <Button
-                          className={`relative z-2 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100`}
-                          variant="outline"
-                          onClick={() => {
-                            if (addressSol) {
-                              setAlbumToBuyAndMint(album);
-                            } else {
-                              let backToAlbumFocus = `artist=${artistProfile.slug}~${album.albumId}`;
-
-                              window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + "?" + backToAlbumFocus)}`;
-                            }
-                          }}>
-                          <>
-                            <span className="ml-2">
-                              {checkOwnershipOfMusicAsset(album) > -1
-                                ? "Buy More Album Copies Now"
-                                : `${addressSol ? `Buy (From $${album._buyNowMeta?.priceOption1?.priceInUSD})` : `Login to Buy (From $${album._buyNowMeta?.priceOption1?.priceInUSD})`}`}
-                            </span>
-                          </>
-                        </Button>
-                      </div>
+                    {/* Entitlements Button */}
+                    {checkOwnershipOfMusicAsset(album) > -1 && (
+                      <Button
+                        className="!text-black text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer"
+                        onClick={() => {
+                          setSelectedAlbumToShowEntitlements(album);
+                          setShowEntitlementsModal(true);
+                        }}>
+                        <Briefcase className="w-4 h-4" />
+                        <span className="ml-2">Entitlements</span>
+                      </Button>
                     )}
                   </>
                 )}
 
-                {inCollectedAlbumsView && artistProfile && !album.isSigmaRemixAlbum && setFeaturedArtistDeepLinkSlug && setHomeMode && (
-                  <div>
-                    <Button
-                      className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 mr-2 cursor-pointer"
-                      onClick={() => {
-                        setFeaturedArtistDeepLinkSlug(artistProfile.slug);
-                        setSearchParams({ "artist": artistProfile.slug });
-                        setHomeMode(`artists-${new Date().getTime()}`);
-                      }}>
-                      <>
-                        <Disc3 />
-                        <span className="ml-2">{`View more ${!isMostLikelyMobile() ? `from ${artistProfile.name.replaceAll("_", " ")}` : "from artist"} `}</span>
-                      </>
-                    </Button>
-                  </div>
-                )}
-              </>
-            </div>
+                <>
+                  {checkOwnershipOfMusicAsset(album) < 0 && (
+                    <>
+                      {walletType === "phantom" && getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }) && (
+                        <div>
+                          <Button
+                            className="text-sm cursor-pointer !text-orange-500 dark:!text-yellow-300"
+                            variant="outline"
+                            onClick={() => {
+                              window.open(getBestBuyCtaLink({ ctaBuy: album.ctaBuy, dripSet: album.dripSet }))?.focus();
+                            }}>
+                            <>
+                              <ShoppingCart />
+                              <span className="ml-2">Buy on NFT Market</span>
+                            </>
+                          </Button>
+                        </div>
+                      )}
 
-            <span className="text-xs text-gray-700 ml-0 text-left mt-2 mb-[15px]">id: {album.albumId}</span>
+                      {album._buyNowMeta?.priceOption1?.priceInUSD && !inCollectedAlbumsView && (
+                        <div className={`relative group overflow-hidden rounded-lg p-[1.5px]`}>
+                          {/* Animated border background */}
+                          <div className="animate-border-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(from_0deg,#22c55e_0deg,#f97316_180deg,transparent_360deg)]"></div>
+
+                          {/* Button content */}
+                          <Button
+                            className={`relative z-2 !text-black text-sm px-[2.35rem] w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 !opacity-100`}
+                            variant="outline"
+                            onClick={() => {
+                              if (addressSol) {
+                                setAlbumToBuyAndMint(album);
+                              } else {
+                                let backToAlbumFocus = `artist=${artistProfile.slug}~${album.albumId}`;
+
+                                window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + "?" + backToAlbumFocus)}`;
+                              }
+                            }}>
+                            <>
+                              <span className="ml-2">
+                                {checkOwnershipOfMusicAsset(album) > -1
+                                  ? "Buy More Album Copies Now"
+                                  : `${addressSol ? `Buy (From $${album._buyNowMeta?.priceOption1?.priceInUSD})` : `Login to Buy (From $${album._buyNowMeta?.priceOption1?.priceInUSD})`}`}
+                              </span>
+                            </>
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {inCollectedAlbumsView && artistProfile && !album.isSigmaRemixAlbum && setFeaturedArtistDeepLinkSlug && setHomeMode && (
+                    <div>
+                      <Button
+                        className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 cursor-pointer"
+                        onClick={() => {
+                          setFeaturedArtistDeepLinkSlug(artistProfile.slug);
+                          setSearchParams({ "artist": artistProfile.slug });
+                          setHomeMode(`artists-${new Date().getTime()}`);
+                        }}>
+                        <>
+                          <Disc3 />
+                          <span className="ml-2">{`View more ${!isMostLikelyMobile() ? `from ${artistProfile.name.replaceAll("_", " ")}` : "from artist"} `}</span>
+                        </>
+                      </Button>
+                    </div>
+                  )}
+                </>
+              </div>
+
+              <span className="text-xs text-gray-700 ml-0 text-left mt-2 mb-[15px]">id: {album.albumId}</span>
+            </div>
           </div>
         ))
       )}
@@ -792,7 +882,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               </button>
             </div>
 
-            <p className="text-gray-300 mb-4">You have purchased this asset and these are your entitlements:</p>
+            <p className="text-gray-300 mb-4 text-sm">You have purchased this asset and these are your entitlements:</p>
 
             <div className="space-y-4">
               <div className="flex flex-col md:flex-row gap-4">
@@ -833,7 +923,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               <div className="">
                 <h4 className="!text-lg font-semibold text-white">Your Usage License</h4>
                 <div className="flex flex-col md:flex-row items-center justify-between">
-                  <p className="text-gray-300">{entitlementsForSelectedAlbum?.licenseTerms.shortDescription}</p>
+                  <p className="text-gray-300 text-sm">{entitlementsForSelectedAlbum?.licenseTerms.shortDescription}</p>
                   <Button
                     className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
                     onClick={() => {
@@ -853,7 +943,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               <div className={`${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain ? "" : "opacity-50 pointer-events-none cursor-not-allowed"}`}>
                 <h4 className="!text-lg font-semibold text-white">View Collectible</h4>
                 <div className="flex flex-col md:flex-row items-center justify-between">
-                  <p className="text-gray-300">View your NFT collectible on the blockchain.</p>
+                  <p className="text-gray-300 text-sm">View your NFT collectible on the blockchain.</p>
                   <Button
                     className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
                     onClick={() => {
@@ -920,6 +1010,56 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Album Purchased Congrats Modal */}
+      {showAlbumPurchasedCongratsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-2xl w-full mx-4">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-xl font-bold text-white">Congrats on you new purchase!</h3>
+              <button
+                onClick={() => {
+                  setShowAlbumPurchasedCongratsModal(false);
+                }}
+                className="text-gray-400 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+
+            <p className="text-gray-300 mb-4">
+              You can now stream the full version and enjoy any other entitltements (e.g. download files, view collectible, view commercial license etc.)
+            </p>
+
+            <div className="space-y-4 flex flex-col items-center">
+              <div className="flex flex-col md:flex-row gap-4">
+                <Button
+                  onClick={() => {
+                    setShowAlbumPurchasedCongratsModal(false);
+                  }}
+                  className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                  Back to Artist Page
+                </Button>
+
+                <div className="bg-yellow-300 rounded-full p-[8px] -z-1">
+                  <a
+                    className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
+                    href={"https://twitter.com/intent/tweet?" + tweetText}
+                    data-size="large"
+                    target="_blank"
+                    rel="noreferrer">
+                    <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                        <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                      </svg>
+                    </span>
+                    <p className="z-10">Share this news on X</p>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>

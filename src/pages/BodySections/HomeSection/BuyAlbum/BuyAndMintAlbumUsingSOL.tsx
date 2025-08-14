@@ -187,13 +187,14 @@ export const BuyAndMintAlbumUsingSOL = ({
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
+      // for priceOption1 and priceOption4, we dont need to mint the album
       if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption1) {
         // user is buying ONLY the digital album so we dont need minting
         setDigitalAlbumOnlyPurchaseStatus("processing");
 
         await sleep(3);
 
-        toastSuccess("Album Purchase Successful!", true);
+        toastSuccess("Digital Album Purchase Successful!", true);
 
         // need to pull it out of the ui thread of for some reason the confetti goes first
         setTimeout(() => {
@@ -241,10 +242,18 @@ export const BuyAndMintAlbumUsingSOL = ({
     try {
       // if it's priceOption3, and we confirm again that we have an IpTokenId, then we need to use the commercial license mint metadata
       let useCommercialMusicAssetLicenseT2 = false;
+      let onlyNeedCommercialLicenseSoBypassNftMinting = false;
 
-      if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption3) {
+      if (
+        AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption3 ||
+        AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4
+      ) {
         // we need to mint the commercial license
         useCommercialMusicAssetLicenseT2 = albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId ? true : false;
+
+        if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4) {
+          onlyNeedCommercialLicenseSoBypassNftMinting = true;
+        }
       }
 
       const mintParams: any = {
@@ -261,6 +270,11 @@ export const BuyAndMintAlbumUsingSOL = ({
         mintParams.useCommercialMusicAssetLicenseT2 = "1";
       }
 
+      if (onlyNeedCommercialLicenseSoBypassNftMinting) {
+        // we need to mint the commercial license
+        mintParams.onlyNeedCommercialLicenseSoBypassNftMinting = "1";
+      }
+
       const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI(mintParams);
 
       if (_mintAlbumNFTAfterPaymentResponse.error) {
@@ -270,7 +284,13 @@ export const BuyAndMintAlbumUsingSOL = ({
       // sleep for an extra 10 seconds after success to the RPC indexing can update
       await sleep(10);
 
-      toastSuccess("Minting Successful!", true);
+      let responseMessage = "Minting Successful!";
+
+      if (onlyNeedCommercialLicenseSoBypassNftMinting) {
+        responseMessage = "Your on-chain commercial license is being processed and will be available in 'Your Collectibles Wallet' shortly.";
+      }
+
+      toastSuccess(responseMessage, true);
       setMintingStatus("confirmed");
 
       // need to pull it out of the ui thread of for some reason the confetti goes first
@@ -422,7 +442,7 @@ export const BuyAndMintAlbumUsingSOL = ({
     return mintingStatus === "confirmed" || digitalAlbumOnlyPurchaseStatus === "confirmed";
   }
 
-  console.log("albumToBuyAndMint = ", albumToBuyAndMint);
+  const mintingIsInCommercialLicensePathway = AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-start md:items-center md:justify-center z-50">
@@ -505,7 +525,11 @@ export const BuyAndMintAlbumUsingSOL = ({
               {mintingStatus === "processing" && (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg col-span-2">
                   <Loader className="w-full text-center animate-spin hover:scale-105" />
-                  <p className="text-yellow-300">Collectible Minting in process... do not close this page</p>
+                  <p className="text-yellow-300">
+                    {mintingIsInCommercialLicensePathway
+                      ? "License procurement processing... do not close this page"
+                      : "Collectible Minting in process... do not close this page"}
+                  </p>
                 </div>
               )}
             </div>
@@ -521,24 +545,27 @@ export const BuyAndMintAlbumUsingSOL = ({
               }}
             />
 
-            {backendErrorMessage && (
-              <div className="flex flex-col gap-4 col-span-2">
-                <p className="bg-red-500 p-4 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
-              </div>
-            )}
-
-            {mintingStatus === "failed" && (
-              <div className="flex flex-col gap-4 col-span-2">
-                <div className="text-center">
-                  <p className="bg-red-500 p-4 rounded-lg text-sm">
-                    Error! Minting seems to have failed. We are looking into it. Please also wait a few minutes, return back to the artist profile and reload
-                    the page to check if the Music Collectible has been minted (as sometime blockchain can be congested). If it still doesn't show up, please DM
-                    us on telegram:{" "}
-                    <a className="underline" href="http://t.me/SigmaXMusicOfficial" target="_blank" rel="noopener noreferrer">
-                      http://t.me/SigmaXMusicOfficial
-                    </a>
-                  </p>
+            <div className="flex flex-col md:flex-row gap-2 col-span-2">
+              {backendErrorMessage && (
+                <div className="flex flex-col col-span-2 text-center">
+                  <p className="bg-red-500 p-2 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
                 </div>
+              )}
+
+              {mintingStatus === "failed" && (
+                <div className="flex flex-col gap-2 col-span-2">
+                  <div className="text-center">
+                    <p className="bg-red-500 p-2 rounded-lg text-sm">
+                      Error! Minting seems to have failed. We are looking into it. Please DM us on our support telegram:{" "}
+                      <a className="underline" href="http://t.me/SigmaXMusicOfficial" target="_blank" rel="noopener noreferrer">
+                        http://t.me/SigmaXMusicOfficial
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {mintingStatus === "failed" && (
                 <Button
                   onClick={() => {
                     resetStateToPristine();
@@ -547,8 +574,8 @@ export const BuyAndMintAlbumUsingSOL = ({
                   className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity m-auto">
                   Back to Artist Page
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </>
         )}
 
@@ -559,6 +586,12 @@ export const BuyAndMintAlbumUsingSOL = ({
                 Success! You can now stream <span className="text-yellow-300">{albumToBuyAndMint.title}</span> by{" "}
                 <span className="text-yellow-300">{artistProfile.name}</span>!
               </h2>
+
+              {mintingIsInCommercialLicensePathway && (
+                <p className="text-center text-sm text-gray-400 mt-3">
+                  Your on-chain commercial license is being processed and will be available in 'Your Collectibles Wallet' shortly.
+                </p>
+              )}
 
               <Button
                 onClick={() => {

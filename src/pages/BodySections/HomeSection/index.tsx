@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Loader } from "lucide-react";
@@ -83,8 +83,8 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   // Animated text rotation words
-  const rotatingWords = ["New", "AI", "Web3", "Innovative", "Sassy", "IP-Secure", "Agentic", "Exclusive", "Fan-First", "Mind-Blowing", "Sigma"];
-  const { currentWord, isTransitioning } = useAnimatedTextRotation(rotatingWords, 3000);
+  const rotatingWords = ["New", "AI", "Web3", "Innovative", "Tokenized", "DeFi", "IP-Secure", "Agentic", "Exclusive", "Fan-First", "Mind-Blowing", "Sigma"];
+  const { currentWord, isTransitioning, startTextRotation, stopTextRotation, isRunning } = useAnimatedTextRotation(rotatingWords, 3000);
 
   // Cached Signature Store Items
   const {
@@ -224,13 +224,16 @@ export const HomeSection = (props: HomeSectionProps) => {
 
     if (homeMode.includes("campaigns")) {
       const currentParams = Object.fromEntries(searchParams.entries());
+
       if (homeMode.includes("campaigns-wsb")) {
         currentParams["campaign"] = "wsb";
       } else if (homeMode.includes("campaigns-wir")) {
         currentParams["campaign"] = "wir";
       }
+
       delete currentParams["section"];
       delete currentParams["poolId"];
+
       setSearchParams({ ...currentParams });
     }
 
@@ -247,6 +250,14 @@ export const HomeSection = (props: HomeSectionProps) => {
     if (homeMode.includes("ai-remix")) {
       const newSearchParams = removeAllDeepSectionParamsFromUrlExceptSection("ai-remix", searchParams);
       setSearchParams({ ...newSearchParams });
+    }
+
+    if (homeMode !== "home") {
+      // Stop the animated text rotation when we are not in home mode or the interval runs in the BG
+      stopTextRotation();
+    } else if (homeMode === "home" && !isRunning) {
+      // Restart the animation when returning to home mode
+      startTextRotation();
     }
 
     if (homeMode.includes("wallet")) {
@@ -731,16 +742,6 @@ export const HomeSection = (props: HomeSectionProps) => {
     updateJumpToTrackIndexInAlbumBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
   }
 
-  // this is causing all the children to re-render
-  // useEffect(() => {
-  //   if (!isHovered) {
-  //     const interval = setInterval(() => {
-  //       setCurrentSlide((prev) => (prev === 1 ? 0 : 1));
-  //     }, 3000);
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [isHovered]);
-
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
@@ -1124,9 +1125,25 @@ export const HomeSection = (props: HomeSectionProps) => {
 const useAnimatedTextRotation = (words: string[], intervalMs: number = 3000) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isRunning, setIsRunning] = useState(true);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const start = useCallback(() => {
+    setIsRunning(true);
+  }, []);
+
+  const stop = useCallback(() => {
+    setIsRunning(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    if (!isRunning) return;
+
+    intervalRef.current = setInterval(() => {
       console.log("Starting transition...");
       setIsTransitioning(true);
 
@@ -1138,8 +1155,14 @@ const useAnimatedTextRotation = (words: string[], intervalMs: number = 3000) => 
       }, 800); // Longer transition to make it more visible
     }, intervalMs);
 
-    return () => clearInterval(timer);
-  }, [words.length, intervalMs, currentIndex]);
+    return () => {
+      if (intervalRef.current) {
+        console.log("Clearing animated text rotation interval");
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [words.length, intervalMs, currentIndex, isRunning]);
 
-  return { currentWord: words[currentIndex], isTransitioning };
+  return { currentWord: words[currentIndex], isTransitioning, startTextRotation: start, stopTextRotation: stop, isRunning };
 };

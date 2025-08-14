@@ -24,7 +24,8 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
     if (option === "priceOption1") {
       return buyNowMeta?.[option]?.priceInUSD && buyNowMeta[option]?.priceInUSD !== "";
     } else if (option === "priceOption4") {
-      return buyNowMeta?.[option]?.priceInUSD && buyNowMeta[option]?.priceInUSD !== "";
+      // this is the pure commercial license option, but it depends on if iptoken exits on priceOption3 as well as that is where the main IP is
+      return buyNowMeta?.[option]?.priceInUSD && buyNowMeta[option]?.priceInUSD !== "" && buyNowMeta?.["priceOption3"]?.IpTokenId;
     } else if (DISABLE_COMMERCIAL_LICENSE_BUY_OPTION === "1" && option === "priceOption3") {
       return false;
     } else {
@@ -87,7 +88,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
             {/* Details (left) */}
             <div className="flex-1 space-y-2">
               <h4 className="!text-xl font-semibold">{title}</h4>
-              <p className="text-sm text-gray-300">{description}</p>
+              <p className="text-xs text-gray-300">{description}</p>
               <p className="text-xs text-gray-300">
                 License: {license} -{" "}
                 <a href={licenseUrl} target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:underline">
@@ -136,8 +137,6 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
     );
   };
 
-  console.log("buyNowMeta = ", buyNowMeta);
-
   return (
     <div className="space-y-4">
       <h3 className="!text-2xl font-bold mb-4 hidden md:block">Purchase Options</h3>
@@ -151,11 +150,21 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
       <div className="flex flex-col gap-4 max-h-[calc(100vh-200px)] overflow-y-auto md:pr-5">
         {renderOption({
           option: "priceOption1",
-          title: "Digital Album",
+          title: "Digital Album Only",
           description: "You Get: Stream + MP3 downloads incl. bonus tracks",
           license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].shortDescription,
           licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].urlToLicense,
           price: buyNowMeta?.priceOption1?.priceInUSD || null,
+        })}
+
+        {renderOption({
+          option: "priceOption4",
+          title: "Album + Commercial License",
+          description: "You Get: Digital Album + commercial use license",
+          license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption4].shortDescription,
+          licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption4].urlToLicense,
+          price: buyNowMeta?.priceOption4?.priceInUSD || null,
+          ipTokenId: buyNowMeta?.priceOption3?.IpTokenId || null,
         })}
 
         {renderOption({
@@ -177,16 +186,6 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
           price: buyNowMeta?.priceOption3?.priceInUSD || null,
           ipTokenId: buyNowMeta?.priceOption3?.IpTokenId || null,
           tokenImg: buyNowMeta?.priceOption3?.tokenImg || null,
-        })}
-
-        {renderOption({
-          option: "priceOption4",
-          title: "Album + Commercial License",
-          description: "You Get: Digital Album + commercial use license",
-          license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption4].shortDescription,
-          licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption4].urlToLicense,
-          price: buyNowMeta?.priceOption4?.priceInUSD || null,
-          ipTokenId: buyNowMeta?.priceOption3?.IpTokenId || null,
         })}
       </div>
     </div>

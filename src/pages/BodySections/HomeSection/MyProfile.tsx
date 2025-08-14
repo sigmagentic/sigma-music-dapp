@@ -113,40 +113,6 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
     }
   }, [myAiRemixRawTracks, displayPublicKey]);
 
-  // function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]) {
-  //   // lets create a "virtual album" for the user that contains all their remixes
-  //   const virtualAlbum: Album = {
-  //     albumId: "virtual-album-" + displayPublicKey?.toString(),
-  //     title: "My AI Remixes",
-  //     desc: "My AI Remixes",
-  //     ctaPreviewStream: "",
-  //     ctaBuy: "",
-  //     dripSet: "",
-  //     bountyId: "",
-  //     img: "",
-  //     isExplicit: "",
-  //     isPodcast: "",
-  //     isFeatured: "",
-  //     isSigmaRemixAlbum: "",
-  //     solNftName: "",
-  //   };
-
-  //   // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
-  //   const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
-  //     idx: index,
-  //     artist: "My AI Remixes",
-  //     category: "Remix",
-  //     album: "My AI Remixes",
-  //     cover_art_url: remix.image,
-  //     title: remix.songTitle,
-  //     stream: remix.streamUrl,
-  //     bountyId: remix.bountyId,
-  //   }));
-
-  //   setVirtualAiRemixAlbum(virtualAlbum);
-  //   setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
-  // }
-
   const parseTypeCodeToLabel = (typeCode: string) => {
     switch (typeCode) {
       case "bonus":

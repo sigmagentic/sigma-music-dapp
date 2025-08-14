@@ -237,7 +237,7 @@ export const removeAllDeepSectionParamsFromUrlExceptSection = (section: string, 
   delete currentParams["campaign"];
   delete currentParams["artist"];
   delete currentParams["tab"];
-  delete currentParams["action"];
+  // delete currentParams["action"];
   delete currentParams["country"];
   delete currentParams["team"];
   return currentParams;

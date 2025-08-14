@@ -100,7 +100,7 @@ const StripeCheckoutFormAlbum = ({
       // do we have an iptoken configured for priceOption3? if so, we need to pass it to the payment success page
       let IpTokenId = "";
 
-      if (albumSaleTypeOption === "priceOption3" && albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId) {
+      if ((albumSaleTypeOption === "priceOption3" || albumSaleTypeOption === "priceOption4") && albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId) {
         IpTokenId = albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId || "";
       }
 

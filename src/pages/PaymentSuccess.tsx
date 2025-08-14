@@ -28,6 +28,7 @@ export const PaymentSuccess = () => {
   const { updateSolNfts } = useNftsStore();
   const [priceInUSD, setPriceInUSD] = useState<string | null>(null);
   const [quantityToBuy, setQuantityToBuy] = useState<number | null>(1);
+  const [mintingIsInCommercialLicensePathway, setMintingIsInCommercialLicensePathway] = useState<boolean>(false);
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -91,6 +92,10 @@ export const PaymentSuccess = () => {
         setItemArtist(_albumArtist);
         setPriceInUSD(_priceInUSD);
         setQuantityToBuy(totalQuantity);
+
+        if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4) {
+          setMintingIsInCommercialLicensePathway(true);
+        }
 
         // Verify payment with backend
         const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/paymentVerifyPayment`, {
@@ -174,7 +179,9 @@ export const PaymentSuccess = () => {
           } else {
             setMintingStatus("processing");
 
-            // Mint the collectible
+            let onlyNeedCommercialLicenseSoBypassNftMinting = false;
+
+            // Mint the collectible or commercial license
             try {
               const mintParams: any = {
                 solSignature: usedPreAccessSignature,
@@ -193,13 +200,26 @@ export const PaymentSuccess = () => {
                 // if it's priceOption3, and we confirm again that we have an IpTokenId, then we need to use the commercial license mint metadata
                 let useCommercialMusicAssetLicenseT2 = false;
 
-                if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption3) {
+                if (
+                  AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption3 ||
+                  AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4
+                ) {
                   // we need to mint the commercial license
                   useCommercialMusicAssetLicenseT2 = IpTokenId && IpTokenId !== "" ? true : false;
+
+                  // user ONLY needs the commercial license so we can bypass the nft minting
+                  if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4) {
+                    onlyNeedCommercialLicenseSoBypassNftMinting = true;
+                  }
                 }
 
                 if (useCommercialMusicAssetLicenseT2) {
                   mintParams.useCommercialMusicAssetLicenseT2 = "1";
+                }
+
+                if (onlyNeedCommercialLicenseSoBypassNftMinting) {
+                  // we need to mint the commercial license
+                  mintParams.onlyNeedCommercialLicenseSoBypassNftMinting = "1";
                 }
               } else {
                 mintParams.membershipId = membershipId;
@@ -221,8 +241,10 @@ export const PaymentSuccess = () => {
             await sleep(20);
 
             // update the NFT store now as we have a new collectible
-            const _allDataNfts: DasApiAsset[] = await fetchSolNfts(buyerSolAddress!);
-            updateSolNfts(_allDataNfts);
+            if (!onlyNeedCommercialLicenseSoBypassNftMinting) {
+              const _allDataNfts: DasApiAsset[] = await fetchSolNfts(buyerSolAddress!);
+              updateSolNfts(_allDataNfts);
+            }
 
             setMintingStatus("confirmed");
           }
@@ -238,7 +260,7 @@ export const PaymentSuccess = () => {
 
           await sleep(3);
 
-          let redirectUrl = `/?artist=${artistSlug}~${albumId}`;
+          let redirectUrl = `/?artist=${artistSlug}~${albumId}&action=justpaid`;
 
           if (membershipId) {
             redirectUrl = `/?artist=${artistSlug}&tab=fan&action=justjoined`;
@@ -340,8 +362,18 @@ export const PaymentSuccess = () => {
                 {paymentLogStatus === "processing" && "Finalizing payment..."}
                 {mintingStatus === "processing" && (
                   <>
-                    <span>Minting {purchaseType === "album" ? "Music Collectible" : "Fan Membership Collectible"} on the blockchain...</span>
-                    <span className="text-gray-300 text-xs"> (This may take a few minutes)</span>
+                    <span>
+                      {" "}
+                      {purchaseType === "album"
+                        ? mintingIsInCommercialLicensePathway
+                          ? "Registering Commercial License"
+                          : "Minting Music Collectible"
+                        : "Minting Fan Membership Collectible"}{" "}
+                      on the blockchain
+                    </span>
+                    <div className="text-gray-300 text-xs mt-2">
+                      {!mintingIsInCommercialLicensePathway ? "This may take a few minutes" : "It will be available in 'Your Collectibles Wallet' shortly"}
+                    </div>
                   </>
                 )}
               </p>
@@ -386,7 +418,7 @@ export const PaymentSuccess = () => {
                 )}
                 {mintingStatus === "failed" && (
                   <p>
-                    <span className="text-red-500">✕</span> Collectible minting failed
+                    <span className="text-red-500">✕</span> Collectible minting or commercial license processing failed
                   </p>
                 )}
               </p>
