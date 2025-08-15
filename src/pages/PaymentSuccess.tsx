@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { confetti } from "@tsparticles/confetti";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { SOL_ENV_ENUM } from "config";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { fetchSolNfts, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { AlbumSaleTypeOption } from "libs/types";
@@ -11,14 +13,19 @@ import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 
+let verifyPaymentIsInProgress = false;
+
 export const PaymentSuccess = () => {
+  const { signMessage: signMessageViaNativeWallet } = useWallet();
+  const { walletType } = useSolanaWallet();
+  const { signMessageViaWeb3Auth, isLoading: isWeb3AuthLoading, isConnected: isWeb3AuthConnected, connect: connectWeb3Auth, web3auth } = useWeb3Auth();
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [itemImg, setItemImg] = useState<string | null>(null);
   const [itemTitle, setItemTitle] = useState<string | null>(null);
   const [itemArtist, setItemArtist] = useState<string | null>(null);
-  const [purchaseType, setPurchaseType] = useState<"album" | "membership">("album");
-  const { signMessageViaWeb3Auth, isLoading: isWeb3AuthLoading, isConnected, connect } = useWeb3Auth();
+  const [purchaseType, setPurchaseType] = useState<"album" | "membership" | "xp">("album");
   const [paymentStatus, setPaymentStatus] = useState<"processing" | "confirmed" | "failed">("processing");
   const [paymentLogStatus, setPaymentLogStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
   const [mintingStatus, setMintingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
@@ -42,14 +49,23 @@ export const PaymentSuccess = () => {
     const verifyPayment = async () => {
       try {
         // Wait for Web3Auth to initialize
-        if (isWeb3AuthLoading) {
+        if (walletType === "web3auth" && isWeb3AuthLoading) {
           return;
         }
 
-        // Ensure user is connected
-        if (!isConnected) {
-          await connect();
+        // Ensure user is connected IF we are using web3auth
+        if (walletType === "web3auth" && !isWeb3AuthConnected) {
+          await connectWeb3Auth();
         }
+
+        // we are not yet ready, wait until the native wallet is ready
+        if (walletType !== "web3auth" && !signMessageViaNativeWallet) {
+          return;
+        }
+
+        // as we are listending to so many events, and some (like wallet signature are async and blocking), we need this flag to prevent multiple calls to verifyPayment
+        // ... so if we pass the above checks, we know the wallets are ready to proceed so we can enfore this flag
+        verifyPaymentIsInProgress = true;
 
         // membershipId=t1&
         // artist=yfgp&
@@ -70,6 +86,12 @@ export const PaymentSuccess = () => {
         const albumSaleTypeOption = searchParams.get("albumSaleTypeOption");
         const IpTokenId = searchParams.get("IpTokenId");
 
+        // XP related
+        const XPPurchase = searchParams.get("XPPurchase"); // if this is true, then we are buying XP
+        const XPPurchasedFromUrl = searchParams.get("XPPurchasedFromUrl");
+        const XPBeingBought = searchParams.get("XPBeingBought");
+        const XPCollectionIdToUse = searchParams.get("XPCollectionIdToUse");
+
         const _itemImg = searchParams.get("albumImg");
         const _albumTitle = searchParams.get("albumTitle");
         const _albumArtist = searchParams.get("albumArtist");
@@ -77,24 +99,39 @@ export const PaymentSuccess = () => {
         const _priceInUSD = searchParams.get("priceInUSD");
         const _billingEmail = searchParams.get("billingEmail");
 
-        if (!paymentIntentId || !_priceInUSD || (!albumId && !membershipId && !artistId)) {
-          throw new Error("Missing required parameters");
+        if (!paymentIntentId) {
+          throw new Error("Missing paymentIntentId");
         }
 
-        if (membershipId) {
-          setPurchaseType("membership");
+        if (!XPPurchase) {
+          if (!_priceInUSD || (!albumId && !membershipId && !artistId)) {
+            throw new Error("Missing required parameters");
+          }
+
+          if (membershipId) {
+            setPurchaseType("membership");
+          } else {
+            setPurchaseType("album");
+          }
+
+          setItemImg(_itemImg);
+          setItemTitle(_albumTitle);
+          setItemArtist(_albumArtist);
+          setPriceInUSD(_priceInUSD);
+          setQuantityToBuy(totalQuantity);
+
+          if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4) {
+            setMintingIsInCommercialLicensePathway(true);
+          }
         } else {
-          setPurchaseType("album");
-        }
+          if (!XPPurchasedFromUrl || XPBeingBought === "" || !XPCollectionIdToUse) {
+            throw new Error("Missing required parameters for XP purchase");
+          }
 
-        setItemImg(_itemImg);
-        setItemTitle(_albumTitle);
-        setItemArtist(_albumArtist);
-        setPriceInUSD(_priceInUSD);
-        setQuantityToBuy(totalQuantity);
+          // we are buying XP
+          setPurchaseType("xp");
 
-        if (AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4) {
-          setMintingIsInCommercialLicensePathway(true);
+          setPriceInUSD(_priceInUSD);
         }
 
         // Verify payment with backend
@@ -114,7 +151,7 @@ export const PaymentSuccess = () => {
             solPreaccessNonce,
             solPreaccessSignature,
             solPreaccessTimestamp,
-            signMessage: signMessageViaWeb3Auth,
+            signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessageViaNativeWallet,
             updateSolPreaccessNonce,
             updateSolSignedPreaccess,
             updateSolPreaccessTimestamp,
@@ -123,27 +160,43 @@ export const PaymentSuccess = () => {
 
           try {
             // Log payment to web2 API
-            const paymentLogParams: any = {
-              solSignature: usedPreAccessSignature,
-              signatureNonce: usedPreAccessNonce,
-              payer: buyerSolAddress,
-              tx: paymentIntentId,
-              task: albumId ? "buyAlbum" : "joinFanClub",
-              type: "cc",
-              amount: _priceInUSD,
-              creatorWallet: creatorWallet,
-              totalQuantity: totalQuantity,
-            };
+            let paymentLogParams: any = {};
 
-            if (albumId) {
-              paymentLogParams.albumId = albumId;
-              paymentLogParams.albumSaleTypeOption = AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption];
+            if (!XPPurchase) {
+              paymentLogParams = {
+                solSignature: usedPreAccessSignature,
+                signatureNonce: usedPreAccessNonce,
+                payer: buyerSolAddress,
+                tx: paymentIntentId,
+                task: albumId ? "buyAlbum" : "joinFanClub",
+                type: "cc",
+                amount: _priceInUSD,
+                creatorWallet: creatorWallet,
+                totalQuantity: totalQuantity,
+              };
+
+              if (albumId) {
+                paymentLogParams.albumId = albumId;
+                paymentLogParams.albumSaleTypeOption = AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption];
+              } else {
+                paymentLogParams.membershipId = membershipId;
+                paymentLogParams.artistId = artistId;
+              }
             } else {
-              paymentLogParams.membershipId = membershipId;
-              paymentLogParams.artistId = artistId;
+              paymentLogParams = {
+                solSignature: usedPreAccessSignature,
+                signatureNonce: usedPreAccessNonce,
+                payer: buyerSolAddress,
+                tx: paymentIntentId,
+                task: "buyXP",
+                type: "cc",
+                amount: _priceInUSD,
+                XPBeingBought: XPBeingBought,
+                XPPurchasedFromUrl: XPPurchasedFromUrl,
+              };
             }
 
-            const _logPaymentToAPIResponse = await logPaymentToAPI(paymentLogParams);
+            const _logPaymentToAPIResponse = await logPaymentToAPI(paymentLogParams, XPPurchase ? true : false, XPCollectionIdToUse || "");
 
             if (_logPaymentToAPIResponse.error) {
               setPaymentLogStatus("failed");
@@ -176,7 +229,7 @@ export const PaymentSuccess = () => {
           if (albumId && AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption1) {
             // user is buying ONLY the digital album so we dont need minting
             setDigitalAlbumOnlyPurchaseStatus("confirmed");
-          } else {
+          } else if (!XPPurchase) {
             setMintingStatus("processing");
 
             let onlyNeedCommercialLicenseSoBypassNftMinting = false;
@@ -260,7 +313,17 @@ export const PaymentSuccess = () => {
 
           await sleep(3);
 
-          let redirectUrl = `/?artist=${artistSlug}~${albumId}&action=justpaid`;
+          let redirectUrl = "/";
+
+          if (XPPurchase && XPPurchasedFromUrl) {
+            if (redirectUrl === "/") {
+              redirectUrl = "/?action=justpaidforxp";
+            } else {
+              redirectUrl = `${XPPurchasedFromUrl}&action=justpaidforxp`;
+            }
+          } else if (artistSlug && albumId) {
+            redirectUrl = `/?artist=${artistSlug}~${albumId}&action=justpaid`;
+          }
 
           if (membershipId) {
             redirectUrl = `/?artist=${artistSlug}&tab=fan&action=justjoined`;
@@ -282,8 +345,13 @@ export const PaymentSuccess = () => {
       }
     };
 
-    verifyPayment();
-  }, [searchParams, navigate, isWeb3AuthLoading, isConnected, connect]);
+    if (!verifyPaymentIsInProgress) {
+      verifyPayment();
+    } else {
+      console.log("Payment verification already in progress, skipping...");
+    }
+    // }, [searchParams, navigate, isWeb3AuthLoading, isConnected, connect]);
+  }, [searchParams, navigate, isWeb3AuthLoading, isWeb3AuthConnected, connectWeb3Auth, walletType, signMessageViaNativeWallet]);
 
   const showSuccessConfetti = async () => {
     const animation = await confetti({
@@ -334,13 +402,15 @@ export const PaymentSuccess = () => {
 
               <div className="text-center space-y-4">
                 <h3 className="text-xl md:text-2xl font-bold text-white">
-                  {purchaseType === "album" ? (
+                  {purchaseType === "album" && (
                     <>
                       {itemTitle} by <span className="text-gray-400">{itemArtist}</span>
                     </>
-                  ) : (
-                    <>{itemTitle} Membership</>
                   )}
+
+                  {purchaseType === "membership" && <>{itemTitle} Membership</>}
+
+                  {purchaseType === "xp" && <>XP Boost</>}
                 </h3>
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
@@ -357,7 +427,7 @@ export const PaymentSuccess = () => {
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
               <p className="mt-4 text-white">
-                {isWeb3AuthLoading && "Initializing Web3Auth..."}
+                {walletType === "web3auth" && isWeb3AuthLoading && "Initializing Web3Auth..."}
                 {paymentStatus === "processing" && "Verifying payment..."}
                 {paymentLogStatus === "processing" && "Finalizing payment..."}
                 {mintingStatus === "processing" && (

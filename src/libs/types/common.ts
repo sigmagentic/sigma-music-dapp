@@ -183,7 +183,7 @@ export enum AlbumSaleTypeOption {
 }
 
 export interface PaymentLog {
-  task: "buyAlbum" | "joinFanClub" | "remix"; // buyAlbum or joinFanClub or remix
+  task: "buyAlbum" | "joinFanClub" | "remix" | "buyXP"; // buyAlbum or joinFanClub or remix or buyXP
   paymentStatus: "new" | "success" | "failed" | "uncertain"; // new, success, failed (not sure if we use this)
   createdOn: number;
   tx: string;
@@ -211,6 +211,8 @@ export interface PaymentLog {
     refTrack_alId: string;
     refTrack_file: string;
   };
+  XPBeingBought?: string;
+  XPPurchasedFromUrl?: string;
 }
 
 export interface MusicAssetOwned {

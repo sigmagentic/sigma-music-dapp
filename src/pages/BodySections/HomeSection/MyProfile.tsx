@@ -362,6 +362,12 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                           </div>
                         </>
                       )}
+
+                      {log.task === "buyXP" && (
+                        <>
+                          <div className="cursor-pointer hover:underline text-blue-400">XP Boost for {log?.XPBeingBought || "N/A"} XP</div>
+                        </>
+                      )}
                     </td>
                     <td className="py-3">
                       <span

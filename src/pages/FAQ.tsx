@@ -39,7 +39,7 @@ const faqSections: FAQSection[] = [
                 participants through cryptoeconomics, and scales distribution exponentially through agentic AI.
               </p>
 
-              <p className="text-lg font-semibold mt-6">Sigma is the world's first fan-first music platform.</p>
+              <p className="text-lg font-semibold mt-6">Sigma is a is a next-gen music platform built on the intersection of music, fan engagement and AI.</p>
             </div>
           </div>
         ),

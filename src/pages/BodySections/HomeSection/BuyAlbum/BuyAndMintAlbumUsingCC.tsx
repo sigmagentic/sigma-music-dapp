@@ -71,7 +71,7 @@ export const BuyAndMintAlbumUsingCC = ({
       albumSaleTypeOption: AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption],
     };
 
-    if (userInfo.email) {
+    if (userInfo?.email) {
       intentExtraParams.accountEmail = userInfo.email;
     }
 

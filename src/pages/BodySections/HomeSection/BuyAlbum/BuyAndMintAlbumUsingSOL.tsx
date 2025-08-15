@@ -602,7 +602,7 @@ export const BuyAndMintAlbumUsingSOL = ({
                 Back to Artist Page
               </Button>
 
-              <div className="bg-yellow-300 rounded-full p-[10px] -z-1 ">
+              <div className="bg-yellow-300 rounded-full p-[10px] -z-1">
                 <a
                   className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
                   href={"https://twitter.com/intent/tweet?" + tweetText}

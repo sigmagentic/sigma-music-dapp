@@ -1,6 +1,6 @@
 # Sigma Music
 
-**Sigma Music** (https://sigmamusic.fm) is a "fan-first" music platform reimagining the way fans and artists connect. Built with web3 technology under the hood but designed for a mainstream web2 experience, Sigma combines the best of platforms like Bandcamp and SoundCloud with powerful new monetization tools — including tokenized music assets, AI remix licensing, and IP finance.
+**Sigma Music** (https://sigmamusic.fm) is a next-gen music platform built on the intersection of music, fan engagement and AI. Built with web3 and AI technology under the hood but designed for a mainstream web2 experience, Sigma combines the best of platforms like Bandcamp and SoundCloud with powerful new monetization tools — including tokenized music assets, AI remix licensing, and IP finance.
 
 We believe in building in the open. This repo is part of our effort to make the future of music infrastructure community-owned and developer-friendly.
 

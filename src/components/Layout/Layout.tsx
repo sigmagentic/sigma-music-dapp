@@ -245,6 +245,7 @@ export const Layout = ({
                   <Tooltip text="XP Leaderboards">
                     <button
                       onClick={() => {
+                        removeDeepSectionParamsFromUrl();
                         setHomeMode(`xp-leaderboards-${new Date().getTime()}`);
                       }}
                       disabled={homeMode.includes("xp-leaderboards")}
@@ -304,6 +305,7 @@ export const Layout = ({
                       <Tooltip text="Your Collectibles Wallet">
                         <button
                           onClick={() => {
+                            removeDeepSectionParamsFromUrl();
                             setHomeMode(`wallet-${new Date().getTime()}`);
                           }}
                           disabled={homeMode.includes("wallet")}
@@ -323,6 +325,7 @@ export const Layout = ({
                       <Tooltip text="Your Profile">
                         <button
                           onClick={() => {
+                            removeDeepSectionParamsFromUrl();
                             setHomeMode(`profile-${new Date().getTime()}`);
                           }}
                           disabled={homeMode.includes("profile")}

@@ -57,13 +57,25 @@ export const fetchSolPriceViaAPI = async () => {
   }
 };
 
-export const logPaymentToAPI = async (paymentData: any) => {
+export const logPaymentToAPI = async (paymentData: any, isXPPurchase: boolean = false, xpCollectionIdToUse: string = "") => {
   try {
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/createPaymentLog`, {
+    let APIEndpoint = `${getApiWeb2Apps()}/datadexapi/sigma/createPaymentLog`;
+
+    if (isXPPurchase) {
+      APIEndpoint = `${getApiWeb2Apps()}/datadexapi/sigma/createPaymentLogXP`;
+    }
+
+    const headerConfig: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (xpCollectionIdToUse && xpCollectionIdToUse != "") {
+      headerConfig["fwd-tokenid"] = xpCollectionIdToUse;
+    }
+
+    const response = await fetch(APIEndpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: headerConfig,
       body: JSON.stringify(paymentData),
     });
 

@@ -9,7 +9,7 @@ import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
 
 export const SolBitzDropdown = (props: any) => {
-  const { skipNavBarPopOverOption, showOnlyClaimBitzButton, handlePlayActionBtn } = props;
+  const { skipNavBarPopOverOption, showOnlyClaimBitzButton, handlePlayActionBtn, handleShowBuyXPModal } = props;
   const cooldown = useSolBitzStore((state: any) => state.cooldown);
   const solBitzBalance = useSolBitzStore((state: any) => state.bitzBalance);
   const { isConnected: isLoggedInSol } = useSolanaWallet();
@@ -18,7 +18,12 @@ export const SolBitzDropdown = (props: any) => {
     <div className={`${!skipNavBarPopOverOption ? "border border-yellow-500 rounded-sm justify-center cursor-pointer" : ""}`}>
       <Popover>
         {showOnlyClaimBitzButton ? (
-          <ClaimBitzButton cooldown={cooldown} handlePlayActionBtn={handlePlayActionBtn} />
+          <>
+            <ClaimBitzButton cooldown={cooldown} handlePlayActionBtn={handlePlayActionBtn} />
+            <Button className="text-sm tracking-wide hover:bg-transparent px-0.5 ml-0.5" variant="ghost">
+              Purchase Sigma XP Boost
+            </Button>
+          </>
         ) : (
           <>
             <PopoverTrigger>
@@ -60,9 +65,11 @@ export const SolBitzDropdown = (props: any) => {
                   </div>
                   <p className="text-xl md:text-2xl text-center font-[Clash-Medium]">What is Sigma XP?</p>
                   <p className="text-xs md:text-sm font-[Satoshi-Regular] leading-relaxed py-4 text-center">
-                    Earn rewards by curating content with Sigma XP - collect them free every few hours!
+                    Collect and Use Sigma XP in the Sigma Music app to generate and curate content.
                   </p>
                   <ClaimBitzButton cooldown={cooldown} handlePlayActionBtn={handlePlayActionBtn} />
+
+                  <BuySigmaXPButton handleShowBuyXPModal={handleShowBuyXPModal} />
                 </div>
               </PopoverContent>
             )}
@@ -70,6 +77,24 @@ export const SolBitzDropdown = (props: any) => {
         )}
       </Popover>
     </div>
+  );
+};
+
+export const BuySigmaXPButton = (props: any) => {
+  const { handleShowBuyXPModal } = props;
+  return (
+    <PopoverPrimitive.PopoverClose asChild>
+      <div
+        className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px] mt-5"
+        onClick={() => {
+          handleShowBuyXPModal();
+        }}>
+        <span className="absolute hover:bg-[#fde047] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#fde047,#fde047_30%,#111111_50%)]" />
+        <span className="inline-flex h-full hover:bg-gradient-to-tl from-background to-[#fde047] w-full cursor-pointer items-center justify-center rounded-full bg-background px-3 py-1 text-sm font-medium backdrop-blur-3xl">
+          Purchase Sigma XP Boost
+        </span>
+      </div>
+    </PopoverPrimitive.PopoverClose>
   );
 };
 
@@ -88,7 +113,7 @@ export const ClaimBitzButton = (props: any) => {
           return;
         }
       }}>
-      <span className="absolute hover:bg-[#fde047] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF03,#45d4ff_50%,#111111_50%)]" />
+      <span className="absolute hover:bg-[#fde047] inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#fde047,#fde047_30%,#111111_50%)]" />
       <span className="inline-flex h-full hover:bg-gradient-to-tl from-background to-[#fde047] w-full cursor-pointer items-center justify-center rounded-full bg-background px-3 py-1 text-sm font-medium backdrop-blur-3xl">
         {cooldown === -2 ? (
           <span className="blinkMe">Click to Get Sigma XP</span>
@@ -103,7 +128,7 @@ export const ClaimBitzButton = (props: any) => {
                 return (
                   <PopoverPrimitive.PopoverClose asChild>
                     <div className="flex flex-row justify-center items-center">
-                      <span className="text-[12px] md:text-sm"> Collect Your Sigma XP </span>
+                      <span className="text-[12px] md:text-sm"> Win Free Sigma XP </span>
                     </div>
                   </PopoverPrimitive.PopoverClose>
                 );
@@ -123,7 +148,7 @@ export const ClaimBitzButton = (props: any) => {
         ) : (
           <PopoverPrimitive.PopoverClose asChild>
             <div className="flex flex-row justify-center items-center">
-              <span className="text-[12px] md:text-sm"> Collect Your Sigma XP </span>
+              <span className="text-[12px] md:text-sm"> Win Free Sigma XP </span>
             </div>
           </PopoverPrimitive.PopoverClose>
         )}

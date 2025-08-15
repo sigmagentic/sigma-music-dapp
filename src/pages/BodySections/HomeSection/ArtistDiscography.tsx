@@ -89,7 +89,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     onCloseMusicPlayer,
   } = props;
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
-  const [, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const addressSol = publicKeySol?.toBase58();
   const { updateSolNfts, solMusicAssetNfts } = useNftsStore();
   const userLoggedInWithWallet = publicKeySol;
@@ -240,14 +240,14 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   useEffect(() => {
     if (!artistProfile || !addressSol) return;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const action = urlParams.get("action");
+    const currentParams = Object.fromEntries(searchParams.entries());
+    const action = currentParams["action"];
+    setSearchParams(currentParams);
 
     if (action === "justpaid") {
       // remove action from the url (as we dont want them share that on X for e.g)
-      const url = new URL(window.location.href);
-      url.searchParams.delete("action");
-      window.history.replaceState({}, "", url.toString());
+      delete currentParams["action"];
+      setSearchParams(currentParams);
 
       (async () => {
         // the user just bought an album using a credit card, lets refresh any ownership data collections from the backend
@@ -1018,9 +1018,9 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       {/* Album Purchased Congrats Modal */}
       {showAlbumPurchasedCongratsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-2xl w-full mx-4">
+          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-xl w-full mx-4">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-xl font-bold text-white">Congrats on you new purchase!</h3>
+              <h3 className="text-xl font-bold text-white">Congrats on your new purchase!</h3>
               <button
                 onClick={() => {
                   setShowAlbumPurchasedCongratsModal(false);
@@ -1044,7 +1044,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   Back to Artist Page
                 </Button>
 
-                <div className="bg-yellow-300 rounded-full p-[8px] -z-1">
+                <div className="bg-yellow-300 rounded-full p-[10px] -z-1">
                   <a
                     className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
                     href={"https://twitter.com/intent/tweet?" + tweetText}
@@ -1056,7 +1056,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
                       </svg>
                     </span>
-                    <p className="z-10">Share this news on X</p>
+                    <p className="z-10 text-sm">Share this news on X</p>
                   </a>
                 </div>
               </div>
