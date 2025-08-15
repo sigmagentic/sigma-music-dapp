@@ -1317,3 +1317,35 @@ export async function getArtistAiRemixViaAPI({ artistId }: { artistId: string })
     return [];
   }
 }
+
+export const downloadMp3TrackViaAPI = async (artistId: string, albumId: string, alId: string, trackTitle: string) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/musicTracksDownload?albumId=${albumId}&alId=${alId}&directDownload=1`);
+
+    if (response.ok) {
+      // Create a blob from the response
+      const blob = await response.blob();
+
+      // Create a download link and trigger the download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = !trackTitle ? `${albumId}-${alId}.mp3` : `${trackTitle.replaceAll(" ", "_")}.mp3`; // Use the trackTitle parameter
+
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      return true;
+    } else {
+      alert("Error downloading track");
+    }
+  } catch (error) {
+    console.error("Error downloading track:", error);
+    alert("Error downloading track");
+  }
+};

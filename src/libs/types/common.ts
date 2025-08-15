@@ -229,7 +229,7 @@ export interface MusicAssetOwned {
 }
 
 export interface EntitlementForMusicAsset {
-  mp3TrackUrls: string[];
+  mp3TracksCanBeDownloaded: boolean;
   licenseTerms: {
     shortDescription: string | null;
     urlToLicense: string | null;

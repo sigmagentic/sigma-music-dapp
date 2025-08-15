@@ -173,7 +173,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     // this effect gets called 1st when user clicks on the show entitlements button
     if (selectedAlbumToShowEntitlements && (myMusicAssetPurchases.length > 0 || solMusicAssetNfts.length > 0)) {
       const entitlementsMap: EntitlementForMusicAsset = {
-        mp3TrackUrls: [],
+        mp3TracksCanBeDownloaded: false,
         licenseTerms: {
           shortDescription: null,
           urlToLicense: null,
@@ -185,6 +185,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       const assetPurchaseThatMatches = myMusicAssetPurchases.find((assetPurchase) => assetPurchase.albumId === selectedAlbumToShowEntitlements.albumId);
 
       if (assetPurchaseThatMatches && assetPurchaseThatMatches.albumSaleTypeOption) {
+        entitlementsMap.mp3TracksCanBeDownloaded = true;
         entitlementsMap.licenseTerms.shortDescription =
           LICENSE_TERMS_MAP[assetPurchaseThatMatches.albumSaleTypeOption as keyof typeof LICENSE_TERMS_MAP].shortDescription;
         // this is the IP license that wil apply to both priceOption3 and priceOption4 as we store the ipasset in priceOption3
@@ -194,7 +195,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         entitlementsMap.licenseTerms.ipTokenId = selectedAlbumToShowEntitlements._buyNowMeta?.priceOption3?.IpTokenId || null;
       } else {
         // we should NEVER get here, but old assets (Drip assets) may not have priceOptions so lets default to the first option as this is a good license
-        entitlementsMap.mp3TrackUrls = [];
+        entitlementsMap.mp3TracksCanBeDownloaded = false;
         entitlementsMap.licenseTerms.shortDescription = LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].shortDescription;
         entitlementsMap.licenseTerms.urlToLicense = LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].urlToLicense;
         entitlementsMap.nftAssetIdOnBlockchain = null;
@@ -466,7 +467,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
               {album.albumPriceOption4 && album.albumPriceOption4 !== "" && album?._buyNowMeta?.priceOption4?.priceInUSD && (
                 <>
-                  <div className={`absolute top-0 right-[${album.isSigmaExclusive && album.isSigmaExclusive === "1" ? "140px" : "0"}] z-[9]`}>
+                  <div className={`absolute top-0 ${album.isSigmaExclusive && album.isSigmaExclusive === "1" ? "right-[140px]" : "right-0"} z-[9]`}>
                     <div className="relative inline-block overflow-hidden rounded-bl-lg cursor-pointer" onClick={() => setShowCommercialLicenseModal(true)}>
                       <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-3 py-1.5 rounded-bl-lg rounded-tr-sm font-semibold text-sm shadow-lg border border-yellow-400/50">
                         <span className="flex items-center gap-1">
@@ -524,7 +525,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             <div className="p-2 md:p-5">
               <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
                 <div
-                  className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group ${album._albumCanBeFastStreamed ? "cursor-pointer" : ""}`}
+                  className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group ${album._albumCanBeFastStreamed && !inCollectedAlbumsView ? "cursor-pointer" : ""}`}
                   style={{
                     "backgroundImage": `url(${album.img})`,
                   }}
@@ -532,7 +533,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     // if there is a token image, show it in a large version
                     if (album._buyNowMeta?.priceOption2?.tokenImg) {
                       setSelectedLargeSizeTokenImg(album._buyNowMeta?.priceOption2?.tokenImg);
-                    } else if (album._albumCanBeFastStreamed) {
+                    } else if (album._albumCanBeFastStreamed && !inCollectedAlbumsView) {
                       // load the track list for the album if we dont have a collectible img to show
                       setSelectedAlbumForTrackList(album);
                     }
@@ -648,7 +649,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
               <div className="albumActions mt-3 flex flex-wrap flex-col items-start md:items-center gap-2 lg:flex-row space-y-2 lg:space-y-0 w-full">
                 {/* track list button */}
-                {album._albumCanBeFastStreamed && (
+                {!inCollectedAlbumsView && album._albumCanBeFastStreamed && (
                   <Button
                     variant="outline"
                     className="text-sm px-3 py-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
@@ -904,17 +905,15 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 </div>
 
                 {/* Download Premium Album Files Section */}
-                <div
-                  className={`${entitlementsForSelectedAlbum?.mp3TrackUrls.length && entitlementsForSelectedAlbum?.mp3TrackUrls.length > 0 ? "" : "opacity-50 pointer-events-none cursor-not-allowed"}`}>
-                  <h4 className="!text-lg font-semibold text-white">Download Files (Coming Soon)</h4>
+                <div className={`${entitlementsForSelectedAlbum?.mp3TracksCanBeDownloaded ? "" : "opacity-50 pointer-events-none cursor-not-allowed"}`}>
+                  <h4 className="!text-lg font-semibold text-white">Download Track MP3 Files</h4>
                   <Button
-                    className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[232px]"
+                    className="!text-black mt-2 text-sm px-[2.35rem] bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-orange-500 hover:to-yellow-300 transition ease-in-out delay-150 duration-300 cursor-pointer w-[250px]"
                     onClick={() => {
-                      // TODO: Implement download functionality
-                      window.open(selectedAlbumToShowEntitlements.ctaBuy, "_blank");
+                      window.open("/faq#how-to-download-tracks", "_blank");
                     }}>
                     <Download className="w-4 h-4" />
-                    <span className="ml-2">Download Files</span>
+                    <span className="ml-2">How to Download Files</span>
                   </Button>
                 </div>
               </div>

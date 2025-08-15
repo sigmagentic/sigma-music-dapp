@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Play, Loader } from "lucide-react";
+import { ArrowLeft, Play, Loader, Download } from "lucide-react";
 import ratingE from "assets/img/icons/rating-E.png";
 import { Button } from "libComponents/Button";
 import { Album, MusicTrack } from "libs/types";
-import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
+import { getAlbumTracksFromDBViaAPI, downloadMp3TrackViaAPI } from "libs/utils/api";
 import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { useAudioPlayerStore } from "store/audioPlayer";
 
@@ -165,9 +165,10 @@ export const TrackList: React.FC<TrackListProps> = ({
 
       {/* Track List Header */}
       <div className="border-b border-gray-700 pb-2 mb-4">
-        <div className="grid grid-cols-[50px_1fr] gap-4 text-gray-400 text-sm font-medium">
+        <div className="grid grid-cols-[50px_1fr_50px] gap-4 text-gray-400 text-sm font-medium">
           <div>#</div>
           <div>Title</div>
+          <div>Download</div>
         </div>
       </div>
 
@@ -183,7 +184,7 @@ export const TrackList: React.FC<TrackListProps> = ({
           return (
             <div
               key={`${track.albumTrackId || track.idx}-${index}`}
-              className={`group grid grid-cols-[50px_1fr] gap-4 py-3 px-2 rounded-md transition-colors ${
+              className={`group grid grid-cols-[50px_1fr_50px] gap-4 py-3 px-2 rounded-md transition-colors ${
                 isDisabled || isQueued || isCurrentlyPlaying ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800 cursor-pointer"
               }`}
               onMouseEnter={() => setHoveredTrackIndex(index)}
@@ -212,6 +213,27 @@ export const TrackList: React.FC<TrackListProps> = ({
                   {isBonusTrack && <span className="text-xs bg-orange-500 text-black px-2 py-1 rounded-full">Bonus</span>}
                 </div>
                 <span className="text-gray-400 text-xs">{artistName}</span>
+              </div>
+
+              {/* Download Button */}
+              <div className="flex items-center justify-center">
+                {userOwnsAlbum ? (
+                  <button
+                    className={`text-gray-400 hover:text-white transition-colors ${isHovered ? "opacity-100" : "opacity-0"}`}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent track click handler from firing
+                      downloadMp3TrackViaAPI(artistId, album.albumId, track.alId || "", track.title || "");
+                    }}
+                    title="Download track">
+                    <Download className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <div
+                    className={`text-gray-400 transition-opacity cursor-not-allowed ${isHovered ? "opacity-50" : "opacity-0"}`}
+                    title="Buy the digital version of this album to download this track">
+                    <Download className="w-4 h-4" />
+                  </div>
+                )}
               </div>
             </div>
           );
