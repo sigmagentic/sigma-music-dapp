@@ -11,9 +11,10 @@ import { AiRemixRawTrack, AiRemixLaunch, MusicTrack, Album } from "libs/types";
     /////////////////////////////////////////////
 */
 
-export const toastError = (message: string) => {
+export const toastError = (message: string, showTopCenter?: boolean) => {
   toast.error(message, {
-    position: "top-right",
+    position: showTopCenter ? "top-center" : "top-right",
+    duration: 6000,
   });
 };
 
@@ -292,4 +293,12 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
   }));
 
   return { virtualAlbum, allMyRemixesAsMusicTracks };
+}
+
+export function isUserArtistType(isVerifiedArtist: boolean, profileTypes: string[]): boolean {
+  if (isVerifiedArtist || profileTypes?.includes("remixer") || profileTypes?.includes("composer")) {
+    return true;
+  }
+
+  return false;
 }

@@ -24,7 +24,7 @@ import { FeaturedBanners } from "./FeaturedBanners";
 import { Leaderboards } from "./Leaderboards";
 import { MiniGames } from "./MiniGames";
 import { MyCollectedNFTs } from "./MyCollectedNFTs";
-import { MyProfile } from "./MyProfile";
+import { MyProfile } from "./Account/MyProfile";
 import { RewardPools } from "./RewardPools";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";

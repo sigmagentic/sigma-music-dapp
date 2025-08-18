@@ -13,7 +13,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuTrigger } from "libComponents/DropdownMenu";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "libComponents/NavigationMenu";
-import { sleep } from "libs/utils";
+import { isUserArtistType, sleep } from "libs/utils";
 import { showSuccessConfetti } from "libs/utils/uiShared";
 import { BuyXPUsingCC } from "pages/BodySections/HomeSection/BuyXP/BuyXPUsingCC";
 import { routeNames } from "routes";
@@ -163,7 +163,7 @@ export const Navbar = ({
                 </Button>
               </div>
             </NavigationMenuItem>
-            {userWeb2AccountDetails.isArtist && (
+            {isUserArtistType(userWeb2AccountDetails.isVerifiedArtist, userWeb2AccountDetails.profileTypes) && (
               <NavigationMenuItem>
                 <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
                   <Button
