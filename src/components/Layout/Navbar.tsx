@@ -20,6 +20,7 @@ import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import { ProductTour } from "../ProductTour/ProductTour";
+import { ExtendedProfileSetupWorkflow } from "../ExtendedProfileSetupWorkflow/ExtendedProfileSetupWorkflow";
 import { PlayXPGameModal } from "../XPSystem/PlayXPGameModal";
 
 export const Navbar = ({
@@ -37,6 +38,7 @@ export const Navbar = ({
   const [showPlayBitzModal, setShowPlayBitzModal] = useState<boolean>(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState<boolean>(false);
   const [showProductTour, setShowProductTour] = useState<boolean>(false);
+  const [showNewUserExtendedProfileSetup, setShowNewUserExtendedProfileSetup] = useState<boolean>(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { solBitzNfts } = useNftsStore();
@@ -68,6 +70,10 @@ export const Navbar = ({
 
     if (searchParams.get("g") === "1" || searchParams.get("g") === "tour") {
       setShowProductTour(true);
+    }
+
+    if (searchParams.get("e") === "1") {
+      setShowNewUserExtendedProfileSetup(true);
     }
   }, [location.search]);
 
@@ -101,6 +107,17 @@ export const Navbar = ({
     const searchParams = new URLSearchParams(location.search);
     if (searchParams.has("g")) {
       searchParams.delete("g");
+      const newSearch = searchParams.toString();
+      const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+      navigate(newPath, { replace: true });
+    }
+  };
+
+  const handleCloseNewUserExtendedProfileSetup = () => {
+    setShowNewUserExtendedProfileSetup(false);
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.has("e")) {
+      searchParams.delete("e");
       const newSearch = searchParams.toString();
       const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
       navigate(newPath, { replace: true });
@@ -347,6 +364,12 @@ export const Navbar = ({
 
       {/* Product Tour Modal */}
       <ProductTour isOpen={showProductTour} onClose={handleCloseProductTour} handleShowBitzModel={() => setShowPlayBitzModal(true)} />
+
+      {/* Extended Profile Setup Workflow */}
+      <ExtendedProfileSetupWorkflow
+        isOpen={showNewUserExtendedProfileSetup}
+        onClose={handleCloseNewUserExtendedProfileSetup}
+      />
 
       {/* Buy XP Modal */}
       {showBuyXPUsingCCModal && (

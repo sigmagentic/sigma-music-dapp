@@ -3,6 +3,7 @@ import { Loader2, X } from "lucide-react";
 import { Button } from "libComponents/Button";
 import { Input } from "libComponents/Input";
 import { InfoTooltip } from "libComponents/Tooltip";
+import { isValidUrl } from "libs/utils/ui";
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export interface ProfileFormData {
   name: string;
   primaryAccountEmail: string;
   billingEmail: string;
+  profileImage: string;
 }
 
 interface ValidationErrors {
@@ -24,6 +26,7 @@ interface ValidationErrors {
   name?: string;
   primaryAccountEmail?: string;
   billingEmail?: string;
+  profileImage?: string;
 }
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, onSave, initialData, walletType }) => {
@@ -63,6 +66,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
       newErrors.billingEmail = "Billing email is required";
     } else if (!isValidEmail(formData.billingEmail)) {
       newErrors.billingEmail = "Please enter a valid email address";
+    }
+
+    // Validate profile image URL
+    if (formData.profileImage.trim() && !isValidUrl(formData.profileImage)) {
+      newErrors.profileImage = "Please enter a valid URL";
     }
 
     setErrors(newErrors);
@@ -213,7 +221,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
             {/* Name Field */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
-                <span>Name *</span>
+                <span>Full Name *</span>
                 <InfoTooltip content="This is your account name, it's separate from your artist name." position="right" />
               </label>
               <Input
@@ -260,6 +268,22 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                 className={`bg-gray-800 border-gray-600 text-white placeholder-gray-400 ${errors.billingEmail ? "border-red-500" : ""}`}
               />
               {errors.billingEmail && <p className="text-red-400 text-sm mt-1">{errors.billingEmail}</p>}
+            </div>
+
+            {/* Profile Image URL Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
+                <span>Profile Image URL (Optional)</span>
+                <InfoTooltip content="Enter a direct link to your profile image. Must be an HTTPS URL." position="right" />
+              </label>
+              <Input
+                type="url"
+                value={formData.profileImage}
+                onChange={(e) => handleFormChange("profileImage", e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className={errors.profileImage ? "border-red-500" : ""}
+              />
+              {errors.profileImage && <p className="text-red-400 text-sm mt-1">{errors.profileImage}</p>}
             </div>
           </div>
         </div>

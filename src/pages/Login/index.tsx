@@ -83,24 +83,26 @@ const LoginPage = () => {
       if (userLoggedInCallData?.error) {
         console.error("User account login call failed");
       } else {
-        let isTriggerProductTour = ""; // should we trigger the "free gift" for new users?
+        // let isTriggerProductTour = ""; // should we trigger the "free gift" for new users?
+        let triggerNewuserExtendedProfileSetupFlag = "";
         const celebrateEmojis = ["🥳", "🎊", "🍾", "🥂", "🍻", "🍾"];
 
         if (userLoggedInCallData?.newUserAccountCreated) {
-          toast.success("Welcome New Music Fan! Its Great To Have You Here.", {
-            position: "bottom-center",
-            duration: 6000,
-            icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
-            style: {
-              background: "#1a1a1a",
-              color: "#fff",
-              border: "1px solid #333",
-            },
-          });
+          // toast.success("Welcome New Music Fan! Its Great To Have You Here.", {
+          //   position: "bottom-center",
+          //   duration: 6000,
+          //   icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
+          //   style: {
+          //     background: "#1a1a1a",
+          //     color: "#fff",
+          //     border: "1px solid #333",
+          //   },
+          // });
 
           updateUserWeb2AccountDetails(userLoggedInCallData);
 
-          isTriggerProductTour = "g=1";
+          // isTriggerProductTour = "g=1";
+          triggerNewuserExtendedProfileSetupFlag = "e=1";
         } else {
           updateUserWeb2AccountDetails(userLoggedInCallData);
         }
@@ -116,17 +118,17 @@ const LoginPage = () => {
         window.history.replaceState({}, "", newUrl);
 
         if (fromWhere.includes("?")) {
-          if (isTriggerProductTour !== "") {
-            isTriggerProductTour = `&${isTriggerProductTour}`;
+          if (triggerNewuserExtendedProfileSetupFlag !== "") {
+            triggerNewuserExtendedProfileSetupFlag = `&${triggerNewuserExtendedProfileSetupFlag}`;
           }
 
-          fromWhere = `${fromWhere}${isTriggerProductTour}`;
+          fromWhere = `${fromWhere}${triggerNewuserExtendedProfileSetupFlag}`;
         } else {
-          if (isTriggerProductTour !== "") {
-            isTriggerProductTour = `?${isTriggerProductTour}`;
+          if (triggerNewuserExtendedProfileSetupFlag !== "") {
+            triggerNewuserExtendedProfileSetupFlag = `?${triggerNewuserExtendedProfileSetupFlag}`;
           }
 
-          fromWhere = `${fromWhere}${isTriggerProductTour}`;
+          fromWhere = `${fromWhere}${triggerNewuserExtendedProfileSetupFlag}`;
         }
 
         navigate(fromWhere);

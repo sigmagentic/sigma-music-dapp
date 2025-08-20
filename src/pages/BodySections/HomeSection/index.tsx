@@ -1144,12 +1144,12 @@ const useAnimatedTextRotation = (words: string[], intervalMs: number = 3000) => 
     if (!isRunning) return;
 
     intervalRef.current = setInterval(() => {
-      console.log("Starting transition...");
+      // console.log("Starting transition...");
       setIsTransitioning(true);
 
       // Wait for transition animation to complete before changing word
       setTimeout(() => {
-        console.log("Changing word from", words[currentIndex], "to", words[(currentIndex + 1) % words.length]);
+        // console.log("Changing word from", words[currentIndex], "to", words[(currentIndex + 1) % words.length]);
         setCurrentIndex((prevIndex) => (prevIndex + 1) % words.length);
         setIsTransitioning(false);
       }, 800); // Longer transition to make it more visible
@@ -1157,7 +1157,7 @@ const useAnimatedTextRotation = (words: string[], intervalMs: number = 3000) => 
 
     return () => {
       if (intervalRef.current) {
-        console.log("Clearing animated text rotation interval");
+        // console.log("Clearing animated text rotation interval");
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }

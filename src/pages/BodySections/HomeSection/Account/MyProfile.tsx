@@ -97,6 +97,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         displayName: data.name,
         billingEmail: data.billingEmail,
         profileTypes: data.profileTypes,
+        profileImage: data.profileImage,
       };
 
       // If the user is using a native wallet, we need to save the primary account email
@@ -137,8 +138,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           {/* Profile Image */}
           <div className="w-32 h-32 rounded-md overflow-hidden bg-gray-900 border-2 border-gray-700">
-            {userInfo.profileImage ? (
-              <img src={userInfo.profileImage} alt="Profile" className="w-full h-full object-cover" />
+            {userInfo.profileImage || userWeb2AccountDetails.profileImage ? (
+              <img src={userWeb2AccountDetails.profileImage || userInfo.profileImage} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
                 <UserIcon className="w-16 h-16 text-gray-600" />
@@ -378,7 +379,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
             className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "profile" ? "bg-yellow-300 text-black" : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
             }`}>
-            User Profile
+            App Profile
           </button>
 
           {isUserArtistType(userWeb2AccountDetails.isVerifiedArtist, userWeb2AccountDetails.profileTypes) && (
@@ -413,6 +414,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
           name: userInfo.name || userWeb2AccountDetails.displayName || "",
           primaryAccountEmail: userInfo.email || userWeb2AccountDetails.primaryAccountEmail || "",
           billingEmail: userWeb2AccountDetails.billingEmail || "",
+          profileImage: userInfo.profileImage || userWeb2AccountDetails.profileImage || "",
         }}
       />
     </div>
