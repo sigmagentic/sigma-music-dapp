@@ -442,7 +442,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
                   {/* Sigma Exclusive Modal */}
                   {showSigmaExclusiveModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
                       <div className="bg-[#1A1A1A] rounded-lg p-6  max-w-2xl w-full mx-4">
                         <div className="flex justify-between items-center mb-2">
                           <h3 className="text-xl font-bold text-white">Sigma Music Exclusive!</h3>
@@ -480,7 +480,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
                   {/* Commercial License Modal */}
                   {showCommercialLicenseModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
                       <div className="bg-[#1A1A1A] rounded-lg p-6  max-w-2xl w-full mx-4">
                         <div className="flex justify-between items-center mb-2">
                           <h3 className="text-xl font-bold text-white">Commercial License Available!</h3>
@@ -868,7 +868,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
       {/* Entitlements Modal */}
       {showEntitlementsModal && selectedAlbumToShowEntitlements && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
           <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-2xl w-full mx-4">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-xl font-bold text-white">Your Entitlements</h3>
@@ -998,7 +998,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
       {/* Show larger profile or token image modal */}
       {selectedLargeSizeTokenImg && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 p-4">
           <div className="relative max-w-4xl w-full">
             <img src={selectedLargeSizeTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
             <div>
@@ -1016,7 +1016,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
       {/* Album Purchased Congrats Modal */}
       {showAlbumPurchasedCongratsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
           <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-xl w-full mx-4">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-xl font-bold text-white">Congrats on your new purchase!</h3>

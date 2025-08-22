@@ -19,8 +19,8 @@ import { BuyXPUsingCC } from "pages/BodySections/HomeSection/BuyXP/BuyXPUsingCC"
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
-import { ProductTour } from "../ProductTour/ProductTour";
 import { ExtendedProfileSetupWorkflow } from "../ExtendedProfileSetupWorkflow/ExtendedProfileSetupWorkflow";
+import { ProductTour } from "../ProductTour/ProductTour";
 import { PlayXPGameModal } from "../XPSystem/PlayXPGameModal";
 
 export const Navbar = ({
@@ -66,13 +66,13 @@ export const Navbar = ({
   }, [addressSol, isConnected, location.pathname]);
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
+    const _searchParams = new URLSearchParams(location.search);
 
-    if (searchParams.get("g") === "1" || searchParams.get("g") === "tour") {
+    if (_searchParams.get("g") === "1" || _searchParams.get("g") === "tour") {
       setShowProductTour(true);
     }
 
-    if (searchParams.get("e") === "1") {
+    if (_searchParams.get("e") === "1") {
       setShowNewUserExtendedProfileSetup(true);
     }
   }, [location.search]);
@@ -180,7 +180,7 @@ export const Navbar = ({
                 </Button>
               </div>
             </NavigationMenuItem>
-            {isUserArtistType(userWeb2AccountDetails.isVerifiedArtist, userWeb2AccountDetails.profileTypes) && (
+            {isUserArtistType(userWeb2AccountDetails.profileTypes) && (
               <NavigationMenuItem>
                 <div className="bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center">
                   <Button
@@ -339,7 +339,7 @@ export const Navbar = ({
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[100]">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100]">
           <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold mb-4">Confirm Logout</h3>
             <div className="space-y-4">
@@ -366,10 +366,7 @@ export const Navbar = ({
       <ProductTour isOpen={showProductTour} onClose={handleCloseProductTour} handleShowBitzModel={() => setShowPlayBitzModal(true)} />
 
       {/* Extended Profile Setup Workflow */}
-      <ExtendedProfileSetupWorkflow
-        isOpen={showNewUserExtendedProfileSetup}
-        onClose={handleCloseNewUserExtendedProfileSetup}
-      />
+      <ExtendedProfileSetupWorkflow isOpen={showNewUserExtendedProfileSetup} onClose={handleCloseNewUserExtendedProfileSetup} />
 
       {/* Buy XP Modal */}
       {showBuyXPUsingCCModal && (
@@ -382,7 +379,7 @@ export const Navbar = ({
 
       {/* XP Purchase Congrats Modal */}
       {showXPPurchasedCongratsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
           <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-xl w-full mx-4">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-xl font-bold text-white">Congrats on your XP Boost purchase!</h3>

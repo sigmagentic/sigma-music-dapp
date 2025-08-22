@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Music, Play, Plus, X } from "lucide-react";
+import { Music, Play, Plus, X, Edit } from "lucide-react";
 import { ALL_MUSIC_GENRES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Badge } from "libComponents/Badge";
@@ -11,10 +11,12 @@ import { Switch } from "libComponents/Switch";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { useAccountStore } from "store/account";
 import { Modal } from "./Modal";
-import { adminApi, FastStreamTrack } from "../services";
+import { adminApi } from "../services";
+import { FastStreamTrack } from "libs/types";
 
 interface TrackListModalProps {
   isOpen: boolean;
+  isNonMUIMode?: boolean;
   onClose: () => void;
   tracks: FastStreamTrack[];
   albumTitle: string;
@@ -34,8 +36,9 @@ interface TrackFormData {
   title: string;
 }
 
-export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose, tracks, albumTitle, artistId, albumId, onTracksUpdated }) => {
+export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, isNonMUIMode, onClose, tracks, albumTitle, artistId, albumId, onTracksUpdated }) => {
   const [isFormView, setIsFormView] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<TrackFormData>({
     idx: -1,
@@ -47,6 +50,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
     file: "",
     title: "",
   });
+  const [errors, setErrors] = useState<Partial<TrackFormData>>({});
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
   const { signMessage } = useWallet();
@@ -65,7 +69,8 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
       file: "",
       title: "",
     });
-
+    setErrors({});
+    setIsEditing(false);
     setIsFormView(false);
   }, [artistId, albumId, trackIdxNextGuess]);
 
@@ -77,11 +82,30 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
   }, [tracks]);
 
   const handleAddTrackToFastStream = () => {
+    setIsEditing(false);
+    setIsFormView(true);
+  };
+
+  const handleEditTrack = (track: FastStreamTrack) => {
+    setIsEditing(true);
+    setFormData({
+      idx: track.idx,
+      arId: track.arId || artistId,
+      alId: track.alId || `${albumId}-${track.idx}`,
+      bonus: track.bonus || 0,
+      category: track.category || "",
+      cover_art_url: track.cover_art_url || "",
+      file: track.file || "",
+      title: track.title || "",
+    });
+    setErrors({});
     setIsFormView(true);
   };
 
   const handleCancelForm = () => {
     setIsFormView(false);
+    setIsEditing(false);
+    setIsSubmitting(false);
     setFormData({
       idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
       arId: artistId,
@@ -92,6 +116,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
       file: "",
       title: "",
     });
+    setErrors({});
   };
 
   const handleFormChange = (field: keyof TrackFormData, value: any) => {
@@ -105,34 +130,60 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
 
       return updated;
     });
+
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
-  const validateForm = (): string | null => {
-    if (!formData.title.trim()) return "Title is required";
-    if (!formData.category.trim()) return "At least one genre is required";
-    if (!formData.cover_art_url.trim()) return "Cover art URL is required";
-    if (!formData.file.trim()) return "File URL is required";
-    if (formData.idx <= 0) return "Track number must be positive";
+  const validateForm = (): boolean => {
+    const newErrors: Partial<TrackFormData> = {};
 
-    // Validate that we have at least one genre and no more than 5
-    const selectedGenres = formData.category
-      .split(",")
-      .map((g) => g.trim())
-      .filter((g) => g.length > 0);
-    if (selectedGenres.length === 0) return "At least one genre is required";
-    if (selectedGenres.length > 5) return "Maximum 5 genres allowed";
+    if (!formData.title.trim()) {
+      newErrors.title = "Title is required";
+    }
 
-    return null;
+    if (!formData.category.trim()) {
+      newErrors.category = "At least one genre is required";
+    } else {
+      // Validate that we have at least one genre and no more than 5
+      const selectedGenres = formData.category
+        .split(",")
+        .map((g) => g.trim())
+        .filter((g) => g.length > 0);
+      if (selectedGenres.length === 0) {
+        newErrors.category = "At least one genre is required";
+      } else if (selectedGenres.length > 5) {
+        newErrors.category = "Maximum 5 genres allowed";
+      }
+    }
+
+    if (!formData.cover_art_url.trim()) {
+      newErrors.cover_art_url = "Cover art URL is required";
+    } else if (!formData.cover_art_url.startsWith("https://")) {
+      newErrors.cover_art_url = "Cover art URL must start with https://";
+    }
+
+    if (!formData.file.trim()) {
+      newErrors.file = "Audio file URL is required";
+    } else if (!formData.file.startsWith("https://")) {
+      newErrors.file = "Audio file URL must start with https://";
+    } else if (!formData.file.toLowerCase().endsWith(".mp3")) {
+      newErrors.file = "Audio file must have .mp3 extension";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = async () => {
-    const error = validateForm();
-    if (error) {
-      alert(error);
+    if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
+
     try {
       // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
       const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
@@ -146,13 +197,24 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
         updateSolPreaccessTimestamp,
       });
 
-      const payloadToSave = { ...formData, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce, adminWallet: publicKey?.toBase58() };
+      const payloadToSave: any = { ...formData, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce };
 
-      // log the track to the web2 API
-      const response = await adminApi.fastStream.addNewFastStreamTracksForAlbum(payloadToSave);
+      if (!isNonMUIMode) {
+        payloadToSave.adminWallet = publicKey?.toBase58() || "";
+      }
+
+      let response;
+      if (isEditing) {
+        // Update existing track
+        response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
+      } else {
+        // Add new track
+        response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
+      }
 
       if (response.success) {
         setIsFormView(false);
+        setIsEditing(false);
         onTracksUpdated(); // Refresh the track list
         setFormData({
           idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
@@ -164,12 +226,13 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
           file: "",
           title: "",
         });
+        setErrors({});
       } else {
-        alert(`Error: ${response.error || "Failed to add track"}`);
+        alert(`Error: ${response.error || `Failed to ${isEditing ? "update" : "add"} track`}`);
       }
     } catch (err) {
-      console.error("Error adding track:", err);
-      alert("Failed to add track. Please try again.");
+      console.error(`Error ${isEditing ? "updating" : "adding"} track:`, err);
+      alert(`Failed to ${isEditing ? "update" : "add"} track. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -179,8 +242,8 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Add New Track</h3>
-          <p className="text-gray-600">Fill in the track details below</p>
+          <h3 className="text-lg font-semibold text-gray-900">{isEditing ? "Edit Track" : "Add New Track"}</h3>
+          <p className="text-gray-600">{isEditing ? "Update the track details below" : "Fill in the track details below"}</p>
         </div>
         <Button onClick={handleCancelForm} variant="outline" size="sm">
           <X className="w-4 h-4 mr-2" />
@@ -191,9 +254,26 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Track Number */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Track Number *</label>
-          <Input type="number" min="1" value={formData.idx} onChange={(e) => handleFormChange("idx", parseInt(e.target.value) || 1)} placeholder="1" required />
-          <span className="text-xs text-gray-600">track numbers used so far (make sure it's in sequence with no duplicates): {trackIdxListSoFar}</span>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Track Number <span className="text-red-400">*</span>
+          </label>
+          <Input
+            type="number"
+            min="1"
+            value={formData.idx}
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              handleFormChange("idx", isNaN(value) ? 1 : value);
+            }}
+            placeholder="1"
+            required
+            disabled={isEditing}
+            className={errors.idx ? "border-red-500" : ""}
+          />
+          {errors.idx && <p className="text-red-400 text-sm mt-1">{errors.idx}</p>}
+          {!isEditing && (
+            <span className="text-xs text-gray-600">track numbers used so far (make sure it's in sequence with no duplicates): {trackIdxListSoFar}</span>
+          )}
         </div>
 
         {/* Artist ID (Read-only) */}
@@ -219,8 +299,10 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
 
         {/* Category Dropdown */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Genres * (Select up to 5)</label>
-          <div className="border border-gray-300 rounded-md p-3 bg-gray-800 max-h-48 overflow-y-auto">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Genres <span className="text-red-400">*</span> (Select up to 5)
+          </label>
+          <div className={`border rounded-md p-3 bg-gray-800 max-h-48 overflow-y-auto ${errors.category ? "border-red-500" : "border-gray-300"}`}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {ALL_MUSIC_GENRES.map((genre) => {
                 const selectedGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
@@ -257,36 +339,61 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
               })}
             </div>
           </div>
+          {errors.category && <p className="text-red-400 text-sm mt-1">{errors.category}</p>}
           {formData.category && <div className="mt-2 text-sm text-gray-600">Selected: {formData.category}</div>}
         </div>
 
         {/* Title */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Track Title *</label>
-          <Input value={formData.title} onChange={(e) => handleFormChange("title", e.target.value)} placeholder="Enter track title" required />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Track Title <span className="text-red-400">*</span>
+          </label>
+          <Input
+            value={formData.title}
+            onChange={(e) => handleFormChange("title", e.target.value)}
+            placeholder="Enter track title"
+            required
+            className={errors.title ? "border-red-500" : ""}
+          />
+          {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title}</p>}
         </div>
 
         {/* Cover Art URL */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Cover Art URL *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Cover Art URL <span className="text-red-400">*</span>
+          </label>
           <Input
             value={formData.cover_art_url}
             onChange={(e) => handleFormChange("cover_art_url", e.target.value)}
             placeholder="https://example.com/cover-art.jpg"
             required
+            className={errors.cover_art_url ? "border-red-500" : ""}
           />
+          {errors.cover_art_url && <p className="text-red-400 text-sm mt-1">{errors.cover_art_url}</p>}
+          <p className="text-gray-400 text-sm mt-1">Must be a valid HTTPS URL</p>
         </div>
 
         {/* File URL */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Audio File URL *</label>
-          <Input value={formData.file} onChange={(e) => handleFormChange("file", e.target.value)} placeholder="https://example.com/audio-file.mp3" required />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Audio File URL <span className="text-red-400">*</span>
+          </label>
+          <Input
+            value={formData.file}
+            onChange={(e) => handleFormChange("file", e.target.value)}
+            placeholder="https://example.com/audio-file.mp3"
+            required
+            className={errors.file ? "border-red-500" : ""}
+          />
+          {errors.file && <p className="text-red-400 text-sm mt-1">{errors.file}</p>}
+          <p className="text-gray-400 text-sm mt-1">Must be a valid HTTPS URL with .mp3 extension</p>
         </div>
       </div>
 
       <div className="flex justify-end pt-4 border-t border-gray-200">
-        <Button onClick={handleSave} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
-          {isSubmitting ? "Saving..." : "Save Track"}
+        <Button onClick={handleSave} disabled={isSubmitting} className="bg-yellow-300 text-black hover:bg-yellow-400">
+          {isSubmitting ? (isEditing ? "Updating..." : "Saving...") : isEditing ? "Update Track" : "Save Track"}
         </Button>
       </div>
     </div>
@@ -294,16 +401,11 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
 
   const renderTrackListView = () => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <p className="text-gray-600">Current fast stream tracks for this album</p>
+      {tracks.length > 0 && (
+        <div className="flex items-end justify-end mb-6">
+          <Badge variant="secondary">{tracks.length} Tracks</Badge>
         </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            {tracks.length} Tracks
-          </Badge>
-        </div>
-      </div>
+      )}
 
       {tracks.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -332,7 +434,10 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
                         )}
                       </div>
                     </div>
-                    <div className="flex-shrink-0 ml-2">
+                    <div className="flex-shrink-0 ml-2 flex space-x-1">
+                      <Button onClick={() => handleEditTrack(track)} variant="outline" size="sm" className="h-8 w-8 p-0">
+                        <Edit className="w-3 h-3" />
+                      </Button>
                       <Button onClick={() => window.open(track.file, "_blank")} variant="outline" size="sm" className="h-8 w-8 p-0">
                         <Play className="w-3 h-3" />
                       </Button>
@@ -347,29 +452,37 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
         <div className="text-center py-12">
           <Music className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Tracks Found</h3>
-          <p className="text-gray-600">No fast stream tracks are currently available for this album.</p>
+          <p className="text-gray-600">No tracks are currently available for this album.</p>
         </div>
       )}
 
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleAddTrackToFastStream} className="w-full bg-green-600 hover:bg-green-700 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Track to Fast Stream
+      <div className="flex justify-end space-x-3  p-6items-center border-t border-gray-700 pt-4">
+        <Button
+          onClick={onClose}
+          variant="outline"
+          className={`border-gray-600 text-white hover:bg-gray-800 ${isSubmitting ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
+          Cancel
         </Button>
-      </div>
 
-      <div className="flex justify-end pt-4 border-t border-gray-200">
-        <Button onClick={onClose} variant="outline">
-          Close
+        <Button
+          onClick={handleAddTrackToFastStream}
+          className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Track
         </Button>
       </div>
     </div>
   );
 
-  console.log("tracks", tracks);
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`${albumTitle} - Fast Stream Tracks`} size="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {
+        handleCancelForm();
+        onClose();
+      }}
+      title={`${albumTitle} - Tracks`}
+      size="lg">
       {isFormView ? renderNewTrackFormView() : renderTrackListView()}
     </Modal>
   );

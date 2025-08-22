@@ -716,7 +716,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
 
         {/* Perk Details Modal */}
         {selectedPerk && (
-          <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
             <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
               <div className="flex items-center gap-2 mb-4">
                 {getPerkTypeIcon(selectedPerk.type)}
@@ -753,7 +753,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
 
       {/* Token Image Modal */}
       {selectedTokenImg && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 p-4">
           <div className="relative max-w-4xl w-full">
             <img src={selectedTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
             <div>

@@ -116,7 +116,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose, handl
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-[100]">
+      <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100]">
         <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-3xl w-full mx-4 relative">
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
             <X size={24} />

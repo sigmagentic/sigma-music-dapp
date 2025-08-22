@@ -41,7 +41,7 @@ export function NFMePreferencesModal({ isOpen, onClose }: NFMePreferencesModalPr
   const allGenres = new Set([...allConfigGenres, ...selectedGenres]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex flex-col gap-4">
           <h3 className="text-xl font-semibold text-center">Save your app preferences</h3>

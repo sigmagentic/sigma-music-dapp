@@ -123,6 +123,122 @@ export const updateUserProfileOnBackEndAPI = async (userProfileData: any) => {
   }
 };
 
+export const updateArtistProfileOnBackEndAPI = async (artistProfileData: any) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/account/addOrUpdateArtist`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(artistProfileData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error saving user profile data:", error);
+    throw error;
+  }
+};
+
+export const updateAlbumOnBackEndAPI = async (albumData: any) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/account/addOrUpdateAlbum`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(albumData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error saving user profile data:", error);
+    throw error;
+  }
+};
+
+export const checkIfArtistSlugIsAvailable = async (artistSlug: string) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/artistBySlug?artistSlug=${encodeURIComponent(artistSlug)}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+
+      throw new Error(someHttpErrorContext);
+    }
+
+    return {
+      isAvailable: data.artistNotFound,
+    };
+  } catch (error) {
+    console.error("Error checking if artist slug is available:", error);
+    throw error;
+  }
+};
+
+export const getArtistByCreatorWallet = async (creatorWallet: string) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/artistByCreatorWallet?creatorWallet=${encodeURIComponent(creatorWallet)}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+
+      throw new Error(someHttpErrorContext);
+    }
+
+    // we should get exactly one artist or its an error and we assume there is no match
+    if (!data.matchingArtists || data.matchingArtists.length === 0 || data.matchingArtists.length > 1) {
+      return null;
+    }
+
+    return data.matchingArtists[0];
+  } catch (error) {
+    console.error("Error getting artist by creator wallet:", error);
+    return null;
+    throw error;
+  }
+};
+
 export const mintAlbumOrFanNFTAfterPaymentViaAPI = async (mintData: any) => {
   try {
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/mintAlbumOrFanNFTAfterPayment`, {
@@ -304,7 +420,7 @@ export const checkIfAlbumCanBeMintedViaAPI = async (albumId: string) => {
 
 const cache_albumTracks: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const getAlbumTracksFromDBViaAPI = async (artistId: string, albumId: string, userOwnsAlbum?: boolean) => {
+export const getAlbumTracksFromDBViaAPI = async (artistId: string, albumId: string, userOwnsAlbum?: boolean, bypassCache = false) => {
   const now = Date.now();
 
   const bonus = userOwnsAlbum ? 1 : 0;
@@ -312,13 +428,13 @@ export const getAlbumTracksFromDBViaAPI = async (artistId: string, albumId: stri
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_albumTracks[`${artistId}-${albumId}-bonus_${bonus}`];
-    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN && !bypassCache) {
       console.log(`getAlbumTracks: Getting tracks for artistId: ${artistId} and albumId: ${albumId} from cache`);
       return cacheEntry.data;
     }
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
-    const response = await fetch(`${getApiWeb2Apps(true)}/datadexapi/sigma/musicTracks/${artistId}?albumId=${albumId}&bonus=${userOwnsAlbum ? 1 : 0}`);
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/musicTracks/${artistId}?albumId=${albumId}&bonus=${userOwnsAlbum ? 1 : 0}`);
 
     if (response.ok) {
       const data = await response.json();
@@ -348,6 +464,23 @@ export const getAlbumTracksFromDBViaAPI = async (artistId: string, albumId: stri
       timestamp: now,
     };
 
+    return [];
+  }
+};
+
+export const getAlbumFromDBViaAPI = async (artistId: string) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/albums/${artistId}`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      return data;
+    } else {
+      return [];
+    }
+  } catch (error) {
+    console.error("Error getting album from DB:", error);
     return [];
   }
 };

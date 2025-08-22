@@ -373,7 +373,7 @@ export const BuyAndMintAlbumUsingSOL = ({
   const PaymentConfirmationPopup = () => (
     <>
       {albumSaleTypeOption ? (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
           <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
             <div className="space-y-4">
@@ -445,7 +445,7 @@ export const BuyAndMintAlbumUsingSOL = ({
   const mintingIsInCommercialLicensePathway = AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-start md:items-center md:justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-start md:items-center md:justify-center z-50">
       {showPaymentConfirmation && <PaymentConfirmationPopup />}
 
       <div
@@ -623,7 +623,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
         {/* Show larger profile or token image modal */}
         {selectedLargeSizeTokenImg && (
-          <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 p-4">
             <div className="relative max-w-4xl w-full">
               <img src={selectedLargeSizeTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
               <div>

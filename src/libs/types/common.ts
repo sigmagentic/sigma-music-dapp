@@ -57,6 +57,9 @@ export interface Album {
   albumPriceOption4?: string; // digital album + commercial license
   isSigmaExclusive?: string; // 0 or 1 indicated if the album is a sigma exclusive album
   timestampAlbumAdded?: string; // the timestamp of the album added to the database
+  createdOn?: number; // the timestamp of the album created on the database
+  updatedOn?: number; // the timestamp of the album updated on the database
+  isPublished?: string; // 0 or 1 indicated if the album is published (0 means draft, 1 means published)
   _buyNowMeta?: {
     rarityGrade?: string; // the rarity of the album (e.g. "common", "uncommon", "rare", "epic", "legendary")
     maxMints?: number; // the max number of mints for the album (0 means unlimited)
@@ -97,6 +100,7 @@ export interface Artist {
   tikTokLink?: string;
   instaLink?: string;
   otherLink1: string;
+  altMainPortfolioLink?: string;
   fanTokenNftMarketplaceLink?: string;
   isArtistFeatured: string;
   isDeprioritized: string;
@@ -105,6 +109,9 @@ export interface Artist {
   artistSubGroup1Code?: string;
   artistSubGroup2Code?: string;
   fanToken3DGifTeaser?: string;
+  createdOn?: number;
+  updatedOn?: number;
+  isVerifiedArtist?: boolean;
   albums: Album[];
 }
 
@@ -291,4 +298,15 @@ export interface AiRemixRawTrack {
   status: "new" | "graduated" | "published";
   bountyId: string;
   refTrack_alId?: string;
+}
+
+export interface FastStreamTrack {
+  file: string;
+  bonus: number;
+  arId: string;
+  category: string;
+  cover_art_url: string;
+  alId: string;
+  idx: number;
+  title: string;
 }

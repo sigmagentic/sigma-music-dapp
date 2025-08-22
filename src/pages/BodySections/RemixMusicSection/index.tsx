@@ -40,7 +40,7 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-4xl w-full mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold mr-auto">Your Jobs History</h3>

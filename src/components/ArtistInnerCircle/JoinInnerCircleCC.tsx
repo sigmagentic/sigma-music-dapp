@@ -186,7 +186,7 @@ export const JoinInnerCircleCC = ({
   const tokenImg = convertTokenImageUrl(creatorFanMembershipAvailability[membershipId]?.tokenImg);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       {showStripePaymentPopup && <StripePaymentPopup />}
       <div className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 grid grid-cols-1 md:grid-cols-2 max-w-4xl gap-6`}>
         {/* Close button  */}

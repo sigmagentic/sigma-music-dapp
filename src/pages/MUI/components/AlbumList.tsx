@@ -7,7 +7,8 @@ import { Artist } from "libs/types/common";
 import { Album } from "libs/types/common";
 import { CollectibleMetadataModal } from "./CollectibleMetadataModal";
 import { TrackListModal } from "./TrackListModal";
-import { adminApi, FastStreamTrack } from "../services";
+import { adminApi } from "../services";
+import { FastStreamTrack } from "libs/types";
 
 interface AlbumListProps {
   albums: Album[];
@@ -174,6 +175,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ albums, artistName, artist
 
       <TrackListModal
         isOpen={isModalOpen}
+        isNonMUIMode={false}
         onClose={handleCloseModal}
         tracks={selectedAlbumTracks}
         albumTitle={selectedAlbumTitle}

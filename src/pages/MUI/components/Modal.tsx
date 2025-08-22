@@ -47,8 +47,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 p-4" onClick={handleBackdropClick}>
-      <div className={`w-full ${sizeClasses[size]} max-h-[90vh] bg-black rounded-lg shadow-xl flex flex-col`} onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-yellow-400 bg-opacity-30 p-4" onClick={handleBackdropClick}>
+      <div className={`w-full max-w-4xl max-h-[90vh] bg-black rounded-lg shadow-xl flex flex-col`} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">{title}</h2>

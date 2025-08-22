@@ -103,3 +103,24 @@ Start by reaching out to us on [Telegram](https://t.me/SigmaXMusicOfficial).
 ---
 
 Built with ❤️ for fans and artists.
+
+{
+"artistId": "ar140",
+"altMainPortfolioLink": "https://soundcloud.com/a-capellas-fussion-record",
+"bio": "I foo and bar!",
+"bountyId": "mus_ar140",
+"createdOn": 1755761947543,
+"creatorPaymentsWallet": "3CYHT9NT8xGrp8DdrVNweYGgva896L3nDZLauSCHRojo",
+"creatorWallet": "3CYHT9NT8xGrp8DdrVNweYGgva896L3nDZLauSCHRojo",
+"group": "mus",
+"idNum": 140,
+"img": "https://static.wikia.nocookie.net/finalfantasy/images/a/a1/Foobar-ffxii.png/revision/latest?cb=20130712061639",
+"instaLink": "https://instagram.com/itheumofficial",
+"name": "Foo Bar",
+"slug": "foo-bar",
+"tikTokLink": "https://www.tiktok.com/@immifaith",
+"updatedOn": 1755761947543,
+"webLink": "https://en.wikipedia.org/wiki/Foo_Fighters",
+"xLink": "https://x.com/itheum",
+"ytLink": "https://www.youtube.com/@LangChain"
+}

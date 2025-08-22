@@ -181,7 +181,7 @@ export const BuyXPUsingCC = ({ onCloseModal }: { onCloseModal: () => void }) => 
   const XPCollectionIdToUse = !addressSol || solBitzNfts.length === 0 ? DEFAULT_BITZ_COLLECTION_SOL : solBitzNfts[0].grouping[0].group_value;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-start md:items-center md:justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-start md:items-center md:justify-center z-50">
       {showStripePaymentPopup && <StripePaymentPopup />}
 
       <div

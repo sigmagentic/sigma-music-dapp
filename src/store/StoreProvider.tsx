@@ -8,7 +8,13 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
 import { AlbumTrackCatalog, MusicAssetOwned } from "libs/types";
-import { fetchMintsLeaderboardByMonthViaAPI, fetchMyAlbumsFromMintLogsViaAPI, getLoggedInUserProfileAPI, getPaymentLogsViaAPI } from "libs/utils/api";
+import {
+  fetchMintsLeaderboardByMonthViaAPI,
+  fetchMyAlbumsFromMintLogsViaAPI,
+  getArtistByCreatorWallet,
+  getLoggedInUserProfileAPI,
+  getPaymentLogsViaAPI,
+} from "libs/utils/api";
 import { computeRemainingCooldown } from "libs/utils/functions";
 import { getAlbumTrackCatalogData, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import useSolBitzStore from "store/solBitz";
@@ -46,6 +52,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     updateMyMusicAssetPurchases,
     updateMyRawPaymentLogs,
     updateUserWeb2AccountDetails,
+    updateUserArtistProfile,
     updateMyAlbumMintLogs,
   } = useAccountStore();
   const {
@@ -162,6 +169,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     if (publicKeySol && publicKeySol !== null && solPreaccessNonce !== "" && solPreaccessSignature !== "" && Object.keys(userWeb2AccountDetails).length === 0) {
       (async () => {
+        // get user account data
         const _userProfileData = await getLoggedInUserProfileAPI({
           solSignature: solPreaccessSignature,
           signatureNonce: solPreaccessNonce,
@@ -173,6 +181,12 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
         } else {
           console.error("StoreProvider: error getting user profile data");
           console.error(_userProfileData);
+        }
+
+        // get user artist profile data (IF user ever created an artist profile in the past)
+        const _artist = await getArtistByCreatorWallet(publicKeySol.toBase58());
+        if (_artist) {
+          updateUserArtistProfile(_artist);
         }
       })();
     }

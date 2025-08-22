@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AuthRedirectWrapper } from "components";
 import { SOL_ENV_ENUM } from "config";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { getApiWeb2Apps } from "libs/utils";
+import { getApiWeb2Apps, getArtistByCreatorWallet } from "libs/utils";
 import { useSolanaWallet } from "../../contexts/sol/useSolanaWallet";
 import { useAccountStore } from "../../store/account";
 /* 
@@ -29,7 +29,7 @@ const LoginPage = () => {
   const [userAccountLoggingIn, setIsUserAccountLoggingIn] = useState<boolean>(false);
   const { publicKey, isConnected, connect, disconnect } = useSolanaWallet();
   const address = publicKey?.toBase58();
-  const { updateUserWeb2AccountDetails } = useAccountStore();
+  const { updateUserWeb2AccountDetails, updateUserArtistProfile } = useAccountStore();
   const { userInfo } = useWeb3Auth();
 
   useEffect(() => {
@@ -104,7 +104,21 @@ const LoginPage = () => {
           // isTriggerProductTour = "g=1";
           triggerNewuserExtendedProfileSetupFlag = "e=1";
         } else {
+          // if profileTypes is empty, we need to trigger the extended profile setup workflow
+          if (!userLoggedInCallData?.profileTypes || userLoggedInCallData?.profileTypes?.length === 0) {
+            triggerNewuserExtendedProfileSetupFlag = "e=1";
+          }
+
           updateUserWeb2AccountDetails(userLoggedInCallData);
+
+          // get user artist profile data (IF user ever created an artist profile in the past)
+          // rawAddr is the creator wallet address
+          if (userLoggedInCallData.rawAddr) {
+            const _artist = await getArtistByCreatorWallet(userLoggedInCallData.rawAddr);
+            if (_artist) {
+              updateUserArtistProfile(_artist);
+            }
+          }
         }
 
         // Get the redirect path from query parameter

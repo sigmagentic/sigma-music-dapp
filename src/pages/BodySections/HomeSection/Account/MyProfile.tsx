@@ -11,7 +11,7 @@ import { MusicTrack } from "libs/types";
 import { isUserArtistType, toastError, toastSuccess, updateUserProfileOnBackEndAPI } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { ArtistProfile } from "./ArtistProfile";
-import { EditProfileModal, ProfileFormData } from "./EditProfileModal";
+import { EditUserProfileModal, ProfileFormData } from "./EditUserProfileModal";
 
 type MyProfileProps = {
   navigateToDeepAppView: (e: any) => any;
@@ -31,9 +31,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
   const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases, updateUserWeb2AccountDetails } = useAccountStore();
 
   // Tab state - default to "artist" if user is an artist, otherwise "profile"
-  const [activeTab, setActiveTab] = useState<ProfileTab>(
-    isUserArtistType(userWeb2AccountDetails.isVerifiedArtist, userWeb2AccountDetails.profileTypes) ? "artist" : "profile"
-  );
+  const [activeTab, setActiveTab] = useState<ProfileTab>(isUserArtistType(userWeb2AccountDetails.profileTypes) ? "artist" : "profile");
 
   // Use the appropriate public key based on wallet type
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey;
@@ -123,21 +121,22 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
     }
   };
 
-  // Render the app profile content
+  // Render the user profile content
   const renderAppProfile = () => (
     <>
       {/* User Details Section */}
       <div className="bg-black rounded-lg p-6 mb-6">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-0">
-          <h2 className="!text-2xl !md:text-2xl font-bold mb-4 text-center md:text-left">Your Details</h2>
-          {userWeb2AccountDetails.isVerifiedArtist && (
-            <div className="text-lg text-yellow-300 font-bold border-2 border-yellow-300 rounded-lg p-2">Verified Artist Account</div>
-          )}
+          <h2 className="!text-2xl !md:text-2xl font-bold mb-4 text-center md:text-left">Your User Profile</h2>
+          {/* <div
+            className={`text-md font-bold border-2 rounded-lg p-2 ${userWeb2AccountDetails.isVerifiedUser ? "bg-yellow-300text-black" : "bg-gray-500 text-white"}`}>
+            {userWeb2AccountDetails.isVerifiedUser ? "Verified User Account" : "Unverified User Account"}
+          </div> */}
         </div>
 
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           {/* Profile Image */}
-          <div className="w-32 h-32 rounded-md overflow-hidden bg-gray-900 border-2 border-gray-700">
+          <div className="w-32 h-32 md:w-60 md:h-[auto] md:aspect-square rounded-md overflow-hidden bg-gray-900 border-2 border-gray-700">
             {userInfo.profileImage || userWeb2AccountDetails.profileImage ? (
               <img src={userWeb2AccountDetails.profileImage || userInfo.profileImage} alt="Profile" className="w-full h-full object-cover" />
             ) : (
@@ -379,10 +378,10 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
             className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "profile" ? "bg-yellow-300 text-black" : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
             }`}>
-            App Profile
+            Account Details
           </button>
 
-          {isUserArtistType(userWeb2AccountDetails.isVerifiedArtist, userWeb2AccountDetails.profileTypes) && (
+          {isUserArtistType(userWeb2AccountDetails.profileTypes) && (
             <button
               onClick={() => setActiveTab("artist")}
               className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
@@ -403,8 +402,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       {/* NFMe Preferences Modal */}
       <NFMePreferencesModal isOpen={showNfMePreferencesModal} onClose={() => setShowNfMePreferencesModal(false)} />
 
-      {/* Edit Profile Modal */}
-      <EditProfileModal
+      {/* Edit User Profile Modal */}
+      <EditUserProfileModal
         isOpen={showEditProfileModal}
         onClose={() => setShowEditProfileModal(false)}
         onSave={handleProfileSave}

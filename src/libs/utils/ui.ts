@@ -295,8 +295,8 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
   return { virtualAlbum, allMyRemixesAsMusicTracks };
 }
 
-export function isUserArtistType(isVerifiedArtist: boolean, profileTypes: string[]): boolean {
-  if (isVerifiedArtist || profileTypes?.includes("remixer") || profileTypes?.includes("composer")) {
+export function isUserArtistType(profileTypes: string[]): boolean {
+  if (profileTypes?.includes("remixer") || profileTypes?.includes("composer")) {
     return true;
   }
 
@@ -306,7 +306,7 @@ export function isUserArtistType(isVerifiedArtist: boolean, profileTypes: string
 export const isValidUrl = (url: string): boolean => {
   try {
     const urlObj = new URL(url);
-    return urlObj.protocol === 'https:';
+    return urlObj.protocol === "https:";
   } catch {
     return false;
   }

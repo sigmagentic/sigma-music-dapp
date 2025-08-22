@@ -520,7 +520,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
 
   // Payment confirmation popup
   const PaymentConfirmationPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="text-xl font-bold mb-4">Confirm Payment</h3>
         <div className="space-y-4">
@@ -556,7 +556,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
 
   // How it works modal
   const HowItWorksModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-2xl w-full mx-4">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold">How it works</h3>
@@ -615,7 +615,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
 
   // AI Generation in progress popup
   const AiGenerationInProgressPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
         <h3 className="!text-xl font-bold">Success! Your tracks are being generated.</h3>
         <p className="text-gray-300 mb-4">It may take a few minutes to generate. You will be notified when they are ready.</p>
@@ -814,7 +814,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       {showPaymentConfirmation && <PaymentConfirmationPopup />}
       {showHowItWorks && <HowItWorksModal />}
       {trackGenerationRequested && <AiGenerationInProgressPopup />}

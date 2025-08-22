@@ -5,7 +5,7 @@ import { Input } from "libComponents/Input";
 import { InfoTooltip } from "libComponents/Tooltip";
 import { isValidUrl } from "libs/utils/ui";
 
-interface EditProfileModalProps {
+interface EditUserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: ProfileFormData) => Promise<boolean>;
@@ -29,10 +29,20 @@ interface ValidationErrors {
   profileImage?: string;
 }
 
-export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, onSave, initialData, walletType }) => {
+export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOpen, onClose, onSave, initialData, walletType }) => {
   const [formData, setFormData] = useState<ProfileFormData>(initialData);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Add effect to prevent body scrolling when modal is open
+  useEffect(() => {
+    // Prevent scrolling on mount
+    document.body.style.overflow = "hidden";
+    // Re-enable scrolling on unmount
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   useEffect(() => {
     setFormData(initialData);
@@ -138,8 +148,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4">
-      <div className="w-full max-w-2xl max-h-[90vh] bg-black rounded-lg shadow-xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-yellow-400 bg-opacity-30 p-4">
+      <div className="w-full max-w-4xl max-h-[90vh] bg-black rounded-lg shadow-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <h2 className="text-xl font-semibold text-white">Edit Profile Information</h2>
@@ -222,7 +232,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
                 <span>Full Name *</span>
-                <InfoTooltip content="This is your account name, it's separate from your artist name." position="right" />
+                <InfoTooltip content="This is your account name, it's separate from your artist name (if you are joining as an artist)." position="right" />
               </label>
               <Input
                 type="text"
