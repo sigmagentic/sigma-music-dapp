@@ -30,6 +30,7 @@ import {
   checkIfAlbumCanBeMintedViaAPI,
   doFastStreamOnAlbumCheckViaAPI,
   fetchMyAlbumsFromMintLogsViaAPI,
+  getAlbumFromDBViaAPI,
   getPaymentLogsViaAPI,
   injectXUserNameIntoTweet,
   isMostLikelyMobile,
@@ -121,8 +122,14 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       };
 
       const fetchAlbumsWithCanBeMinted = async () => {
+        // lets also fetch albums from the DB
+        const albumsFromDb = await getAlbumFromDBViaAPI(artistProfile.artistId);
+        console.log("albumsFromDb", albumsFromDb);
+        console.log("albums", albums);
+        const allAlbums = [...albumsFromDb, ...albums]; //
+
         const albumsWithCanBeMinted = await Promise.all(
-          albums.map(async (album) => {
+          allAlbums.map(async (album) => {
             const meta = await checkIfAlbumCanBeMintedViaAPI(album.albumId);
             const albumCanBeFastStreamed = await doFastStreamOnAlbumCheckViaAPI(`${album.albumId}-1`); // we check if the first track is loaded and if so, we know it can be fast streamed
             return {

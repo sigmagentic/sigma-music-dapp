@@ -152,7 +152,7 @@ export const updateArtistProfileOnBackEndAPI = async (artistProfileData: any) =>
 
 export const updateAlbumOnBackEndAPI = async (albumData: any) => {
   try {
-    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/account/addOrUpdateAlbum`, {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/management/addOrUpdateAlbum`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

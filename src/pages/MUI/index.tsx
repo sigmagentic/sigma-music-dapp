@@ -61,7 +61,7 @@ export const MUI = () => {
         const selectedArtist = artistLookup[muiState.selectedArtistId!];
         return (
           <AlbumList
-            albums={selectedArtist?.albums || []}
+            indexedAlbums={selectedArtist?.albums || []}
             artistName={muiState.selectedArtistName!}
             artistId={muiState.selectedArtistId!}
             selectedArtist={selectedArtist!}

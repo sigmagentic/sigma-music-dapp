@@ -7,6 +7,7 @@ import { Switch } from "libComponents/Switch";
 import { InfoTooltip } from "libComponents/Tooltip";
 
 export interface AlbumFormData {
+  albumId: string;
   title: string;
   desc: string;
   img: string;
@@ -120,6 +121,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
         <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${isSubmitting ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
           {/* Title */}
           <div>
+            <p className="text-gray-500 text-xs mb-4 text-right">Album ID: {formData.albumId}</p>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Album Title <span className="text-red-400">*</span>
             </label>

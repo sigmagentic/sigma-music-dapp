@@ -134,33 +134,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
     setShowEditAlbumModal(true);
   };
 
-  // Utility function to generate the next album ID
-  const generateNextAlbumId = (artistId: string, existingAlbums: Album[]): string => {
-    if (existingAlbums.length === 0) {
-      return `${artistId}_a1`;
-    }
-
-    // Extract all the sequence numbers from existing album IDs
-    const sequenceNumbers: number[] = [];
-
-    existingAlbums.forEach((album) => {
-      const match = album.albumId.match(/_a(\d+)$/);
-      if (match) {
-        sequenceNumbers.push(parseInt(match[1]));
-      }
-    });
-
-    if (sequenceNumbers.length === 0) {
-      return `${artistId}_a1`;
-    }
-
-    // Find the highest sequence number and increment it
-    const maxSequence = Math.max(...sequenceNumbers);
-    const nextSequence = maxSequence + 1;
-
-    return `${artistId}_a${nextSequence}`;
-  };
-
   const handleAddNewAlbum = () => {
     if (!userArtistProfile) return;
 
@@ -194,8 +167,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
     }
 
     try {
-      const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
-
       // Get the pre-access nonce and signature
       const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
         solPreaccessNonce,
@@ -340,7 +311,9 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
           {myAlbums.length > 0 && (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Badge variant="secondary">{myAlbums.length} Albums</Badge>
+                <Badge variant="secondary">
+                  {myAlbums.length} {myAlbums.length === 1 ? "Album" : "Albums"}
+                </Badge>
                 {myAlbums.some((album) => album.isPublished === "1") && (
                   <Badge variant="secondary" className="bg-green-600 text-white">
                     {myAlbums.filter((album) => album.isPublished === "1").length} Published
@@ -634,7 +607,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
         )}
       </div>
 
-      {/* Edit Album Modal */}
+      {/* Add / Edit Album Modal */}
       {selectedAlbumForEdit && (
         <EditAlbumModal
           isOpen={showEditAlbumModal}
@@ -644,6 +617,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
           }}
           onSave={handleAlbumSave}
           initialData={{
+            albumId: selectedAlbumForEdit.albumId || "",
             title: selectedAlbumForEdit.title || "",
             desc: selectedAlbumForEdit.desc || "",
             img: selectedAlbumForEdit.img || "",
@@ -778,4 +752,31 @@ const ArtistAlbumList: React.FC<{
       )}
     </div>
   );
+};
+
+// Utility function to generate the next album ID
+export const generateNextAlbumId = (artistId: string, existingAlbums: Album[]): string => {
+  if (existingAlbums.length === 0) {
+    return `${artistId}_a1`;
+  }
+
+  // Extract all the sequence numbers from existing album IDs
+  const sequenceNumbers: number[] = [];
+
+  existingAlbums.forEach((album) => {
+    const match = album.albumId.match(/_a(\d+)$/);
+    if (match) {
+      sequenceNumbers.push(parseInt(match[1]));
+    }
+  });
+
+  if (sequenceNumbers.length === 0) {
+    return `${artistId}_a1`;
+  }
+
+  // Find the highest sequence number and increment it
+  const maxSequence = Math.max(...sequenceNumbers);
+  const nextSequence = maxSequence + 1;
+
+  return `${artistId}_a${nextSequence}`;
 };

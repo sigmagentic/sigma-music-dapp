@@ -76,8 +76,14 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, isNonMUI
 
   useEffect(() => {
     if (tracks.length > 0) {
-      setTrackIdxListSoFar(tracks.map((track) => track.idx).join(","));
-      setTrackIdxNextGuess(tracks.length + 1);
+      const trackListIdxList = tracks.map((track) => track.idx);
+      setTrackIdxListSoFar(trackListIdxList.join(","));
+
+      const nextHighestIdx = Math.max(...trackListIdxList);
+      setTrackIdxNextGuess(nextHighestIdx + 1);
+    } else {
+      setTrackIdxListSoFar("");
+      setTrackIdxNextGuess(1);
     }
   }, [tracks]);
 
@@ -267,7 +273,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, isNonMUI
             }}
             placeholder="1"
             required
-            disabled={isEditing}
+            disabled={true}
             className={errors.idx ? "border-red-500" : ""}
           />
           {errors.idx && <p className="text-red-400 text-sm mt-1">{errors.idx}</p>}
@@ -371,7 +377,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, isNonMUI
             className={errors.cover_art_url ? "border-red-500" : ""}
           />
           {errors.cover_art_url && <p className="text-red-400 text-sm mt-1">{errors.cover_art_url}</p>}
-          <p className="text-gray-400 text-sm mt-1">Must be a valid HTTPS URL</p>
+          <p className="text-gray-400 text-xs mt-1">Must be a valid HTTPS URL</p>
         </div>
 
         {/* File URL */}
@@ -387,7 +393,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, isNonMUI
             className={errors.file ? "border-red-500" : ""}
           />
           {errors.file && <p className="text-red-400 text-sm mt-1">{errors.file}</p>}
-          <p className="text-gray-400 text-sm mt-1">Must be a valid HTTPS URL with .mp3 extension</p>
+          <p className="text-gray-400 text-xs mt-1">Must be a valid HTTPS URL with .mp3 extension</p>
         </div>
       </div>
 
@@ -403,7 +409,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, isNonMUI
     <div className="space-y-4">
       {tracks.length > 0 && (
         <div className="flex items-end justify-end mb-6">
-          <Badge variant="secondary">{tracks.length} Tracks</Badge>
+          <Badge variant="secondary">
+            {tracks.length} {tracks.length === 1 ? "Track" : "Tracks"}
+          </Badge>
         </div>
       )}
 
@@ -419,8 +427,8 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, isNonMUI
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-gray-900 truncate">{track.title}</h3>
+                    <div className="flex-1 max-w-[200px]">
+                      <h3 className="!text-sm font-semibold text-gray-900 truncate">{track.title}</h3>
                       <p className="text-xs text-gray-500 mt-1">Track #{track.idx}</p>
                       <div className="flex items-center space-x-2 mt-2">
                         <div className="flex items-center space-x-1">

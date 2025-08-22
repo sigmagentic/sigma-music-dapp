@@ -180,11 +180,11 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                 </p>
               </div>
               {/* Edit Profile Button */}
-              <div className="flex justify-center md:justify-start">
+              <div className="flex justify-center md:justify-end">
                 <button
                   className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
                   onClick={() => setShowEditProfileModal(true)}>
-                  Edit Profile Information
+                  Edit Profile
                 </button>
               </div>
             </>
@@ -198,7 +198,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           <div className="flex flex-col space-y-2">
             <button
-              className="mt-4 bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 rounded-lg w-[250px]"
+              className="mt-4 bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 rounded-lg"
               onClick={() => {
                 setShowNfMePreferencesModal(true);
               }}>
