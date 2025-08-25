@@ -3,7 +3,14 @@ import { Loader2, X } from "lucide-react";
 import { Button } from "libComponents/Button";
 import { Input } from "libComponents/Input";
 import { InfoTooltip } from "libComponents/Tooltip";
-import { isValidUrl } from "libs/utils/ui";
+import { MediaUpdateImg } from "libComponents/MediaUpdateImg";
+import { saveMediaToServerViaAPI } from "libs/utils/api";
+import { isValidUrl, toastError } from "libs/utils/ui";
+import { useAccountStore } from "store/account";
+// import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 interface EditUserProfileModalProps {
   isOpen: boolean;
@@ -30,9 +37,20 @@ interface ValidationErrors {
 }
 
 export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOpen, onClose, onSave, initialData, walletType }) => {
-  const [formData, setFormData] = useState<ProfileFormData>(initialData);
+  const [formData, setFormData] = useState<ProfileFormData>({ ...initialData });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // keeps track if a new file is selected for edit so we can save it to the server to get back a https url for profileImage
+  const [newSelectedProfileImageFile, setNewSelectedProfileImageFile] = useState<File | null>(null);
+
+  const { publicKey: publicKeySol } = useSolanaWallet();
+  const addressSol = publicKeySol?.toBase58();
+  const { signMessage } = useWallet();
+
+  // Cached Signature Store Items
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -45,8 +63,9 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
   }, []);
 
   useEffect(() => {
-    setFormData(initialData);
+    setFormData({ ...initialData });
     setErrors({});
+    setNewSelectedProfileImageFile(null);
   }, [initialData]);
 
   const validateForm = (): boolean => {
@@ -73,7 +92,7 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
 
     // Validate billing email
     if (!formData.billingEmail.trim()) {
-      newErrors.billingEmail = "Billing email is required";
+      newErrors.billingEmail = "Billing / Payouts email is required";
     } else if (!isValidEmail(formData.billingEmail)) {
       newErrors.billingEmail = "Please enter a valid email address";
     }
@@ -98,6 +117,17 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+  };
+
+  // Check if form data has changed from initial data
+  const hasFormChanged = (): boolean => {
+    return (
+      JSON.stringify(formData.profileTypes?.sort()) !== JSON.stringify(initialData.profileTypes?.sort()) ||
+      formData.name.trim() !== initialData.name ||
+      formData.primaryAccountEmail.trim() !== initialData.primaryAccountEmail ||
+      formData.billingEmail.trim() !== initialData.billingEmail ||
+      !!newSelectedProfileImageFile
+    );
   };
 
   const handleProfileTypeChange = (profileType: string, isChecked: boolean) => {
@@ -127,8 +157,61 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
     }
 
     setIsSubmitting(true);
+
+    // S: if a new file has been selected, we need to save it to the server to get back a https url for profileImage
+    if (newSelectedProfileImageFile && addressSol) {
+      // Get the pre-access nonce and signature
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage,
+        publicKey: publicKeySol,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
+      if (!usedPreAccessNonce || !usedPreAccessSignature) {
+        throw new Error("Failed to valid signature to prove account ownership");
+      }
+
+      const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedProfileImageFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+
+      if (fileUploadResponse) {
+        formData.profileImage = fileUploadResponse;
+      } else {
+        toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+        return;
+      }
+    }
+    // E: if a new file has been selected, we need to save it to the server to get back a https url for profileImage
+
     try {
-      const success = await onSave(formData);
+      // we only send the changed form data to the server to save
+      const changedFormData: Partial<ProfileFormData> = {};
+
+      if (initialData.name !== formData.name) {
+        changedFormData.name = formData.name.trim();
+      }
+
+      if (initialData.primaryAccountEmail !== formData.primaryAccountEmail) {
+        changedFormData.primaryAccountEmail = formData.primaryAccountEmail.trim();
+      }
+
+      if (initialData.billingEmail !== formData.billingEmail) {
+        changedFormData.billingEmail = formData.billingEmail.trim();
+      }
+
+      if (initialData.profileImage !== formData.profileImage) {
+        changedFormData.profileImage = formData.profileImage.trim();
+      }
+
+      if (JSON.stringify(formData.profileTypes?.sort()) !== JSON.stringify(initialData.profileTypes?.sort())) {
+        changedFormData.profileTypes = formData.profileTypes;
+      }
+
+      const success = await onSave(changedFormData as ProfileFormData);
       if (success) {
         onClose();
       }
@@ -140,8 +223,9 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
   };
 
   const handleCancel = () => {
-    setFormData(initialData);
+    setFormData({ ...initialData });
     setErrors({});
+    setNewSelectedProfileImageFile(null);
     onClose();
   };
 
@@ -152,7 +236,7 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
       <div className="w-full max-w-4xl max-h-[90vh] bg-black rounded-lg shadow-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-white">Edit Profile Information</h2>
+          <h2 className="!text-2xl font-semibold !text-yellow-500">Edit Profile Information</h2>
           <Button
             onClick={handleCancel}
             variant="ghost"
@@ -267,14 +351,14 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
             {/* Billing Email Field */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
-                <span>Billing Email *</span>
+                <span>Billing / Payouts Email *</span>
                 <InfoTooltip content="Any billing, invoices and payouts related emails are sent here." position="right" />
               </label>
               <Input
                 type="email"
                 value={formData.billingEmail}
                 onChange={(e) => handleFormChange("billingEmail", e.target.value)}
-                placeholder="Enter your billing email"
+                placeholder="Enter your billing / payouts email"
                 className={`bg-gray-800 border-gray-600 text-white placeholder-gray-400 ${errors.billingEmail ? "border-red-500" : ""}`}
               />
               {errors.billingEmail && <p className="text-red-400 text-sm mt-1">{errors.billingEmail}</p>}
@@ -283,16 +367,32 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
             {/* Profile Image URL Field */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
-                <span>Profile Image URL (Optional)</span>
-                <InfoTooltip content="Enter a direct link to your profile image. Must be an HTTPS URL." position="right" />
+                <span>Profile Image (Optional)</span>
+                <InfoTooltip content="Click on the image to upload a new one, or enter a URL below." position="right" />
               </label>
-              <Input
+              <div className="mb-3">
+                <MediaUpdateImg
+                  imageUrl={formData.profileImage}
+                  size="md"
+                  onFileSelect={(file) => {
+                    console.log("Selected file:", file);
+                    setNewSelectedProfileImageFile(file);
+                  }}
+                  onFileRevert={() => {
+                    console.log("File reverted");
+                    setNewSelectedProfileImageFile(null);
+                  }}
+                  alt="Profile"
+                />
+              </div>
+              {/* <Input
                 type="url"
+                disabled={true}
                 value={formData.profileImage}
                 onChange={(e) => handleFormChange("profileImage", e.target.value)}
                 placeholder="https://example.com/image.jpg"
                 className={errors.profileImage ? "border-red-500" : ""}
-              />
+              /> */}
               {errors.profileImage && <p className="text-red-400 text-sm mt-1">{errors.profileImage}</p>}
             </div>
           </div>
@@ -306,7 +406,12 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
             className={`border-gray-600 text-white hover:bg-gray-800 ${isSubmitting ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isSubmitting} className="bg-yellow-300 text-black hover:bg-yellow-400">
+          <Button
+            onClick={handleSave}
+            disabled={isSubmitting || !hasFormChanged()}
+            className={`${
+              isSubmitting || !hasFormChanged() ? "bg-gray-400 text-gray-600 cursor-not-allowed" : "bg-yellow-300 text-black hover:bg-yellow-400"
+            }`}>
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />

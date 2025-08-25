@@ -69,6 +69,11 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       // Here you would typically make an API call to update the user's profile
       console.log("Saving profile data:", data);
 
+      if (Object.keys(data).length === 0) {
+        toastError("Nothing changed so skipped saving", true);
+        return true;
+      }
+
       const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
 
       // Get the pre-access nonce and signature
@@ -92,19 +97,30 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         signatureNonce: usedPreAccessNonce,
         addr: displayPublicKey, // this should match the creatorWallet on the artist profile (if user is an artist)
         chainId: chainId,
-        displayName: data.name,
-        billingEmail: data.billingEmail,
-        profileTypes: data.profileTypes,
-        profileImage: data.profileImage,
       };
+
+      if (data.name) {
+        profileDataToSave.displayName = data.name.trim();
+      }
+
+      if (data.billingEmail) {
+        profileDataToSave.billingEmail = data.billingEmail.trim();
+      }
+
+      if (data.profileImage) {
+        profileDataToSave.profileImage = data.profileImage.trim();
+      }
+
+      if (data.profileTypes) {
+        profileDataToSave.profileTypes = data.profileTypes;
+      }
 
       // If the user is using a native wallet, we need to save the primary account email
       if (walletType !== "web3auth" && data.primaryAccountEmail) {
-        profileDataToSave.primaryAccountEmail = data.primaryAccountEmail;
+        profileDataToSave.primaryAccountEmail = data.primaryAccountEmail.trim();
       }
 
       const response = await updateUserProfileOnBackEndAPI(profileDataToSave);
-      console.log("Profile saved:", response);
 
       const updatedUserWeb2AccountDetails = { ...response };
       delete updatedUserWeb2AccountDetails.chainId;
@@ -162,7 +178,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                 <p className="text-lg">{userInfo.email || userWeb2AccountDetails.primaryAccountEmail || "Not provided"}</p>
               </div>
               <div>
-                <label className="text-gray-400 text-sm">Billing Email</label>
+                <label className="text-gray-400 text-sm">Billing / Payouts Email</label>
                 <p className="text-lg">{userWeb2AccountDetails.billingEmail || "Not provided"}</p>
               </div>
               <div>

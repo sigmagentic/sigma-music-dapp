@@ -41,16 +41,15 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
   const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
   const [showEditArtistProfileModal, setShowEditArtistProfileModal] = useState<boolean>(false);
   const [albumsLoading, setAlbumsLoading] = useState<boolean>(true);
+  const [noArtistIdError, setNoArtistIdError] = useState<boolean>(false); //there can be a situation where the artist profile is not yet created, so we need to handle that
   const [myAlbums, setMyAlbums] = useState<Album[]>([]);
   const [showEditAlbumModal, setShowEditAlbumModal] = useState<boolean>(false);
   const [selectedAlbumForEdit, setSelectedAlbumForEdit] = useState<Album | null>(null);
-
   const [showEditTrackModal, setShowEditTrackModal] = useState<boolean>(false);
   const [selectedAlbumTracks, setSelectedAlbumTracks] = useState<MusicTrack[]>([]);
   const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string>("");
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>("");
   const [isLoadingTracks, setIsLoadingTracks] = useState<boolean>(false);
-
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
   const { signMessage } = useWallet();
@@ -114,6 +113,8 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
         setMyAlbums(albums);
         setAlbumsLoading(false);
       });
+    } else {
+      setNoArtistIdError(true);
     }
   }, [userArtistProfile]);
 
@@ -246,22 +247,44 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
         throw new Error("Failed to valid signature to prove account ownership");
       }
 
+      // only send the changed form data to the server to save
+      const changedFormData: Partial<ArtistProfileFormData> = {
+        name: artistProfileData.name,
+        bio: artistProfileData.bio,
+        img: artistProfileData.img,
+        slug: artistProfileData.slug,
+      };
+
+      if (artistProfileData.altMainPortfolioLink && artistProfileData.altMainPortfolioLink !== "") {
+        changedFormData.altMainPortfolioLink = artistProfileData.altMainPortfolioLink;
+      }
+
+      if (artistProfileData.xLink && artistProfileData.xLink !== "") {
+        changedFormData.xLink = artistProfileData.xLink;
+      }
+
+      if (artistProfileData.ytLink && artistProfileData.ytLink !== "") {
+        changedFormData.ytLink = artistProfileData.ytLink;
+      }
+
+      if (artistProfileData.tikTokLink && artistProfileData.tikTokLink !== "") {
+        changedFormData.tikTokLink = artistProfileData.tikTokLink;
+      }
+
+      if (artistProfileData.instaLink && artistProfileData.instaLink !== "") {
+        changedFormData.instaLink = artistProfileData.instaLink;
+      }
+
+      if (artistProfileData.webLink && artistProfileData.webLink !== "") {
+        changedFormData.webLink = artistProfileData.webLink;
+      }
+
       const artistProfileDataToSave = {
         solSignature: usedPreAccessSignature,
         signatureNonce: usedPreAccessNonce,
-        creatorWallet: displayPublicKey,
+        callerAsCreatorWallet: displayPublicKey,
         artistId: userArtistProfile.artistId, // this will trigger the edit workflow
-        artistFieldsObject: {
-          name: artistProfileData.name,
-          bio: artistProfileData.bio,
-          img: artistProfileData.img,
-          altMainPortfolioLink: artistProfileData.altMainPortfolioLink,
-          xLink: artistProfileData.xLink,
-          ytLink: artistProfileData.ytLink,
-          tikTokLink: artistProfileData.tikTokLink,
-          instaLink: artistProfileData.instaLink,
-          webLink: artistProfileData.webLink,
-        },
+        artistFieldsObject: changedFormData,
       };
 
       const response = await updateArtistProfileOnBackEndAPI(artistProfileDataToSave);
@@ -271,6 +294,9 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
       // delete updatedUserWeb2AccountDetails.chainId;
 
       updateUserArtistProfile(response.fullArtistData as Artist);
+      if (noArtistIdError) {
+        setNoArtistIdError(false); // reset this flag as we have now created the artist profile
+      }
 
       toastSuccess("Profile saved successfully", true);
 
@@ -326,7 +352,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
 
         {albumsLoading ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <Loader className="animate-spin" size={30} />
+            {!noArtistIdError ? (
+              <Loader className="animate-spin" size={30} />
+            ) : (
+              <p className="text-red-400">Your artist profile is not yet created. Please click on 'Edit Artist Profile' below to create it.</p>
+            )}
           </div>
         ) : (
           userArtistProfile && (
@@ -355,6 +385,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
       <div className="bg-black rounded-lg p-6 mb-6">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-0">
           <h2 className="!text-2xl font-bold mb-4">Your Artist Profile</h2>
+
           <div
             className={`text-md font-bold border-2 rounded-lg p-2 ${userArtistProfile.isVerifiedArtist ? "bg-yellow-300text-black" : "bg-gray-500 text-white"}`}>
             {userWeb2AccountDetails.isVerifiedArtist ? "Verified Artist Account" : "Unverified Artist Account"}
@@ -385,19 +416,35 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
               <>
                 <div>
                   <label className="text-gray-400 text-sm flex items-center">Artist ID</label>
-                  <p className="text-lg">{userArtistProfile.artistId}</p>
+                  {!userArtistProfile.artistId ? (
+                    <p className="text-xs text-red-400">Not created yet. Required!</p>
+                  ) : (
+                    <p className="text-lg">{userArtistProfile.artistId}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-gray-400 text-sm">Artist Name</label>
-                  <p className="text-lg">{userArtistProfile.name}</p>
+                  {!userArtistProfile.name ? (
+                    <p className="text-xs text-red-400">Not created yet. Required!</p>
+                  ) : (
+                    <p className="text-lg">{userArtistProfile.name}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-gray-400 text-sm">Artist Bio</label>
-                  <p className="text-lg">{userArtistProfile.bio}</p>
+                  {!userArtistProfile.bio ? (
+                    <p className="text-xs text-red-400">Not created yet. Required!</p>
+                  ) : (
+                    <p className="text-lg">{userArtistProfile.bio}</p>
+                  )}
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Artist Slug (Not editable)</label>
-                  <p className="text-lg">{userArtistProfile.slug}</p>
+                  <label className="text-gray-400 text-sm">Artist Slug (Do not edit often as it will impact search and discoverability)</label>
+                  {!userArtistProfile.slug ? (
+                    <p className="text-xs text-red-400">Not created yet. Required!</p>
+                  ) : (
+                    <p className="text-lg">{userArtistProfile.slug}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-gray-400 text-sm">Creator Wallet</label>
@@ -489,6 +536,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
                 </div>
 
                 <div className="flex justify-center md:justify-end">
+                  {!userArtistProfile.artistId && noArtistIdError && (
+                    <div className="flex flex-col justify-center mr-2 p-2 mt-3">
+                      <p className="text-red-400">Artist Profile Not Created! Get Started 👉</p>
+                    </div>
+                  )}
                   <button
                     className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
                     onClick={() => setShowEditArtistProfileModal(true)}>
@@ -639,6 +691,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
           name: userArtistProfile.name || "",
           bio: userArtistProfile.bio || "",
           img: userArtistProfile.img || "",
+          slug: userArtistProfile.slug || "",
           altMainPortfolioLink: userArtistProfile.altMainPortfolioLink || "",
           xLink: userArtistProfile.xLink || "",
           ytLink: userArtistProfile.ytLink || "",

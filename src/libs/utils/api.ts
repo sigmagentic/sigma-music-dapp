@@ -177,7 +177,7 @@ export const updateAlbumOnBackEndAPI = async (albumData: any) => {
   }
 };
 
-export const checkIfArtistSlugIsAvailable = async (artistSlug: string) => {
+export const checkIfArtistSlugIsAvailableViaAPI = async (artistSlug: string) => {
   try {
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/artistBySlug?artistSlug=${encodeURIComponent(artistSlug)}`, {
       headers: {
@@ -1480,5 +1480,53 @@ export const downloadMp3TrackViaAPI = async (artistId: string, albumId: string, 
   } catch (error) {
     console.error("Error downloading track:", error);
     alert("Error downloading track");
+  }
+};
+
+export const saveMediaToServerViaAPI = async (file: File, solSignature: string, signatureNonce: string, creatorWallet: string) => {
+  try {
+    const formData = new FormData();
+    formData.append("media", file, file.name);
+    formData.append("solSignature", solSignature);
+    formData.append("signatureNonce", signatureNonce);
+    formData.append("creatorWallet", creatorWallet);
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/account/uploadMedia`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.ok) {
+      const mediaUploadResponse = await response.json();
+
+      //   {
+      //     "error": false,
+      //     "success": true,
+      //     "data": {
+      //         "fileUrl": "https://api.itheumcloud-stg.com/app_sigmamusic/3CYHT-HRojo/mp3/trim-1756106666625.mp3",
+      //         "fileName": "trim-1756106666625.mp3",
+      //         "fileSize": 254479,
+      //         "fileType": "audio/mpeg",
+      //         "s3Key": "app_sigmamusic/3CYHT-HRojo/mp3/trim-1756106666625.mp3",
+      //         "originalName": "trim.mp3",
+      //         "folderType": "mp3",
+      //         "userSubdirectory": "3CYHT-HRojo"
+      //     }
+      // }
+
+      if (mediaUploadResponse.error) {
+        throw new Error("API Error on saveMediaToServerViaAPI");
+      } else {
+        if (mediaUploadResponse?.data?.fileUrl) {
+          return mediaUploadResponse.data.fileUrl;
+        } else {
+          throw new Error("API Error on saveMediaToServerViaAPI - did not get a fileUrl back");
+        }
+      }
+    } else {
+      throw new Error("API Error on saveMediaToServerViaAPI - did not get a fileUrl back");
+    }
+  } catch (error) {
+    console.error("Error saving media to server:", error);
+    throw new Error("Failed to save media to server");
   }
 };

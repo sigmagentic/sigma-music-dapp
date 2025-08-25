@@ -10,9 +10,16 @@ import { Input } from "libComponents/Input";
 import { InfoTooltip } from "libComponents/Tooltip";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { Artist } from "libs/types";
-import { toastSuccess, updateUserProfileOnBackEndAPI, updateArtistProfileOnBackEndAPI, checkIfArtistSlugIsAvailable } from "libs/utils";
-import { isValidUrl } from "libs/utils/ui";
+import {
+  toastSuccess,
+  updateUserProfileOnBackEndAPI,
+  updateArtistProfileOnBackEndAPI,
+  checkIfArtistSlugIsAvailableViaAPI,
+  saveMediaToServerViaAPI,
+} from "libs/utils";
+import { isValidUrl, toastError } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
+import { MediaUpdateImg } from "libComponents/MediaUpdateImg";
 
 interface ExtendedProfileSetupWorkflowProps {
   isOpen: boolean;
@@ -64,6 +71,7 @@ const generateSlug = (name: string): string => {
 export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflowProps> = ({ isOpen, onClose }) => {
   const { userInfo, publicKey: web3AuthPublicKey } = useWeb3Auth();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
+  const addressSol = solanaPublicKey?.toBase58();
   const { signMessage } = useWallet();
   const {
     updateUserWeb2AccountDetails,
@@ -77,7 +85,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   } = useAccountStore();
 
   const [currentStep, setCurrentStep] = useState<WorkflowStep>("welcome");
-  const [formData, setFormData] = useState<ProfileFormData>({
+  const [userProfileData, setUserProfileData] = useState<ProfileFormData>({
     profileTypes: [],
     name: "",
     primaryAccountEmail: "",
@@ -104,14 +112,28 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   const [slugAvailability, setSlugAvailability] = useState<"available" | "unavailable" | "unchecked" | "checking">("unchecked");
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Use the appropriate public key based on wallet type
-  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey;
+  // keeps track if a new file is selected for edit so we can save it to the server to get back a https url for profileImage
+  const [newSelectedProfileImageFile, setNewSelectedProfileImageFile] = useState<File | null>(null);
+  const [newSelectedArtistProfileImageFile, setNewSelectedArtistProfileImageFile] = useState<File | null>(null);
+
+  // // Use the appropriate public key based on wallet type
+  // const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey;
+
+  // Add effect to prevent body scrolling when modal is open
+  useEffect(() => {
+    // Prevent scrolling on mount
+    document.body.style.overflow = "hidden";
+    // Re-enable scrolling on unmount
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       // Pre-populate account email if available from web3auth
       if (walletType === "web3auth" && userInfo?.email) {
-        setFormData((prev) => ({
+        setUserProfileData((prev) => ({
           ...prev,
           primaryAccountEmail: userInfo.email || "",
           billingEmail: userInfo.email || "",
@@ -127,7 +149,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
     if (currentStep === "welcome") {
       setCurrentStep("profileType");
     } else if (currentStep === "profileType") {
-      if (formData.profileTypes.length === 0) {
+      if (userProfileData.profileTypes.length === 0) {
         setErrors({ profileTypes: "Please select at least one profile type" });
         return;
       }
@@ -136,7 +158,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
     } else if (currentStep === "personalInfo") {
       if (validatePersonalInfo()) {
         // Check if user needs to fill artist profile data
-        if (formData.profileTypes.includes("remixer") || formData.profileTypes.includes("composer")) {
+        if (userProfileData.profileTypes.includes("remixer") || userProfileData.profileTypes.includes("composer")) {
           setCurrentStep("artistProfile");
         } else {
           setCurrentStep("saving");
@@ -162,7 +184,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   };
 
   const handleProfileTypeChange = (profileType: string, isChecked: boolean) => {
-    setFormData((prev) => {
+    setUserProfileData((prev) => {
       const currentTypes = prev.profileTypes || [];
       if (isChecked) {
         if (!currentTypes.includes(profileType)) {
@@ -184,7 +206,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   };
 
   const handleFormChange = (field: keyof ProfileFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setUserProfileData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -209,7 +231,19 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
     handleArtistProfileChange("name", name);
     // Auto-generate slug when name changes
     const generatedSlug = generateSlug(name);
+    // handleArtistProfileChange("slug", generatedSlug);
+
     handleArtistProfileChange("slug", generatedSlug);
+    // Reset availability status when slug changes
+    setSlugAvailability("unchecked");
+    // Clear any existing slug errors
+    if (artistErrors.slug) {
+      setArtistErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.slug;
+        return newErrors;
+      });
+    }
   };
 
   const handleSlugChange = (slug: string) => {
@@ -232,11 +266,16 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       return;
     }
 
+    if (!/^[a-z0-9-]+$/.test(artistProfileData.slug)) {
+      setArtistErrors((prev) => ({ ...prev, slug: "Profile URL slug can only contain lowercase letters, numbers, and hyphens" }));
+      return;
+    }
+
     setIsCheckingSlug(true);
     setSlugAvailability("checking");
 
     try {
-      const result = await checkIfArtistSlugIsAvailable(artistProfileData.slug);
+      const result = await checkIfArtistSlugIsAvailableViaAPI(artistProfileData.slug);
       if (result.isAvailable) {
         setSlugAvailability("available");
         setArtistErrors((prev) => {
@@ -264,6 +303,8 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       newErrors.name = "Artist name is required";
     } else if (artistProfileData.name.length > 50) {
       newErrors.name = "Artist name must be 50 characters or less";
+    } else if (!/^[a-zA-Z0-9- ]+$/.test(artistProfileData.name)) {
+      newErrors.name = "Artist name can only contain letters, numbers, spaces, and hyphens";
     }
 
     // Bio validation - required, max 1000 characters
@@ -274,10 +315,8 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
     }
 
     // Image validation - required, must be valid HTTPS URL
-    if (!artistProfileData.img.trim()) {
+    if (!newSelectedArtistProfileImageFile) {
       newErrors.img = "Profile image is required";
-    } else if (!isValidUrlInput(artistProfileData.img)) {
-      newErrors.img = "Please enter a valid HTTPS URL";
     }
 
     // Slug validation - required, max 80 characters, no spaces or special chars, and must be available
@@ -319,22 +358,22 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
     const newErrors: Record<string, string> = {};
 
     // Name validation - optional but if provided, must be under 300 characters
-    if (formData.name.trim() && formData.name.length > 300) {
+    if (userProfileData.name.trim() && userProfileData.name.length > 300) {
       newErrors.name = "Name must be 300 characters or less";
     }
 
     // Account email validation - optional but if provided, must be valid email
-    if (formData.primaryAccountEmail.trim() && !isValidEmail(formData.primaryAccountEmail)) {
+    if (userProfileData.primaryAccountEmail.trim() && !isValidEmail(userProfileData.primaryAccountEmail)) {
       newErrors.primaryAccountEmail = "Please enter a valid email address";
     }
 
     // Billing email validation - optional but if provided, must be valid email
-    if (formData.billingEmail.trim() && !isValidEmail(formData.billingEmail)) {
+    if (userProfileData.billingEmail.trim() && !isValidEmail(userProfileData.billingEmail)) {
       newErrors.billingEmail = "Please enter a valid email address";
     }
 
     // Profile image URL validation - optional but if provided, must be valid HTTPS URL
-    if (formData.profileImage.trim() && !isValidUrlInput(formData.profileImage)) {
+    if (userProfileData.profileImage.trim() && !isValidUrlInput(userProfileData.profileImage)) {
       newErrors.profileImage = "Please enter a valid HTTPS URL";
     }
 
@@ -344,6 +383,10 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
 
   const handleProfileSave = async () => {
     try {
+      if (!addressSol) {
+        throw new Error("No wallet address found");
+      }
+
       setIsSubmitting(true);
       setErrorMessage("");
 
@@ -365,20 +408,31 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
         throw new Error("Failed to get valid signature to prove account ownership");
       }
 
+      if (newSelectedProfileImageFile) {
+        const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedProfileImageFile, usedPreAccessSignature, usedPreAccessNonce, addressSol);
+
+        if (fileUploadResponse) {
+          userProfileData.profileImage = fileUploadResponse;
+        } else {
+          toastError("Error uploading profile image but other profile data was saved. You can upload a profile image later.");
+          return;
+        }
+      }
+
       const profileDataToSave: Record<string, any> = {
         solSignature: usedPreAccessSignature,
         signatureNonce: usedPreAccessNonce,
-        addr: displayPublicKey,
+        addr: addressSol,
         chainId: chainId,
-        displayName: formData.name,
-        billingEmail: formData.billingEmail,
-        profileTypes: formData.profileTypes,
-        profileImage: formData.profileImage,
+        displayName: userProfileData.name,
+        billingEmail: userProfileData.billingEmail,
+        profileTypes: userProfileData.profileTypes,
+        profileImage: userProfileData.profileImage,
       };
 
       // If the user is using a native wallet, we need to save the primary account email
-      if (walletType !== "web3auth" && formData.primaryAccountEmail) {
-        profileDataToSave.primaryAccountEmail = formData.primaryAccountEmail;
+      if (walletType !== "web3auth" && userProfileData.primaryAccountEmail) {
+        profileDataToSave.primaryAccountEmail = userProfileData.primaryAccountEmail;
       }
 
       const response = await updateUserProfileOnBackEndAPI(profileDataToSave);
@@ -389,12 +443,23 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       updateUserWeb2AccountDetails(updatedUserWeb2AccountDetails);
 
       // If user is an artist, also save artist profile
-      if (formData.profileTypes.includes("remixer") || formData.profileTypes.includes("composer")) {
+      if (userProfileData.profileTypes.includes("remixer") || userProfileData.profileTypes.includes("composer")) {
         try {
+          if (newSelectedArtistProfileImageFile) {
+            const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedArtistProfileImageFile, usedPreAccessSignature, usedPreAccessNonce, addressSol);
+
+            if (fileUploadResponse) {
+              artistProfileData.img = fileUploadResponse;
+            } else {
+              toastError("Error uploading artist profile image but other artist profile data was saved. You can upload a profile image later.");
+              return;
+            }
+          }
+
           const artistProfileDataToSave = {
             solSignature: usedPreAccessSignature,
             signatureNonce: usedPreAccessNonce,
-            creatorWallet: displayPublicKey,
+            callerAsCreatorWallet: addressSol,
             artistFieldsObject: {
               name: artistProfileData.name,
               bio: artistProfileData.bio,
@@ -440,14 +505,18 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
     }
   };
 
-  const handleSkip = () => {
-    setCurrentStep("saving");
-    handleProfileSave();
+  const handleSkipPersonalInfo = () => {
+    if (userProfileData.profileTypes.includes("remixer") || userProfileData.profileTypes.includes("composer")) {
+      setCurrentStep("artistProfile");
+    } else {
+      setCurrentStep("saving");
+      handleProfileSave();
+    }
   };
 
   const renderWelcomeStep = () => (
     <div className="text-center py-8">
-      <h2 className="text-2xl font-bold mb-4 text-white">Welcome to Sigma Music!</h2>
+      <h2 className="font-bold mb-2 !text-white">Welcome to Sigma Music!</h2>
       <p className="text-lg mb-8 text-gray-300">Let's take a few seconds to setup your profile.</p>
       <Button
         onClick={handleNext}
@@ -460,7 +529,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   const renderProfileTypeStep = () => (
     <div className="py-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold mb-4 text-white">Choose Your Profile Type</h2>
+        <h2 className="!text-2xl font-bold mb-2 !text-yellow-500">Choose Your Profile Type</h2>
         <p className="text-gray-300 mb-2">Select the option that's MOST relevant to you so we can best optimize your app experience.</p>
         <p className="text-sm text-gray-400">You can select multiple options if needed. At least one selection is required.</p>
       </div>
@@ -491,13 +560,13 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           },
         ].map((option) => {
           const IconComponent = option.icon;
-          const isSelected = formData.profileTypes.includes(option.id);
+          const isSelected = userProfileData.profileTypes.includes(option.id);
 
           return (
             <div key={option.id} className="relative">
               <button
                 onClick={() => handleProfileTypeChange(option.id, !isSelected)}
-                className={`w-full p-6 rounded-xl border-2 transition-all duration-200 text-left ${
+                className={`w-[90%] md:w-full p-6 rounded-xl border-2 transition-all duration-200 text-left ${
                   isSelected
                     ? `border-transparent bg-gradient-to-br ${option.color} shadow-lg scale-105`
                     : "border-gray-600 bg-gray-800 hover:border-gray-500 hover:bg-gray-700"
@@ -506,7 +575,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
                   <IconComponent size={32} className={isSelected ? "text-white" : "text-gray-400"} />
                   {isSelected && <CheckCircle2 size={24} className="text-white" />}
                 </div>
-                <h3 className={`text-lg font-semibold mb-2 ${isSelected ? "text-white" : "text-white"}`}>{option.title}</h3>
+                <h3 className={`mb-2 ${isSelected ? "text-white" : "text-white"}`}>{option.title}</h3>
               </button>
               <p className={`mt-5 text-[12px] text-center ${isSelected ? "text-white/90" : "text-gray-400"}`}>{option.description}</p>
             </div>
@@ -532,83 +601,99 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   );
 
   const renderPersonalInfoStep = () => (
-    <div className="py-6">
+    <div className="py-6 bgx-green-500 w-full md:w-3/4">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold mb-4 text-white">Personal Information</h2>
+        <h2 className="!text-2xl font-bold mb-2 !text-yellow-500">Personal Information</h2>
         <p className="text-gray-400 text-sm">Let's get to know you better. All fields are optional and can be updated later.</p>
       </div>
 
-      <div className="space-y-6 mb-8">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Full Name
-            <InfoTooltip content="This is your account name, it's separate from your artist name (if you are joining as an artist)." position="right" />
-          </label>
-          <Input
-            type="text"
-            value={formData.name}
-            onChange={(e) => handleFormChange("name", e.target.value)}
-            placeholder="Enter your full name"
-            className={errors.name ? "border-red-500" : ""}
-          />
-          {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
-        </div>
+      <div className="space-y-6 mb-8 flex md:flex-row flex-col gap-4 bgx-red-500">
+        <div className="flex flex-col gap-4 md:w-2/3">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Full Name
+              <InfoTooltip content="This is your account name, it's separate from your artist name (if you are joining as an artist)." position="right" />
+            </label>
+            <Input
+              type="text"
+              value={userProfileData.name}
+              onChange={(e) => handleFormChange("name", e.target.value)}
+              placeholder="Enter your full name"
+              className={errors.name ? "border-red-500" : ""}
+            />
+            {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Account Email
-            <InfoTooltip content="This is your account email. Any emails relating to your account are sent here." position="right" />
-          </label>
-          <Input
-            type="email"
-            value={formData.primaryAccountEmail}
-            onChange={(e) => handleFormChange("primaryAccountEmail", e.target.value)}
-            placeholder="Enter your account email"
-            disabled={walletType === "web3auth"}
-            className={errors.primaryAccountEmail ? "border-red-500" : ""}
-          />
-          {walletType === "web3auth" && <p className="text-gray-400 text-sm mt-1">Email from Web3Auth account</p>}
-          {errors.primaryAccountEmail && <p className="text-red-400 text-sm mt-1">{errors.primaryAccountEmail}</p>}
-        </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Account Email
+              <InfoTooltip content="This is your account email. Any emails relating to your account are sent here." position="right" />
+            </label>
+            <Input
+              type="email"
+              value={userProfileData.primaryAccountEmail}
+              onChange={(e) => handleFormChange("primaryAccountEmail", e.target.value)}
+              placeholder="Enter your account email"
+              disabled={walletType === "web3auth"}
+              className={errors.primaryAccountEmail ? "border-red-500" : ""}
+            />
+            {walletType === "web3auth" && <p className="text-gray-400 text-sm mt-1">Email from Web3Auth account</p>}
+            {errors.primaryAccountEmail && <p className="text-red-400 text-xs mt-1">{errors.primaryAccountEmail}</p>}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Billing Email
-            <InfoTooltip content="Any billing, invoices and payouts related emails are sent here." position="right" />
-          </label>
-          <Input
-            type="email"
-            value={formData.billingEmail}
-            onChange={(e) => handleFormChange("billingEmail", e.target.value)}
-            placeholder="Enter your billing email"
-            className={errors.billingEmail ? "border-red-500" : ""}
-          />
-          {errors.billingEmail && <p className="text-red-400 text-sm mt-1">{errors.billingEmail}</p>}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Billing / Payouts Email
+              <InfoTooltip content="Any billing, invoices and payouts related emails are sent here." position="right" />
+            </label>
+            <Input
+              type="email"
+              value={userProfileData.billingEmail}
+              onChange={(e) => handleFormChange("billingEmail", e.target.value)}
+              placeholder="Enter your billing / payouts email"
+              className={errors.billingEmail ? "border-red-500" : ""}
+            />
+            {errors.billingEmail && <p className="text-red-400 text-xs mt-1">{errors.billingEmail}</p>}
+          </div>
         </div>
-
-        <div>
+        <div className="md:w-1/3 flex flex-col items-center justify-top">
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Profile Image URL
             <InfoTooltip content="Enter a direct link to your profile image. Must be an HTTPS URL." position="right" />
           </label>
-          <Input
+          <div className="mb-3">
+            <MediaUpdateImg
+              imageUrl={userProfileData.profileImage}
+              size="md"
+              onFileSelect={(file) => {
+                console.log("Selected file:", file);
+                setNewSelectedProfileImageFile(file);
+              }}
+              onFileRevert={() => {
+                console.log("File reverted");
+                setNewSelectedProfileImageFile(null);
+              }}
+              alt="Profile"
+            />
+          </div>
+          {/* <Input
             type="url"
-            value={formData.profileImage}
+            value={userProfileData.profileImage}
             onChange={(e) => handleFormChange("profileImage", e.target.value)}
             placeholder="https://example.com/image.jpg"
             className={errors.profileImage ? "border-red-500" : ""}
-          />
-          {errors.profileImage && <p className="text-red-400 text-sm mt-1">{errors.profileImage}</p>}
+          /> */}
+          {errors.profileImage && <p className="text-red-400 text-xs mt-1">{errors.profileImage}</p>}
         </div>
       </div>
 
-      <div className="flex justify-between">
-        <Button onClick={handlePrevious} variant="outline" className="border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-0 justify-between bgx-blue-500">
+        <Button onClick={handlePrevious} variant="outline" className="border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white ">
           <ChevronLeft size={20} className="mr-2" />
           Back
         </Button>
         <div className="flex gap-3">
-          <Button onClick={handleSkip} variant="outline" className="border-gray-600 text-gray-300 hover:border-gray-500 hover:text-whit md:ml-2 ">
+          <Button onClick={handleSkipPersonalInfo} variant="outline" className="border-gray-600 text-gray-300 hover:border-gray-500 hover:text-whit md:ml-2 ">
             Skip for now
           </Button>
           <Button
@@ -622,233 +707,258 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   );
 
   const renderArtistProfileStep = () => (
-    <div className="py-6">
+    <div className="py-6 bgx-green-500 w-full md:w-3/4">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold mb-4 text-white">Artist Profile Setup</h2>
+        <h2 className="!text-2xl font-bold mb-2 !text-yellow-500">Artist Profile Setup</h2>
         <p className="text-gray-300 mb-2">Let's set up your artist profile to showcase your music and connect with fans.</p>
       </div>
 
-      <div className="space-y-6 mb-8">
-        {/* Artist Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Artist Name *
-            <InfoTooltip content="This is your Artist Name" position="right" />
-          </label>
-          <Input
-            type="text"
-            value={artistProfileData.name}
-            onChange={(e) => handleArtistNameChange(e.target.value)}
-            placeholder="Enter your artist name"
-            maxLength={50}
-            className={artistErrors.name ? "border-red-500" : ""}
-          />
-          {artistErrors.name && <p className="text-red-400 text-sm mt-1">{artistErrors.name}</p>}
-          <p className="text-gray-400 text-sm mt-1">{artistProfileData.name.length}/50 characters</p>
-        </div>
+      <div className="">
+        <div className="space-y-6 mb-8 flex md:flex-row flex-col gap-4 bgx-red-500">
+          <div className="flex flex-col gap-4 md:w-2/3">
+            {/* Artist Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Artist Name *
+                <InfoTooltip content="This is your Artist Name" position="right" />
+              </label>
+              <Input
+                type="text"
+                value={artistProfileData.name}
+                onChange={(e) => handleArtistNameChange(e.target.value)}
+                placeholder="Enter your artist name - e.g. Young Buck"
+                maxLength={50}
+                className={artistErrors.name ? "border-red-500" : ""}
+              />
+              {artistErrors.name && <p className="text-red-400 text-xs mt-1">{artistErrors.name}</p>}
+              <p className="text-gray-600 text-xs mt-2">{artistProfileData.name.length}/50 characters</p>
+            </div>
 
-        {/* Artist Bio */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Artist Bio *
-            <InfoTooltip content="This is your Artist Bio" position="right" />
-          </label>
-          <textarea
-            value={artistProfileData.bio}
-            onChange={(e) => handleArtistProfileChange("bio", e.target.value)}
-            placeholder="Tell us about your music, style, and what makes you unique..."
-            maxLength={1000}
-            rows={4}
-            className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
-              artistErrors.bio ? "border-red-500" : "border-gray-600"
-            }`}
-          />
-          {artistErrors.bio && <p className="text-red-400 text-sm mt-1">{artistErrors.bio}</p>}
-          <p className="text-gray-400 text-sm mt-1">{artistProfileData.bio.length}/1000 characters</p>
-        </div>
+            {/* Artist Bio */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Artist Bio *
+                <InfoTooltip content="This is your Artist Bio" position="right" />
+              </label>
+              <textarea
+                value={artistProfileData.bio}
+                onChange={(e) => handleArtistProfileChange("bio", e.target.value)}
+                placeholder="Tell us about your music, style, and what makes you unique..."
+                maxLength={1000}
+                rows={4}
+                className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                  artistErrors.bio ? "border-red-500" : "border-gray-600"
+                }`}
+              />
+              {artistErrors.bio && <p className="text-red-400 text-xs mt-1">{artistErrors.bio}</p>}
+              <p className="text-gray-600 text-xs mt-1">{artistProfileData.bio.length}/1000 characters</p>
+            </div>
+          </div>
 
-        {/* Profile Image */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Profile Image *
-            <InfoTooltip content="Enter a direct link to your profile image. Must be an HTTPS URL." position="right" />
-          </label>
-          <Input
+          <div className="md:w-1/3 flex flex-col items-center justify-top">
+            {/* Profile Image */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Profile Image *
+                <InfoTooltip content="Enter a direct link to your profile image. Must be an HTTPS URL." position="right" />
+              </label>
+
+              <div className="mb-3">
+                <MediaUpdateImg
+                  imageUrl={artistProfileData.img}
+                  size="md"
+                  onFileSelect={(file) => {
+                    console.log("Selected file:", file);
+                    setNewSelectedArtistProfileImageFile(file);
+                  }}
+                  onFileRevert={() => {
+                    console.log("File reverted");
+                    setNewSelectedArtistProfileImageFile(null);
+                  }}
+                  alt="Profile"
+                />
+              </div>
+
+              {/* <Input
             type="url"
             value={artistProfileData.img}
             onChange={(e) => handleArtistProfileChange("img", e.target.value)}
             placeholder="https://example.com/artist-image.jpg"
             className={artistErrors.img ? "border-red-500" : ""}
-          />
-          {artistErrors.img && <p className="text-red-400 text-sm mt-1">{artistErrors.img}</p>}
+          /> */}
+              {artistErrors.img && <p className="text-red-400 text-xs mt-1">{artistErrors.img}</p>}
+            </div>
+          </div>
         </div>
 
-        {/* Profile URL Slug */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Profile URL Slug *
-            <InfoTooltip
-              content="This friendly URL slug is used for your profile page and helps with profile discovery and sharing. It's best if it matches your artist name and it must be unique."
-              position="right"
-            />
-          </label>
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                value={artistProfileData.slug}
-                onChange={(e) => handleSlugChange(e.target.value)}
-                placeholder="young-tusk"
-                maxLength={80}
-                className={`flex-1 ${artistErrors.slug ? "border-red-500" : ""}`}
+        <div className="space-y-6 mb-8">
+          {/* Profile URL Slug */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Profile URL Slug *
+              <InfoTooltip
+                content="This friendly URL slug is used for your profile page and helps with profile discovery and sharing. It's best if it matches your artist name and it must be unique."
+                position="right"
               />
-              <Button
-                onClick={checkSlugAvailability}
-                disabled={!artistProfileData.slug.trim() || isCheckingSlug}
-                variant="outline"
-                className="px-4 py-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
-                {isCheckingSlug ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Checking...
-                  </>
-                ) : (
-                  "Check Availability"
-                )}
-              </Button>
-            </div>
+            </label>
+            <div className="space-y-3">
+              <div className="flex flex-col md:flex-row gap-2">
+                <Input
+                  type="text"
+                  value={artistProfileData.slug}
+                  onChange={(e) => handleSlugChange(e.target.value)}
+                  placeholder="young-buck"
+                  maxLength={80}
+                  className={`flex-1 ${artistErrors.slug ? "border-red-500" : ""}`}
+                />
+                <Button
+                  onClick={checkSlugAvailability}
+                  disabled={!artistProfileData.slug.trim() || isCheckingSlug}
+                  variant="outline"
+                  className="px-4 py-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                  {isCheckingSlug ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    "Check Availability"
+                  )}
+                </Button>
+              </div>
 
-            {/* Availability Status */}
-            {slugAvailability === "available" && (
-              <div className="flex items-center text-green-400 text-sm">
-                <CheckCircle2 className="w-4 h-4 mr-2" />✓ Slug is available!
-              </div>
-            )}
-            {slugAvailability === "unavailable" && (
-              <div className="flex items-center text-red-400 text-sm">
-                <AlertCircle className="w-4 h-4 mr-2" />✗ Slug is already taken
-              </div>
-            )}
-            {slugAvailability === "checking" && (
-              <div className="flex items-center text-yellow-400 text-sm">
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Checking availability...
-              </div>
+              {/* Availability Status */}
+              {slugAvailability === "available" && (
+                <div className="flex items-center text-green-400 text-sm">
+                  <CheckCircle2 className="w-4 h-4 mr-2" />✓ Slug is available!
+                </div>
+              )}
+              {slugAvailability === "unavailable" && (
+                <div className="flex items-center text-red-400 text-xs">
+                  <AlertCircle className="w-4 h-4 mr-2" />✗ Slug is already taken
+                </div>
+              )}
+              {slugAvailability === "checking" && (
+                <div className="flex items-center text-yellow-400 text-sm">
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Checking availability...
+                </div>
+              )}
+            </div>
+            {artistErrors.slug && <p className="text-red-400 text-xs mt-1">{artistErrors.slug}</p>}
+            <p className="text-gray-400 text-xs mt-1">Your profile will be available at: sigma-music.com/artist/{artistProfileData.slug}</p>
+            {slugAvailability !== "available" && (
+              <p className="text-xs mt-1">Click the "Check Availability" button to verify if the slug is available to proceed.</p>
             )}
           </div>
-          {artistErrors.slug && <p className="text-red-400 text-sm mt-1">{artistErrors.slug}</p>}
-          <p className="text-gray-400 text-xs mt-1">Your profile will be available at: sigma-music.com/artist/{artistProfileData.slug}</p>
-          {slugAvailability !== "available" && (
-            <p className="text-xs mt-1">Click the "Check Availability" button to verify if the slug is available to proceed.</p>
-          )}
-        </div>
 
-        {/* Social Media Links Section */}
-        <div className="border-t border-gray-700 pt-6">
-          <h3 className="text-lg font-semibold text-white mb-2">Social Media & Links</h3>
-          <p className="text-gray-400 text-xs mb-10">
-            All social media links are optional. <br />
-            We'll verify by sending you a DM or validating your content, and once confirmed, you'll get a "Verified Artist" badge!
-          </p>
+          {/* Social Media Links Section */}
+          <div className="border-t border-gray-700 pt-6">
+            <h3 className="text-lg font-semibold text-white mb-2">Social Media & Links</h3>
+            <p className="text-gray-400 text-xs mb-10">
+              All social media links are optional. <br />
+              We'll verify by sending you a DM or validating your content, and once confirmed, you'll get a "Verified Artist" badge!
+            </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Main Music Portfolio Account (Soundcloud, Bandcamp, Spotify, Apple Music, etc) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Main Music Portfolio
-                <InfoTooltip
-                  content="Enter Full URL of your preferred Music Portfolio profile (Soundcloud, Bandcamp, Spotify, Apple Music, YouTube, etc)"
-                  position="right"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Main Music Portfolio Account (Soundcloud, Bandcamp, Spotify, Apple Music, etc) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Main Music Portfolio
+                  <InfoTooltip
+                    content="Enter Full URL of your preferred Music Portfolio profile (Soundcloud, Bandcamp, Spotify, Apple Music, YouTube, etc)"
+                    position="right"
+                  />
+                </label>
+                <Input
+                  type="url"
+                  value={artistProfileData.altMainPortfolioLink}
+                  onChange={(e) => handleArtistProfileChange("altMainPortfolioLink", e.target.value)}
+                  placeholder="https://x.com/yourusername"
+                  className={artistErrors.altMainPortfolioLink ? "border-red-500" : ""}
                 />
-              </label>
-              <Input
-                type="url"
-                value={artistProfileData.altMainPortfolioLink}
-                onChange={(e) => handleArtistProfileChange("altMainPortfolioLink", e.target.value)}
-                placeholder="https://x.com/yourusername"
-                className={artistErrors.altMainPortfolioLink ? "border-red-500" : ""}
-              />
-              {artistErrors.altMainPortfolioLink && <p className="text-red-400 text-sm mt-1">{artistErrors.altMainPortfolioLink}</p>}
-            </div>
+                {artistErrors.altMainPortfolioLink && <p className="text-red-400 text-xs mt-1">{artistErrors.altMainPortfolioLink}</p>}
+              </div>
 
-            {/* X Account */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                X Account
-                <InfoTooltip content="Enter Full URL of your X Account" position="right" />
-              </label>
-              <Input
-                type="url"
-                value={artistProfileData.xLink}
-                onChange={(e) => handleArtistProfileChange("xLink", e.target.value)}
-                placeholder="https://x.com/yourusername"
-                className={artistErrors.xLink ? "border-red-500" : ""}
-              />
-              {artistErrors.xLink && <p className="text-red-400 text-sm mt-1">{artistErrors.xLink}</p>}
-            </div>
+              {/* X Account */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  X Account
+                  <InfoTooltip content="Enter Full URL of your X Account" position="right" />
+                </label>
+                <Input
+                  type="url"
+                  value={artistProfileData.xLink}
+                  onChange={(e) => handleArtistProfileChange("xLink", e.target.value)}
+                  placeholder="https://x.com/yourusername"
+                  className={artistErrors.xLink ? "border-red-500" : ""}
+                />
+                {artistErrors.xLink && <p className="text-red-400 text-xs mt-1">{artistErrors.xLink}</p>}
+              </div>
 
-            {/* YouTube Account */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                YouTube Account
-                <InfoTooltip content="Enter Full URL of your YouTube Account" position="right" />
-              </label>
-              <Input
-                type="url"
-                value={artistProfileData.ytLink}
-                onChange={(e) => handleArtistProfileChange("ytLink", e.target.value)}
-                placeholder="https://youtube.com/@yourchannel"
-                className={artistErrors.ytLink ? "border-red-500" : ""}
-              />
-              {artistErrors.ytLink && <p className="text-red-400 text-sm mt-1">{artistErrors.ytLink}</p>}
-            </div>
+              {/* YouTube Account */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  YouTube Account
+                  <InfoTooltip content="Enter Full URL of your YouTube Account" position="right" />
+                </label>
+                <Input
+                  type="url"
+                  value={artistProfileData.ytLink}
+                  onChange={(e) => handleArtistProfileChange("ytLink", e.target.value)}
+                  placeholder="https://youtube.com/@yourchannel"
+                  className={artistErrors.ytLink ? "border-red-500" : ""}
+                />
+                {artistErrors.ytLink && <p className="text-red-400 text-xs mt-1">{artistErrors.ytLink}</p>}
+              </div>
 
-            {/* TikTok Account */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                TikTok Account
-                <InfoTooltip content="Enter Full URL of your TikTok Account" position="right" />
-              </label>
-              <Input
-                type="url"
-                value={artistProfileData.tikTokLink}
-                onChange={(e) => handleArtistProfileChange("tikTokLink", e.target.value)}
-                placeholder="https://tiktok.com/@yourusername"
-                className={artistErrors.tikTokLink ? "border-red-500" : ""}
-              />
-              {artistErrors.tikTokLink && <p className="text-red-400 text-sm mt-1">{artistErrors.tikTokLink}</p>}
-            </div>
+              {/* TikTok Account */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  TikTok Account
+                  <InfoTooltip content="Enter Full URL of your TikTok Account" position="right" />
+                </label>
+                <Input
+                  type="url"
+                  value={artistProfileData.tikTokLink}
+                  onChange={(e) => handleArtistProfileChange("tikTokLink", e.target.value)}
+                  placeholder="https://tiktok.com/@yourusername"
+                  className={artistErrors.tikTokLink ? "border-red-500" : ""}
+                />
+                {artistErrors.tikTokLink && <p className="text-red-400 text-xs mt-1">{artistErrors.tikTokLink}</p>}
+              </div>
 
-            {/* Instagram Account */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Instagram Account
-                <InfoTooltip content="Enter Full URL of your Instagram Account" position="right" />
-              </label>
-              <Input
-                type="url"
-                value={artistProfileData.instaLink}
-                onChange={(e) => handleArtistProfileChange("instaLink", e.target.value)}
-                placeholder="https://instagram.com/yourusername"
-                className={artistErrors.instaLink ? "border-red-500" : ""}
-              />
-              {artistErrors.instaLink && <p className="text-red-400 text-sm mt-1">{artistErrors.instaLink}</p>}
-            </div>
+              {/* Instagram Account */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Instagram Account
+                  <InfoTooltip content="Enter Full URL of your Instagram Account" position="right" />
+                </label>
+                <Input
+                  type="url"
+                  value={artistProfileData.instaLink}
+                  onChange={(e) => handleArtistProfileChange("instaLink", e.target.value)}
+                  placeholder="https://instagram.com/yourusername"
+                  className={artistErrors.instaLink ? "border-red-500" : ""}
+                />
+                {artistErrors.instaLink && <p className="text-red-400 text-xs mt-1">{artistErrors.instaLink}</p>}
+              </div>
 
-            {/* Website */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Website or any other link
-                <InfoTooltip content="Enter Full URL of your Website" position="right" />
-              </label>
-              <Input
-                type="url"
-                value={artistProfileData.webLink}
-                onChange={(e) => handleArtistProfileChange("webLink", e.target.value)}
-                placeholder="https://yourwebsite.com"
-                className={artistErrors.webLink ? "border-red-500" : ""}
-              />
-              {artistErrors.webLink && <p className="text-red-400 text-sm mt-1">{artistErrors.webLink}</p>}
+              {/* Website */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Website or any other link
+                  <InfoTooltip content="Enter Full URL of your Website" position="right" />
+                </label>
+                <Input
+                  type="url"
+                  value={artistProfileData.webLink}
+                  onChange={(e) => handleArtistProfileChange("webLink", e.target.value)}
+                  placeholder="https://yourwebsite.com"
+                  className={artistErrors.webLink ? "border-red-500" : ""}
+                />
+                {artistErrors.webLink && <p className="text-red-400 text-xs mt-1">{artistErrors.webLink}</p>}
+              </div>
             </div>
           </div>
         </div>
@@ -872,7 +982,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   const renderSavingStep = () => (
     <div className="text-center py-12">
       <Loader2 className="w-16 h-16 text-yellow-500 animate-spin mx-auto mb-6" />
-      <h2 className="text-2xl font-bold mb-4 text-white">Setting up your profile...</h2>
+      <h2 className="!text-2xl font-bold mb-4 text-white">Setting up your profile...</h2>
       <p className="text-gray-300">Please wait while we save your information.</p>
     </div>
   );
@@ -880,11 +990,11 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   const renderSuccessStep = () => (
     <div className="text-center py-12">
       <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-6" />
-      <h2 className="text-2xl font-bold mb-4 text-white">Profile Setup Complete!</h2>
+      <h2 className="!text-2xl font-bold mb-4 text-white">Profile Setup Complete!</h2>
       <p className="text-gray-300 mb-8">Your profile has been setup successfully. Let's explore the app now!</p>
 
       <div className="flex justify-center gap-4">
-        <Button
+        {/* <Button
           onClick={() => {
             const currentParams = Object.fromEntries(searchParams.entries());
             delete currentParams["e"];
@@ -894,7 +1004,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           }}
           className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-400 font-semibold">
           Give Me a Quick Tour & Free XP
-        </Button>
+        </Button> */}
         <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
           <Button
             onClick={onClose}
@@ -910,14 +1020,14 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   const renderErrorStep = () => (
     <div className="text-center py-12">
       <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
-      <h2 className="text-2xl font-bold mb-4 text-white">Something went wrong</h2>
+      <h2 className="!text-2xl font-bold mb-4 text-white">Something went wrong</h2>
       <p className="text-gray-300 mb-4 text-sm">We encountered an error while setting up your profile.</p>
       <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mb-6 max-w-md mx-auto">
-        <p className="text-red-400 text-sm">{errorMessage}</p>
+        <p className="text-red-400 text-xs">{errorMessage}</p>
       </div>
       <p className="text-gray-300 mb-8 text-sm">You can still explore the app and complete your profile setup later.</p>
       <div className="flex justify-center gap-4">
-        <Button
+        {/* <Button
           onClick={() => {
             const currentParams = Object.fromEntries(searchParams.entries());
             delete currentParams["e"];
@@ -927,7 +1037,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           }}
           className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-400 font-semibold">
           Give Me a Quick Tour & Free XP
-        </Button>
+        </Button> */}
         <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
           <Button
             onClick={onClose}
@@ -963,7 +1073,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
 
   return (
     <>
-      <div className="fixed inset-0 z-100 flex items-center justify-center bg-yellow-400 bg-opacity-30 p-4">
+      <div className="fixed inset-0 z-10 flex items-center justify-center bg-yellow-400 bg-opacity-30 p-4">
         <div className="bg-black rounded-lg p-6 max-w-4xl w-full mx-4 relative max-h-[90vh] overflow-y-auto">
           {currentStep !== "saving" && currentStep !== "success" && currentStep !== "error" && (
             <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
