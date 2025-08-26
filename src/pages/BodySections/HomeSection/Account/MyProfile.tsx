@@ -200,7 +200,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                 <button
                   className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
                   onClick={() => setShowEditProfileModal(true)}>
-                  Edit Profile
+                  Edit Account Profile
                 </button>
               </div>
             </>
@@ -389,14 +389,6 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       {/* Tab Navigation - Only show if user is an artist */}
       <div className="mt-3 mb-6">
         <div className="flex space-x-4">
-          <button
-            onClick={() => setActiveTab("profile")}
-            className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === "profile" ? "bg-yellow-300 text-black" : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
-            }`}>
-            Account Details
-          </button>
-
           {isUserArtistType(userWeb2AccountDetails.profileTypes) && (
             <button
               onClick={() => setActiveTab("artist")}
@@ -406,6 +398,13 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
               Artist Profile
             </button>
           )}
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === "profile" ? "bg-yellow-300 text-black" : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
+            }`}>
+            Account Details
+          </button>
         </div>
       </div>
 

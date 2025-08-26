@@ -19,11 +19,12 @@ import {
 } from "libs/utils";
 import { isValidUrl, toastError } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
-import { MediaUpdateImg } from "libComponents/MediaUpdateImg";
+import { MediaUpdate } from "libComponents/MediaUpdate";
 
 interface ExtendedProfileSetupWorkflowProps {
   isOpen: boolean;
   onClose: () => void;
+  setHomeMode: (homeMode: string) => void;
 }
 
 interface ProfileFormData {
@@ -68,8 +69,8 @@ const generateSlug = (name: string): string => {
     .trim();
 };
 
-export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflowProps> = ({ isOpen, onClose }) => {
-  const { userInfo, publicKey: web3AuthPublicKey } = useWeb3Auth();
+export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflowProps> = ({ isOpen, onClose, setHomeMode }) => {
+  const { userInfo } = useWeb3Auth();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
   const addressSol = solanaPublicKey?.toBase58();
   const { signMessage } = useWallet();
@@ -115,9 +116,6 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   // keeps track if a new file is selected for edit so we can save it to the server to get back a https url for profileImage
   const [newSelectedProfileImageFile, setNewSelectedProfileImageFile] = useState<File | null>(null);
   const [newSelectedArtistProfileImageFile, setNewSelectedArtistProfileImageFile] = useState<File | null>(null);
-
-  // // Use the appropriate public key based on wallet type
-  // const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey;
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -475,7 +473,6 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           };
 
           const artistResponse = await updateArtistProfileOnBackEndAPI(artistProfileDataToSave);
-          console.log("Artist profile saved:", artistResponse);
 
           if (artistResponse.created) {
             toastSuccess("Artist profile created successfully!", true);
@@ -491,9 +488,10 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           setCurrentStep("error");
           return;
         }
+      } else {
+        toastSuccess("Profile saved successfully!", true);
       }
 
-      toastSuccess("Profile saved successfully", true);
       setCurrentStep("success");
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -662,7 +660,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
             <InfoTooltip content="Enter a direct link to your profile image. Must be an HTTPS URL." position="right" />
           </label>
           <div className="mb-3">
-            <MediaUpdateImg
+            <MediaUpdate
               imageUrl={userProfileData.profileImage}
               size="md"
               onFileSelect={(file) => {
@@ -764,7 +762,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
               </label>
 
               <div className="mb-3">
-                <MediaUpdateImg
+                <MediaUpdate
                   imageUrl={artistProfileData.img}
                   size="md"
                   onFileSelect={(file) => {
@@ -1005,6 +1003,19 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-400 font-semibold">
           Give Me a Quick Tour & Free XP
         </Button> */}
+
+        <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
+          <Button
+            onClick={() => {
+              setHomeMode("profile");
+              onClose();
+            }}
+            className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm"
+            variant="outline">
+            Launch your First Album!
+          </Button>
+        </div>
+
         <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
           <Button
             onClick={onClose}

@@ -151,7 +151,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
         {renderOption({
           option: "priceOption1",
           title: "Digital Album Only",
-          description: "You Get: Stream + MP3 downloads incl. bonus tracks",
+          description: "You Get: Streams + MP3 downloads incl. bonus tracks",
           license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].shortDescription,
           licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].urlToLicense,
           price: buyNowMeta?.priceOption1?.priceInUSD || null,

@@ -33,6 +33,7 @@ interface AlbumListProps {
 export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName, artistId, selectedArtist }) => {
   const [selectedAlbumTracks, setSelectedAlbumTracks] = useState<FastStreamTrack[]>([]);
   const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string>("");
+  const [selectedAlbumImg, setSelectedAlbumImg] = useState<string>("");
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>("");
   const [isTrackListModalOpen, setIsTrackListModalOpen] = useState(false);
   const [isLoadingTracks, setIsLoadingTracks] = useState(false);
@@ -80,7 +81,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
     setIsCollectibleModalOpen(true);
   };
 
-  const handleViewCurrentTracks = async (albumId: string, albumTitle: string) => {
+  const handleViewCurrentTracks = async (albumId: string, albumTitle: string, albumImg: string) => {
     setIsLoadingTracks(true);
     try {
       const albumTracksFromDb: FastStreamTrack[] = await getAlbumTracksFromDBViaAPI(artistId, albumId, true, true);
@@ -93,17 +94,8 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
 
       setSelectedAlbumTitle(albumTitle);
       setSelectedAlbumId(albumId);
+      setSelectedAlbumImg(albumImg);
       setIsTrackListModalOpen(true);
-
-      // const response = await adminApi.fastStream.getFastStreamTracksForAlbum(artistId, albumId);
-      // if (response.success) {
-      //   setSelectedAlbumTracks(response.data || []);
-      //   setSelectedAlbumTitle(albumTitle);
-      //   setSelectedAlbumId(albumId);
-      //   setIsTrackListModalOpen(true);
-      // } else {
-      //   console.error("Failed to fetch tracks:", response.error);
-      // }
     } catch (error) {
       console.error("Error fetching tracks:", error);
     } finally {
@@ -202,6 +194,10 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
           isExplicit: albumData.isExplicit,
           isPodcast: albumData.isPodcast,
           isPublished: albumData.isPublished,
+          albumPriceOption1: albumData.albumPriceOption1,
+          albumPriceOption2: albumData.albumPriceOption2,
+          albumPriceOption3: albumData.albumPriceOption3,
+          albumPriceOption4: albumData.albumPriceOption4,
         },
       };
 
@@ -293,7 +289,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
 
                 <div className="space-y-2">
                   <Button
-                    onClick={() => handleViewCurrentTracks(album.albumId, album.title)}
+                    onClick={() => handleViewCurrentTracks(album.albumId, album.title, album.img)}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={isLoadingTracks}>
                     <Eye className="w-4 h-4 mr-2" />
@@ -307,20 +303,26 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
                         setShowEditAlbumModal(true);
                       }}
                       variant="outline"
-                      className="w-full">
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                       <Edit className="w-4 h-4 mr-2" />
                       Edit Album
                     </Button>
                   )}
 
-                  <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title)} variant="outline" className="w-full">
+                  <Button
+                    onClick={() => handleViewCollectibleMetadata(album.albumId, album.title)}
+                    variant="outline"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                     <Tag className="w-4 h-4 mr-2" />
-                    View Non-Commercial Collectible Metadata
+                    Non-Commercial Collectible Metadata
                   </Button>
 
-                  <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title, "t2")} variant="outline" className="w-full">
+                  <Button
+                    onClick={() => handleViewCollectibleMetadata(album.albumId, album.title, "t2")}
+                    variant="outline"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                     <Tag className="w-4 h-4 mr-2" />
-                    View Commercial Collectible Metadata
+                    Commercial Collectible Metadata
                   </Button>
                 </div>
               </Card>
@@ -349,6 +351,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
         albumTitle={selectedAlbumTitle}
         artistId={artistId}
         albumId={selectedAlbumId}
+        albumImg={selectedAlbumImg}
         onTracksUpdated={handleTracksUpdated}
       />
 
@@ -380,6 +383,10 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
             isExplicit: selectedAlbumForEdit.isExplicit || "0",
             isPodcast: selectedAlbumForEdit.isPodcast || "0",
             isPublished: selectedAlbumForEdit.isPublished || "0",
+            albumPriceOption1: selectedAlbumForEdit.albumPriceOption1 || "",
+            albumPriceOption2: selectedAlbumForEdit.albumPriceOption2 || "",
+            albumPriceOption3: selectedAlbumForEdit.albumPriceOption3 || "",
+            albumPriceOption4: selectedAlbumForEdit.albumPriceOption4 || "",
           }}
           albumTitle={selectedAlbumForEdit.title || ""}
           isNewAlbum={!selectedAlbumForEdit.title} // If no title, it's a new album

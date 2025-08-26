@@ -169,7 +169,7 @@ const LoginPage = () => {
             <div className="p-10">
               <h4 className="mb-4 font-weight-bold">Log into Sigma Music</h4>
 
-              <div className="flex flex-col px-3 items-center mt-5">
+              <div className="flex flex-col px-3 items-center mt-3">
                 {isConnected ? (
                   <>
                     <button className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[200px] h-[50px] font-bold" onClick={disconnect}>
@@ -188,12 +188,12 @@ const LoginPage = () => {
               </div>
 
               <div className="phantom-login-button flex flex-col px-3 items-center mt-5">
-                <span className="text-sm text-muted-foreground mb-2">For web3 native users with a solana wallet:</span>
+                <span className="text-xs text-muted-foreground mb-2">Or for web3 native users, login with a solana wallet</span>
                 <WalletMultiButton className="w-full !m-0">Login With Solana</WalletMultiButton>
               </div>
 
               <p className="text-sm text-muted-foreground mt-8">
-                By "Logging in", you agree to these{" "}
+                By "Logging in" and "Signing up", you agree to these{" "}
                 <a className="underline" href="https://sigmamusic.fm/legal#terms-of-use" target="_blank" rel="noopener noreferrer">
                   Terms of Use
                 </a>{" "}

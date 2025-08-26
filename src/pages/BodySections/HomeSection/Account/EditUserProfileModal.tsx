@@ -3,11 +3,10 @@ import { Loader2, X } from "lucide-react";
 import { Button } from "libComponents/Button";
 import { Input } from "libComponents/Input";
 import { InfoTooltip } from "libComponents/Tooltip";
-import { MediaUpdateImg } from "libComponents/MediaUpdateImg";
+import { MediaUpdate } from "libComponents/MediaUpdate";
 import { saveMediaToServerViaAPI } from "libs/utils/api";
 import { isValidUrl, toastError } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
-// import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -371,7 +370,7 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
                 <InfoTooltip content="Click on the image to upload a new one, or enter a URL below." position="right" />
               </label>
               <div className="mb-3">
-                <MediaUpdateImg
+                <MediaUpdate
                   imageUrl={formData.profileImage}
                   size="md"
                   onFileSelect={(file) => {

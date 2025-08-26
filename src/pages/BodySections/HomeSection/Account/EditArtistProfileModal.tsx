@@ -4,7 +4,7 @@ import { Button } from "libComponents/Button";
 import { Input } from "libComponents/Input";
 import { InfoTooltip } from "libComponents/Tooltip";
 import { isValidUrl, toastError } from "libs/utils/ui";
-import { MediaUpdateImg } from "libComponents/MediaUpdateImg";
+import { MediaUpdate } from "libComponents/MediaUpdate";
 import { saveMediaToServerViaAPI, checkIfArtistSlugIsAvailableViaAPI } from "libs/utils/api";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -78,19 +78,19 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
 
   // Check if form data has changed from initial data
   const hasFormChanged = (): boolean => {
-    debugger;
     return (
-      formData.name.trim() !== initialData.name.trim() ||
-      formData.bio.trim() !== initialData.bio.trim() ||
-      formData.img !== initialData.img ||
-      (formData.slug !== initialData.slug && slugAvailability === "available") ||
-      formData.altMainPortfolioLink.trim() !== initialData.altMainPortfolioLink ||
-      formData.xLink.trim() !== initialData.xLink ||
-      formData.ytLink.trim() !== initialData.ytLink ||
-      formData.tikTokLink.trim() !== initialData.tikTokLink ||
-      formData.instaLink.trim() !== initialData.instaLink ||
-      formData.webLink.trim() !== initialData.webLink ||
-      !!newSelectedArtistProfileImageFile
+      (formData.name.trim() !== initialData.name.trim() ||
+        formData.bio.trim() !== initialData.bio.trim() ||
+        formData.img !== initialData.img ||
+        formData.altMainPortfolioLink.trim() !== initialData.altMainPortfolioLink ||
+        formData.xLink.trim() !== initialData.xLink ||
+        formData.ytLink.trim() !== initialData.ytLink ||
+        formData.tikTokLink.trim() !== initialData.tikTokLink ||
+        formData.instaLink.trim() !== initialData.instaLink ||
+        formData.webLink.trim() !== initialData.webLink ||
+        formData.slug !== initialData.slug ||
+        !!newSelectedArtistProfileImageFile) &&
+      (formData.slug === initialData.slug || (formData.slug !== initialData.slug && slugAvailability === "available"))
     );
   };
 
@@ -317,6 +317,12 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
           </Button>
         </div>
 
+        {isSubmitting && (
+          <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+            <Loader2 className="w-16 h-16 text-yellow-500 animate-spin mx-auto mb-6" />
+          </div>
+        )}
+
         {/* Content */}
         <div className={`flex-1 overflow-y-auto p-6 ${isSubmitting ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
           <div className="space-y-6 mb-8 flex md:flex-row flex-col gap-4 bgx-red-500">
@@ -369,7 +375,7 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
                 </label>
 
                 <div className="mb-3">
-                  <MediaUpdateImg
+                  <MediaUpdate
                     imageUrl={formData.img}
                     size="md"
                     onFileSelect={(file) => {
@@ -395,6 +401,7 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
               </div>
             </div>
           </div>
+
           <div className="space-y-6 mb-8 bgx-green-500">
             {/* Profile URL Slug */}
             <div>

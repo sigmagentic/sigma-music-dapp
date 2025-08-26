@@ -17,7 +17,7 @@ import {
 import { AwardIcon } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import offlineAnimeHeroImage from "assets/img/offline-anime-hero.jpg";
-import { ENABLE_WSB_CAMPAIGN } from "config";
+import { DISABLE_AI_REMIX_FEATURES, ENABLE_WSB_CAMPAIGN } from "config";
 import { ENABLE_APP_OFFLINE } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
@@ -179,14 +179,15 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI Agent</span>}
                     </button>
                   </Tooltip> */}
-                  <Tooltip text="AI REMiX : Create & Publish IP-Safe AI Remixes">
-                    <button
-                      onClick={() => {
-                        removeDeepSectionParamsFromUrl();
-                        setHomeMode(`ai-remix-${new Date().getTime()}`);
-                      }}
-                      disabled={homeMode.includes("ai-remix")}
-                      className={`
+                  {DISABLE_AI_REMIX_FEATURES === "0" && (
+                    <Tooltip text="AI REMiX : Create & Publish IP-Safe AI Remixes">
+                      <button
+                        onClick={() => {
+                          removeDeepSectionParamsFromUrl();
+                          setHomeMode(`ai-remix-${new Date().getTime()}`);
+                        }}
+                        disabled={homeMode.includes("ai-remix")}
+                        className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
                       py-3 px-4 rounded-lg transition-colors text-lg 
@@ -194,11 +195,12 @@ export const Layout = ({
                       hover:text-orange-500
                       peer
                     `}>
-                      <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">AI REMiX</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI REMiX</span>}
-                    </button>
-                  </Tooltip>
+                        <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
+                        <span className="md:hidden w-max">AI REMiX</span>
+                        {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI REMiX</span>}
+                      </button>
+                    </Tooltip>
+                  )}
                   {/* <Tooltip text="Play Music Mini-Games">
                     <button
                       onClick={() => {

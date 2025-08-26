@@ -366,7 +366,7 @@ export const Navbar = ({
       <ProductTour isOpen={showProductTour} onClose={handleCloseProductTour} handleShowBitzModel={() => setShowPlayBitzModal(true)} />
 
       {/* Extended Profile Setup Workflow */}
-      <ExtendedProfileSetupWorkflow isOpen={showNewUserExtendedProfileSetup} onClose={handleCloseNewUserExtendedProfileSetup} />
+      <ExtendedProfileSetupWorkflow isOpen={showNewUserExtendedProfileSetup} onClose={handleCloseNewUserExtendedProfileSetup} setHomeMode={setHomeMode} />
 
       {/* Buy XP Modal */}
       {showBuyXPUsingCCModal && (

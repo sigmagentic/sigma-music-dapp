@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useAppStore } from "store/app";
 import { MainMenu, Breadcrumb, ArtistList, AlbumList } from "./components";
@@ -20,6 +20,10 @@ export const MUI = () => {
   const [muiState, setMuiState] = useState<MUIState>({
     currentView: "main",
   });
+
+  useEffect(() => {
+    console.log("artistLookup", artistLookup);
+  }, [artistLookup]);
 
   const handleNavigateToArtists = () => {
     setMuiState({

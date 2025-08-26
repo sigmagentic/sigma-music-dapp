@@ -26,6 +26,7 @@ export enum MVX_ENV_ENUM {
 export const DISABLE_BITZ_FEATURES = import.meta.env.VITE_ENV_DISABLE_BITZ_FEATURES || false;
 export const DISABLE_REMIX_LAUNCH_BUTTON = import.meta.env.VITE_ENV_DISABLE_REMIX_LAUNCH || false;
 export const DISABLE_COMMERCIAL_LICENSE_BUY_OPTION = import.meta.env.VITE_ENV_DISABLE_COMMERCIAL_LICENSE_BUY_OPTION || "1";
+export const DISABLE_AI_REMIX_FEATURES = import.meta.env.DISABLE_AI_REMIX_FEATURES || "1";
 
 export const GENERATE_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0
 export const LAUNCH_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0

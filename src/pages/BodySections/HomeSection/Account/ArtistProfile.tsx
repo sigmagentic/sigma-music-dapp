@@ -11,7 +11,7 @@ import { TrackList } from "../components/TrackList";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { EditArtistProfileModal, ArtistProfileFormData } from "./EditArtistProfileModal";
 import { EditAlbumModal, AlbumFormData } from "./EditAlbumModal";
-import { SOL_ENV_ENUM } from "config";
+import { DISABLE_AI_REMIX_FEATURES, SOL_ENV_ENUM } from "config";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { toastSuccess, toastError, updateArtistProfileOnBackEndAPI, getAlbumFromDBViaAPI, updateAlbumOnBackEndAPI } from "libs/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -48,11 +48,17 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
   const [showEditTrackModal, setShowEditTrackModal] = useState<boolean>(false);
   const [selectedAlbumTracks, setSelectedAlbumTracks] = useState<MusicTrack[]>([]);
   const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string>("");
+  const [selectedAlbumImg, setSelectedAlbumImg] = useState<string>("");
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>("");
   const [isLoadingTracks, setIsLoadingTracks] = useState<boolean>(false);
+  const [showVerificationInfoModal, setShowVerificationInfoModal] = useState<boolean>(false);
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
   const { signMessage } = useWallet();
+
+  const showVerificationInfo = () => {
+    setShowVerificationInfoModal(true);
+  };
 
   useEffect(() => {
     if (myAiRemixRawTracks.length === 0 && displayPublicKey) {
@@ -69,7 +75,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
             const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
             setVirtualAiRemixAlbum(virtualAlbum);
             setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
-
             updateMyAiRemixRawTracks(allMyRemixes);
           }
         };
@@ -197,6 +202,10 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
           isExplicit: albumData.isExplicit,
           isPodcast: albumData.isPodcast,
           isPublished: albumData.isPublished,
+          albumPriceOption1: albumData.albumPriceOption1,
+          albumPriceOption2: albumData.albumPriceOption2,
+          albumPriceOption3: albumData.albumPriceOption3,
+          albumPriceOption4: albumData.albumPriceOption4,
         },
       };
 
@@ -308,17 +317,20 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
     }
   };
 
-  const handleViewCurrentTracks = async (albumId: string, albumTitle: string) => {
+  const handleViewCurrentTracks = async (albumId: string, albumTitle: string, albumImg: string) => {
     setIsLoadingTracks(true);
     try {
       const albumTracksFromDb: MusicTrack[] = await getAlbumTracksFromDBViaAPI(userArtistProfile.artistId, albumId, true, true);
 
       if (albumTracksFromDb.length > 0) {
         setSelectedAlbumTracks(albumTracksFromDb);
+      } else {
+        setSelectedAlbumTracks([]);
       }
 
       setSelectedAlbumTitle(albumTitle);
       setSelectedAlbumId(albumId);
+      setSelectedAlbumImg(albumImg);
       setShowEditTrackModal(true);
     } catch (error) {
       console.error("Error fetching tracks:", error);
@@ -390,10 +402,15 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
             className={`text-md font-bold border-2 rounded-lg p-2 ${userArtistProfile.isVerifiedArtist ? "bg-yellow-300text-black" : "bg-gray-500 text-white"}`}>
             {userWeb2AccountDetails.isVerifiedArtist ? "Verified Artist Account" : "Unverified Artist Account"}
             {!userWeb2AccountDetails.isVerifiedArtist && (
-              <InfoTooltip
-                content="Once you are verified, your artist profile will be public and visible to all users. To get Verified, make sure you have provided 'Artist Alt Main Portfolio Link' (so we can review some of your music) and also provide AT LEAST a X, TikTok or Instagram link and we will DM you to verify your identity on one of these social channels."
-                position="right"
-              />
+              <button type="button" onClick={showVerificationInfo} className="text-gray-400 hover:text-yellow-400 transition-colors p-1 ml-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
             )}
           </div>
         </div>
@@ -559,7 +576,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
 
         {myAiRemixRawTracks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <p className="text-xl text-gray-400">No remixes found</p>
+            {DISABLE_AI_REMIX_FEATURES === "0" ? (
+              <p className="text-xl text-gray-400">No remixes found</p>
+            ) : (
+              <p className="text-xl text-gray-400">Coming soon!</p>
+            )}
           </div>
         ) : (
           <>
@@ -676,6 +697,10 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
             isExplicit: selectedAlbumForEdit.isExplicit || "0",
             isPodcast: selectedAlbumForEdit.isPodcast || "0",
             isPublished: selectedAlbumForEdit.isPublished || "0",
+            albumPriceOption1: selectedAlbumForEdit.albumPriceOption1 || "",
+            albumPriceOption2: selectedAlbumForEdit.albumPriceOption2 || "",
+            albumPriceOption3: selectedAlbumForEdit.albumPriceOption3 || "",
+            albumPriceOption4: selectedAlbumForEdit.albumPriceOption4 || "",
           }}
           albumTitle={selectedAlbumForEdit.title || ""}
           isNewAlbum={!selectedAlbumForEdit.title} // If no title, it's a new album
@@ -710,11 +735,50 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
         albumTitle={selectedAlbumTitle}
         artistId={userArtistProfile.artistId}
         albumId={selectedAlbumId}
+        albumImg={selectedAlbumImg}
         onTracksUpdated={() => {
           setShowEditTrackModal(false);
           toastSuccess("Tracks updated successfully", true);
         }}
       />
+
+      {/* Verification Info Modal */}
+      {showVerificationInfoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
+          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-2xl w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Artist Verification Information</h3>
+              <button onClick={() => setShowVerificationInfoModal(false)} className="text-gray-400 hover:text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="text-white space-y-4 text-sm leading-relaxed">
+              <p>
+                Once you are verified, your artist profile will be public and visible to all users. To get Verified, make sure you have provided 'Artist Alt
+                Main Portfolio Link' (so we can review some of your music) and also provide AT LEAST a X, TikTok or Instagram link and we will DM you to verify
+                your identity on one of these social channels.
+              </p>
+
+              <p>
+                More on how you can get verified is{" "}
+                <a href="/faq#get-verified-artist-status" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:text-yellow-300 underline">
+                  here
+                </a>
+                .
+              </p>
+            </div>
+
+            <div className="flex justify-center mt-6">
+              <Button variant="outline" className="text-sm px-6" onClick={() => setShowVerificationInfoModal(false)}>
+                Got it
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
@@ -724,7 +788,7 @@ const ArtistAlbumList: React.FC<{
   albums: Album[];
   onEditAlbum: (album: Album) => void;
   onAddNewAlbum: () => void;
-  onViewCurrentTracks: (albumId: string, albumTitle: string) => void;
+  onViewCurrentTracks: (albumId: string, albumTitle: string, albumImg: string) => void;
   isLoadingTracks: boolean;
 }> = ({ albums, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, isLoadingTracks }) => {
   return (
@@ -732,7 +796,7 @@ const ArtistAlbumList: React.FC<{
       {albums.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {albums.map((album) => (
-            <Card key={album.albumId} className="p-6 hover:shadow-lg transition-shadow bg-black border-gray-700">
+            <Card key={album.albumId} className="p-6 hover:shadow-lg transition-shadow bg-black border-gray-700 flex flex-col">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-200 mb-1">{album.title}</h3>
@@ -773,16 +837,16 @@ const ArtistAlbumList: React.FC<{
                 </div>
               )}
 
-              <div className="space-x-2">
+              <div className="flex gap-2 flex-wrap mt-auto">
                 <Button
-                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
+                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
                   onClick={() => onEditAlbum(album)}>
                   Edit Album
                 </Button>
 
                 <Button
-                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
-                  onClick={() => onViewCurrentTracks(album.albumId, album.title)}
+                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
+                  onClick={() => onViewCurrentTracks(album.albumId, album.title, album.img)}
                   disabled={isLoadingTracks}>
                   Edit Tracks {isLoadingTracks ? <Loader className="animate-spin ml-2" size={16} /> : null}
                 </Button>

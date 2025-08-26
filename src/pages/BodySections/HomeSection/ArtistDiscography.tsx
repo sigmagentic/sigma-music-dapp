@@ -123,10 +123,11 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
       const fetchAlbumsWithCanBeMinted = async () => {
         // lets also fetch albums from the DB
-        const albumsFromDb = await getAlbumFromDBViaAPI(artistProfile.artistId);
-        console.log("albumsFromDb", albumsFromDb);
-        console.log("albums", albums);
-        const allAlbums = [...albumsFromDb, ...albums]; //
+        // const albumsFromDb = await getAlbumFromDBViaAPI(artistProfile.artistId);
+        // console.log("albumsFromDb", albumsFromDb);
+        // console.log("albums", albums);
+        // const allAlbums = [...albumsFromDb, ...albums]; //
+        const allAlbums = [...albums];
 
         const albumsWithCanBeMinted = await Promise.all(
           allAlbums.map(async (album) => {

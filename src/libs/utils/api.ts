@@ -1,4 +1,4 @@
-import { LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
+import { DISABLE_AI_REMIX_FEATURES, LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
 import { CACHE_DURATION_2_MIN, CACHE_DURATION_60_MIN, CACHE_DURATION_FIVE_SECONDS, CACHE_DURATION_HALF_MIN } from "./constant";
 import { AiRemixLaunch, PaymentLog } from "../types/common";
 
@@ -1070,6 +1070,11 @@ export async function getPaymentLogsViaAPI({ addressSol, byTaskFilter }: { addre
 const cache_remixLaunches: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
 export async function getRemixLaunchesViaAPI({ launchStatus, addressSol }: { launchStatus: string; addressSol: string | null }): Promise<any> {
+  // we disable it here as a backup as well so we dont even hit the APIs
+  if (DISABLE_AI_REMIX_FEATURES === "1") {
+    return [];
+  }
+
   const now = Date.now();
 
   try {
