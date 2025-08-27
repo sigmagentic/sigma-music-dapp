@@ -287,8 +287,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       return albumIdBeingPlayed === album.albumId;
     } else {
       return !!(
-        dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName ||
-        dataNftPlayingOnMainPlayer?.content.metadata.name?.includes(album?.solNftAltCodes || "")
+        (album?.solNftName && dataNftPlayingOnMainPlayer?.content.metadata.name === album?.solNftName) ||
+        (album?.solNftAltCodes && dataNftPlayingOnMainPlayer?.content.metadata.name?.includes(album?.solNftAltCodes || ""))
       );
     }
   }

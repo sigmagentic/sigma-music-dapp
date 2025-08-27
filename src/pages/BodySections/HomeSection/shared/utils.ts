@@ -25,7 +25,14 @@ export async function getArtistsAlbumsData() {
       console.log(`getArtistsAlbumsData: [no-cache]`);
       const getArtistsAlbumsAPI = `${getApiWeb2Apps(true)}/app_nftunes/assets/json/albumsAndArtistsData.json`;
       const dataRes = await axios.get(getArtistsAlbumsAPI);
-      let dataset = dataRes.data;
+      let datasetV1 = dataRes.data;
+
+      const getV2ArtistsAlbumsAPI = `${getApiWeb2Apps()}/app_sigmamusic/indexed_data/artistsAndAlbums.json`;
+      const dataResV2 = await axios.get(getV2ArtistsAlbumsAPI);
+      let datasetV2: any[] = dataResV2.data;
+
+      // merge the two datasets
+      let dataset = [...datasetV1, ...datasetV2];
 
       // some items in the dataset will have isDeprioratized === "1", if so, move them to the bottom of the dataset
       dataset = dataset.sort((a: any, b: any) => {
@@ -77,6 +84,12 @@ export async function getArtistsAlbumsData() {
         });
       }
 
+      // some albums will have isPublished: "0", if so let's remove them from the albums list of each artist
+      dataset = dataset.map((artist: any) => {
+        artist.albums = artist.albums.filter((album: any) => album.isPublished === "1" || typeof album.isPublished === "undefined");
+        return artist;
+      });
+
       _artistsAlbumsDataCachedOnWindow = dataset; // this filters our demo artists and artists in campaigns etc
       _artistsAlbumsDataEverythingCachedOnWindow = cloneDatasetEverything; // this has EVERY artists we had in the master list
       _artistsAlbumsDataOrganizedBySectionsCachedOnWindow = organizedBySectionsDataset; // this creates a map of artists based on campaign segments
@@ -112,7 +125,14 @@ export async function getAlbumTrackCatalogData() {
       console.log(`getAlbumTrackCatalogData: [no-cache]`);
       const getAlbumTrackCatalogAPI = `${getApiWeb2Apps(true)}/app_nftunes/assets/json/albumTrackCatalog.json`;
       const dataRes = await axios.get(getAlbumTrackCatalogAPI);
-      let dataset: AlbumTrackCatalog = dataRes.data;
+      let datasetV1: AlbumTrackCatalog = dataRes.data;
+
+      const getV2AlbumTrackCatalogAPI = `${getApiWeb2Apps()}/app_sigmamusic/indexed_data/tracks.json`;
+      const dataResV2 = await axios.get(getV2AlbumTrackCatalogAPI);
+      let datasetV2: AlbumTrackCatalog = dataResV2.data;
+
+      // merge the two datasets
+      const dataset = { ...datasetV1, ...datasetV2 };
 
       _albumTrackCatalogDataCachedOnWindow = dataset;
       _albumTrackCatalogDataCachedOn = Date.now();

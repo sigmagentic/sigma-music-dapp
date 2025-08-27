@@ -73,7 +73,7 @@ export const Layout = ({
         <Navbar setHomeMode={setHomeMode} homeMode={homeMode} removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl} />
       </div>
 
-      <div className="body flex-1 md:mt-[72px] md:mb-[30px]">
+      <div className="body flex-1 md:mt-[77px] md:mb-[30px]">
         <div className="flex flex-col md:flex-row h-full">
           <div
             className={`${isInSectionWeShouldNotShowSideMenu ? "hidden" : ""} side-panel-menu md:min-h-[calc(100vh-102px)] md:p-4 text-white transition-all duration-300 relative w-full ${isMenuCollapsed ? "md:w-20" : "md:w-52"} ${isLoginRoute ? "hidden" : ""}`}>

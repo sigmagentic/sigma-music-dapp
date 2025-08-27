@@ -757,9 +757,9 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
 
             <div className="text-white space-y-4 text-sm leading-relaxed">
               <p>
-                Once you are verified, your artist profile will be public and visible to all users. To get Verified, make sure you have provided 'Artist Alt
-                Main Portfolio Link' (so we can review some of your music) and also provide AT LEAST a X, TikTok or Instagram link and we will DM you to verify
-                your identity on one of these social channels.
+                Once you are verified, your artist profile will be fully public and visible to all users. To get Verified, make sure you have provided 'Artist
+                Alt Main Portfolio Link' (so we can review some of your music) and also provide AT LEAST a X, TikTok or Instagram link and we will DM you to
+                verify your identity on one of these social channels.
               </p>
 
               <p>

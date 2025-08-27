@@ -323,16 +323,16 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
           reSortedTileData = originalSortedArtistAlbumDataset;
           break;
         case "recent_added":
-          // each items will have an albums array, and each Album inside that array will have a .timestampAlbumAdded property.
+          // each items will have an albums array, and each Album inside that array will have a .timestampAlbumAdded property (or .updatedOn property).
           // which can be "0" value (which means it's old) and a value like "1749620368" which is a unix epoch time in seconds (note that they are both in strings),
           // we need to order the artists in reSortedTileData based on which artist launched the most recent album. for each artist, we get the timestamp of the most recent album and then we sort the artists by this value, most recent first
           reSortedTileData = reSortedTileData.sort((a, b) => {
             const aMostRecentAlbumTimestamp = a.albums.reduce((max, album) => {
-              const timestamp = parseInt(album.timestampAlbumAdded || "0");
+              const timestamp = parseInt(album.updatedOn?.toString() || album.timestampAlbumAdded || "0");
               return Math.max(max, timestamp);
             }, 0);
             const bMostRecentAlbumTimestamp = b.albums.reduce((max, album) => {
-              const timestamp = parseInt(album.timestampAlbumAdded || "0");
+              const timestamp = parseInt(album.updatedOn?.toString() || album.timestampAlbumAdded || "0");
               return Math.max(max, timestamp);
             }, 0);
             return bMostRecentAlbumTimestamp - aMostRecentAlbumTimestamp;
@@ -359,8 +359,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         case "recent_added":
           // each item will have a .timestampAlbumAdded which can be "0" value (which means it's old) and a value like "1749620368" which is a unix epoch time in seconds (note that they are both in strings), we need to sort them by this value. order by most recent first
           reSortedTileData = reSortedTileData.sort((a, b) => {
-            const aTimestamp = parseInt(a.timestampAlbumAdded || "0");
-            const bTimestamp = parseInt(b.timestampAlbumAdded || "0");
+            const aTimestamp = parseInt(a.updatedOn?.toString() || a.timestampAlbumAdded || "0");
+            const bTimestamp = parseInt(b.updatedOn?.toString() || b.timestampAlbumAdded || "0");
             return bTimestamp - aTimestamp;
           });
           break;
@@ -584,19 +584,20 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const xpCollectionIdToUse = !addressSol || solBitzNfts.length === 0 ? DEFAULT_BITZ_COLLECTION_SOL : solBitzNfts[0].grouping[0].group_value;
 
   return (
-    <div className="flex flex-col justify-center items-center w-full">
+    <div className="flex flex-col justify-center items-center w-full ">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
-        <div className="text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] md:w-full">
-          <div className="flex flex-col md:flex-row justify-between w-full">
+        <div
+          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "md:h-[1px] md:relative md:z-10 md:left-[-15px]" : ""}`}>
+          <div className={`flex flex-col md:flex-row justify-between ${inArtistProfileView ? "md:w-[fit-content]" : "w-full"}`}>
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
-              <div className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
+              <div
+                className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2 md:opacity-80 md:hover:opacity-100`}>
                 <Button
                   className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[46px] px-[10px]`}
                   variant="outline"
                   onClick={handleBackToArtistTileView}>
                   <>
                     <CircleArrowLeft />
-                    <span className="ml-2">Back to All {isAllAlbumsMode ? "Albums" : "Artists"}</span>
                   </>
                 </Button>
               </div>
