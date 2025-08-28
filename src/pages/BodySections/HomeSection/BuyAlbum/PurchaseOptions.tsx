@@ -1,24 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { Loader } from "lucide-react";
 import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
-import { APP_NETWORK, LICENSE_TERMS_MAP, DISABLE_COMMERCIAL_LICENSE_BUY_OPTION } from "config";
+import { APP_NETWORK, LICENSE_TERMS_MAP, DISABLE_COMMERCIAL_LICENSE_BUY_OPTION, ONE_USD_IN_XP } from "config";
 import { Button } from "libComponents/Button";
+import { Switch } from "libComponents/Switch";
 import { Album, AlbumSaleTypeOption } from "libs/types";
 
 interface PurchaseOptionsProps {
   isPaymentsDisabled?: boolean;
   buyNowMeta: Album["_buyNowMeta"];
   disableActions?: boolean;
+  payWithXP: boolean;
   handlePaymentAndMint: (albumSaleTypeOption: string) => void;
   handleShowLargeSizeTokenImg: (tokenImg: string | null) => void;
+  handlePayWithXP: (payWithXP: boolean) => void;
 }
 
 export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
   isPaymentsDisabled,
   buyNowMeta,
   disableActions = false,
+  payWithXP,
   handlePaymentAndMint,
   handleShowLargeSizeTokenImg,
+  handlePayWithXP,
 }) => {
   const isOptionAvailable = (option: "priceOption1" | "priceOption2" | "priceOption3" | "priceOption4") => {
     if (option === "priceOption1") {
@@ -66,7 +71,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
 
         <div className={`bg-black rounded-lg p-4 pb-8 relative ${!available ? "opacity-20 pointer-events-none" : ""}`}>
           {/* Rarity and Max Mints Badge */}
-          {option !== "priceOption1" && available && buyNowMeta?.priceOption2?.canBeMinted && (
+          {option !== "priceOption1" && option !== "priceOption4" && available && buyNowMeta?.priceOption2?.canBeMinted && (
             <div className={`absolute bottom-[-7px] right-0 z-10 ${buyNowMeta?.rarityGrade === "Common" ? "opacity-50" : ""}`}>
               <div className="relative inline-block overflow-hidden rounded-tl-lg">
                 <div className="relative px-3 py-1.5 rounded-tl-lg font-semibold text-sm border border-orange-400 text-orange-400">
@@ -116,7 +121,10 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
             </div>
             {/* Price & Button (right) */}
             <div className="flex flex-col items-end min-w-[110px] md:pl-4">
-              {price && <span className="text-3xl font-extrabold text-yellow-300 mb-2">${price}</span>}
+              {price && !payWithXP && <span className="text-3xl font-extrabold text-yellow-300 mb-2">${price}</span>}
+              {price && payWithXP && (
+                <span className="text-3xl font-extrabold text-yellow-300 mb-2">{(Number(price) * ONE_USD_IN_XP).toLocaleString()} XP</span>
+              )}
               <Button
                 onClick={() => handlePaymentAndMint(option)}
                 className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-6 rounded-lg hover:opacity-90 transition-opacity"
@@ -139,7 +147,16 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
 
   return (
     <div className="space-y-4">
-      <h3 className="!text-2xl font-bold mb-4 hidden md:block">Purchase Options</h3>
+      <div className="flex flex-row gap-2 justify-between">
+        <h3 className="!text-2xl font-bold mb-4 hidden md:block">Purchase Options</h3>
+
+        <div className="flex flex-col gap-2 ">
+          <div className="flex items-center space-x-2">
+            <Switch checked={payWithXP} onCheckedChange={handlePayWithXP} />
+            <span className="text-sm text-gray-600">Pay with XP</span>
+          </div>
+        </div>
+      </div>
 
       {isPaymentsDisabled && (
         <div className="flex gap-4 bg-red-500 p-4 rounded-lg text-sm">

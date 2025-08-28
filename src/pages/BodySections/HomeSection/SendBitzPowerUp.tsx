@@ -41,7 +41,6 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const [poweringUpError, setPoweringUpError] = useState<boolean>(false);
   const { solBitzNfts } = useNftsStore();
   const [showDetails, setShowDetails] = useState<boolean>(false);
-
   const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
   const [tweetText, setTweetText] = useState<string>("");
@@ -381,3 +380,94 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
     </>
   );
 };
+
+export type SendPowerUpSolResult = {
+  error: boolean;
+  success: boolean;
+  errorMessage: string;
+  bitzBalance: number;
+  givenBitzSum: number;
+  paymentReceipt: string;
+};
+
+export async function sendPowerUpSol(
+  bitzValToGift: number,
+  giveBitzToWho: string,
+  giveBitzToCampaignId: string,
+  solBitzNfts: any,
+  isSigmaWeb2XpSystem: number,
+  publicKeySol: any,
+  bitBalanceOnChain: number,
+  givenBitzSumSol: number,
+  usedPreAccessNonce: string,
+  usedPreAccessSignature: string
+): Promise<SendPowerUpSolResult> {
+  const actionResult: SendPowerUpSolResult = {
+    error: false,
+    success: false,
+    errorMessage: "",
+    bitzBalance: -1,
+    givenBitzSum: -1,
+    paymentReceipt: "",
+  };
+
+  try {
+    const headersToSend: Record<string, any> = {
+      "dmf-custom-give-bits": "1",
+      "dmf-custom-give-bits-val": bitzValToGift,
+      "dmf-custom-give-bits-to-who": giveBitzToWho,
+      "dmf-custom-give-bits-to-campaign-id": giveBitzToCampaignId,
+      "dmf-custom-sol-collection-id": solBitzNfts[0].grouping[0].group_value,
+    };
+
+    const keysToSend = [
+      "dmf-custom-give-bits",
+      "dmf-custom-give-bits-val",
+      "dmf-custom-give-bits-to-who",
+      "dmf-custom-give-bits-to-campaign-id",
+      "dmf-custom-sol-collection-id",
+    ];
+
+    const viewDataArgs = {
+      headers: headersToSend,
+      fwdHeaderKeys: keysToSend,
+    };
+
+    let giveBitzGameResult = null;
+    debugger;
+
+    if (isSigmaWeb2XpSystem === 1) {
+      giveBitzGameResult = await sigmaWeb2XpSystem(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+    } else {
+      giveBitzGameResult = await viewDataWrapperSol(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+    }
+
+    if (giveBitzGameResult) {
+      if (giveBitzGameResult?.data?.statusCode && giveBitzGameResult?.data?.statusCode != 200) {
+        actionResult.error = true;
+        actionResult.errorMessage =
+          giveBitzGameResult?.data?.message || "Error: Not possible to send power-up. Error code returned. Do you have enough XP to give?";
+      } else {
+        actionResult.success = true;
+        actionResult.bitzBalance = bitBalanceOnChain - bitzValToGift;
+        actionResult.givenBitzSum = givenBitzSumSol + bitzValToGift;
+
+        if (
+          giveBitzGameResult?.data?.giveBits?.paymentReceipt &&
+          giveBitzGameResult?.data?.giveBits?.paymentReceipt !== "" &&
+          giveBitzGameResult?.data?.giveBits?.paymentReceipt !== -1
+        ) {
+          actionResult.paymentReceipt = giveBitzGameResult?.data?.giveBits?.paymentReceipt;
+        }
+      }
+    } else {
+      actionResult.error = true;
+      actionResult.errorMessage = "Error: Not possible to send power-up";
+    }
+  } catch (err: any) {
+    actionResult.error = true;
+    actionResult.errorMessage = `Error: Not possible to send power-up. ${err.toString()}`;
+  }
+
+  return actionResult;
+}

@@ -83,7 +83,21 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   // Animated text rotation words
-  const rotatingWords = ["New", "AI", "Web3", "Innovative", "Tokenized", "DeFi", "IP-Secure", "Agentic", "Exclusive", "Fan-First", "Mind-Blowing", "Sigma"];
+  const rotatingWords = [
+    "New",
+    "AI",
+    "Web3",
+    "Innovative",
+    "IP-Secure",
+    "Story Protocol",
+    "Agentic",
+    "Tokenized",
+    "DeFi",
+    "Exclusive",
+    "Fan-First",
+    "Mind-Blowing",
+    "Sigma",
+  ];
   const { currentWord, isTransitioning, startTextRotation, stopTextRotation, isRunning } = useAnimatedTextRotation(rotatingWords, 3000);
 
   // Cached Signature Store Items
@@ -1003,7 +1017,12 @@ export const HomeSection = (props: HomeSectionProps) => {
 
             {homeMode.includes("profile") && (
               <div className="w-full mt-5">
-                <MyProfile navigateToDeepAppView={navigateToDeepAppView} viewSolData={viewSolData} onCloseMusicPlayer={resetMusicPlayerState} />
+                <MyProfile
+                  navigateToDeepAppView={navigateToDeepAppView}
+                  viewSolData={viewSolData}
+                  onCloseMusicPlayer={resetMusicPlayerState}
+                  setHomeMode={setHomeMode}
+                />
               </div>
             )}
 

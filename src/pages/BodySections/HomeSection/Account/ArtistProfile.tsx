@@ -15,7 +15,6 @@ import { DISABLE_AI_REMIX_FEATURES, SOL_ENV_ENUM } from "config";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { toastSuccess, toastError, updateArtistProfileOnBackEndAPI, getAlbumFromDBViaAPI, updateAlbumOnBackEndAPI } from "libs/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { InfoTooltip } from "libComponents/Tooltip";
 import { Badge } from "libComponents/Badge";
 import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
@@ -24,10 +23,11 @@ import { TrackListModal } from "pages/MUI/components/TrackListModal";
 type ArtistProfileProps = {
   onCloseMusicPlayer: () => void;
   viewSolData: (e: number, f?: any, g?: boolean, h?: MusicTrack[]) => void;
+  setHomeMode: (homeMode: string) => void;
 };
 
 // Render the artist profile content
-export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfileProps) => {
+export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: ArtistProfileProps) => {
   const { publicKey: web3AuthPublicKey } = useWeb3Auth();
   const { userWeb2AccountDetails, myAiRemixRawTracks, updateMyAiRemixRawTracks, userArtistProfile, updateUserArtistProfile } = useAccountStore();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
@@ -341,10 +341,10 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
 
   return (
     <>
-      {/* Music Catalog Management Section */}
+      {/* Music Catalog Section */}
       <div className="bg-black rounded-lg p-6 mb-6">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-0">
-          <h2 className="!text-2xl font-bold mb-4">Music Catalog Management</h2>
+          <h2 className="!text-2xl font-bold mb-4">Your Music Catalog</h2>
 
           {myAlbums.length > 0 && (
             <div className="flex items-center justify-between">
@@ -621,6 +621,16 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData }: ArtistProfile
             )}
           </>
         )}
+
+        <div className="flex justify-center md:justify-end">
+          <button
+            className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
+            onClick={() => {
+              setHomeMode(`ai-remix-${new Date().getTime()}`);
+            }}>
+            Launch AI Remix
+          </button>
+        </div>
       </div>
 
       {/* Artist Payouts Section */}

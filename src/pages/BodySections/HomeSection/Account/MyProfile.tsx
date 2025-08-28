@@ -17,11 +17,12 @@ type MyProfileProps = {
   navigateToDeepAppView: (e: any) => any;
   viewSolData: (e: number, f?: any, g?: boolean, h?: MusicTrack[]) => void;
   onCloseMusicPlayer: () => void;
+  setHomeMode: (homeMode: string) => void;
 };
 
 type ProfileTab = "artist" | "profile";
 
-export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlayer }: MyProfileProps) => {
+export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlayer, setHomeMode }: MyProfileProps) => {
   const { userInfo, publicKey: web3AuthPublicKey } = useWeb3Auth();
   const { signMessage } = useWallet();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
@@ -365,8 +366,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                         {!(log.task === "remix" && log.paymentStatus === "new") && log.paymentStatus.charAt(0).toUpperCase() + log.paymentStatus.slice(1)}
                       </span>
                     </td>
-                    <td className="py-3">{log.type === "cc" ? `$${log.amount}` : `${log.amount} SOL`}</td>
-                    <td className="py-3">{log.type === "sol" ? "SOL" : "Credit Card"}</td>
+                    <td className="py-3">{log.type === "cc" ? `$${log.amount}` : log.type === "xp" ? `${log.amount} XP` : `${log.amount} SOL`}</td>
+                    <td className="py-3">{log.type === "sol" ? "SOL" : log.type === "xp" ? "XP" : "Credit Card"}</td>
                     <td className="py-3">
                       {log.type === "sol" && log.tx && (
                         <a href={`https://solscan.io/tx/${log.tx}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
@@ -409,7 +410,11 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       </div>
 
       {/* Render content based on active tab */}
-      {activeTab === "artist" ? <ArtistProfile onCloseMusicPlayer={onCloseMusicPlayer} viewSolData={viewSolData} /> : renderAppProfile()}
+      {activeTab === "artist" ? (
+        <ArtistProfile onCloseMusicPlayer={onCloseMusicPlayer} viewSolData={viewSolData} setHomeMode={setHomeMode} />
+      ) : (
+        renderAppProfile()
+      )}
 
       {/* NFMe ID Claim Modal */}
       {showNfMeIdModal && <GetNFMeModal setShowNfMeIdModal={setShowNfMeIdModal} setShowNfMePreferencesModal={setShowNfMePreferencesModal} />}

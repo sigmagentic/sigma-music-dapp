@@ -874,7 +874,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
         </div>
 
         {/* Right Column - Reference Track Navigator */}
-        <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-lg p-6">
+        <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-lg p-6">
           {selectedAlbumForTrackList ? (
             <ReferenceTrackList
               album={selectedAlbumForTrackList}

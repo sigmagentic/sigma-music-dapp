@@ -104,23 +104,62 @@ Start by reaching out to us on [Telegram](https://t.me/SigmaXMusicOfficial).
 
 Built with ❤️ for fans and artists.
 
-{
-"artistId": "ar140",
-"altMainPortfolioLink": "https://soundcloud.com/a-capellas-fussion-record",
-"bio": "I foo and bar!",
-"bountyId": "mus_ar140",
-"createdOn": 1755761947543,
-"creatorPaymentsWallet": "3CYHT9NT8xGrp8DdrVNweYGgva896L3nDZLauSCHRojo",
-"creatorWallet": "3CYHT9NT8xGrp8DdrVNweYGgva896L3nDZLauSCHRojo",
-"group": "mus",
-"idNum": 140,
-"img": "https://static.wikia.nocookie.net/finalfantasy/images/a/a1/Foobar-ffxii.png/revision/latest?cb=20130712061639",
-"instaLink": "https://instagram.com/itheumofficial",
-"name": "Foo Bar",
-"slug": "foo-bar",
-"tikTokLink": "https://www.tiktok.com/@immifaith",
-"updatedOn": 1755761947543,
-"webLink": "https://en.wikipedia.org/wiki/Foo_Fighters",
-"xLink": "https://x.com/itheum",
-"ytLink": "https://www.youtube.com/@LangChain"
-}
+---
+
+## Primary User Stories
+
+### FAN Stories
+
+1/
+As a FAN
+I want to buy a Music Album Collectible with my Credit Card / SOL / XP
+To support my favorite artist and also stream/download the full album with bonus tracks
+
+2/
+As a FAN
+I want to buy a Inner Circle Fan NFT with my Credit Card / SOL / XP
+To support my favorite artist
+
+3/
+As a FAN
+I want to stream free music albums
+To enjoy music
+
+## Primary User Stories
+
+### REMIX ARTIST Stories
+
+1/
+As a REMIX ARTIST
+I want to buy a Commercial Music Licence with my Credit Card / SOL / XP
+So I can use the AI Remix section to remix my own tracks using the licnesed tracks as reference
+
+2/
+As a REMIX ARTIST
+I want to have the public vote with XP for my AI Remix tool remixed tracks
+So If my track becomes the higest rated track every week, it gets added to a official "Sigma mix tape" album and I get $5 and earn a share (% HOW MUCH?) of any public sales
+
+[5$ bounty per week for BEST remix track. 5$ is also given to the COMPOSING ARTIST who's track was used]
+
+3/ \*\*\*\*
+As a REMIX ARTIST
+I want to buy a Commercial Music Licence with my Credit Card / SOL / XP
+So I can down my favorite track, take to Suno, remix it and bring it back to Sigma Music and publish it as regular track in my own album.
+
+[REMIX ARTISTs make 80% of everything that's sold on the platform that's linked to their work BUT ONLY IF they own a license for the work]
+
+### COMPOSING ARTIST
+
+1/
+As a COMPOSING ARTIST
+I want to use sigma music to list my music tracks in album format
+So I ca list it for Free or sell it as a digital album, as a collectible or with a Story Protocol AI Remix licnese so others can but it and their own deravative works
+
+1/
+As a COMPOSING ARTIST
+I want to lauch my own fan club
+So my inner circle fans get access to some perks IRL or virtual
+
+[COMPOSING ARTISTs make 80% of everything that's sold on the platform that's linked to their work]
+[COMPOSING ARTISTs make 10% of every derative work sold that a REMIX ARTIST's SOLD that used a license]
+[COMPOSING ARTISTs get 5$ a week if their tracks are used to make the weekly award for best AI REMIX]

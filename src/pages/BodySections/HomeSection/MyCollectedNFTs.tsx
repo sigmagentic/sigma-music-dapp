@@ -104,7 +104,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                   */
                   // Get the prefix before first "-" or space from both strings
                   const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
-                  const albumPrefix = album.solNftName.split(/[-\s]/)[0];
+                  const albumPrefix = !album.solNftName ? "" : album.solNftName.split(/[-\s]/)[0];
                   // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2)
                   return nftPrefix.toLowerCase() === albumPrefix.toLowerCase() || (album.solNftAltCodes !== "" && album.solNftAltCodes?.includes(nftPrefix));
                 })
@@ -404,7 +404,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                               {membership && membership.img && membership.img !== "" ? (
                                 <div
                                   key={index}
-                                  className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors"
+                                  className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors border"
                                   onClick={handleClick}>
                                   <img src={membership.img} alt={membership.desc} className="h-48 w-48 object-cover rounded-lg mb-4" />
                                   <div className="text-center max-w-[300px]">{membership.desc}</div>
@@ -488,7 +488,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                       const img = license.albumImage;
                       const albumName = license.albumName;
                       return (
-                        <div key={index} className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors">
+                        <div key={index} className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors border">
                           <div
                             className="w-full h-full flex items-center justify-center"
                             onClick={() => {

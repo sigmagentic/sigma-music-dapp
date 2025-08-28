@@ -312,7 +312,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
             {/* Pricing Options */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Option 1: Digital Album + Bonus Tracks Only */}
-              <div className="bg-black border border-gray-600 rounded-lg p-4">
+              <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-md font-medium text-white">Digital Album + Bonus Tracks Only</h4>
                   <button
@@ -344,7 +344,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
               </div>
 
               {/* Option 4: Album + Commercial AI Remix License */}
-              <div className="bg-black border border-gray-600 rounded-lg p-4">
+              <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-md font-medium text-white">Album + Commercial AI Remix License</h4>
                   <button
@@ -376,7 +376,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
               </div>
 
               {/* Option 2: Album + Fan Collectible (NFT) */}
-              <div className="bg-black border border-gray-600 rounded-lg p-4">
+              <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-md font-medium text-white">Album + Fan Collectible (NFT)</h4>
                   <button
@@ -408,7 +408,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
               </div>
 
               {/* Option 3: Album + Fan Collectible + Commercial License */}
-              <div className="bg-black border border-gray-600 rounded-lg p-4">
+              <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-md font-medium text-white">Album + Fan Collectible + Commercial License</h4>
                   <button

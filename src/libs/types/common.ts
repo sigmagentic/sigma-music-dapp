@@ -196,7 +196,7 @@ export interface PaymentLog {
   tx: string;
   amount: string;
   payer: string;
-  type: "sol" | "cc"; // sol or cc
+  type: "sol" | "cc" | "xp"; // sol or cc or xp
   creatorWallet?: string;
   paymentStatusAddedOn?: number;
   albumSaleTypeOption?: string; // 1 (digital album + download only), 2 (digital album + download + NFT), 3 (digital album + commercial license + download + NFT)
