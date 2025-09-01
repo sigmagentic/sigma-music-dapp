@@ -42,7 +42,7 @@ export const SolBitzDropdown = (props: any) => {
                           </div>
                         ) : (
                           <div className="flex items-center gap-0.5 text-base">
-                            {solBitzBalance} <FlaskBottleAnimation cooldown={cooldown} />
+                            {solBitzBalance.toLocaleString()} <FlaskBottleAnimation cooldown={cooldown} />
                           </div>
                         )}
                       </>
@@ -67,8 +67,8 @@ export const SolBitzDropdown = (props: any) => {
                   <p className="text-xs md:text-sm font-[Satoshi-Regular] leading-relaxed py-4 text-center">
                     Collect and Use Sigma XP in the Sigma Music app to generate and curate content.
                   </p>
-                  <ClaimBitzButton cooldown={cooldown} handlePlayActionBtn={handlePlayActionBtn} />
 
+                  <ClaimBitzButton cooldown={cooldown} handlePlayActionBtn={handlePlayActionBtn} />
                   <BuySigmaXPButton handleShowBuyXPModal={handleShowBuyXPModal} />
                 </div>
               </PopoverContent>

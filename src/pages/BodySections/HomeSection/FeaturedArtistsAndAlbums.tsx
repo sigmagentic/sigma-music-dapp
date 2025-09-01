@@ -587,7 +587,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     <div className="flex flex-col justify-center items-center w-full ">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
         <div
-          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "md:h-[1px] md:relative md:z-10 md:left-[-15px]" : ""}`}>
+          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "md:h-[1px] md:relative md:z-[1] md:left-[-15px]" : ""}`}>
           <div className={`flex flex-col md:flex-row justify-between ${inArtistProfileView ? "md:w-[fit-content]" : "w-full"}`}>
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
               <div
@@ -1126,6 +1126,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistId={artistProfile.artistId}
                               filterByArtistCampaignCode={filterByArtistCampaignCode}
                               nftMarketplaceLink={artistProfile.fanTokenNftMarketplaceLink || ""}
+                              artistProfile={artistProfile}
                             />
                           </div>
                         )}

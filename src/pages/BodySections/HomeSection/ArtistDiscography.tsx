@@ -997,8 +997,19 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             <BuyAndMintAlbumUsingCC
               albumToBuyAndMint={albumToBuyAndMint}
               artistProfile={artistProfile}
-              onCloseModal={() => {
+              onCloseModal={(isMintingSuccess: boolean) => {
                 setAlbumToBuyAndMint(undefined);
+
+                if (isMintingSuccess) {
+                  refreshPurchasedAlbumCollectiblesViaRPC();
+
+                  // if the album is a commercial license, we need to refresh the myStoryProtocolLicenses
+                  if (albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId) {
+                    handleRefreshMyStoryProtocolLicenses();
+                  }
+                }
+
+                refreshPurchasedLogsViaAPI();
               }}
             />
           ))}

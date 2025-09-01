@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
-import { confetti } from "@tsparticles/confetti";
 import { Loader } from "lucide-react";
-import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS } from "config";
+import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS, ONE_USD_IN_XP } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -12,29 +11,41 @@ import { injectXUserNameIntoTweet, toastSuccess, sleep } from "libs/utils";
 import { fetchSolPriceViaAPI, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI } from "libs/utils/api";
 import { useAccountStore } from "store/account";
 import { tierData } from "./tierData";
+import { showSuccessConfetti } from "libs/utils/uiShared";
+import useSolBitzStore from "store/solBitz";
+import { sendPowerUpSol, SendPowerUpSolResult } from "../../pages/BodySections/HomeSection/SendBitzPowerUp";
+import { useNftsStore } from "store/nfts";
+import { Artist } from "libs/types/common";
 
 export const JoinInnerCircleSOL = ({
   onCloseModal,
   artistName,
-  artistSlug,
   artistXLink,
   creatorPaymentsWallet,
   membershipId,
   creatorFanMembershipAvailability,
   artistId,
+  payWithXP,
+  artistProfile,
 }: {
   onCloseModal: (isMintingSuccess: boolean) => void;
   artistName: string;
-  artistSlug: string;
   artistXLink: string | undefined;
   creatorPaymentsWallet: string;
   membershipId: string;
   creatorFanMembershipAvailability: Record<string, any>;
   artistId: string;
+  payWithXP: boolean;
+  artistProfile: Artist;
 }) => {
   const { connection } = useConnection();
   const { sendTransaction, signMessage } = useWallet();
-  const { publicKey, walletType } = useSolanaWallet();
+  const { publicKey } = useSolanaWallet();
+  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
+  const { solBitzNfts } = useNftsStore();
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
@@ -43,10 +54,6 @@ export const JoinInnerCircleSOL = ({
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
   const [notEnoughBalance, setNotEnoughBalance] = useState(true);
-
-  // Cached Signature Store Items
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -180,6 +187,88 @@ export const JoinInnerCircleSOL = ({
     }
   };
 
+  const handlePaymentConfirmation_XP = async (priceInXP: number, priceInUSD: number) => {
+    if (!publicKey || !priceInXP || !priceInUSD || !artistProfile || !artistProfile.creatorWallet || !artistProfile.bountyId) return;
+
+    setPaymentStatus("processing");
+
+    // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+    const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+      solPreaccessNonce,
+      solPreaccessSignature,
+      solPreaccessTimestamp,
+      signMessage,
+      publicKey,
+      updateSolPreaccessNonce,
+      updateSolSignedPreaccess,
+      updateSolPreaccessTimestamp,
+    });
+
+    try {
+      let xpPaymentReceipt = "";
+
+      const sendPowerUpSolResult: SendPowerUpSolResult = await sendPowerUpSol(
+        priceInXP,
+        artistProfile.creatorWallet,
+        artistProfile.bountyId + "-p",
+        solBitzNfts,
+        isSigmaWeb2XpSystem,
+        publicKey,
+        solBitzBalance,
+        givenBitzSumSol,
+        usedPreAccessNonce,
+        usedPreAccessSignature
+      );
+
+      if (sendPowerUpSolResult.error) {
+        throw new Error(sendPowerUpSolResult.errorMessage || "Payment failed - error returned when sending XP");
+      }
+
+      if (sendPowerUpSolResult.success && sendPowerUpSolResult.paymentReceipt !== "") {
+        xpPaymentReceipt = sendPowerUpSolResult.paymentReceipt;
+      } else {
+        throw new Error("Payment failed - no receipt returned when sending XP");
+      }
+
+      if (xpPaymentReceipt === "") {
+        throw new Error("Payment failed - no receipt returned when sending XP");
+      }
+
+      // Log payment to web2 API
+      const _logPaymentToAPIResponse = await logPaymentToAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
+        payer: publicKey.toBase58(),
+        tx: xpPaymentReceipt,
+        task: "joinFanClub",
+        type: "xp",
+        amount: priceInXP.toString(),
+        priceInUSD: priceInUSD,
+        creatorWallet: creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
+        membershipId: membershipId,
+        artistId: artistId,
+      });
+
+      if (_logPaymentToAPIResponse.error) {
+        throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
+      }
+
+      toastSuccess("Payment Successful!", true);
+      setPaymentStatus("confirmed");
+      setShowPaymentConfirmation(false);
+
+      // update the bitz balance and given bitz sum
+      updateBitzBalance(sendPowerUpSolResult.bitzBalance);
+      updateGivenBitzSum(sendPowerUpSolResult.givenBitzSum);
+
+      handleMinting({ paymentMadeTx: xpPaymentReceipt, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce });
+    } catch (error) {
+      console.error("Payment failed:", error);
+      alert("Payment failed. Please try again - " + (error as Error).message);
+      setPaymentStatus("idle");
+    }
+  };
+
   /*
   const handlePaymentConfirmation_Simulate = async () => {
     if (!publicKey || !requiredSolAmount) return;
@@ -211,8 +300,7 @@ export const JoinInnerCircleSOL = ({
     setMintingStatus("processing");
 
     try {
-      // Mint the Collectible
-      const _mintNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI({
+      const mintParams: any = {
         solSignature,
         signatureNonce,
         mintForSolAddr: publicKey?.toBase58(),
@@ -221,7 +309,14 @@ export const JoinInnerCircleSOL = ({
         creatorWallet: creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
         membershipId: membershipId,
         artistId: artistId,
-      });
+      };
+
+      if (payWithXP) {
+        mintParams.isXPPayment = "1";
+      }
+
+      // Mint the Collectible
+      const _mintNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI(mintParams);
 
       if (_mintNFTAfterPaymentResponse.error) {
         throw new Error(_mintNFTAfterPaymentResponse.errorMessage || "Minting failed");
@@ -283,64 +378,77 @@ export const JoinInnerCircleSOL = ({
     setShowPaymentConfirmation(true);
   };
 
-  const showSuccessConfetti = async () => {
-    const animation = await confetti({
-      spread: 360,
-      ticks: 100,
-      gravity: 0,
-      decay: 0.94,
-      startVelocity: 30,
-      particleCount: 200,
-      scalar: 2,
-      shapes: ["emoji", "circle", "square"],
-      shapeOptions: {
-        emoji: {
-          value: ["💎", "⭐", "✨", "💫"],
-        },
-      },
-    });
-
-    if (animation) {
-      await sleep(10);
-      animation.stop();
-      if ((animation as any).destroy) {
-        (animation as any).destroy();
-      }
-    }
-  };
-
   // Payment confirmation popup
-  const PaymentConfirmationPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
-      <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
-        <div className="space-y-4">
-          <p>
-            Amount to pay: {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
-          </p>
-          <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
+  const PaymentConfirmationPopup = () => {
+    const priceInXP = Number(tierData[membershipId]?.defaultPriceUSD) * ONE_USD_IN_XP;
+    const notEnoughXP = priceInXP > solBitzBalance;
 
-          {paymentStatus === "idle" && <p>When you click "Proceed", you will be asked to sign a single transaction to send the payment.</p>}
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
+        <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm Payment" : "Payment Transfer in Process..."}</h3>
+          <div className="space-y-4">
+            <p>
+              Amount to pay:
+              {!payWithXP && (
+                <span>
+                  {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
+                </span>
+              )}
+              {payWithXP && <span> {priceInXP.toLocaleString()} XP</span>}
+            </p>
 
-          {paymentStatus === "processing" ? (
-            <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
-              <Loader className="w-full text-center animate-spin hover:scale-105" />
-              <p className="text-yellow-300">Payment in process... do not close this page</p>
-            </div>
-          ) : (
-            <div className="flex gap-4">
-              <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
-                Cancel
-              </Button>
-              <Button onClick={handlePaymentConfirmation} className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
-                Proceed
-              </Button>
-            </div>
-          )}
+            {!payWithXP && <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>}
+            {payWithXP && <p>Your XP balance: {solBitzBalance.toLocaleString()} XP</p>}
+            {!payWithXP && paymentStatus === "idle" && <p>When you click "Proceed", you will be asked to sign a single transaction to send the payment.</p>}
+
+            {paymentStatus === "processing" ? (
+              <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
+                <Loader className="w-full text-center animate-spin hover:scale-105" />
+                <p className="text-yellow-300">Payment in process... do not close this page</p>
+              </div>
+            ) : (
+              <div className="flex gap-4">
+                <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (!payWithXP) {
+                      handlePaymentConfirmation();
+                    } else {
+                      handlePaymentConfirmation_XP(priceInXP, Number(tierData[membershipId]?.defaultPriceUSD));
+                    }
+                  }}
+                  className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
+                  disabled={isSolPaymentsDisabled || notEnoughBalance || (payWithXP && notEnoughXP)}>
+                  Proceed
+                </Button>
+              </div>
+            )}
+
+            {!payWithXP && isSolPaymentsDisabled && (
+              <div className="flex gap-4 bg-red-500 p-4 rounded-lg text-sm">
+                <p className="text-white">SOL payments are currently disabled. Please try again later.</p>
+              </div>
+            )}
+
+            {!payWithXP && notEnoughBalance && (
+              <div className="flex-1 bg-red-500 text-white p-2 rounded-lg text-sm">
+                <p>You do not have enough SOL to purchase this membership.</p>
+              </div>
+            )}
+
+            {payWithXP && notEnoughXP && (
+              <div className="flex-1 bg-red-500 text-white p-2 rounded-lg text-sm">
+                <p>You do not have enough XP to proceed. You can earn more XP or buy an XP boost. Check for options in the top app menu.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   function resetStateToPristine() {
     setShowPaymentConfirmation(false);
@@ -358,7 +466,7 @@ export const JoinInnerCircleSOL = ({
 
       <div
         className={`relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 grid grid-cols-1  ${paymentStatus === "idle" ? "md:grid-cols-2 max-w-5xl" : "md:grid-cols-1 max-w-xl"} gap-6`}>
-        {/* Close button - moved outside the grid */}
+        {/* Close button */}
         {(paymentStatus === "idle" || mintingStatus === "confirmed" || mintingStatus === "failed") && (
           <button
             onClick={() => {
@@ -375,12 +483,20 @@ export const JoinInnerCircleSOL = ({
           <div>
             <div className="mb-2">
               <h2 className={` ${paymentStatus === "idle" ? "!text-3xl" : "!text-2xl"} text-center font-bold`}>
-                {paymentStatus === "idle" ? "Join Inner Circle" : "Minting Inner Circle Membership..."}
+                {paymentStatus === "idle" ? "Join Inner Circle" : "Minting Inner Circle Membership"}
               </h2>
             </div>
 
             <div className="text-center text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              {tierData[membershipId]?.label.toUpperCase()} Tier @ {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
+              {tierData[membershipId]?.label.toUpperCase()} Tier @
+              <span>
+                {!payWithXP && (
+                  <span>
+                    {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
+                  </span>
+                )}
+                {payWithXP && <span>{" " + (Number(tierData[membershipId]?.defaultPriceUSD) * ONE_USD_IN_XP).toLocaleString()} XP</span>}
+              </span>
               {tierData[membershipId]?.term === "annual" ? " per year" : ""}
             </div>
 
@@ -459,7 +575,7 @@ export const JoinInnerCircleSOL = ({
                     onClick={handlePaymentAndMint}
                     className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
                     disabled={isSolPaymentsDisabled || notEnoughBalance}>
-                    Make Payment and Mint Fan Collectible
+                    Buy Fan Collectible
                   </Button>
                 </>
               )}
@@ -467,6 +583,7 @@ export const JoinInnerCircleSOL = ({
           </div>
         )}
 
+        {/* Success Notification */}
         {mintingStatus === "confirmed" && (
           <div>
             <div className="mb-6"></div>
@@ -513,10 +630,16 @@ export const JoinInnerCircleSOL = ({
             <ul className="space-y-3 list-none">
               <li className="flex gap-2">
                 <span className="text-cyan-400 font-bold">1.</span>
-                Make a SOL payment of{" "}
-                <span className="text-orange-600 contents">
-                  {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
-                </span>
+                {!payWithXP && (
+                  <span className="text-orange-600 contents">
+                    Make a SOL payment of {requiredSolAmount ?? "..."} SOL (${tierData[membershipId]?.defaultPriceUSD})
+                  </span>
+                )}
+                {payWithXP && (
+                  <span className="text-orange-600 contents">
+                    Make a payment of {" " + (Number(tierData[membershipId]?.defaultPriceUSD) * ONE_USD_IN_XP).toLocaleString()} XP
+                  </span>
+                )}
                 . This is used to pay for the membership tokenization
               </li>
               <li className="flex gap-2">

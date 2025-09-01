@@ -115,6 +115,12 @@ As a FAN
 I want to buy a Music Album Collectible with my Credit Card / SOL / XP
 To support my favorite artist and also stream/download the full album with bonus tracks
 
+- Digital Album Only - (SOL / XP pass)
+- Album + Commercial License - [used Cereals SOL -- PASS] [used TKO for XP -- PASS]
+- NFT + Digital Album
+
+- Ultimate Package
+
 2/
 As a FAN
 I want to buy a Inner Circle Fan NFT with my Credit Card / SOL / XP

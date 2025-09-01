@@ -11,6 +11,7 @@ interface PurchaseOptionsProps {
   buyNowMeta: Album["_buyNowMeta"];
   disableActions?: boolean;
   payWithXP: boolean;
+  albumSaleTypeOption: string;
   handlePaymentAndMint: (albumSaleTypeOption: string) => void;
   handleShowLargeSizeTokenImg: (tokenImg: string | null) => void;
   handlePayWithXP: (payWithXP: boolean) => void;
@@ -21,6 +22,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
   buyNowMeta,
   disableActions = false,
   payWithXP,
+  albumSaleTypeOption,
   handlePaymentAndMint,
   handleShowLargeSizeTokenImg,
   handlePayWithXP,
@@ -131,8 +133,14 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
                 disabled={isPaymentsDisabled || !available || disableActions}>
                 {disableActions ? (
                   <>
-                    <Loader className="animate-spin mr-2" size={15} />
-                    Working
+                    {albumSaleTypeOption === option ? (
+                      <>
+                        <Loader className="animate-spin mr-2" size={15} />
+                        Working
+                      </>
+                    ) : (
+                      "Please Wait"
+                    )}
                   </>
                 ) : (
                   "Buy Now"
@@ -150,10 +158,10 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
       <div className="flex flex-row gap-2 justify-between">
         <h3 className="!text-2xl font-bold mb-4 hidden md:block">Purchase Options</h3>
 
-        <div className="flex flex-col gap-2 ">
+        <div className="flex flex-col gap-2 mr-10">
           <div className="flex items-center space-x-2">
             <Switch checked={payWithXP} onCheckedChange={handlePayWithXP} />
-            <span className="text-sm text-gray-600">Pay with XP</span>
+            <span className="text-xs text-gray-600">Pay with XP</span>
           </div>
         </div>
       </div>

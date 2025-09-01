@@ -501,7 +501,7 @@ export const fetchCreatorFanMembershipAvailabilityViaAPI = async (creatorPayment
     }
 
     const response = await fetch(
-      `${getApiWeb2Apps(true)}/datadexapi/sigma/mintInnerCircleNFTCanBeMinted?creatorWallet=${creatorPaymentsWallet}&artistId=${artistId}`
+      `${getApiWeb2Apps()}/datadexapi/sigma/mintInnerCircleNFTCanBeMinted?creatorWallet=${creatorPaymentsWallet}&artistId=${artistId}`
     );
 
     if (!response.ok) {
@@ -1281,7 +1281,7 @@ export const fetchBountySnapshotViaAPI = async () => {
 
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
 
-    const response = await fetch(`${getApiWeb2Apps(true)}/app_nftunes/assets/json/bounty_snapshot.json`);
+    const response = await fetch(`${getApiWeb2Apps()}/app_nftunes/assets/json/bounty_snapshot.json`);
 
     if (response.ok) {
       const data = await response.json();

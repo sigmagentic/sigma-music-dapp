@@ -84,6 +84,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
     updateSolSignedPreaccess,
     updateSolPreaccessTimestamp,
   } = useAccountStore();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [currentStep, setCurrentStep] = useState<WorkflowStep>("welcome");
   const [userProfileData, setUserProfileData] = useState<ProfileFormData>({
@@ -111,10 +112,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   const [errorMessage, setErrorMessage] = useState("");
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [slugAvailability, setSlugAvailability] = useState<"available" | "unavailable" | "unchecked" | "checking">("unchecked");
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  // keeps track if a new file is selected for edit so we can save it to the server to get back a https url for profileImage
-  const [newSelectedProfileImageFile, setNewSelectedProfileImageFile] = useState<File | null>(null);
+  const [newSelectedProfileImageFile, setNewSelectedProfileImageFile] = useState<File | null>(null); // keeps track if a new file is selected for edit so we can save it to the server to get back a https url for profileImage
   const [newSelectedArtistProfileImageFile, setNewSelectedArtistProfileImageFile] = useState<File | null>(null);
 
   // Add effect to prevent body scrolling when modal is open
@@ -1004,17 +1002,19 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           Give Me a Quick Tour & Free XP
         </Button> */}
 
-        <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
-          <Button
-            onClick={() => {
-              setHomeMode("profile");
-              onClose();
-            }}
-            className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm"
-            variant="outline">
-            Launch your First Album!
-          </Button>
-        </div>
+        {(userProfileData.profileTypes.includes("remixer") || userProfileData.profileTypes.includes("composer")) && (
+          <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
+            <Button
+              onClick={() => {
+                setHomeMode("profile");
+                onClose();
+              }}
+              className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm"
+              variant="outline">
+              Launch your First Album!
+            </Button>
+          </div>
+        )}
 
         <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
           <Button

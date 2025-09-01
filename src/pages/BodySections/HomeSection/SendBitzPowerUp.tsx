@@ -259,7 +259,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
               {(bitBalanceOnChain >= minBitzValNeeded || powerUpSuccessfullyDone) && (
                 <>
                   <div className="mt-2 text-lg">
-                    <div className="">Your XP Balance: {bitBalanceOnChain} XP</div>
+                    <div className="">Your XP Balance: {bitBalanceOnChain.toLocaleString()} XP</div>
                   </div>
 
                   {poweringUpError && (
@@ -434,7 +434,6 @@ export async function sendPowerUpSol(
     };
 
     let giveBitzGameResult = null;
-    debugger;
 
     if (isSigmaWeb2XpSystem === 1) {
       giveBitzGameResult = await sigmaWeb2XpSystem(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);

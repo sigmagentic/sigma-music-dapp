@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
-import { confetti } from "@tsparticles/confetti";
 import { Loader } from "lucide-react";
 import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS, ONE_USD_IN_XP } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -17,6 +16,7 @@ import PurchaseOptions from "./PurchaseOptions";
 import useSolBitzStore from "store/solBitz";
 import { sendPowerUpSol, SendPowerUpSolResult } from "../SendBitzPowerUp";
 import { useNftsStore } from "store/nfts";
+import { showSuccessConfetti } from "libs/utils/uiShared";
 
 export const BuyAndMintAlbumUsingSOL = ({
   onCloseModal,
@@ -30,6 +30,11 @@ export const BuyAndMintAlbumUsingSOL = ({
   const { connection } = useConnection();
   const { sendTransaction, signMessage } = useWallet();
   const { publicKey } = useSolanaWallet();
+  const { solBitzNfts } = useNftsStore();
+  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+
   const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
@@ -44,12 +49,6 @@ export const BuyAndMintAlbumUsingSOL = ({
   const { artistLookupEverything } = useAppStore();
   const [notEnoughBalance, setNotEnoughBalance] = useState(true);
   const [payWithXP, setPayWithXP] = useState(false);
-  const { solBitzNfts } = useNftsStore();
-  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
-
-  // Cached Signature Store Items
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -221,6 +220,8 @@ export const BuyAndMintAlbumUsingSOL = ({
   const handlePaymentConfirmation_XP = async (priceInXP: number, priceInUSD: number) => {
     if (!publicKey || !priceInXP || !priceInUSD) return;
 
+    setPaymentStatus("processing");
+
     // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
     const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
       solPreaccessNonce,
@@ -233,7 +234,30 @@ export const BuyAndMintAlbumUsingSOL = ({
       updateSolPreaccessTimestamp,
     });
 
-    setPaymentStatus("processing");
+    /*
+    // TEST UI WORKFLOW HERE
+    setTimeout(async () => {
+      // need to pull it out of the ui thread of for some reason the confetti goes first
+      toastSuccess("Payment Successful!", true);
+      setPaymentStatus("confirmed");
+      setShowPaymentConfirmation(false);
+
+      // user is buying ONLY the digital album so we dont need minting
+      setDigitalAlbumOnlyPurchaseStatus("processing");
+
+      await sleep(3);
+
+      toastSuccess("Digital Album Purchase Successful!", true);
+
+      // need to pull it out of the ui thread of for some reason the confetti goes first
+      setTimeout(() => {
+        setDigitalAlbumOnlyPurchaseStatus("confirmed");
+        showSuccessConfetti();
+      }, 500);
+    }, 5000);
+
+    return;
+    */
 
     try {
       // we GIVE XP to the album bounty ID, but we also send an extra "flag" to indicate its a purchase and not a donation?
@@ -241,32 +265,31 @@ export const BuyAndMintAlbumUsingSOL = ({
       // the GIVE BIT XP route returns a "receipt" ID, which we can then send as the "tx" field in the logPaymentToAPI call
       /*
 
-onSendBitzForMusicBounty({
-                                        creatorIcon: artistProfile.img,
-                                        creatorName: artistProfile.name,
-                                        creatorSlug: artistProfile.slug,
-                                        creatorXLink: artistProfile.xLink,
-                                        giveBitzToWho: artistProfile.creatorWallet,
-                                        giveBitzToCampaignId: artistProfile.bountyId,
-                                      });
+      onSendBitzForMusicBounty({
+        creatorIcon: artistProfile.img,
+        creatorName: artistProfile.name,
+        creatorSlug: artistProfile.slug,
+        creatorXLink: artistProfile.xLink,
+        giveBitzToWho: artistProfile.creatorWallet,
+        giveBitzToCampaignId: artistProfile.bountyId,
+      });
 
 
-dmf-custom-give-bits
-1
-dmf-custom-give-bits-to-campaign-id
-mus_ar2
-dmf-custom-give-bits-to-who
-3ibP6nxaKocQPA8S5ntXSo1Xd4aYSa93QKjPzDaPqAmB
-dmf-custom-give-bits-val
-5
-dmf-custom-sol-collection-id
-AXvaYiSwE7XKdiM4eSWTfagkswmWKVF7KzwW5EpjCDGk
+      dmf-custom-give-bits
+      1
+      dmf-custom-give-bits-to-campaign-id
+      mus_ar2
+      dmf-custom-give-bits-to-who
+      3ibP6nxaKocQPA8S5ntXSo1Xd4aYSa93QKjPzDaPqAmB
+      dmf-custom-give-bits-val
+      5
+      dmf-custom-sol-collection-id
+      AXvaYiSwE7XKdiM4eSWTfagkswmWKVF7KzwW5EpjCDGk
 
 
-maybe we can append -p to the bounty (to indicate it's a payment for a service they offer)
+      maybe we can append -p to the bounty (to indicate it's a payment for a service they offer)
 
-mus_ar2-p
-
+      mus_ar2-p
     */
 
       let xpPaymentReceipt = "";
@@ -413,6 +436,10 @@ mus_ar2-p
         mintParams.onlyNeedCommercialLicenseSoBypassNftMinting = "1";
       }
 
+      if (payWithXP) {
+        mintParams.isXPPayment = "1";
+      }
+
       const _mintAlbumNFTAfterPaymentResponse = await mintAlbumOrFanNFTAfterPaymentViaAPI(mintParams);
 
       if (_mintAlbumNFTAfterPaymentResponse.error) {
@@ -481,32 +508,6 @@ mus_ar2-p
     setShowPaymentConfirmation(true);
   };
 
-  const showSuccessConfetti = async () => {
-    const animation = await confetti({
-      spread: 360,
-      ticks: 100,
-      gravity: 0,
-      decay: 0.94,
-      startVelocity: 30,
-      particleCount: 200,
-      scalar: 2,
-      shapes: ["emoji", "circle", "square"],
-      shapeOptions: {
-        emoji: {
-          value: ["💎", "⭐", "✨", "💫"],
-        },
-      },
-    });
-
-    if (animation) {
-      await sleep(10);
-      animation.stop();
-      if ((animation as any).destroy) {
-        (animation as any).destroy();
-      }
-    }
-  };
-
   const PaymentConfirmationPopup = () => (
     <>
       {albumSaleTypeOption ? (
@@ -571,7 +572,6 @@ mus_ar2-p
     })();
 
     const priceInXP = Number(priceInUSD) * ONE_USD_IN_XP;
-
     const notEnoughXP = priceInXP > solBitzBalance;
 
     return (
@@ -582,7 +582,7 @@ mus_ar2-p
               <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm XP Payment" : "Payment Transfer in Process..."}</h3>
               <div className="space-y-4">
                 <p>Amount to pay: {priceInXP.toLocaleString()} XP</p>
-                <p>Your XP balance: {solBitzBalance} XP</p>
+                <p>Your XP balance: {solBitzBalance.toLocaleString()} XP</p>
 
                 {paymentStatus === "processing" ? (
                   <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
@@ -607,7 +607,7 @@ mus_ar2-p
 
                 {notEnoughXP && (
                   <div className="flex-1 bg-red-500 text-white p-2 rounded-lg text-sm">
-                    <p>You do not have enough XP to proceed. You can earn more XP or buy an XP boost.</p>
+                    <p>You do not have enough XP to proceed. You can earn more XP or buy an XP boost. Check for options in the top app menu.</p>
                   </div>
                 )}
               </div>
@@ -633,7 +633,9 @@ mus_ar2-p
     return mintingStatus === "confirmed" || digitalAlbumOnlyPurchaseStatus === "confirmed";
   }
 
-  const mintingIsInCommercialLicensePathway = AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4;
+  const mintingIsInCommercialLicensePathway =
+    AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4 ||
+    AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption3;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-start md:items-center md:justify-center z-50">
@@ -736,6 +738,7 @@ mus_ar2-p
                 setHoveredLargeSizeTokenImg(tokenImg);
               }}
               handlePayWithXP={setPayWithXP}
+              albumSaleTypeOption={albumSaleTypeOption || ""}
             />
 
             <div className="flex flex-col md:flex-row gap-2 col-span-2">

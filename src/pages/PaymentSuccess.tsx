@@ -12,6 +12,8 @@ import { getApiWeb2Apps, logPaymentToAPI, mintAlbumOrFanNFTAfterPaymentViaAPI, s
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
+import { Speaker } from "lucide-react";
+import { showSuccessConfetti } from "libs/utils/uiShared";
 
 let verifyPaymentIsInProgress = false;
 
@@ -19,9 +21,12 @@ export const PaymentSuccess = () => {
   const { signMessage: signMessageViaNativeWallet } = useWallet();
   const { walletType } = useSolanaWallet();
   const { signMessageViaWeb3Auth, isLoading: isWeb3AuthLoading, isConnected: isWeb3AuthConnected, connect: connectWeb3Auth, web3auth } = useWeb3Auth();
-
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { updateSolNfts, isSolCoreLoading } = useNftsStore();
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+
   const [itemImg, setItemImg] = useState<string | null>(null);
   const [itemTitle, setItemTitle] = useState<string | null>(null);
   const [itemArtist, setItemArtist] = useState<string | null>(null);
@@ -32,14 +37,9 @@ export const PaymentSuccess = () => {
   const [digitalAlbumOnlyPurchaseStatus, setDigitalAlbumOnlyPurchaseStatus] = useState<"idle" | "confirmed">("idle");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading"); // the overall status of the process
   const [error, setError] = useState<string | null>(null); // the error message if the process fails
-  const { updateSolNfts } = useNftsStore();
   const [priceInUSD, setPriceInUSD] = useState<string | null>(null);
   const [quantityToBuy, setQuantityToBuy] = useState<number | null>(1);
   const [mintingIsInCommercialLicensePathway, setMintingIsInCommercialLicensePathway] = useState<boolean>(false);
-
-  // Cached Signature Store Items
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
 
   useEffect(() => {
     useAppStore.getState().updatePaymentInProgress(true);
@@ -48,6 +48,11 @@ export const PaymentSuccess = () => {
   useEffect(() => {
     const verifyPayment = async () => {
       try {
+        // this generally means that that we are still not got the base sol nfts & we have not get got a signed preaccess signature (if we dont do this check, then user may see 2 signature prompts)
+        if (isSolCoreLoading) {
+          return;
+        }
+
         // Wait for Web3Auth to initialize
         if (walletType === "web3auth" && isWeb3AuthLoading) {
           return;
@@ -88,7 +93,8 @@ export const PaymentSuccess = () => {
 
         // XP related
         const XPPurchase = searchParams.get("XPPurchase"); // if this is true, then we are buying XP
-        const XPPurchasedFromUrl = searchParams.get("XPPurchasedFromUrl");
+        const XPPurchasedFromUrl = searchParams.get("XPPurchasedFromUrl") ? decodeURIComponent(searchParams.get("XPPurchasedFromUrl") || "") : "";
+
         const XPBeingBought = searchParams.get("XPBeingBought");
         const XPCollectionIdToUse = searchParams.get("XPCollectionIdToUse");
 
@@ -155,7 +161,7 @@ export const PaymentSuccess = () => {
             updateSolPreaccessNonce,
             updateSolSignedPreaccess,
             updateSolPreaccessTimestamp,
-            forceNewSession: true,
+            forceNewSession: false, // NEED TO CONFIRM THIS WONT BREAK ANYTHING (we did it to stop multiple signature prompts via putting in isSolCoreLoading check)
           });
 
           try {
@@ -316,6 +322,8 @@ export const PaymentSuccess = () => {
           let redirectUrl = "/";
 
           if (XPPurchase && XPPurchasedFromUrl) {
+            redirectUrl = XPPurchasedFromUrl !== "" ? XPPurchasedFromUrl.trim() : "/";
+
             if (redirectUrl === "/") {
               redirectUrl = "/?action=justpaidforxp";
             } else {
@@ -351,33 +359,7 @@ export const PaymentSuccess = () => {
       console.log("Payment verification already in progress, skipping...");
     }
     // }, [searchParams, navigate, isWeb3AuthLoading, isConnected, connect]);
-  }, [searchParams, navigate, isWeb3AuthLoading, isWeb3AuthConnected, connectWeb3Auth, walletType, signMessageViaNativeWallet]);
-
-  const showSuccessConfetti = async () => {
-    const animation = await confetti({
-      spread: 360,
-      ticks: 100,
-      gravity: 0,
-      decay: 0.94,
-      startVelocity: 30,
-      particleCount: 200,
-      scalar: 2,
-      shapes: ["emoji", "circle", "square"],
-      shapeOptions: {
-        emoji: {
-          value: ["💎", "⭐", "✨", "💫"],
-        },
-      },
-    });
-
-    if (animation) {
-      await sleep(10);
-      animation.stop();
-      if ((animation as any).destroy) {
-        (animation as any).destroy();
-      }
-    }
-  };
+  }, [searchParams, navigate, isWeb3AuthLoading, isWeb3AuthConnected, connectWeb3Auth, walletType, signMessageViaNativeWallet, isSolCoreLoading]);
 
   return (
     <div className="min-h-[80dvh] flex items-center justify-center">
@@ -396,13 +378,26 @@ export const PaymentSuccess = () => {
                     className="w-32 h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-cover rounded-lg shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
                   />
                 ) : (
-                  <div className="w-32 h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 rounded-lg shadow-2xl bg-gray-700 animate-pulse" />
+                  <div className="w-32 h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 rounded-lg shadow-2xl bg-gray-700 animate-pulse flex items-center justify-center">
+                    {purchaseType === "xp" ? (
+                      <div className="relative scale-[2]">
+                        <div
+                          className="absolute rounded-full w-[0.4rem] h-[0.4rem] top-[-15px] left-[10px] bg-[#fde047] animate-ping-slow"
+                          style={{ animationDelay: "1s" }}></div>
+                        <div
+                          className="absolute rounded-full w-[0.3rem] h-[0.3rem] top-[-8px] left-[4px] bg-[#fde047] animate-ping-slow"
+                          style={{ animationDelay: "0.5s" }}></div>
+                        <div className="absolute rounded-full w-1 h-1 top-[-5px] left-[13px] bg-[#fde047] animate-ping-slow"></div>
+                        <Speaker className="text-gray-400" />
+                      </div>
+                    ) : null}
+                  </div>
                 )}
               </div>
 
               <div className="text-center space-y-4">
                 <h3 className="text-xl md:text-2xl font-bold text-white">
-                  {purchaseType === "album" && (
+                  {purchaseType === "album" && itemTitle && itemArtist && (
                     <>
                       {itemTitle} by <span className="text-gray-400">{itemArtist}</span>
                     </>
