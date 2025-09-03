@@ -29,7 +29,7 @@ export const useNftsStore = create<State & Action>((set) => ({
   isLoadingMvx: false,
   solNfts: [],
   solBitzNfts: [],
-  isSolCoreLoading: false,
+  isSolCoreLoading: true, // always starts with true (as it's loading valid and usable solana sesion -- i.e only used in app for logged in best case session detection)
   solNFMeIdNfts: [],
   solMusicAssetNfts: [],
   solFanMembershipNfts: [],

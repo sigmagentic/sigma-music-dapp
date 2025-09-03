@@ -6,10 +6,9 @@ import { GenreSelector } from "./GenreSelector";
 interface NFMePreferencesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  nfMeIdBrandingHide: boolean;
 }
 
-export function NFMePreferencesModal({ isOpen, onClose, nfMeIdBrandingHide }: NFMePreferencesModalProps) {
+export function NFMePreferencesModal({ isOpen, onClose }: NFMePreferencesModalProps) {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
   // Load preferences from session storage when modal opens
@@ -42,17 +41,10 @@ export function NFMePreferencesModal({ isOpen, onClose, nfMeIdBrandingHide }: NF
   const allGenres = new Set([...allConfigGenres, ...selectedGenres]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex flex-col gap-4">
           <h3 className="text-xl font-semibold text-center">Save your app preferences</h3>
-
-          {!nfMeIdBrandingHide && (
-            <p className="text-gray-300 text-center">
-              Your NFMe is a special NFT that you can use to store your personal data like your music preferences which is then used to personalize your Sigma
-              Music experience!
-            </p>
-          )}
 
           <GenreSelector genres={Array.from(allGenres)} selectedGenres={selectedGenres} onGenreToggle={toggleGenre} />
 

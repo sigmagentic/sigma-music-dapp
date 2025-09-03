@@ -28,6 +28,8 @@ export const App = () => {
     artistSlug,
     albumId,
     artistProfileTab,
+    toSection,
+    toView,
   }: {
     artistCampaignCode?: string;
     artistSubGroup1Code?: string;
@@ -35,6 +37,8 @@ export const App = () => {
     artistSlug?: string;
     albumId?: string;
     artistProfileTab?: string;
+    toSection?: string;
+    toView?: string;
   }) => {
     /*
     routes we support navigation to:
@@ -77,6 +81,7 @@ export const App = () => {
             delete currentParams["team"];
             delete currentParams["campaign"];
             delete currentParams["section"];
+            delete currentParams["view"];
 
             currentParams["campaign"] = artistCampaignCode;
             currentParams["country"] = artistSubGroup1Code;
@@ -98,6 +103,7 @@ export const App = () => {
             delete currentParams["team"];
             delete currentParams["campaign"];
             delete currentParams["section"];
+            delete currentParams["view"];
 
             currentParams["campaign"] = artistCampaignCode;
             currentParams["country"] = artistSubGroup1Code;
@@ -118,6 +124,7 @@ export const App = () => {
             delete currentParams["team"];
             delete currentParams["campaign"];
             delete currentParams["section"];
+            delete currentParams["view"];
 
             currentParams["campaign"] = artistCampaignCode;
 
@@ -138,6 +145,7 @@ export const App = () => {
         if (artistSlug) {
           const currentParams = Object.fromEntries(searchParams.entries());
           delete currentParams["section"];
+          delete currentParams["view"];
           let slugToUse = artistSlug;
 
           if (albumId) {
@@ -153,6 +161,18 @@ export const App = () => {
           setFeaturedArtistDeepLinkSlug(artistSlug);
           setHomeMode(`artists-${new Date().getTime()}`);
           setSearchParams(currentParams);
+        } else if (toSection) {
+          const currentParams = Object.fromEntries(searchParams.entries());
+          currentParams["section"] = toSection;
+
+          if (toView) {
+            currentParams["view"] = toView;
+          } else {
+            delete currentParams["view"];
+          }
+
+          setSearchParams(currentParams);
+          setHomeMode(toSection + "-" + new Date().getTime());
         }
       }
     }
@@ -167,6 +187,7 @@ export const App = () => {
     delete currentParams["team"];
     delete currentParams["campaign"];
     delete currentParams["section"];
+    delete currentParams["view"];
     setSearchParams(currentParams);
   };
 

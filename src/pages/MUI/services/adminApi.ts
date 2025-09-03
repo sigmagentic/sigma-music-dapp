@@ -1,17 +1,6 @@
 import { getApiWeb2Apps } from "libs/utils/api";
 import { MusicCollectibleMetadataFormData, FanCollectibleMetadataFormData } from "../components/CollectibleMetadataModal";
-
-// Types for admin API responses
-export interface FastStreamTrack {
-  file: string;
-  bonus: number;
-  arId: string;
-  category: string;
-  cover_art_url: string;
-  alId: string;
-  idx: number;
-  title: string;
-}
+import { FastStreamTrack } from "libs/types";
 
 export interface MusicCollectibleMetadata extends MusicCollectibleMetadataFormData {
   nftType: string;
@@ -58,7 +47,7 @@ export const fastStreamApi = {
   },
 
   // Add new fast stream tracks for an album
-  addNewFastStreamTracksForAlbum: async (trackData: Partial<FastStreamTrack>): Promise<AdminApiResponse<null>> => {
+  addOrUpdateFastStreamTracksForAlbum: async (trackData: Partial<FastStreamTrack>): Promise<AdminApiResponse<null>> => {
     try {
       const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/management/addOrUpdateMusicCatalogTrack`, {
         method: "POST",
@@ -76,7 +65,7 @@ export const fastStreamApi = {
           data: null,
           error: data?.errorMessage || "Unknown error",
         };
-      } else if (data?.created) {
+      } else if (data?.created || data?.updated) {
         return {
           success: true,
           data: null,

@@ -25,10 +25,10 @@ export enum MVX_ENV_ENUM {
 
 export const DISABLE_BITZ_FEATURES = import.meta.env.VITE_ENV_DISABLE_BITZ_FEATURES || false;
 export const DISABLE_REMIX_LAUNCH_BUTTON = import.meta.env.VITE_ENV_DISABLE_REMIX_LAUNCH || false;
-export const DISABLE_COMMERCIAL_LICENSE_BUY_OPTION = import.meta.env.VITE_ENV_DISABLE_COMMERCIAL_LICENSE_BUY_OPTION || true;
+export const DISABLE_COMMERCIAL_LICENSE_BUY_OPTION = import.meta.env.VITE_ENV_DISABLE_COMMERCIAL_LICENSE_BUY_OPTION || "1";
+export const DISABLE_AI_REMIX_FEATURES = import.meta.env.VITE_ENV_DISABLE_AI_REMIX_FEATURES || "1";
 
-export const GENERATE_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0
-export const LAUNCH_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0
+export const GENERATE_MUSIC_MEME_PRICE_IN_USD = 0.04; // how much for a single version
 
 export const SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS = "6WjQ42oteJmPQTiyHpjc7tufvxyenjQs9FUiJFHb1YDX";
 
@@ -86,16 +86,41 @@ export const ALL_MUSIC_GENRES = [
     tier: GenreTier.TIER1,
     tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/OllyGMonaLisaRapSymphony.jpg",
   },
-  { code: "electronic", label: "Electronic", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PixelJedi_Absolute.jpg" },
-  { code: "dnb", label: "Drum & Bass", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PhysixDudeAnglesOfIdentity.jpg" },
-  { code: "hip hop", label: "Hip Hop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Streetz_Cover.jpg" },
+  {
+    code: "electronic",
+    label: "Electronic",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PixelJedi_Absolute.jpg",
+    isAiRemixOption: true,
+  },
+  {
+    code: "dnb",
+    label: "Drum & Bass",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/PhysixDudeAnglesOfIdentity.jpg",
+    isAiRemixOption: true,
+  },
+  {
+    code: "hip hop",
+    label: "Hip Hop",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Streetz_Cover.jpg",
+    isAiRemixOption: true,
+  },
   {
     code: "rock",
     label: "Rock",
     tier: GenreTier.TIER1,
     tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/deep-forest.jpg?tpos=bottom",
+    isAiRemixOption: true,
   },
-  { code: "rnb", label: "R&B", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/Beats_By_Scooby_TAOTS_Album_Cover.png" },
+  {
+    code: "rnb",
+    label: "R&B",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/Beats_By_Scooby_TAOTS_Album_Cover.png",
+    isAiRemixOption: true,
+  },
   { code: "jazz", label: "Jazz", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/HachiMugenInfinitySeries.jpg" },
   {
     code: "folk",
@@ -103,7 +128,13 @@ export const ALL_MUSIC_GENRES = [
     tier: GenreTier.TIER1,
     tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/Waveborn_Luminex_Lost_And_Wondering.jpeg",
   },
-  { code: "pop", label: "Pop", tier: GenreTier.TIER1, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/WavebornLuminexGalacticGravity.jpg" },
+  {
+    code: "pop",
+    label: "Pop",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/WavebornLuminexGalacticGravity.jpg",
+    isAiRemixOption: true,
+  },
 
   { code: "house", label: "House", tier: GenreTier.TIER2, tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Corners_Cover.jpg" },
   { code: "trap", label: "Trap", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/2nCt3Sbl.png" },
@@ -171,6 +202,37 @@ export const ALL_MUSIC_GENRES = [
   { code: "spoken word", label: "Spoken Word", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
 ];
 
+export const ALL_MUSIC_MOODS = [
+  {
+    code: "happy",
+    label: "Happy",
+  },
+  {
+    code: "sad",
+    label: "Sad",
+  },
+  {
+    code: "relaxing",
+    label: "Relaxing",
+  },
+  {
+    code: "energetic",
+    label: "Energetic",
+  },
+  {
+    code: "laid back",
+    label: "Laid Back",
+  },
+  {
+    code: "quirky",
+    label: "Quirky",
+  },
+  {
+    code: "sentimental",
+    label: "Sentimental",
+  },
+];
+
 export const LICENSE_TERMS_MAP = {
   [AlbumSaleTypeOption.priceOption1]: {
     shortDescription: "CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives",
@@ -184,4 +246,10 @@ export const LICENSE_TERMS_MAP = {
     shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license",
     urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
   },
+  [AlbumSaleTypeOption.priceOption4]: {
+    shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license",
+    urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
+  },
 };
+
+export const ONE_USD_IN_XP = 1000; // conversion rate from USD to XP

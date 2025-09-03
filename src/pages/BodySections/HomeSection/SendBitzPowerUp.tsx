@@ -13,6 +13,7 @@ import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 type SendBitzPowerUpProps = {
   giveBitzForMusicBountyConfig: {
@@ -23,35 +24,32 @@ type SendBitzPowerUpProps = {
     giveBitzToWho: string;
     giveBitzToCampaignId: string;
     isLikeMode?: boolean;
+    isRemixVoteMode?: boolean;
   };
   onCloseModal: any;
 };
 
 export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { giveBitzForMusicBountyConfig, onCloseModal } = props;
-  const { creatorIcon, creatorName, creatorXLink, giveBitzToWho, giveBitzToCampaignId, isLikeMode } = giveBitzForMusicBountyConfig;
+
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
+  const { creatorIcon, creatorName, creatorXLink, giveBitzToWho, giveBitzToCampaignId, isLikeMode, isRemixVoteMode } = giveBitzForMusicBountyConfig;
   const { signMessage } = useWallet();
-  const { publicKey: publicKeySol } = useSolanaWallet();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
+  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
+  const { solBitzNfts } = useNftsStore();
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+
   const [giftBitzWorkflow, setGiftBitzWorkflow] = useState<boolean>(false);
   const [bitzValToGift, setBitzValToGift] = useState<number>(0);
   const [minBitzValNeeded, setMinBitzValNeeded] = useState<number>(1);
   const [poweringUpInProgress, setPoweringUpInProgress] = useState<boolean>(false);
   const [powerUpSuccessfullyDone, setPowerUpSuccessfullyDone] = useState<boolean>(false);
   const [poweringUpError, setPoweringUpError] = useState<boolean>(false);
-  const { solBitzNfts } = useNftsStore();
   const [showDetails, setShowDetails] = useState<boolean>(false);
-
-  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
   const [tweetText, setTweetText] = useState<string>("");
-
-  // const tweetText = `url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(
-  //   `I just supported ${creatorName} _(creatorXUsername)_ on @SigmaXMusic by giving them ${bitzValToGift} of my XP!`
-  // )}`;
-
-  // Cached Signature Store Items
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
 
   useEffect(() => {
     if (publicKeySol) {
@@ -117,7 +115,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey: publicKeySol,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
@@ -184,6 +182,16 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
     }
   }
 
+  const getTitle = () => {
+    if (isLikeMode) {
+      return "Boost This Album With 5 XP";
+    }
+    if (isRemixVoteMode) {
+      return "Vote For This Remix With XP";
+    }
+    return "Power-Up This Creator With XP";
+  };
+
   return (
     <>
       <Modal
@@ -193,7 +201,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
           setGiftBitzWorkflow(false);
         }}
         closeOnOverlayClick={false}
-        title={!isLikeMode ? "Power-Up This Creator With XP" : "Boost This Album With 5 XP"}
+        title={getTitle()}
         hasFilter={false}
         filterData={[]}
         modalClassName={""}
@@ -215,26 +223,19 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                     {showDetails && (
                       <div>
                         Boosted albums get promoted and featured more on Sigma Music and other social channels, and this may drive more sales of the artist's
-                        content. If the artist has an Inner Circle premium membership offering and has enabled the "revenue share" tier, then more sales will
-                        equal more revenue shared with the artist's Inner Circle members (i.e., you).
+                        content.
                       </div>
                     )}
                   </>
-                ) : (
+                ) : !isRemixVoteMode ? (
                   <>
                     <span className="font-bold cursor-pointer" onClick={() => setShowDetails((prev) => !prev)}>
                       ℹ️ Why should you power-up artists?
                     </span>{" "}
-                    {showDetails && (
-                      <div>
-                        Artists with the most XP powering them will be featured more on Sigma Music and other social channels, and they also earn token rewards
-                        (this supports the musician). In return, you can climb the artist's supporter leaderboard, and the top climbers earn token rewards (to
-                        reward you for supporting the artist). Being featured more on Sigma Music and other social channels may also drive more sales of the
-                        artist's content. If the artist has an Inner Circle premium membership offering and has enabled the "revenue share" tier, then more
-                        sales will equal more revenue shared with the artist's Inner Circle members (i.e., you).
-                      </div>
-                    )}
+                    {showDetails && <div>Artists with the most XP powering them will be featured more on Sigma Music and other social channels.</div>}
                   </>
+                ) : (
+                  <></>
                 )}
               </div>
               <div className="bg1-green-200 flex flex-col md:flex-row md:items-center">
@@ -260,7 +261,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
               {(bitBalanceOnChain >= minBitzValNeeded || powerUpSuccessfullyDone) && (
                 <>
                   <div className="mt-2 text-lg">
-                    <div className="">Your XP Balance: {bitBalanceOnChain} XP</div>
+                    <div className="">Your XP Balance: {bitBalanceOnChain.toLocaleString()} XP</div>
                   </div>
 
                   {poweringUpError && (
@@ -280,7 +281,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
 
                   {powerUpSuccessfullyDone && (
                     <div className="h-[100px] text-lg mt-1">
-                      <div>Success! thank you for supporting this creator.</div>
+                      <div>Success! thank you for supporting this {isRemixVoteMode ? "remix" : "creator"}.</div>
                       <div className="bg-yellow-300 mt-1 rounded-full p-[10px] -z-1 w-[269px]">
                         <a
                           className="z-1 bg-yellow-300 text-black text-sm rounded-3xl gap-2 flex flex-row justify-center items-center"
@@ -351,7 +352,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                             <span className="ml-2">
                               {poweringUpInProgress
                                 ? "Sending, Please Wait..."
-                                : !isLikeMode
+                                : !isLikeMode && !isRemixVoteMode
                                   ? `Gift Creator ${bitzValToGift} XP`
                                   : `Like with ${bitzValToGift} XP`}
                             </span>
@@ -381,3 +382,93 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
     </>
   );
 };
+
+export type SendPowerUpSolResult = {
+  error: boolean;
+  success: boolean;
+  errorMessage: string;
+  bitzBalance: number;
+  givenBitzSum: number;
+  paymentReceipt: string;
+};
+
+export async function sendPowerUpSol(
+  bitzValToGift: number,
+  giveBitzToWho: string,
+  giveBitzToCampaignId: string,
+  solBitzNfts: any,
+  isSigmaWeb2XpSystem: number,
+  publicKeySol: any,
+  bitBalanceOnChain: number,
+  givenBitzSumSol: number,
+  usedPreAccessNonce: string,
+  usedPreAccessSignature: string
+): Promise<SendPowerUpSolResult> {
+  const actionResult: SendPowerUpSolResult = {
+    error: false,
+    success: false,
+    errorMessage: "",
+    bitzBalance: -1,
+    givenBitzSum: -1,
+    paymentReceipt: "",
+  };
+
+  try {
+    const headersToSend: Record<string, any> = {
+      "dmf-custom-give-bits": "1",
+      "dmf-custom-give-bits-val": bitzValToGift,
+      "dmf-custom-give-bits-to-who": giveBitzToWho,
+      "dmf-custom-give-bits-to-campaign-id": giveBitzToCampaignId,
+      "dmf-custom-sol-collection-id": solBitzNfts[0].grouping[0].group_value,
+    };
+
+    const keysToSend = [
+      "dmf-custom-give-bits",
+      "dmf-custom-give-bits-val",
+      "dmf-custom-give-bits-to-who",
+      "dmf-custom-give-bits-to-campaign-id",
+      "dmf-custom-sol-collection-id",
+    ];
+
+    const viewDataArgs = {
+      headers: headersToSend,
+      fwdHeaderKeys: keysToSend,
+    };
+
+    let giveBitzGameResult = null;
+
+    if (isSigmaWeb2XpSystem === 1) {
+      giveBitzGameResult = await sigmaWeb2XpSystem(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+    } else {
+      giveBitzGameResult = await viewDataWrapperSol(publicKeySol!, usedPreAccessNonce, usedPreAccessSignature, viewDataArgs, solBitzNfts[0].id);
+    }
+
+    if (giveBitzGameResult) {
+      if (giveBitzGameResult?.data?.statusCode && giveBitzGameResult?.data?.statusCode != 200) {
+        actionResult.error = true;
+        actionResult.errorMessage =
+          giveBitzGameResult?.data?.message || "Error: Not possible to send power-up. Error code returned. Do you have enough XP to give?";
+      } else {
+        actionResult.success = true;
+        actionResult.bitzBalance = bitBalanceOnChain - bitzValToGift;
+        actionResult.givenBitzSum = givenBitzSumSol + bitzValToGift;
+
+        if (
+          giveBitzGameResult?.data?.giveBits?.paymentReceipt &&
+          giveBitzGameResult?.data?.giveBits?.paymentReceipt !== "" &&
+          giveBitzGameResult?.data?.giveBits?.paymentReceipt !== -1
+        ) {
+          actionResult.paymentReceipt = giveBitzGameResult?.data?.giveBits?.paymentReceipt;
+        }
+      }
+    } else {
+      actionResult.error = true;
+      actionResult.errorMessage = "Error: Not possible to send power-up";
+    }
+  } catch (err: any) {
+    actionResult.error = true;
+    actionResult.errorMessage = `Error: Not possible to send power-up. ${err.toString()}`;
+  }
+
+  return actionResult;
+}

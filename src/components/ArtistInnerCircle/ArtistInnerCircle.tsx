@@ -1,22 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { SparklesIcon, ComputerDesktopIcon, UserGroupIcon } from "@heroicons/react/24/solid";
-import { confetti } from "@tsparticles/confetti";
 import { Loader, ShoppingCart } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
-import { MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
+import { Artist, MembershipData, MyFanMembershipType, Perk } from "libs/types/common";
 import {
   fetchCreatorFanMembershipAvailabilityViaAPI,
   fetchMintsByTemplatePrefix,
   fetchMyFanMembershipsForArtistViaAPI,
   fetchSolPriceViaAPI,
-  sleep,
+  getPaymentLogsViaAPI,
 } from "libs/utils";
 import { convertTokenImageUrl, formatFriendlyDate, injectXUserNameIntoTweet, scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { JoinInnerCircleCC } from "./JoinInnerCircleCC";
 import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
 import { tierData, perksData } from "./tierData";
+import { Switch } from "libComponents/Switch";
+import { showSuccessConfetti } from "libs/utils/uiShared";
+
+import { ONE_USD_IN_XP } from "config";
+import { useAccountStore } from "store/account";
 
 const getPerkTypeIcon = (type: "virtual" | "physical" | "virtual") => {
   switch (type) {
@@ -58,6 +62,7 @@ interface ArtistInnerCircleProps {
   artistId: string;
   filterByArtistCampaignCode?: string | number;
   nftMarketplaceLink?: string; // for fan memberships, we use the artists otherLink1 to put the nft marketplace link in (not ideal, as artist can have more fan tiers and they are all seperate links)
+  artistProfile: Artist;
 }
 
 export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
@@ -68,9 +73,12 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   artistId,
   filterByArtistCampaignCode,
   nftMarketplaceLink,
+  artistProfile,
 }) => {
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
+  const { updateMyRawPaymentLogs } = useAccountStore();
+
   const [isLoading, setIsLoading] = useState(true);
   const [liveMintStats, setLiveMintStats] = useState<{ mints: number; lastBought: number; maxMints: number } | null>(null);
   const [artistsMembershipOptions, setArtistMembershipOptions] = useState<MembershipData | null>(null);
@@ -82,6 +90,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
   const [joinInnerCircleModalOpen, setJoinInnerCircleModalOpen] = useState<boolean>(false);
   const [selectedTokenImg, setSelectedTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
+  const [payWithXP, setPayWithXP] = useState(false);
 
   useEffect(() => {
     if (!creatorPaymentsWallet) {
@@ -375,31 +384,10 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
     cleanupActionBuyParam();
   };
 
-  const showSuccessConfetti = async () => {
-    const animation = await confetti({
-      spread: 360,
-      ticks: 100,
-      gravity: 0,
-      decay: 0.94,
-      startVelocity: 30,
-      particleCount: 200,
-      scalar: 2,
-      shapes: ["emoji", "circle", "square"],
-      shapeOptions: {
-        emoji: {
-          value: ["💎", "⭐", "✨", "💫"],
-        },
-      },
-    });
-
-    if (animation) {
-      await sleep(10);
-      animation.stop();
-      if ((animation as any).destroy) {
-        (animation as any).destroy();
-      }
-    }
-  };
+  async function refreshPurchasedLogsViaAPI() {
+    const _paymentLogs = await getPaymentLogsViaAPI({ addressSol: addressSol! });
+    updateMyRawPaymentLogs(_paymentLogs);
+  }
 
   if (isLoading) {
     return (
@@ -452,7 +440,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
         </Button>
       </div>
 
-      {addressSol && requiredSolAmount && (
+      {!payWithXP && addressSol && requiredSolAmount && (
         <p className="text-gray-400 text-sm mt-2 text-center md:text-left">
           Amount to pay: {requiredSolAmount.toFixed(4)} SOL (${artistsMembershipOptions?.[selectedArtistMembership]?.defaultPriceUSD})
         </p>
@@ -460,10 +448,10 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
     </>
   );
 
-  console.log("------");
-  console.log("isSoldOut", isSoldOut);
-  console.log("liveMintStats", liveMintStats);
-  console.log("------");
+  // console.log("------");
+  // console.log("isSoldOut", isSoldOut);
+  // console.log("liveMintStats", liveMintStats);
+  // console.log("------");
 
   return (
     <>
@@ -471,8 +459,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
         <h2 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
           Join {artistName}'s Inner Circle
         </h2>
-        <p className="text-gray-400 mb-8 text-center md:text-left">An exclusive fan membership program only for hardcore fans!</p>
+        <p className="text-gray-400 mb-4 text-center md:text-left">An exclusive fan membership program only for hardcore fans!</p>
 
+        {/* existing memberships section */}
         {myActiveFanMembershipsForArtist && myActiveFanMembershipsForArtist.length > 0 && (
           <div className="mb-12 p-6 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
             <div className="flex flex-col items-center md:items-start">
@@ -542,6 +531,12 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
           </div>
         )}
 
+        {/* Pay with XP: */}
+        <div className="flex flex-row gap-2 mb-4">
+          <Switch checked={payWithXP} onCheckedChange={(checked) => setPayWithXP(checked)} />
+          <span className="text-xs text-gray-600">Pay with XP</span>
+        </div>
+
         {hasMultipleMemberships ? (
           // Multiple membership types view
           <div className="space-y-8">
@@ -567,7 +562,9 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
                   ${selectedArtistMembership === type ? "border-yellow-500 bg-yellow-500/10" : "border-gray-800 hover:border-gray-700"}
                 `}>
                   <h3 className="text-xl font-semibold mb-2 capitalize">{data.label}</h3>
-                  <div className="text-2xl font-bold mb-2">{formatPrice(data.defaultPriceUSD)}</div>
+                  <div className="text-2xl font-bold mb-2">
+                    {payWithXP ? (Number(data.defaultPriceUSD) * ONE_USD_IN_XP).toLocaleString() + " XP" : formatPrice(data.defaultPriceUSD)}
+                  </div>
                   <div className="text-sm text-gray-400">{formatTerm(data.term)}</div>
                   <div className="text-yellow-300">{data.maxMints && data.maxMints > 0 ? `Only ${data.maxMints.toLocaleString()} will be sold!` : ""}</div>
                   {liveMintStats && liveMintStats.mints && liveMintStats.mints > 0 ? (
@@ -583,6 +580,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
               <SubscribeButton />
             </div>
 
+            {/* Perks Section */}
             <div className="mt-8">
               <h3 className="text-xl font-semibold mb-4">Perks</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -620,7 +618,11 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
           // Single membership type view
           <div className="space-y-8">
             <div className="p-6 rounded-lg border-2 cursor-pointer transition-all border-yellow-500 bg-yellow-500/10 text-center">
-              <div className="text-3xl font-bold mb-2">{formatPrice(artistsMembershipOptions?.t1.defaultPriceUSD || 0)}</div>
+              <div className="text-3xl font-bold mb-2">
+                {payWithXP
+                  ? (Number(artistsMembershipOptions?.t1.defaultPriceUSD || 0) * ONE_USD_IN_XP).toLocaleString() + " XP"
+                  : formatPrice(artistsMembershipOptions?.t1.defaultPriceUSD || 0)}
+              </div>
               <div className="text-gray-400">{formatTerm(artistsMembershipOptions?.t1.term || "")}</div>
               <div className="text-yellow-300">
                 {artistsMembershipOptions?.t1.maxMints && artistsMembershipOptions?.t1.maxMints > 0 ? (
@@ -664,6 +666,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
               )}
             </div>
 
+            {/* Perks Section */}
             <div>
               <h3 className="text-xl font-semibold mb-4">Perks</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -716,7 +719,7 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
 
         {/* Perk Details Modal */}
         {selectedPerk && (
-          <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
             <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
               <div className="flex items-center gap-2 mb-4">
                 {getPerkTypeIcon(selectedPerk.type)}
@@ -753,11 +756,11 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
 
       {/* Token Image Modal */}
       {selectedTokenImg && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 p-4">
           <div className="relative max-w-4xl w-full">
             <img src={selectedTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
             <div>
-              <div className="bg-yellow-300 rounded-full p-[10px] -z-1 mt-4">
+              <div className="bg-yellow-300 rounded-full p-[10px] -z-1 mt-4 w-[200px] m-auto">
                 <a
                   className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
                   href={"https://twitter.com/intent/tweet?" + tweetText}
@@ -790,30 +793,40 @@ export const ArtistInnerCircle: React.FC<ArtistInnerCircleProps> = ({
             {walletType === "phantom" ? (
               <JoinInnerCircleSOL
                 artistName={artistName}
-                artistSlug={artistSlug}
                 artistXLink={artistXLink}
                 creatorPaymentsWallet={creatorPaymentsWallet}
                 membershipId={selectedArtistMembership}
                 artistId={artistId}
                 creatorFanMembershipAvailability={creatorFanMembershipAvailability || {}}
+                payWithXP={payWithXP}
+                artistProfile={artistProfile}
                 onCloseModal={(isMintingSuccess: boolean) => {
                   closeJoinModal();
+
                   if (isMintingSuccess) {
                     fetchMyFanMembershipsForThisArtist(true);
+                    refreshPurchasedLogsViaAPI();
                   }
                 }}
               />
             ) : (
               <JoinInnerCircleCC
                 artistName={artistName}
-                artistSlug={artistSlug}
                 artistXLink={artistXLink}
+                artistSlug={artistSlug}
                 creatorPaymentsWallet={creatorPaymentsWallet}
                 membershipId={selectedArtistMembership}
                 artistId={artistId}
                 creatorFanMembershipAvailability={creatorFanMembershipAvailability || {}}
-                onCloseModal={() => {
+                payWithXP={payWithXP}
+                artistProfile={artistProfile}
+                onCloseModal={(isMintingSuccess: boolean) => {
                   closeJoinModal();
+
+                  if (isMintingSuccess) {
+                    fetchMyFanMembershipsForThisArtist(true);
+                    refreshPurchasedLogsViaAPI();
+                  }
                 }}
               />
             )}

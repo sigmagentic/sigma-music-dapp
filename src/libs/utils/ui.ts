@@ -1,6 +1,7 @@
 import { clsx, ClassValue } from "clsx";
 import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
+import { AiRemixRawTrack, AiRemixLaunch, MusicTrack, Album } from "libs/types";
 
 /*
     UI should import Toaster
@@ -10,9 +11,10 @@ import { twMerge } from "tailwind-merge";
     /////////////////////////////////////////////
 */
 
-export const toastError = (message: string) => {
+export const toastError = (message: string, showTopCenter?: boolean) => {
   toast.error(message, {
-    position: "top-right",
+    position: showTopCenter ? "top-center" : "top-right",
+    duration: 6000,
   });
 };
 
@@ -228,4 +230,84 @@ export const injectXUserNameIntoTweet = (tweet: string, xUserNameFullUrl?: strin
   const xUserName = xUserNameFullUrl.split("/").pop();
 
   return tweet.replace("_(xUsername)_", `(@${xUserName}) `);
+};
+
+export const removeAllDeepSectionParamsFromUrlExceptSection = (section: string, searchParams: URLSearchParams) => {
+  const currentParams = Object.fromEntries(searchParams.entries());
+  currentParams["section"] = section;
+  delete currentParams["campaign"];
+  delete currentParams["artist"];
+  delete currentParams["tab"];
+  // delete currentParams["action"];
+  delete currentParams["country"];
+  delete currentParams["team"];
+  return currentParams;
+};
+
+export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTracks: AiRemixLaunch[] = [], publishedTracks: AiRemixLaunch[] = []) => {
+  const allAiRemixRawTracks: AiRemixRawTrack[] = [...newTracks, ...graduatedTracks, ...publishedTracks].flatMap((track: any) =>
+    track.versions.map((version: any, index: number) => ({
+      createdOn: track.createdOn,
+      songTitle: track.promptParams.songTitle + ` (V${index + 1})`,
+      genre: track.promptParams.genre,
+      mood: track.promptParams.mood,
+      image: track.image,
+      streamUrl: version.streamUrl,
+      bountyId: version.bountyId,
+      status: track.status,
+      refTrack_alId: track.promptParams.refTrack_alId,
+    }))
+  );
+
+  return allAiRemixRawTracks;
+};
+
+export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]) {
+  // lets create a "virtual album" for the user that contains all their remixes
+  const virtualAlbum: Album = {
+    albumId: "virtual-album-PF6xCtUzeCMqXVdvqLCkZGsajKoz2XZ5JJJjuMRcjxD",
+    title: "Licensed AI Remixes",
+    desc: "Licensed AI Remixes",
+    ctaPreviewStream: "",
+    ctaBuy: "",
+    dripSet: "",
+    bountyId: "",
+    img: "",
+    isExplicit: "",
+    isPodcast: "",
+    isFeatured: "",
+    isSigmaRemixAlbum: "",
+    solNftName: "",
+  };
+
+  // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
+  const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
+    idx: index,
+    artist: "Licensed AI Remixes",
+    category: "Remix",
+    album: "Licensed AI Remixes",
+    cover_art_url: remix.image,
+    title: remix.songTitle,
+    stream: remix.streamUrl,
+    bountyId: remix.bountyId,
+  }));
+
+  return { virtualAlbum, allMyRemixesAsMusicTracks };
+}
+
+export function isUserArtistType(profileTypes: string[]): boolean {
+  if (profileTypes?.includes("remixer") || profileTypes?.includes("composer")) {
+    return true;
+  }
+
+  return false;
+}
+
+export const isValidUrl = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.protocol === "https:";
+  } catch {
+    return false;
+  }
 };

@@ -3,7 +3,7 @@ import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
-import { Web3AuthAdapter } from "./Web3AuthAdapter";
+// import { Web3AuthAdapter } from "./Web3AuthAdapter";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -17,7 +17,7 @@ export const SolanaWalletProvider: FC<Props> = ({ children }) => {
 
   const wallets = useMemo(
     () => [
-      new Web3AuthAdapter(),
+      // new Web3AuthAdapter(),
       new PhantomWalletAdapter(),
       // Add other wallet adapters here
     ],

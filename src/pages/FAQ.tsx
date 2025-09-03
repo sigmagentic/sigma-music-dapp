@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import howToDownloadTracksDemo from "assets/img/how-to-download-tracks-demo.png";
 import { routeNames } from "routes";
 
 interface FAQSection {
@@ -39,7 +40,7 @@ const faqSections: FAQSection[] = [
                 participants through cryptoeconomics, and scales distribution exponentially through agentic AI.
               </p>
 
-              <p className="text-lg font-semibold mt-6">Sigma is the world's first fan-first music platform.</p>
+              <p className="text-lg font-semibold mt-6">Sigma is a is a next-gen music platform built on the intersection of music, fan engagement and AI.</p>
             </div>
           </div>
         ),
@@ -360,6 +361,25 @@ const faqSections: FAQSection[] = [
                 </p>
               </div>
             </div>
+          </div>
+        ),
+      },
+      {
+        id: "how-to-download-tracks",
+        question: "How to Download Tracks",
+        answer: (
+          <div className="space-y-4">
+            <p className="mb-4">
+              To download tracks, you need to purchased the digital premium version of the album and have the entitlement to download and use the tracks.
+            </p>
+
+            <p>Once you have the entitlement, you can download individual tracks from the album from the "Track List" section of each album.</p>
+
+            <p>This is how you can download tracks:</p>
+
+            <p className="mb-4">
+              <img src={howToDownloadTracksDemo} alt="How to Download Tracks" className="rounded-lg" style={{ maxWidth: "60%" }} />
+            </p>
           </div>
         ),
       },

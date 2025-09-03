@@ -172,6 +172,7 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       // Get all user info
       const userInfo = await web3auth.getUserInfo();
+
       if (userInfo) {
         setUserInfo({
           email: userInfo.email || null,

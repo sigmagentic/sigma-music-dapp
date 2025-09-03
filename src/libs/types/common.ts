@@ -14,7 +14,7 @@ export interface ExtendedViewDataReturnType extends ViewDataReturnType {
 }
 
 export interface MusicTrack {
-  idx: string;
+  idx: number;
   nftCollection?: string;
   solNftName?: string;
   solNftAltCodes?: string; // can be a , separated list of alt codes prefixes for the album (e.g. MUSSM1). but intially we only support 1 (if we add more, code repo changes are needed)
@@ -44,7 +44,7 @@ export interface Album {
   desc: string;
   ctaPreviewStream: string;
   ctaBuy: string;
-  dripSet: string;
+  dripSet?: string;
   bountyId: string;
   img: string;
   isExplicit: string;
@@ -54,7 +54,12 @@ export interface Album {
   albumPriceOption1?: string; // digital album  + download only
   albumPriceOption2?: string; // digital album + download + NFT
   albumPriceOption3?: string; // digital album + commercial license + download + NFT
+  albumPriceOption4?: string; // digital album + commercial license
   isSigmaExclusive?: string; // 0 or 1 indicated if the album is a sigma exclusive album
+  timestampAlbumAdded?: string; // the timestamp of the album added to the database
+  createdOn?: number; // the timestamp of the album created on the database
+  updatedOn?: number; // the timestamp of the album updated on the database
+  isPublished?: string; // 0 or 1 indicated if the album is published (0 means draft, 1 means published)
   _buyNowMeta?: {
     rarityGrade?: string; // the rarity of the album (e.g. "common", "uncommon", "rare", "epic", "legendary")
     maxMints?: number; // the max number of mints for the album (0 means unlimited)
@@ -71,6 +76,10 @@ export interface Album {
       IpTokenId: string | null; // the story protocol IP token to issue licenses on
       priceInUSD: string | null;
       tokenImg: string | null;
+    };
+    priceOption4?: {
+      IpTokenId: string | null; // the story protocol IP token to issue licenses on
+      priceInUSD: string | null;
     };
   };
   _albumCanBeFastStreamed?: boolean;
@@ -91,6 +100,7 @@ export interface Artist {
   tikTokLink?: string;
   instaLink?: string;
   otherLink1: string;
+  altMainPortfolioLink?: string;
   fanTokenNftMarketplaceLink?: string;
   isArtistFeatured: string;
   isDeprioritized: string;
@@ -99,6 +109,9 @@ export interface Artist {
   artistSubGroup1Code?: string;
   artistSubGroup2Code?: string;
   fanToken3DGifTeaser?: string;
+  createdOn?: number;
+  updatedOn?: number;
+  isVerifiedArtist?: boolean;
   albums: Album[];
 }
 
@@ -173,21 +186,22 @@ export enum AlbumSaleTypeOption {
   priceOption1 = "1", // Digital Album + Download Only
   priceOption2 = "2", // Digital Album + Download + NFT
   priceOption3 = "3", // Digital Album + Commercial License + Download + NFT
+  priceOption4 = "4", // Digital Album + Commercial License
 }
 
 export interface PaymentLog {
-  task: "buyAlbum" | "joinFanClub"; // buyAlbum or joinFanClub
-  paymentStatus: "new" | "success" | "failed"; // new, success, failed (not sure if we use this)
+  task: "buyAlbum" | "joinFanClub" | "remix" | "buyXP"; // buyAlbum or joinFanClub or remix or buyXP
+  paymentStatus: "new" | "success" | "failed" | "uncertain"; // new, success, failed (not sure if we use this)
   createdOn: number;
   tx: string;
   amount: string;
-  creatorWallet: string;
   payer: string;
-  paymentStatusAddedOn: number;
-  albumSaleTypeOption: string; // 1 (digital album + download only), 2 (digital album + download + NFT), 3 (digital album + commercial license + download + NFT)
+  type: "sol" | "cc" | "xp"; // sol or cc or xp
+  creatorWallet?: string;
+  paymentStatusAddedOn?: number;
+  albumSaleTypeOption?: string; // 1 (digital album + download only), 2 (digital album + download + NFT), 3 (digital album + commercial license + download + NFT)
   priceInUSD?: string; // only when type is sol
   albumId?: string;
-  type: "sol" | "cc"; // sol or cc
   artistId?: string;
   membershipId?: string;
   _artistSlug?: string; // we add this inside the app
@@ -196,6 +210,16 @@ export interface PaymentLog {
   _artistCampaignCode?: string; // we add this inside the app
   _artistSubGroup1Code?: string; // we add this inside the app
   _artistSubGroup2Code?: string; // we add this inside the app
+  asyncTaskJobTraceId?: string; // the SQS message ID of the job that processed the payment
+  promptParams?: {
+    songTitle: string;
+    genre: string;
+    mood: string;
+    refTrack_alId: string;
+    refTrack_file: string;
+  };
+  XPBeingBought?: string;
+  XPPurchasedFromUrl?: string;
 }
 
 export interface MusicAssetOwned {
@@ -212,7 +236,7 @@ export interface MusicAssetOwned {
 }
 
 export interface EntitlementForMusicAsset {
-  mp3TrackUrls: string[];
+  mp3TracksCanBeDownloaded: boolean;
   licenseTerms: {
     shortDescription: string | null;
     urlToLicense: string | null;
@@ -233,4 +257,56 @@ export interface MyAlbumMintLog {
   storyProtocolLicenseMintingSQSMessageId?: string;
   storyProtocolLicenseTokenId?: string;
   storyProtocolLicenseMintingTxHash?: string;
+}
+
+// AI Remix based
+export interface AiRemixTrackVersion {
+  bountyId: string;
+  streamUrl: string;
+  deepLinkSlugToTrackInAlbum?: string;
+}
+
+export interface AiRemixLaunch {
+  image: string;
+  createdOn: number; // Unix timestamp
+  lastStatusUpdateOn?: number; // Unix timestamp
+  remixedBy: string;
+  launchId: string;
+  paymentTxHash: string;
+  status?: string;
+  versions: AiRemixTrackVersion[];
+  promptParams: {
+    songTitle: string;
+    genre: string;
+    mood: string;
+    refTrack_alId: string;
+    refTrack_file: string;
+  };
+  graduated?: number;
+  graduatedStreamUrl?: string;
+  votes?: number; // Optional as it might not be present in all responses
+  votesNeeded?: number; // Optional as it might not be present in all responses
+}
+
+export interface AiRemixRawTrack {
+  createdOn: number;
+  songTitle: string;
+  genre: string;
+  mood: string;
+  image: string;
+  streamUrl: string;
+  status: "new" | "graduated" | "published";
+  bountyId: string;
+  refTrack_alId?: string;
+}
+
+export interface FastStreamTrack {
+  file: string;
+  bonus: number;
+  arId: string;
+  category: string;
+  cover_art_url: string;
+  alId: string;
+  idx: number;
+  title: string;
 }

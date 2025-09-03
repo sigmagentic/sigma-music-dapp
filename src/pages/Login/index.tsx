@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AuthRedirectWrapper } from "components";
 import { SOL_ENV_ENUM } from "config";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { getApiWeb2Apps } from "libs/utils";
+import { getApiWeb2Apps, getArtistByCreatorWallet } from "libs/utils";
 import { useSolanaWallet } from "../../contexts/sol/useSolanaWallet";
 import { useAccountStore } from "../../store/account";
 /* 
@@ -29,7 +29,7 @@ const LoginPage = () => {
   const [userAccountLoggingIn, setIsUserAccountLoggingIn] = useState<boolean>(false);
   const { publicKey, isConnected, connect, disconnect } = useSolanaWallet();
   const address = publicKey?.toBase58();
-  const { updateUserWeb2AccountDetails } = useAccountStore();
+  const { updateUserWeb2AccountDetails, updateUserArtistProfile } = useAccountStore();
   const { userInfo } = useWeb3Auth();
 
   useEffect(() => {
@@ -83,26 +83,42 @@ const LoginPage = () => {
       if (userLoggedInCallData?.error) {
         console.error("User account login call failed");
       } else {
-        let isTriggerProductTour = ""; // should we trigger the "free gift" for new users?
+        // let isTriggerProductTour = ""; // should we trigger the "free gift" for new users?
+        let triggerNewuserExtendedProfileSetupFlag = "";
         const celebrateEmojis = ["🥳", "🎊", "🍾", "🥂", "🍻", "🍾"];
 
         if (userLoggedInCallData?.newUserAccountCreated) {
-          toast.success("Welcome New Music Fan! Its Great To Have You Here.", {
-            position: "bottom-center",
-            duration: 6000,
-            icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
-            style: {
-              background: "#1a1a1a",
-              color: "#fff",
-              border: "1px solid #333",
-            },
-          });
+          // toast.success("Welcome New Music Fan! Its Great To Have You Here.", {
+          //   position: "bottom-center",
+          //   duration: 6000,
+          //   icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
+          //   style: {
+          //     background: "#1a1a1a",
+          //     color: "#fff",
+          //     border: "1px solid #333",
+          //   },
+          // });
 
           updateUserWeb2AccountDetails(userLoggedInCallData);
 
-          isTriggerProductTour = "g=1";
+          // isTriggerProductTour = "g=1";
+          triggerNewuserExtendedProfileSetupFlag = "e=1";
         } else {
+          // if profileTypes is empty, we need to trigger the extended profile setup workflow
+          if (!userLoggedInCallData?.profileTypes || userLoggedInCallData?.profileTypes?.length === 0) {
+            triggerNewuserExtendedProfileSetupFlag = "e=1";
+          }
+
           updateUserWeb2AccountDetails(userLoggedInCallData);
+
+          // get user artist profile data (IF user ever created an artist profile in the past)
+          // rawAddr is the creator wallet address
+          if (userLoggedInCallData.rawAddr) {
+            const _artist = await getArtistByCreatorWallet(userLoggedInCallData.rawAddr);
+            if (_artist) {
+              updateUserArtistProfile(_artist);
+            }
+          }
         }
 
         // Get the redirect path from query parameter
@@ -116,17 +132,17 @@ const LoginPage = () => {
         window.history.replaceState({}, "", newUrl);
 
         if (fromWhere.includes("?")) {
-          if (isTriggerProductTour !== "") {
-            isTriggerProductTour = `&${isTriggerProductTour}`;
+          if (triggerNewuserExtendedProfileSetupFlag !== "") {
+            triggerNewuserExtendedProfileSetupFlag = `&${triggerNewuserExtendedProfileSetupFlag}`;
           }
 
-          fromWhere = `${fromWhere}${isTriggerProductTour}`;
+          fromWhere = `${fromWhere}${triggerNewuserExtendedProfileSetupFlag}`;
         } else {
-          if (isTriggerProductTour !== "") {
-            isTriggerProductTour = `?${isTriggerProductTour}`;
+          if (triggerNewuserExtendedProfileSetupFlag !== "") {
+            triggerNewuserExtendedProfileSetupFlag = `?${triggerNewuserExtendedProfileSetupFlag}`;
           }
 
-          fromWhere = `${fromWhere}${isTriggerProductTour}`;
+          fromWhere = `${fromWhere}${triggerNewuserExtendedProfileSetupFlag}`;
         }
 
         navigate(fromWhere);
@@ -153,7 +169,7 @@ const LoginPage = () => {
             <div className="p-10">
               <h4 className="mb-4 font-weight-bold">Log into Sigma Music</h4>
 
-              <div className="flex flex-col px-3 items-center mt-5">
+              <div className="flex flex-col px-3 items-center mt-3">
                 {isConnected ? (
                   <>
                     <button className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[200px] h-[50px] font-bold" onClick={disconnect}>
@@ -172,12 +188,12 @@ const LoginPage = () => {
               </div>
 
               <div className="phantom-login-button flex flex-col px-3 items-center mt-5">
-                <span className="text-sm text-muted-foreground mb-2">For web3 native users with a solana wallet:</span>
+                <span className="text-xs text-muted-foreground mb-2">Or for web3 native users, login with a solana wallet</span>
                 <WalletMultiButton className="w-full !m-0">Login With Solana</WalletMultiButton>
               </div>
 
               <p className="text-sm text-muted-foreground mt-8">
-                By "Logging in", you agree to these{" "}
+                By "Logging in" and "Signing up", you agree to these{" "}
                 <a className="underline" href="https://sigmamusic.fm/legal#terms-of-use" target="_blank" rel="noopener noreferrer">
                   Terms of Use
                 </a>{" "}
