@@ -34,6 +34,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   const [loading, setLoading] = useState(true);
   const [hoveredTrackIndex, setHoveredTrackIndex] = useState<number | null>(null);
   const { playlistTrackIndexBeingPlayed, albumIdBeingPlayed, updateJumpToTrackIndexInAlbumBeingPlayed } = useAudioPlayerStore();
+  const [trackDownloadIsInProgress, setTrackDownloadIsInProgress] = useState<boolean>(false);
 
   useEffect(() => {
     scrollToTopOnMainContentArea();
@@ -90,6 +91,28 @@ export const TrackList: React.FC<TrackListProps> = ({
 
     // Use the same play logic as the album play button
     onPlayTrack(album, track.idx);
+  };
+
+  const downloadTrackViaClientSide = async (track: MusicTrack) => {
+    setTrackDownloadIsInProgress(true);
+    let apiDownloadFailed = false;
+    try {
+      apiDownloadFailed = !(await downloadMp3TrackViaAPI(artistId, album.albumId, track.alId || "", track.title || ""));
+    } catch (error) {
+      console.error("Error downloading track:", error);
+      // Fallback to the original method if fetch fails
+      apiDownloadFailed = true;
+    }
+
+    if (apiDownloadFailed && track.file) {
+      const link = document.createElement("a");
+      link.href = track.file;
+      link.download = `${album.albumId}-${track.alId}-${track.title}.mp3`;
+      link.target = "_blank"; // Open in new tab as fallback
+      link.click();
+    }
+
+    setTrackDownloadIsInProgress(false);
   };
 
   const userOwnsAlbum = checkOwnershipOfMusicAsset(album) > -1;
@@ -222,10 +245,12 @@ export const TrackList: React.FC<TrackListProps> = ({
                     className={`text-gray-400 hover:text-white transition-colors ${isHovered ? "opacity-100" : "opacity-0"}`}
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent track click handler from firing
-                      downloadMp3TrackViaAPI(artistId, album.albumId, track.alId || "", track.title || "");
+                      downloadTrackViaClientSide(track);
+                      // downloadMp3TrackViaAPI(artistId, album.albumId, track.alId || "", track.title || "");
                     }}
+                    disabled={trackDownloadIsInProgress}
                     title="Download track">
-                    <Download className="w-5 h-5" />
+                    {trackDownloadIsInProgress ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-5 h-5" />}
                   </button>
                 ) : (
                   <div

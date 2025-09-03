@@ -16,6 +16,7 @@ import { FastStreamTrack } from "libs/types";
 import { MediaUpdate } from "libComponents/MediaUpdate";
 import { saveMediaToServerViaAPI } from "libs/utils/api";
 import { toastError } from "libs/utils/ui";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 interface TrackListModalProps {
   isOpen: boolean;
@@ -51,6 +52,13 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
   albumImg,
   onTracksUpdated,
 }) => {
+  const { publicKey, walletType } = useSolanaWallet();
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
+  const { signMessage } = useWallet();
+  const addressSol = publicKey?.toBase58();
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+
   const [isFormView, setIsFormView] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,11 +73,6 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     title: "",
   });
   const [errors, setErrors] = useState<Partial<TrackFormData>>({});
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
-  const { signMessage } = useWallet();
-  const { publicKey } = useSolanaWallet();
-  const addressSol = publicKey?.toBase58();
   const [trackIdxListSoFar, setTrackIdxListSoFar] = useState<string>("");
   const [trackIdxNextGuess, setTrackIdxNextGuess] = useState<number>(1);
   const [newSelectedTrackCoverArtFile, setNewSelectedTrackCoverArtFile] = useState<File | null>(null);
@@ -200,8 +203,22 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       newErrors.cover_art_url = "Cover art URL is required";
     }
 
+    // check if the cover art image is less than 3MB
+    if (newSelectedTrackCoverArtFile) {
+      if (newSelectedTrackCoverArtFile.size > 3 * 1024 * 1024) {
+        newErrors.cover_art_url = "Cover art image must be less than 3MB";
+      }
+    }
+
     if (!formData.file.trim() && !newSelectedAudioFile) {
       newErrors.file = "Audio file URL is required";
+    }
+
+    // check if the audio file is less than 4.5MB
+    if (newSelectedAudioFile) {
+      if (newSelectedAudioFile.size > 4.5 * 1024 * 1024) {
+        newErrors.file = "Audio file must be less than 4.5MB";
+      }
     }
 
     setErrors(newErrors);
@@ -221,7 +238,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
@@ -382,7 +399,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                     <label
                       key={genre.code}
                       className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-                        isSelected ? "text-blue-900" : "hover:bg-gray-700"
+                        isSelected ? "text-yellow-300" : "hover:bg-gray-700"
                       } ${!canSelect && !isSelected ? "opacity-50 cursor-not-allowed" : ""}`}>
                       <input
                         type="checkbox"
@@ -400,7 +417,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                           handleFormChange("category", newGenres.join(", "));
                         }}
                         disabled={!canSelect && !isSelected}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-gray-300 text-yellow-300 focus:ring-yellow-500"
                       />
                       <span className="text-sm">{genre.label}</span>
                     </label>
@@ -453,7 +470,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
               </div>
 
               {errors.cover_art_url && <p className="text-red-400 text-sm mt-1">{errors.cover_art_url}</p>}
-              <p className="text-gray-400 text-xs mt-1">Must be a GIF, JPG, or PNG (you can use the album image as a fallback)</p>
+              <p className="text-gray-400 text-xs mt-1">Must be a GIF, JPG, or PNG (Max size: 3MB)</p>
             </div>
 
             {/* File URL */}
@@ -481,7 +498,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
               </div>
 
               {errors.file && <p className="text-red-400 text-sm mt-1">{errors.file}</p>}
-              <p className="text-gray-400 text-xs mt-1">Must be a valid MP3 file</p>
+              <p className="text-gray-400 text-xs mt-1">Must be a valid MP3 file (Max size: 4.5MB)</p>
             </div>
           </div>
         </div>

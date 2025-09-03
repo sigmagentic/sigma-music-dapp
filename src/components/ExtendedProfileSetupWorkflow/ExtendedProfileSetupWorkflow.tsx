@@ -70,7 +70,7 @@ const generateSlug = (name: string): string => {
 };
 
 export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflowProps> = ({ isOpen, onClose, setHomeMode }) => {
-  const { userInfo } = useWeb3Auth();
+  const { userInfo, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
   const addressSol = solanaPublicKey?.toBase58();
   const { signMessage } = useWallet();
@@ -315,6 +315,13 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       newErrors.img = "Profile image is required";
     }
 
+    // check if the profile image is less than 3MB
+    if (newSelectedArtistProfileImageFile) {
+      if (newSelectedArtistProfileImageFile.size > 3 * 1024 * 1024) {
+        newErrors.img = "Profile image must be less than 3MB";
+      }
+    }
+
     // Slug validation - required, max 80 characters, no spaces or special chars, and must be available
     if (!artistProfileData.slug.trim()) {
       newErrors.slug = "Profile URL slug is required";
@@ -373,6 +380,13 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       newErrors.profileImage = "Please enter a valid HTTPS URL";
     }
 
+    // check if the profile image is less than 3MB
+    if (newSelectedProfileImageFile) {
+      if (newSelectedProfileImageFile.size > 3 * 1024 * 1024) {
+        newErrors.profileImage = "Profile image must be less than 3MB";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -393,7 +407,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey: solanaPublicKey,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,

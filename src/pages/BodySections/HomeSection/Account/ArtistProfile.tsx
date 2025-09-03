@@ -28,15 +28,18 @@ type ArtistProfileProps = {
 
 // Render the artist profile content
 export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: ArtistProfileProps) => {
-  const { publicKey: web3AuthPublicKey } = useWeb3Auth();
+  const { publicKey: web3AuthPublicKey, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { userWeb2AccountDetails, myAiRemixRawTracks, updateMyAiRemixRawTracks, userArtistProfile, updateUserArtistProfile } = useAccountStore();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
   const { updateAssetPlayIsQueued } = useAudioPlayerStore();
+  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey; // Use the appropriate public key based on wallet type
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+  const { signMessage } = useWallet();
+
   const [payoutLogs, setPayoutLogs] = useState<any[]>([]);
   const [loadingPayouts, setLoadingPayouts] = useState<boolean>(false);
   const [totalPayout, setTotalPayout] = useState<number>(0);
-  // Use the appropriate public key based on wallet type
-  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey;
   const [virtualAiRemixAlbum, setVirtualAiRemixAlbum] = useState<Album | null>(null);
   const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
   const [showEditArtistProfileModal, setShowEditArtistProfileModal] = useState<boolean>(false);
@@ -52,9 +55,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>("");
   const [isLoadingTracks, setIsLoadingTracks] = useState<boolean>(false);
   const [showVerificationInfoModal, setShowVerificationInfoModal] = useState<boolean>(false);
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
-  const { signMessage } = useWallet();
 
   const showVerificationInfo = () => {
     setShowVerificationInfoModal(true);
@@ -178,7 +178,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey: solanaPublicKey,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
@@ -245,7 +245,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey: solanaPublicKey,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
@@ -317,7 +317,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
     }
   };
 
-  const handleViewCurrentTracks = async (albumId: string, albumTitle: string, albumImg: string) => {
+  const handleViewCurrentTracks = async (albumId: string, albumTitle: string, albumImg: string, onlyRefresh: boolean = false) => {
     setIsLoadingTracks(true);
     try {
       const albumTracksFromDb: MusicTrack[] = await getAlbumTracksFromDBViaAPI(userArtistProfile.artistId, albumId, true, true);
@@ -326,6 +326,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
         setSelectedAlbumTracks(albumTracksFromDb);
       } else {
         setSelectedAlbumTracks([]);
+      }
+
+      // the user just added or edited a track, so we just need to refresh the track list, we don't need to open the track list modal as its already one open
+      if (onlyRefresh) {
+        return;
       }
 
       setSelectedAlbumTitle(albumTitle);
@@ -747,7 +752,8 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
         albumId={selectedAlbumId}
         albumImg={selectedAlbumImg}
         onTracksUpdated={() => {
-          setShowEditTrackModal(false);
+          // setShowEditTrackModal(false);
+          handleViewCurrentTracks(selectedAlbumId, selectedAlbumTitle, selectedAlbumImg);
           toastSuccess("Tracks updated successfully", true);
         }}
       />

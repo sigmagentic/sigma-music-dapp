@@ -28,6 +28,7 @@ import { MyProfile } from "./Account/MyProfile";
 import { RewardPools } from "./RewardPools";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
 import { getFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 type HomeSectionProps = {
   homeMode: string;
@@ -51,15 +52,19 @@ export const HomeSection = (props: HomeSectionProps) => {
     featuredArtistDeepLinkSlug,
     setFeaturedArtistDeepLinkSlug,
   } = props;
+
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { signMessage } = useWallet();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
+  const { solBitzNfts, solMusicAssetNfts } = useNftsStore();
+  const { artistLookupEverything } = useAppStore();
+
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
   const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
   const [dataMarshalResponse, setDataMarshalResponse] = useState({ "data_stream": {}, "data": [] });
-  const { solBitzNfts, solMusicAssetNfts } = useNftsStore();
   const [stopPreviewPlaying, setStopPreviewPlaying] = useState<boolean>(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { signMessage } = useWallet();
-  const { publicKey: publicKeySol } = useSolanaWallet();
   const [bitzGiftingMeta, setBitzGiftingMeta] = useState<{
     giveBitzToCampaignId: string;
     bountyBitzSum: number;
@@ -77,7 +82,6 @@ export const HomeSection = (props: HomeSectionProps) => {
   } = useAudioPlayerStore();
   const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
-  const { artistLookupEverything } = useAppStore();
   const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -552,7 +556,7 @@ export const HomeSection = (props: HomeSectionProps) => {
           solPreaccessNonce,
           solPreaccessSignature,
           solPreaccessTimestamp,
-          signMessage,
+          signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
           publicKey: publicKeySol,
           updateSolPreaccessNonce,
           updateSolSignedPreaccess,

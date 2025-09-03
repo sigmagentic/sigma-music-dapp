@@ -28,8 +28,7 @@ export const DISABLE_REMIX_LAUNCH_BUTTON = import.meta.env.VITE_ENV_DISABLE_REMI
 export const DISABLE_COMMERCIAL_LICENSE_BUY_OPTION = import.meta.env.VITE_ENV_DISABLE_COMMERCIAL_LICENSE_BUY_OPTION || "1";
 export const DISABLE_AI_REMIX_FEATURES = import.meta.env.VITE_ENV_DISABLE_AI_REMIX_FEATURES || "1";
 
-export const GENERATE_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0
-export const LAUNCH_MUSIC_MEME_PRICE_IN_USD = 0.01; // .01 / 1.0
+export const GENERATE_MUSIC_MEME_PRICE_IN_USD = 0.04; // how much for a single version
 
 export const SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS = "6WjQ42oteJmPQTiyHpjc7tufvxyenjQs9FUiJFHb1YDX";
 

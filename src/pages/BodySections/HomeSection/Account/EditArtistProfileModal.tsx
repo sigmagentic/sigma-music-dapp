@@ -11,6 +11,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useAccountStore } from "store/account";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { CheckCircle2, AlertCircle } from "lucide-react";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 interface EditArtistProfileModalProps {
   isOpen: boolean;
@@ -46,15 +47,17 @@ interface ValidationErrors {
 }
 
 export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
-  const [formData, setFormData] = useState<ArtistProfileFormData>({ ...initialData });
-  const [errors, setErrors] = useState<ValidationErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newSelectedArtistProfileImageFile, setNewSelectedArtistProfileImageFile] = useState<File | null>(null);
-  const { publicKey: publicKeySol } = useSolanaWallet();
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const { signMessage } = useWallet();
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
+
+  const [formData, setFormData] = useState<ArtistProfileFormData>({ ...initialData });
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newSelectedArtistProfileImageFile, setNewSelectedArtistProfileImageFile] = useState<File | null>(null);
   const [slugAvailability, setSlugAvailability] = useState<"available" | "unavailable" | "unchecked" | "checking">("unchecked");
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
 
@@ -129,6 +132,13 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
       newErrors.slug = "Please check slug availability before proceeding";
     }
 
+    // check if the profile image is less than 3MB
+    if (newSelectedArtistProfileImageFile) {
+      if (newSelectedArtistProfileImageFile.size > 3 * 1024 * 1024) {
+        newErrors.img = "Profile image must be less than 3MB";
+      }
+    }
+
     // Optional link validations - if provided, must be valid HTTPS URLs
     if (formData.altMainPortfolioLink.trim() && !isValidUrl(formData.altMainPortfolioLink)) {
       newErrors.altMainPortfolioLink = "Please enter a valid HTTPS URL";
@@ -175,7 +185,7 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey: publicKeySol,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
@@ -389,14 +399,6 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
                     alt="Profile"
                   />
                 </div>
-
-                {/* <Input
-                  type="url"
-                  value={formData.img}
-                  onChange={(e) => handleFormChange("img", e.target.value)}
-                  placeholder="https://example.com/artist-image.jpg"
-                  className={`bg-gray-800 border-gray-600 text-white placeholder-gray-400 ${errors.img ? "border-red-500" : ""}`}
-                /> */}
                 {errors.img && <p className="text-red-400 text-sm mt-1">{errors.img}</p>}
               </div>
             </div>

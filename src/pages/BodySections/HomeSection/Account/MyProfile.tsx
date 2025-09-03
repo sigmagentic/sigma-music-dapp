@@ -23,13 +23,14 @@ type MyProfileProps = {
 type ProfileTab = "artist" | "profile";
 
 export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlayer, setHomeMode }: MyProfileProps) => {
-  const { userInfo, publicKey: web3AuthPublicKey } = useWeb3Auth();
+  const { userInfo, publicKey: web3AuthPublicKey, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { signMessage } = useWallet();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
+  const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases, updateUserWeb2AccountDetails } = useAccountStore();
+
   const [showNfMeIdModal, setShowNfMeIdModal] = useState<boolean>(false);
   const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState<boolean>(false);
-  const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases, updateUserWeb2AccountDetails } = useAccountStore();
 
   // Tab state - default to "artist" if user is an artist, otherwise "profile"
   const [activeTab, setActiveTab] = useState<ProfileTab>(isUserArtistType(userWeb2AccountDetails.profileTypes) ? "artist" : "profile");
@@ -82,7 +83,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey: solanaPublicKey,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
@@ -429,7 +430,6 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         isOpen={showEditProfileModal}
         onClose={() => setShowEditProfileModal(false)}
         onSave={handleProfileSave}
-        walletType={walletType || ""}
         initialData={{
           profileTypes: userWeb2AccountDetails.profileTypes || [],
           name: userInfo.name || userWeb2AccountDetails.displayName || "",

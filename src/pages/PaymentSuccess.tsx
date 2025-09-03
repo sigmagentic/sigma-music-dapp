@@ -407,12 +407,14 @@ export const PaymentSuccess = () => {
 
                   {purchaseType === "xp" && <>XP Boost</>}
                 </h3>
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">${priceInUSD}</span>
-                    {quantityToBuy && quantityToBuy > 1 && <span className="text-xs text-gray-400">for {quantityToBuy} items</span>}
+                {priceInUSD && (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">${priceInUSD}</span>
+                      {quantityToBuy && quantityToBuy > 1 && <span className="text-xs text-gray-400">for {quantityToBuy} items</span>}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

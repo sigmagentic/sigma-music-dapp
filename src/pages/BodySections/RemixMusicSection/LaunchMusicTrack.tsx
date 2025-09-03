@@ -1,21 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
-import { confetti } from "@tsparticles/confetti";
-import axios from "axios";
 import { Loader, ArrowLeft } from "lucide-react";
-import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ALL_MUSIC_GENRES, ALL_MUSIC_MOODS } from "config";
+import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ALL_MUSIC_GENRES, ALL_MUSIC_MOODS, ONE_USD_IN_XP } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { injectXUserNameIntoTweet, toastSuccess } from "libs/utils";
-import { fetchMyAlbumsFromMintLogsViaAPI, sleep } from "libs/utils";
-import { fetchSolPriceViaAPI, getApiWeb2Apps, logPaymentToAPI } from "libs/utils/api";
+import { FastStreamTrack, Artist } from "libs/types/common";
+import { injectXUserNameIntoTweet, toastSuccess, fetchMyAlbumsFromMintLogsViaAPI, sleep } from "libs/utils";
+import { fetchSolPriceViaAPI, getApiWeb2Apps, logPaymentToAPI, sendRemixJobAfterPaymentViaAPI } from "libs/utils/api";
 import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
 import { getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import { showSuccessConfetti } from "libs/utils/uiShared";
+import useSolBitzStore from "store/solBitz";
+import { sendPowerUpSol, SendPowerUpSolResult } from "pages/BodySections/HomeSection/SendBitzPowerUp";
+import { useNftsStore } from "store/nfts";
 
 const MAX_TITLE_LENGTH = 50;
 
@@ -25,31 +27,13 @@ interface LaunchMusicTrackProps {
 }
 
 export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: LaunchMusicTrackProps) => {
+  const { publicKey, walletType } = useSolanaWallet();
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { connection } = useConnection();
   const { sendTransaction, signMessage } = useWallet();
-  const { publicKey } = useSolanaWallet();
-  const [songTitle, setSongTitle] = useState("");
-  const [trackGenerationRequested, setTrackGenerationRequested] = useState(false);
-  const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
-  const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
-  const [walletBalance, setWalletBalance] = useState<number | null>(null);
-  const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
-  const [paymentTx, setPaymentTx] = useState("");
-  const [showHowItWorks, setShowHowItWorks] = useState(false);
-  const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
-  const [myStoryProtocolLicenses, setMyStoryProtocolLicenses] = useState<any[]>([]);
-  const [isLoadingStoryLicenses, setIsLoadingStoryLicenses] = useState(false);
-  const [selectedAlbumForTrackList, setSelectedAlbumForTrackList] = useState<any>(null);
-  const [selectedReferenceTrack, setSelectedReferenceTrack] = useState<any>(null);
-  const [playingReferenceTrack, setPlayingReferenceTrack] = useState(false);
-  const [trackStyle, setTrackStyle] = useState<"with-vocals" | "instrumental">("with-vocals");
-  const [selectedGenre, setSelectedGenre] = useState<string>("");
-  const [selectedMood, setSelectedMood] = useState<string>("");
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { artistLookupEverything } = useAppStore();
-  const [tweetText, setTweetText] = useState<string>("");
-
-  // Cached Signature Store Items
+  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
+  const { solBitzNfts } = useNftsStore();
   const {
     solPreaccessNonce,
     solPreaccessSignature,
@@ -60,6 +44,29 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
     myAlbumMintLogs,
     updateMyAlbumMintLogs,
   } = useAccountStore();
+
+  const [songTitle, setSongTitle] = useState("");
+  const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
+  const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
+  const [remixingStatus, setRemixingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
+  const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
+  // const [paymentTx, setPaymentTx] = useState("");
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
+  const [myStoryProtocolLicenses, setMyStoryProtocolLicenses] = useState<any[]>([]);
+  const [freeLincensedAlbums, setFreeLincensedAlbums] = useState<any[]>([]);
+  const [isLoadingStoryLicenses, setIsLoadingStoryLicenses] = useState(false);
+  const [selectedAlbumForTrackList, setSelectedAlbumForTrackList] = useState<any>(null);
+  const [selectedReferenceTrack, setSelectedReferenceTrack] = useState<FastStreamTrack | null>(null);
+  const [playingReferenceTrack, setPlayingReferenceTrack] = useState(false);
+  const [trackStyle, setTrackStyle] = useState<"with-vocals" | "instrumental">("instrumental");
+  const [selectedGenre, setSelectedGenre] = useState<string>("");
+  const [selectedMood, setSelectedMood] = useState<string>("");
+  const [tweetText, setTweetText] = useState<string>("");
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Add effect to prevent body scrolling when modal is open and cleanup audio on unmount
   useEffect(() => {
@@ -135,6 +142,21 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
       });
 
       setMyStoryProtocolLicenses(_myStoryProtocolLicensesWithAlbumDetails);
+
+      const freeRemixAlbum1 = {
+        albumId: "ar142_a1",
+        albumImage: "https://api.itheumcloud-stg.com/app_sigmamusic/HYzBq-TYmRa/img/dj-sigma-mix-tape-1-1756778980811.png",
+        albumName: "Sigma Mix Tape Vol. 1",
+        createdOnTS: 1756779201513,
+        ipTokenId: "",
+        mintTemplate: "",
+        storyProtocolLicenseMintingSQSMessageId: "",
+        storyProtocolLicenseMintingTxHash: "",
+        storyProtocolLicenseTokenId: "",
+        updatedOnTS: 1756779215006,
+      };
+
+      setFreeLincensedAlbums([freeRemixAlbum1]);
     }
   }, [myAlbumMintLogs, artistAlbumDataset]);
 
@@ -317,170 +339,13 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   };
 
   const handleTrackGeneration = () => {
-    if (!publicKey?.toBase58() || !songTitle || !selectedReferenceTrack || !selectedGenre || !selectedMood) {
+    // if (!publicKey?.toBase58() || !songTitle || !selectedReferenceTrack || !selectedGenre || !selectedMood) {
+    if (!publicKey?.toBase58() || !songTitle || !selectedReferenceTrack) {
       alert("Please fill in all fields");
       return;
     }
 
     setShowPaymentConfirmation(true);
-  };
-
-  const handlePaymentConfirmation = async () => {
-    if (!publicKey || !requiredSolAmount) return;
-
-    setPaymentStatus("processing");
-
-    let signature = null;
-
-    try {
-      if (requiredSolAmount > 0) {
-        const transaction = new Transaction().add(
-          SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: new PublicKey(SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS),
-            lamports: Math.round(requiredSolAmount * 1e9), // Convert SOL to lamports and ensure integer
-          })
-        );
-
-        const latestBlockhash = await connection.getLatestBlockhash();
-        transaction.recentBlockhash = latestBlockhash.blockhash;
-        transaction.feePayer = publicKey;
-
-        signature = await sendTransaction(transaction, connection, {
-          skipPreflight: false,
-          preflightCommitment: "confirmed",
-        });
-
-        const strategy: TransactionConfirmationStrategy = {
-          signature: signature,
-          blockhash: latestBlockhash.blockhash,
-          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-        };
-
-        await connection.confirmTransaction(strategy, "finalized" as Commitment);
-
-        // Update payment transaction hash
-        setPaymentTx(signature);
-      } else {
-        signature = "FREE-gen-" + Date.now();
-      }
-
-      // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
-      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
-        solPreaccessNonce,
-        solPreaccessSignature,
-        solPreaccessTimestamp,
-        signMessage,
-        publicKey,
-        updateSolPreaccessNonce,
-        updateSolSignedPreaccess,
-        updateSolPreaccessTimestamp,
-      });
-
-      // Log payment to web2 API (placeholder)
-      await logPaymentToAPI({
-        solSignature: usedPreAccessSignature,
-        signatureNonce: usedPreAccessNonce,
-        payer: publicKey.toBase58(),
-        tx: signature,
-        task: "remix",
-        type: "sol",
-        amount: requiredSolAmount.toString(),
-        promptParams: {
-          songTitle: songTitle,
-          genre: selectedGenre,
-          mood: selectedMood,
-          refTrack_alId: selectedReferenceTrack.alId,
-          refTrack_file: selectedReferenceTrack.file,
-        },
-      });
-
-      toastSuccess("Payment Successful!", true);
-      setPaymentStatus("confirmed");
-      setShowPaymentConfirmation(false);
-
-      // custom tweet text generation
-      const artistMeta = artistLookupEverything[selectedReferenceTrack.arId];
-
-      const tweetMsg = injectXUserNameIntoTweet(
-        `I am AI remixing a song by the artist _(xUsername)_ on @SigmaXMusic! Check it out and vote it up so it gets published as an official derivative work!`,
-        artistMeta.xLink
-      );
-
-      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm?section=ai-remix`)}&text=${encodeURIComponent(tweetMsg)}`);
-
-      setTrackGenerationRequested(true);
-
-      // need to pull it out of the ui thread of for some reason the confetti goes first
-      setTimeout(() => {
-        showSuccessConfetti();
-      }, 500);
-    } catch (error) {
-      console.error("Payment failed:", error);
-      alert("Payment failed. Please try again.");
-      setPaymentStatus("idle");
-    }
-  };
-
-  const handlePaymentConfirmation_Simulate = async () => {
-    if (!publicKey || !requiredSolAmount) return;
-
-    setPaymentStatus("processing");
-
-    try {
-      await sleep(5);
-
-      toastSuccess("Payment Successful!", true);
-      setPaymentStatus("confirmed");
-      setShowPaymentConfirmation(false);
-
-      // custom tweet text generation
-      const artistMeta = artistLookupEverything[selectedReferenceTrack.arId];
-
-      const tweetMsg = injectXUserNameIntoTweet(
-        `I am AI remixing a song by the artist _(xUsername)_ on @SigmaXMusic! Check it out and vote it up so it gets published as an official derivative work!`,
-        artistMeta.xLink
-      );
-
-      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm?section=ai-remix`)}&text=${encodeURIComponent(tweetMsg)}`);
-
-      setTrackGenerationRequested(true);
-
-      // need to pull it out of the ui thread of for some reason the confetti goes first
-      setTimeout(() => {
-        showSuccessConfetti();
-      }, 500);
-    } catch (error) {
-      console.error("Payment failed:", error);
-      alert("Payment failed. Please try again.");
-      setPaymentStatus("idle");
-    }
-  };
-
-  const showSuccessConfetti = async () => {
-    const animation = await confetti({
-      spread: 360,
-      ticks: 100,
-      gravity: 0,
-      decay: 0.94,
-      startVelocity: 30,
-      particleCount: 200,
-      scalar: 2,
-      shapes: ["emoji", "circle", "square"],
-      shapeOptions: {
-        emoji: {
-          value: ["💎", "⭐", "✨", "💫"],
-        },
-      },
-    });
-
-    if (animation) {
-      await sleep(10);
-      animation.stop();
-      if ((animation as any).destroy) {
-        (animation as any).destroy();
-      }
-    }
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -507,52 +372,270 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   function resetStateToPristine() {
     setShowPaymentConfirmation(false);
     setPaymentStatus("idle");
-    setTrackGenerationRequested(false);
+    setRemixingStatus("idle");
     setTweetText("");
     setSelectedReferenceTrack(null);
     setSelectedGenre("");
     setSelectedMood("");
     setSongTitle("");
-    setTrackStyle("with-vocals");
+    setTrackStyle("instrumental");
+    setBackendErrorMessage(null);
 
     onCloseModal(true);
   }
 
-  // Payment confirmation popup
-  const PaymentConfirmationPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
-      <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 className="text-xl font-bold mb-4">Confirm Payment</h3>
-        <div className="space-y-4">
-          <p>
-            Amount to pay: {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD})
-          </p>
-          <p>Your wallet balance: {walletBalance?.toFixed(4) ?? "..."} SOL</p>
-          <p>When you click "Proceed", you will be asked to sign a single transaction to send the payment for processing your music generation request.</p>
+  const handlePaymentConfirmation_XP = async (priceInXP: number, priceInUSD: number) => {
+    debugger;
+    if (!publicKey || !priceInXP || !priceInUSD || !selectedReferenceTrack || !selectedReferenceTrack.arId) {
+      alert("Missing required fields");
+      return;
+    }
 
-          {paymentStatus === "processing" ? (
-            <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
-              <Loader className="w-full text-center animate-spin hover:scale-105" />
-              <p className="text-yellow-300">Payment in process... do not close this page</p>
-            </div>
-          ) : paymentStatus === "confirmed" ? (
-            <div className="text-center text-green-500">
-              <p>Payment confirmed! Your tracks are being generated. You will be notified when they are ready.</p>
-            </div>
-          ) : (
-            <div className="flex gap-4">
-              <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
-                Cancel
-              </Button>
-              <Button onClick={handlePaymentConfirmation_Simulate} className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
-                Proceed
-              </Button>
-            </div>
-          )}
+    setPaymentStatus("processing");
+
+    // // S: TEST UI WORKFLOW HERE
+    // await sleep(5);
+    // toastSuccess("Payment Successful!", true);
+    // setPaymentStatus("confirmed");
+    // setShowPaymentConfirmation(false);
+
+    // handleRemixing({
+    //   paymentMadeTx: "xpPaymentReceipt",
+    //   solSignature: "usedPreAccessSignature",
+    //   signatureNonce: "usedPreAccessNonce",
+    //   selectedReferenceTrack: selectedReferenceTrack,
+    // });
+
+    // return;
+    // // E: TEST UI WORKFLOW HERE
+
+    // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+    const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+      solPreaccessNonce,
+      solPreaccessSignature,
+      solPreaccessTimestamp,
+      signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
+      publicKey,
+      updateSolPreaccessNonce,
+      updateSolSignedPreaccess,
+      updateSolPreaccessTimestamp,
+    });
+
+    try {
+      let xpPaymentReceipt = "";
+
+      const artistProfile: Artist = artistLookupEverything[selectedReferenceTrack?.arId];
+
+      const sendPowerUpSolResult: SendPowerUpSolResult = await sendPowerUpSol(
+        priceInXP,
+        artistProfile.creatorWallet, // the artist whos track we are remxing
+        artistProfile.bountyId + "-p", // the bounty id for the artist who owns the track we are remxing
+        solBitzNfts,
+        isSigmaWeb2XpSystem,
+        publicKey,
+        solBitzBalance,
+        givenBitzSumSol,
+        usedPreAccessNonce,
+        usedPreAccessSignature
+      );
+
+      if (sendPowerUpSolResult.error) {
+        throw new Error(sendPowerUpSolResult.errorMessage || "Payment failed - error returned when sending XP");
+      }
+
+      if (sendPowerUpSolResult.success && sendPowerUpSolResult.paymentReceipt !== "") {
+        xpPaymentReceipt = sendPowerUpSolResult.paymentReceipt;
+      } else {
+        throw new Error("Payment failed - no receipt returned when sending XP");
+      }
+
+      if (xpPaymentReceipt === "") {
+        throw new Error("Payment failed - no receipt returned when sending XP");
+      }
+
+      // // Log payment to web2 API
+      // const _logPaymentToAPIResponse = await logPaymentToAPI({
+      //   solSignature: usedPreAccessSignature,
+      //   signatureNonce: usedPreAccessNonce,
+      //   payer: publicKey.toBase58(),
+      //   tx: xpPaymentReceipt,
+      //   task: "joinFanClub",
+      //   type: "xp",
+      //   amount: priceInXP.toString(),
+      //   priceInUSD: priceInUSD,
+      //   creatorWallet: artistProfile.creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
+      //   membershipId: membershipId,
+      //   artistId: artistId,
+      // });
+
+      const promptParams: any = {
+        songTitle: songTitle,
+        refTrack_alId: selectedReferenceTrack.alId,
+        refTrack_file: selectedReferenceTrack.file,
+      };
+
+      if (selectedGenre !== "") {
+        promptParams.genre = selectedGenre;
+      }
+
+      if (selectedMood !== "") {
+        promptParams.mood = selectedMood;
+      }
+
+      const _logPaymentToAPIResponse = await logPaymentToAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
+        payer: publicKey.toBase58(),
+        tx: xpPaymentReceipt,
+        task: "remix",
+        type: "xp",
+        amount: priceInXP.toString(),
+        priceInUSD: priceInUSD,
+        promptParams: promptParams,
+      });
+
+      if (_logPaymentToAPIResponse.error) {
+        throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
+      }
+
+      toastSuccess("Payment Successful!", true);
+      setPaymentStatus("confirmed");
+      setShowPaymentConfirmation(false);
+
+      // update the bitz balance and given bitz sum
+      updateBitzBalance(sendPowerUpSolResult.bitzBalance);
+      updateGivenBitzSum(sendPowerUpSolResult.givenBitzSum);
+
+      handleRemixing({
+        paymentMadeTx: xpPaymentReceipt,
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
+        selectedReferenceTrack: selectedReferenceTrack,
+      });
+    } catch (error) {
+      console.error("Payment failed:", error);
+      alert("Payment failed. Please try again - " + (error as Error).message);
+      setPaymentStatus("idle");
+    }
+  };
+
+  const handleRemixing = async ({
+    paymentMadeTx,
+    solSignature,
+    signatureNonce,
+    selectedReferenceTrack,
+  }: {
+    paymentMadeTx: string;
+    solSignature: string;
+    signatureNonce: string;
+    selectedReferenceTrack: any;
+  }) => {
+    setRemixingStatus("processing");
+
+    // // S: TEST UI WORKFLOW HERE
+    // await sleep(5);
+    // toastSuccess("Remixing Job Sent!", true);
+    // setRemixingStatus("confirmed");
+
+    // const tweetMsg = injectXUserNameIntoTweet(
+    //   `I am AI remixing a song by the artist _(xUsername)_ on @SigmaXMusic! Check it out and vote it up so it gets published as an official derivative work!`,
+    //   "https://x.com/sigmaxmusic"
+    // );
+
+    // setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm?section=ai-remix`)}&text=${encodeURIComponent(tweetMsg)}`);
+
+    // // need to pull it out of the ui thread of for some reason the confetti goes first
+    // setTimeout(() => {
+    //   showSuccessConfetti();
+    // }, 500);
+
+    // return;
+    // // E: TEST UI WORKFLOW HERE
+
+    try {
+      const remixParams: any = {
+        solSignature,
+        signatureNonce,
+        forSolAddr: publicKey?.toBase58(),
+        paymentHash: paymentMadeTx,
+        // _simulateAIGenerations: "1",
+      };
+
+      const _sendRemixJobAfterPaymentResponse = await sendRemixJobAfterPaymentViaAPI(remixParams);
+
+      if (_sendRemixJobAfterPaymentResponse.error) {
+        throw new Error(_sendRemixJobAfterPaymentResponse.errorMessage || "Remix job sending failed");
+      }
+
+      toastSuccess("Remixing Job Sent!", true);
+      setRemixingStatus("confirmed");
+
+      // custom tweet text generation
+      const artistMeta = artistLookupEverything[selectedReferenceTrack.arId];
+
+      const tweetMsg = injectXUserNameIntoTweet(
+        `I am AI remixing a song by the artist _(xUsername)_ on @SigmaXMusic! Check it out and vote it up so it gets published as an official derivative work!`,
+        artistMeta.xLink
+      );
+
+      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm?section=ai-remix`)}&text=${encodeURIComponent(tweetMsg)}`);
+
+      // need to pull it out of the ui thread of for some reason the confetti goes first
+      setTimeout(() => {
+        showSuccessConfetti();
+      }, 500);
+    } catch (error) {
+      console.error("Remix job failed:", error);
+      alert("Error: Remix job seems to have failed");
+      setBackendErrorMessage((error as Error).message);
+      setRemixingStatus("failed");
+    }
+  };
+
+  const PaymentConfirmationPopup_XP = () => {
+    const priceInUSD = GENERATE_MUSIC_MEME_PRICE_IN_USD;
+    const priceInXP = Number(priceInUSD) * ONE_USD_IN_XP;
+    const notEnoughXP = priceInXP > solBitzBalance;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
+        <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm XP Payment" : "Payment Transfer in Process..."}</h3>
+          <div className="space-y-4">
+            <p>Amount to pay: {priceInXP.toLocaleString()} XP</p>
+            <p>Your XP balance: {solBitzBalance.toLocaleString()} XP</p>
+
+            {paymentStatus === "processing" ? (
+              <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
+                <Loader className="w-full text-center animate-spin hover:scale-105" />
+                <p className="text-yellow-300">Payment in process... do not close this page</p>
+              </div>
+            ) : (
+              <div className="flex gap-4">
+                <Button onClick={() => setShowPaymentConfirmation(false)} className="flex-1 bg-gray-600 hover:bg-gray-700">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    handlePaymentConfirmation_XP(priceInXP, Number(priceInUSD));
+                  }}
+                  className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
+                  disabled={notEnoughXP}>
+                  Proceed
+                </Button>
+              </div>
+            )}
+
+            {notEnoughXP && (
+              <div className="flex-1 bg-red-500 text-white p-2 rounded-lg text-sm">
+                <p>You do not have enough XP to proceed. You can earn more XP or buy an XP boost. Check for options in the top app menu.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // How it works modal
   const HowItWorksModal = () => (
@@ -571,19 +654,16 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
             <span className="text-cyan-400 font-bold text-lg">1.</span>
             <div>
               <p className="font-medium mb-1">Upload Reference Track</p>
-              <p className="text-gray-300">Use a reference track you own the rights to and get two versions of a new unique AI remix</p>
+              <p className="text-gray-300">Use a reference track you own the rights to and get one remixed track</p>
             </div>
           </li>
           <li className="flex gap-3">
             <span className="text-cyan-400 font-bold text-lg">2.</span>
             <div>
-              <p className="font-medium mb-1">Pay Processing Fee</p>
+              <p className="font-medium mb-1">Pay Processing Fee in XP</p>
               <p className="text-gray-300">
-                Pay{" "}
-                <span className="text-orange-400">
-                  {requiredSolAmount ?? "..."} SOL (${GENERATE_MUSIC_MEME_PRICE_IN_USD})
-                </span>{" "}
-                per remix for AI processing and platform fees
+                Pay <span className="text-orange-400">{GENERATE_MUSIC_MEME_PRICE_IN_USD * ONE_USD_IN_XP} XP</span> per remix for AI processing and platform
+                fees. You can earn or buy XP on the platform.
               </p>
             </div>
           </li>
@@ -617,43 +697,63 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   const AiGenerationInProgressPopup = () => (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 className="!text-xl font-bold">Success! Your tracks are being generated.</h3>
-        <p className="text-gray-300 mb-4">It may take a few minutes to generate. You will be notified when they are ready.</p>
-        <div className="space-y-4 flex flex-col">
-          <Button
-            onClick={() => {
-              resetStateToPristine();
-            }}
-            className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
-            Back to Sigma Remix Home
-          </Button>
-
-          <div className="bg-yellow-300 rounded-full p-[10px] -z-1 ">
-            <a
-              className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
-              href={"https://twitter.com/intent/tweet?" + tweetText}
-              data-size="large"
-              target="_blank"
-              rel="noreferrer">
-              <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
-                  <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
-                </svg>
-              </span>
-              <p className="z-10">Share this news on X</p>
-            </a>
+        {remixingStatus === "processing" && (
+          <div className="space-y-4">
+            <h3 className="!text-xl font-bold">Sending Remix Job...</h3>
+            <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
+              <Loader className="w-full text-center animate-spin hover:scale-105" />
+              <p className="text-yellow-300">Job is being sent... do not close this page</p>
+            </div>
           </div>
-        </div>
+        )}
+
+        {remixingStatus === "failed" && (
+          <>
+            <h3 className="!text-xl font-bold">Error! sending remix job failed.</h3>
+            <div>
+              {backendErrorMessage && (
+                <div className="flex flex-col gap-4 w-full">
+                  <p className="bg-red-500 p-4 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {remixingStatus === "confirmed" && (
+          <>
+            <h3 className="!text-xl font-bold">Success! Your tracks are being generated.</h3>
+            <p className="text-gray-300 mb-4">It may take a few minutes to generate. You will be notified when they are ready.</p>
+            <div className="space-y-4 flex flex-col">
+              <Button
+                onClick={() => {
+                  resetStateToPristine();
+                }}
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                Back to Sigma Remix Home
+              </Button>
+
+              <div className="bg-yellow-300 rounded-full p-[10px] -z-1 ">
+                <a
+                  className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
+                  href={"https://twitter.com/intent/tweet?" + tweetText}
+                  data-size="large"
+                  target="_blank"
+                  rel="noreferrer">
+                  <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                      <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                    </svg>
+                  </span>
+                  <p className="z-10">Share this news on X</p>
+                </a>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
-
-  const getTweetUrl = (sendBackOnlyText: boolean = false) => {
-    const tweetText = encodeURIComponent(
-      `yo @SigmaXMusic I just remixed a music single titled "${songTitle}" in ${selectedGenre} style and ${selectedMood} mood.`
-    );
-    return sendBackOnlyText ? tweetText : `https://twitter.com/intent/tweet?text=${tweetText}`;
-  };
 
   const ReferenceTrackSelector = () => (
     <div className="space-y-3">
@@ -723,24 +823,6 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
       <label className="block text-sm font-medium mb-2">Track Style</label>
       <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={() => setTrackStyle("with-vocals")}
-          className={`p-4 rounded-lg border transition-all duration-300 text-left ${
-            trackStyle === "with-vocals"
-              ? "border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-orange-500/10"
-              : "border-gray-600 hover:border-yellow-500 bg-[#2A2A2A]"
-          }`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${trackStyle === "with-vocals" ? "bg-yellow-500" : "bg-gray-600"}`}>
-              <span className="text-white text-sm">🎤</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white">With Vocals</p>
-              <p className="text-xs text-gray-400">Include vocal elements</p>
-            </div>
-          </div>
-        </button>
-
-        <button
           onClick={() => setTrackStyle("instrumental")}
           className={`p-4 rounded-lg border transition-all duration-300 text-left ${
             trackStyle === "instrumental"
@@ -752,8 +834,27 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
               <span className="text-white text-sm">🎹</span>
             </div>
             <div>
-              <p className="text-sm font-medium text-white">Only Instrumental</p>
+              <p className="text-xs font-medium text-white">Only Instrumental</p>
               <p className="text-xs text-gray-400">No vocal elements</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setTrackStyle("with-vocals")}
+          disabled
+          className={`p-4 rounded-lg border transition-all duration-300 text-left ${
+            trackStyle === "with-vocals"
+              ? "border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-orange-500/10"
+              : "border-gray-600 hover:border-yellow-500 bg-[#2A2A2A]"
+          }`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${trackStyle === "with-vocals" ? "bg-yellow-500" : "bg-gray-600"}`}>
+              <span className="text-white text-sm">🎤</span>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-white">With Vocals (coming soon)</p>
+              <p className="text-xs text-gray-400">Include vocal elements</p>
             </div>
           </div>
         </button>
@@ -765,8 +866,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
     const aiRemixGenres = ALL_MUSIC_GENRES.filter((genre) => genre.isAiRemixOption);
 
     return (
-      <div className="space-y-3">
-        <label className="block text-sm font-medium mb-2">Desired Genre</label>
+      <div className="space-y-3 opacity-50 pointer-events-none cursor-not-allowed">
+        <label className="block text-sm font-medium mb-2">Desired Genre (coming soon)</label>
         <div
           className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
@@ -790,8 +891,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
 
   const MoodSelector = () => {
     return (
-      <div className="space-y-3">
-        <label className="block text-sm font-medium mb-2">Desired Mood</label>
+      <div className="space-y-3 opacity-50 pointer-events-none cursor-not-allowed">
+        <label className="block text-sm font-medium mb-2">Desired Mood (coming soon)</label>
         <div
           className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
@@ -814,10 +915,10 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
-      {showPaymentConfirmation && <PaymentConfirmationPopup />}
+    <div className="fixed inset-0 bg-yellow-400 bg-opacity-30 flex items-center justify-center z-50">
+      {showPaymentConfirmation && <PaymentConfirmationPopup_XP />}
       {showHowItWorks && <HowItWorksModal />}
-      {trackGenerationRequested && <AiGenerationInProgressPopup />}
+      {(remixingStatus === "processing" || remixingStatus === "confirmed" || remixingStatus === "failed") && <AiGenerationInProgressPopup />}
 
       <div className="relative bg-[#1A1A1A] rounded-lg p-6 max-w-5xl w-full mx-4 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Close button - moved outside the grid */}
@@ -884,14 +985,16 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
             />
           ) : (
             <>
-              <div className="mb-6">
+              <div className="mb-2">
                 <h3 className="text-xl font-bold mb-2">Reference Track Navigator</h3>
                 <p className="text-sm text-gray-300">Browse and select reference tracks for your AI remixes</p>
               </div>
 
+              {/* Your Commercial Licenses */}
               <div className="space-y-4">
                 <div className="bg-[#2A2A2A] rounded-lg p-4">
-                  <h4 className="!text-lg font-medium mb-3">Your Commercial Licenses</h4>
+                  <h4 className="!text-lg font-medium">Your Commercial Licenses</h4>
+                  <p className="text-xs text-gray-300 mb-3">Own full rights to remixes made using music from these albums</p>
                   {isLoadingStoryLicenses ? (
                     <div className="flex items-center justify-center py-6">
                       <Loader className="w-5 h-5 animate-spin mr-2" />
@@ -954,6 +1057,34 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
                       </Button>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Free Albums Anyone Can Remix */}
+              <div className="space-y-4 mt-5">
+                <div className="bg-[#2A2A2A] rounded-lg p-4">
+                  <h4 className="!text-lg font-medium">Free Albums You Can Remix</h4>
+                  <p className="text-xs text-gray-300 mb-3">Remix these albums but you don't own the rights to the remixes</p>
+                  <div className="space-y-3 overflow-y-auto max-h-[calc(80vh-200px)]">
+                    {freeLincensedAlbums.map((license: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-4 p-3 hover:bg-[#3A3A3A] rounded-lg cursor-pointer transition-colors border border-transparent hover:border-gray-600"
+                        onClick={() => handleAlbumClick(license)}>
+                        {license.albumImage ? (
+                          <img src={license.albumImage} alt={license.albumName} className="w-12 h-12 object-cover rounded-lg" />
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
+                            <span className="text-lg text-gray-400">🎵</span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{license.albumName || "Unknown Album"}</p>
+                          <p className="text-xs text-gray-400">Free Album</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </>

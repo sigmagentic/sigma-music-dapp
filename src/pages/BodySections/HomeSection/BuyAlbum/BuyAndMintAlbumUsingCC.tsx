@@ -34,13 +34,13 @@ export const BuyAndMintAlbumUsingCC = ({
   artistProfile: Artist;
   albumToBuyAndMint: Album;
 }) => {
-  const { publicKey } = useSolanaWallet();
+  const { publicKey, walletType } = useSolanaWallet();
   const { artistLookupEverything } = useAppStore();
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
   const { signMessage } = useWallet();
   const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
-  const { userInfo } = useWeb3Auth();
+  const { userInfo, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { solBitzNfts } = useNftsStore();
 
   const [showStripePaymentPopup, setShowStripePaymentPopup] = useState(false);
@@ -265,7 +265,7 @@ export const BuyAndMintAlbumUsingCC = ({
       solPreaccessNonce,
       solPreaccessSignature,
       solPreaccessTimestamp,
-      signMessage,
+      signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
       publicKey,
       updateSolPreaccessNonce,
       updateSolSignedPreaccess,
@@ -585,15 +585,18 @@ export const BuyAndMintAlbumUsingCC = ({
               albumSaleTypeOption={albumSaleTypeOption || ""}
             />
 
-            <div className="text-xs text-right mt-[5px]">
-              <p>
-                <span className="font-bold text-yellow-300">Terms of Sale:</span> By clicking "Buy Now", you agree to these{" "}
-                <a className="underline" href="https://sigmamusic.fm/legal#terms-of-sale" target="_blank" rel="noopener noreferrer">
-                  Terms
-                </a>
-              </p>
-              <p className="text-xs text-gray-400">Payments are processed securely by Stripe. Click on Proceed when ready to pay.</p>
-            </div>
+            {paymentStatus === "idle" ||
+              (paymentStatus === "processing" && (
+                <div className="text-xs text-right mt-[5px]">
+                  <p>
+                    <span className="font-bold text-yellow-300">Terms of Sale:</span> By clicking "Buy Now", you agree to these{" "}
+                    <a className="underline" href="https://sigmamusic.fm/legal#terms-of-sale" target="_blank" rel="noopener noreferrer">
+                      Terms
+                    </a>
+                  </p>
+                  <p className="text-xs text-gray-400">Payments are processed securely by Stripe. Click on Proceed when ready to pay.</p>
+                </div>
+              ))}
 
             <div className="flex flex-col md:flex-row gap-2 col-span-2">
               {backendErrorMessage && (

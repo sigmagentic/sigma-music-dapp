@@ -71,7 +71,7 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
                   <td className="p-2">{new Date(job.createdOn).toLocaleDateString()}</td>
                   <td className="p-2">{job.amount} SOL</td>
                   <td className="p-2">
-                    {job.paymentStatus === "new" ? (
+                    {job.paymentStatus === "new" || job.paymentStatus === "async_processing" ? (
                       <span className="bg-yellow-900 text-yellow-300 px-2 py-1 rounded-md">Pending AI Remix...</span>
                     ) : (
                       job.paymentStatus.charAt(0).toUpperCase() + job.paymentStatus.slice(1)
@@ -227,7 +227,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
       newJobsInterval = setInterval(async () => {
         setCheckingIfNewJobsHaveCompleted(true);
 
-        if (myJobsPayments.filter((job) => job.paymentStatus === "new").length > 0) {
+        if (myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0) {
           const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol });
           setNewLaunchesData(responseA);
 
@@ -974,7 +974,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                 <span className="text-sm font-medium text-gray-300">All Music</span>
               </div>
             )}
-            {myJobsPayments.length > 0 && walletType === "phantom" && (
+            {myJobsPayments.length > 0 && (
               <div className="relative">
                 <Button
                   variant="outline"
@@ -982,9 +982,9 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                   onClick={() => setIsJobsModalOpen(true)}>
                   Your Remix Jobs
                 </Button>
-                {myJobsPayments.filter((job) => job.paymentStatus === "new").length > 0 && (
+                {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0 && (
                   <div className="absolute -top-2 -right-2 bg-yellow-900 text-yellow-300 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
-                    {myJobsPayments.filter((job) => job.paymentStatus === "new").length}
+                    {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length}
                   </div>
                 )}
               </div>
@@ -1007,7 +1007,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                           <p>
                             Buy a commercial IP license from a real-world artist and use Sigma's AI model to generate an IP-safe remix of the original track.
                           </p>
-                          <p>You will get two versions of the remixed track and they will appear in this list for everyone to listen to.</p>
+                          <p>You will get one remixed track and they will appear in this list for everyone to listen to.</p>
                           <p>People can use their XP to vote on each version. They can vote for both as well if they like both versions.</p>
                           <p>
                             Once at least {VOTES_TO_GRADUATE} votes have been cast on a track, it becomes a candidate that gets included in Sigma Music's
@@ -1034,10 +1034,13 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
               </button>
             </div>
             <div className="space-y-4">
-              {myJobsPayments.filter((job) => job.paymentStatus === "new").length > 0 && (
+              {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0 && (
                 <div className="flex flex-col items-center py-2 bg-yellow-900 text-yellow-300 rounded-md">
                   <p className="text-sm text-center m-auto">
-                    <span className="mr-1">{myJobsPayments.filter((job) => job.paymentStatus === "new").length}</span> Remix Jobs Pending{" "}
+                    <span className="mr-1">
+                      {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length}
+                    </span>{" "}
+                    Remix Jobs Pending{" "}
                     {checkingIfNewJobsHaveCompleted && (
                       <span className="text-yellow-300 flex items-center justify-center ml-2 mt-2">
                         <Loader className="w-4 h-4 animate-spin mr-2" /> rechecking...

@@ -117,7 +117,7 @@ To support my favorite artist and also stream/download the full album with bonus
 
 - Digital Album Only - (SOL / XP pass)
 - Album + Commercial License - [used Cereals SOL -- PASS] [used TKO for XP -- PASS]
-- NFT + Digital Album
+- NFT + Digital Album - (SOL - Manu's elements - PASS) [Problem Child EP by LLLUNA01 for XP -- PASS]
 
 - Ultimate Package
 
@@ -125,6 +125,8 @@ To support my favorite artist and also stream/download the full album with bonus
 As a FAN
 I want to buy a Inner Circle Fan NFT with my Credit Card / SOL / XP
 To support my favorite artist
+
+- [used 7OGStrike SOL -- PASS] [used LLUNA for XP -- PASS]
 
 3/
 As a FAN
@@ -136,6 +138,10 @@ To enjoy music
 ### REMIX ARTIST Stories
 
 1/
+As a REMIX ARTIST
+I want to use some free public reference tracks and pay to geberate a new derivative track with XP
+So I can have this new track as something i created in my account for personal use only
+
 As a REMIX ARTIST
 I want to buy a Commercial Music Licence with my Credit Card / SOL / XP
 So I can use the AI Remix section to remix my own tracks using the licnesed tracks as reference

@@ -16,7 +16,7 @@ import { useNftsStore } from "store/nfts";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { useAccountStore } from "store/account";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { sendPowerUpSol, SendPowerUpSolResult } from "../../pages/BodySections/HomeSection/SendBitzPowerUp";
+import { sendPowerUpSol, SendPowerUpSolResult } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 import { logPaymentToAPI, sleep } from "libs/utils";
 import { toastSuccess } from "libs/utils";
 import { showSuccessConfetti } from "libs/utils/uiShared";
@@ -46,11 +46,11 @@ export const JoinInnerCircleCC = ({
   payWithXP: boolean;
   artistProfile: Artist;
 }) => {
-  const { publicKey } = useSolanaWallet();
+  const { publicKey, walletType } = useSolanaWallet();
+  const { userInfo, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
   const { signMessage } = useWallet();
-  const { userInfo } = useWeb3Auth();
   const { solBitzNfts } = useNftsStore();
   const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
 
@@ -241,7 +241,7 @@ export const JoinInnerCircleCC = ({
       solPreaccessNonce,
       solPreaccessSignature,
       solPreaccessTimestamp,
-      signMessage,
+      signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
       publicKey,
       updateSolPreaccessNonce,
       updateSolSignedPreaccess,
@@ -411,7 +411,7 @@ export const JoinInnerCircleCC = ({
     setTotalQuantity(1);
   }
 
-  let isCCPaymentsDisabled = !ENABLE_CC_PAYMENTS || ENABLE_CC_PAYMENTS !== "1" || !STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "";
+  const isCCPaymentsDisabled = !ENABLE_CC_PAYMENTS || ENABLE_CC_PAYMENTS !== "1" || !STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "";
   const tokenImg = convertTokenImageUrl(creatorFanMembershipAvailability[membershipId]?.tokenImg);
 
   return (

@@ -266,6 +266,33 @@ export const mintAlbumOrFanNFTAfterPaymentViaAPI = async (mintData: any) => {
   }
 };
 
+export const sendRemixJobAfterPaymentViaAPI = async (remixData: any) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/sendRemixJobAfterPayment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(remixData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error minting collectible after payment:", error);
+    throw error;
+  }
+};
+
 export const logStatusChangeToAPI = async ({
   launchId,
   createdOn,
@@ -1480,11 +1507,12 @@ export const downloadMp3TrackViaAPI = async (artistId: string, albumId: string, 
 
       return true;
     } else {
-      alert("Error downloading track");
+      console.error("Error downloading track:", response.statusText);
+      return false;
     }
   } catch (error) {
     console.error("Error downloading track:", error);
-    alert("Error downloading track");
+    return false;
   }
 };
 

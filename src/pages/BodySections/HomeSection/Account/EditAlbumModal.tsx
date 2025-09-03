@@ -11,6 +11,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAccountStore } from "store/account";
 import { InfoTooltip } from "libComponents/Tooltip";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 export interface AlbumFormData {
   albumId: string;
@@ -36,6 +37,13 @@ interface EditAlbumModalProps {
 }
 
 export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose, onSave, initialData, albumTitle, isNewAlbum = false }) => {
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
+  const addressSol = publicKeySol?.toBase58();
+  const { signMessage } = useWallet();
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+
   const [formData, setFormData] = useState<AlbumFormData>({ ...initialData });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<AlbumFormData>>({});
@@ -43,11 +51,6 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
   const [showPricingDisclaimerModal, setShowPricingDisclaimerModal] = useState(false);
   const [showPricingInfoModal, setShowPricingInfoModal] = useState(false);
   const [currentPricingInfo, setCurrentPricingInfo] = useState<{ title: string; content: string }>({ title: "", content: "" });
-  const { publicKey: publicKeySol } = useSolanaWallet();
-  const addressSol = publicKeySol?.toBase58();
-  const { signMessage } = useWallet();
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
 
   // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
@@ -115,7 +118,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
           solPreaccessNonce,
           solPreaccessSignature,
           solPreaccessTimestamp,
-          signMessage,
+          signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
           publicKey: publicKeySol,
           updateSolPreaccessNonce,
           updateSolSignedPreaccess,

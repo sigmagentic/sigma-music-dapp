@@ -13,6 +13,7 @@ import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 type SendBitzPowerUpProps = {
   giveBitzForMusicBountyConfig: {
@@ -30,24 +31,25 @@ type SendBitzPowerUpProps = {
 
 export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
   const { giveBitzForMusicBountyConfig, onCloseModal } = props;
+
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { creatorIcon, creatorName, creatorXLink, giveBitzToWho, giveBitzToCampaignId, isLikeMode, isRemixVoteMode } = giveBitzForMusicBountyConfig;
   const { signMessage } = useWallet();
-  const { publicKey: publicKeySol } = useSolanaWallet();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
+  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
+  const { solBitzNfts } = useNftsStore();
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+
   const [giftBitzWorkflow, setGiftBitzWorkflow] = useState<boolean>(false);
   const [bitzValToGift, setBitzValToGift] = useState<number>(0);
   const [minBitzValNeeded, setMinBitzValNeeded] = useState<number>(1);
   const [poweringUpInProgress, setPoweringUpInProgress] = useState<boolean>(false);
   const [powerUpSuccessfullyDone, setPowerUpSuccessfullyDone] = useState<boolean>(false);
   const [poweringUpError, setPoweringUpError] = useState<boolean>(false);
-  const { solBitzNfts } = useNftsStore();
   const [showDetails, setShowDetails] = useState<boolean>(false);
-  const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
   const [bitBalanceOnChain, setBitBalanceOnChain] = useState<number>(0);
   const [tweetText, setTweetText] = useState<string>("");
-
-  // Cached Signature Store Items
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
 
   useEffect(() => {
     if (publicKeySol) {
@@ -113,7 +115,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey: publicKeySol,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,

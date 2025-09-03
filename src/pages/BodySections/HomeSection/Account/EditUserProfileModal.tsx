@@ -10,13 +10,13 @@ import { useAccountStore } from "store/account";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 interface EditUserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: ProfileFormData) => Promise<boolean>;
   initialData: ProfileFormData;
-  walletType: string;
 }
 
 export interface ProfileFormData {
@@ -35,17 +35,16 @@ interface ValidationErrors {
   profileImage?: string;
 }
 
-export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOpen, onClose, onSave, initialData, walletType }) => {
+export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
+  const addressSol = publicKeySol?.toBase58();
+  const { signMessage } = useWallet();
+
   const [formData, setFormData] = useState<ProfileFormData>({ ...initialData });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // keeps track if a new file is selected for edit so we can save it to the server to get back a https url for profileImage
-  const [newSelectedProfileImageFile, setNewSelectedProfileImageFile] = useState<File | null>(null);
-
-  const { publicKey: publicKeySol } = useSolanaWallet();
-  const addressSol = publicKeySol?.toBase58();
-  const { signMessage } = useWallet();
+  const [newSelectedProfileImageFile, setNewSelectedProfileImageFile] = useState<File | null>(null); // keeps track if a new file is selected for edit so we can save it to the server to get back a https url for profileImage
 
   // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -99,6 +98,13 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
     // Validate profile image URL
     if (formData.profileImage.trim() && !isValidUrl(formData.profileImage)) {
       newErrors.profileImage = "Please enter a valid URL";
+    }
+
+    // check if the profile image is less than 3MB
+    if (newSelectedProfileImageFile) {
+      if (newSelectedProfileImageFile.size > 3 * 1024 * 1024) {
+        newErrors.profileImage = "Profile image must be less than 3MB";
+      }
     }
 
     setErrors(newErrors);
@@ -164,7 +170,7 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey: publicKeySol,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
