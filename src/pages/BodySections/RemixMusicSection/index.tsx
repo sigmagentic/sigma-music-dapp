@@ -17,6 +17,7 @@ import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { LaunchMusicTrack } from "./LaunchMusicTrack";
 import { routeNames } from "routes";
+import { fixImgIconForRemixes } from "libs/utils/ui";
 
 const VOTES_TO_GRADUATE = 5;
 // const HOURS_TO_GRADUATE = 24;
@@ -438,7 +439,11 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
         <div className="flex flex-col">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative md:w-24 md:h-24">
-              <img src={item.image} alt={item?.promptParams?.songTitle || "LEGACY"} className="w-full h-full m-auto md:m-0 rounded-lg object-cover" />
+              <img
+                src={fixImgIconForRemixes(item.image)}
+                alt={item?.promptParams?.songTitle || "LEGACY"}
+                className="w-full h-full m-auto md:m-0 rounded-lg object-cover"
+              />
               <img
                 src="https://raw.githubusercontent.com/Itheum/data-assets/main/Misc/Random/play_overlay_icon.png"
                 alt="play"
@@ -533,7 +538,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                                   onClick={() => {
                                     if (addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined") {
                                       handleSendBitzForMusicBounty({
-                                        creatorIcon: item.image,
+                                        creatorIcon: fixImgIconForRemixes(item.image),
                                         creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                         giveBitzToWho: item.remixedBy,
                                         giveBitzToCampaignId: version.bountyId,
@@ -550,7 +555,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                                       onClick={() => {
                                         if (addressSol) {
                                           handleSendBitzForMusicBounty({
-                                            creatorIcon: item.image,
+                                            creatorIcon: fixImgIconForRemixes(item.image),
                                             creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                             giveBitzToWho: item.remixedBy,
                                             giveBitzToCampaignId: version.bountyId,
@@ -641,7 +646,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                                         onClick={() => {
                                           if (addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined") {
                                             handleSendBitzForMusicBounty({
-                                              creatorIcon: item.image,
+                                              creatorIcon: fixImgIconForRemixes(item.image),
                                               creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                               giveBitzToWho: item.remixedBy,
                                               giveBitzToCampaignId: version.bountyId,
@@ -658,7 +663,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                                             onClick={() => {
                                               if (addressSol) {
                                                 handleSendBitzForMusicBounty({
-                                                  creatorIcon: item.image,
+                                                  creatorIcon: fixImgIconForRemixes(item.image),
                                                   creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                                   giveBitzToWho: item.remixedBy,
                                                   giveBitzToCampaignId: version.bountyId,
@@ -746,7 +751,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                                                 onClick={() => {
                                                   if (addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined") {
                                                     handleSendBitzForMusicBounty({
-                                                      creatorIcon: item.image,
+                                                      creatorIcon: fixImgIconForRemixes(item.image),
                                                       creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                                       giveBitzToWho: item.remixedBy,
                                                       giveBitzToCampaignId: version.bountyId,
@@ -763,7 +768,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                                                     onClick={() => {
                                                       if (addressSol) {
                                                         handleSendBitzForMusicBounty({
-                                                          creatorIcon: item.image,
+                                                          creatorIcon: fixImgIconForRemixes(item.image),
                                                           creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                                           giveBitzToWho: item.remixedBy,
                                                           giveBitzToCampaignId: version.bountyId,
@@ -956,11 +961,13 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
 
   return (
     <>
-      <div className="flex flex-col min-h-screen w-full">
+      <div className="flex flex-col min-h-screen w-full mt-3">
         <div className="flex flex-col md:flex-row items-center justify-between mb-5">
           <div>
             <h1 className="!text-2xl font-semibold text-center md:text-left">
-              <span className="text-2xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">Sigma REMiX</span>
+              <span className="text-2xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+                Sigma REMiX <span className="text-xs text-gray-500">Beta</span>
+              </span>
             </h1>
             <p className="text-sm text-gray-500">Create & Publish IP-Safe AI Remixes</p>
           </div>

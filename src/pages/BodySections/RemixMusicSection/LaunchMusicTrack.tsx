@@ -142,7 +142,10 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
       });
 
       setMyStoryProtocolLicenses(_myStoryProtocolLicensesWithAlbumDetails);
+    }
 
+    // load a free album if no free albums are loaded
+    if (freeLincensedAlbums.length === 0) {
       const freeRemixAlbum1 = {
         albumId: "ar142_a1",
         albumImage: "https://api.itheumcloud-stg.com/app_sigmamusic/HYzBq-TYmRa/img/dj-sigma-mix-tape-1-1756778980811.png",
@@ -279,7 +282,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
           <div className="flex items-center justify-between mb-6 mt-3">
             <div className="flex items-center gap-6">
               <div>
-                <h2 className="text-2xl font-bold text-white flex items-center">{album.title}</h2>
+                <h2 className="!text-2xl font-bold text-white flex items-center">{album.title}</h2>
                 <p className="text-gray-400">{artistName}</p>
                 <div className="text-gray-400 text-xs mt-1">Select a track to use as reference for AI remix</div>
               </div>
@@ -385,7 +388,6 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   }
 
   const handlePaymentConfirmation_XP = async (priceInXP: number, priceInUSD: number) => {
-    debugger;
     if (!publicKey || !priceInXP || !priceInUSD || !selectedReferenceTrack || !selectedReferenceTrack.arId) {
       alert("Missing required fields");
       return;
@@ -453,25 +455,11 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
         throw new Error("Payment failed - no receipt returned when sending XP");
       }
 
-      // // Log payment to web2 API
-      // const _logPaymentToAPIResponse = await logPaymentToAPI({
-      //   solSignature: usedPreAccessSignature,
-      //   signatureNonce: usedPreAccessNonce,
-      //   payer: publicKey.toBase58(),
-      //   tx: xpPaymentReceipt,
-      //   task: "joinFanClub",
-      //   type: "xp",
-      //   amount: priceInXP.toString(),
-      //   priceInUSD: priceInUSD,
-      //   creatorWallet: artistProfile.creatorPaymentsWallet, // creatorPaymentsWallet is the wallet that belongs to the artists for payments/royalty etc
-      //   membershipId: membershipId,
-      //   artistId: artistId,
-      // });
-
       const promptParams: any = {
         songTitle: songTitle,
         refTrack_alId: selectedReferenceTrack.alId,
         refTrack_file: selectedReferenceTrack.file,
+        refTrack_arId: selectedReferenceTrack.arId,
       };
 
       if (selectedGenre !== "") {
@@ -834,7 +822,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
               <span className="text-white text-sm">🎹</span>
             </div>
             <div>
-              <p className="text-xs font-medium text-white">Only Instrumental</p>
+              <p className="text-xs font-medium text-white">Melody Instrumental</p>
               <p className="text-xs text-gray-400">No vocal elements</p>
             </div>
           </div>
@@ -1102,7 +1090,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
         "genre": "Pop",
         "mood": "Happy",
         "refTrack_alId": "1234567890",
-        "refTrack_file": "https://example.com/track.mp3"
+        "refTrack_file": "https://example.com/track.mp3",
+        "refTrack_arId": "ar1"
       }
 
       the job then stores the SQS message ID against the payment log. this will be called asyncTaskJobTraceId in the payment log. 
@@ -1122,7 +1111,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
               "genre": "Pop",
               "mood": "Happy",
               "refTrack_alId": "ar21_a3-1",
-              "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3"
+              "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3",
+              "refTrack_arId": "ar1"
             },
             "asyncTaskJobTraceId": "sqs-mgs01"
       }
@@ -1147,7 +1137,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
                 "genre": "Pop",
                 "mood": "Happy",
                 "refTrack_alId": "ar21_a3-1",
-                "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3"
+                "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3",
+                "refTrack_arId": "ar1"
               },
       "versions": [
         {
@@ -1178,7 +1169,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
               "genre": "Pop",
               "mood": "Happy",
               "refTrack_alId": "ar21_a3-1",
-              "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3"
+              "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3",
+              "refTrack_arId": "ar1"
             },
             "asyncTaskJobTraceId": "sqs-mgs01"
       }
@@ -1203,7 +1195,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
                 "genre": "Pop",
                 "mood": "Happy",
                 "refTrack_alId": "ar21_a3-1",
-                "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3"
+                "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3",
+                "refTrack_arId": "ar1"
               },
       "versions": [
         {
@@ -1233,7 +1226,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
                 "genre": "Pop",
                 "mood": "Happy",
                 "refTrack_alId": "ar21_a3-1",
-                "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3"
+                "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3",
+                "refTrack_arId": "ar1"
               },
       "albumId": "asdt2-1",
       "versions": [
@@ -1271,6 +1265,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   "mood": "Sad",
   "refTrack_alId": "ar21_a3-1",
   "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3",
+  "refTrack_arId": "ar1"
   "songTitle": "Rockstar Gaze"
  },
  "task": "remix",
@@ -1292,7 +1287,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
                 "genre": "Rock",
                 "mood": "Sad",
                 "refTrack_alId": "ar21_a3-1",
-                "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3"
+                "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3",
+                "refTrack_arId": "ar1"
               },
       "versions": [
         {
@@ -1327,6 +1323,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   "mood": "Sad",
   "refTrack_alId": "ar21_a3-1",
   "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3",
+  "refTrack_arId": "ar1"
   "songTitle": "Rockstar Gaze"
  },
  "remixedBy": "PF6xCtUzeCMqXVdvqLCkZGsajKoz2XZ5JJJjuMRcjxD",
@@ -1358,6 +1355,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   "mood": "Sad",
   "refTrack_alId": "ar21_a3-1",
   "refTrack_file": "https://api.itheumcloud.com/app_nftunes/assets/music_files/TKO_Ember_EDM.MP3",
+  "refTrack_arId": "ar1"
   "songTitle": "Rockstar Gaze"
  },
  "remixedBy": "PF6xCtUzeCMqXVdvqLCkZGsajKoz2XZ5JJJjuMRcjxD",

@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { GetNFMeModal } from "components/GetNFMeModal";
 import { NFMePreferencesModal } from "components/NFMePreferencesModal";
 import { SOL_ENV_ENUM } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -12,6 +11,7 @@ import { isUserArtistType, toastError, toastSuccess, updateUserProfileOnBackEndA
 import { useAccountStore } from "store/account";
 import { ArtistProfile } from "./ArtistProfile";
 import { EditUserProfileModal, ProfileFormData } from "./EditUserProfileModal";
+import { Button } from "libComponents/Button";
 
 type MyProfileProps = {
   navigateToDeepAppView: (e: any) => any;
@@ -27,20 +27,19 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
   const { signMessage } = useWallet();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
   const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases, updateUserWeb2AccountDetails } = useAccountStore();
-
-  const [showNfMeIdModal, setShowNfMeIdModal] = useState<boolean>(false);
-  const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
-  const [showEditProfileModal, setShowEditProfileModal] = useState<boolean>(false);
-
-  // Tab state - default to "artist" if user is an artist, otherwise "profile"
-  const [activeTab, setActiveTab] = useState<ProfileTab>(isUserArtistType(userWeb2AccountDetails.profileTypes) ? "artist" : "profile");
-
-  // Use the appropriate public key based on wallet type
-  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey;
-
-  // Cached Signature Store Items
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
+
+  const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState<boolean>(false);
+  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["artist", "profile"]);
+  const [activeTab, setActiveTab] = useState<ProfileTab>(isUserArtistType(userWeb2AccountDetails.profileTypes) ? "artist" : "profile"); // Tab state - default to "artist" if user is an artist, otherwise "profile"
+
+  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey; // Use the appropriate public key based on wallet type
+
+  useEffect(() => {
+    setTabsOrdered(isUserArtistType(userWeb2AccountDetails.profileTypes) ? ["artist", "profile"] : ["profile"]);
+  }, [userWeb2AccountDetails.profileTypes]);
 
   // Profile type mapping function
   const getProfileTypeLabel = (profileTypes: string[]): string => {
@@ -143,9 +142,9 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
   const renderAppProfile = () => (
     <>
       {/* User Details Section */}
-      <div className="bg-black rounded-lg p-6 mb-6">
+      <div className="rounded-lg p-6 mb-6 border-b border-gray-800">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-0">
-          <h2 className="!text-2xl !md:text-2xl font-bold mb-4 text-center md:text-left">Your User Profile</h2>
+          <h2 className="!text-xl !md:text-xl font-bold mb-4 text-center md:text-left">Your User Profile</h2>
           {/* <div
             className={`text-md font-bold border-2 rounded-lg p-2 ${userWeb2AccountDetails.isVerifiedUser ? "bg-yellow-300text-black" : "bg-gray-500 text-white"}`}>
             {userWeb2AccountDetails.isVerifiedUser ? "Verified User Account" : "Unverified User Account"}
@@ -199,11 +198,13 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
               </div>
               {/* Edit Profile Button */}
               <div className="flex justify-center md:justify-end">
-                <button
-                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
-                  onClick={() => setShowEditProfileModal(true)}>
+                <Button
+                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
+                  onClick={() => {
+                    setShowEditProfileModal(true);
+                  }}>
                   Edit Account Profile
-                </button>
+                </Button>
               </div>
             </>
           </div>
@@ -211,7 +212,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       </div>
 
       {/* App Preferences Section */}
-      <div className="bg-black rounded-lg p-6 mb-6">
+      <div className="hidden rounded-lg p-6 mb-6 border-b border-gray-800">
         <h2 className="!text-2xl !md:text-2xl font-bold mb-4 text-center md:text-left">Your App Preferences</h2>
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           <div className="flex flex-col space-y-2">
@@ -227,8 +228,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       </div>
 
       {/* Music Asset Purchases Section */}
-      <div className="bg-black rounded-lg p-6">
-        <h2 className="!text-2xl font-bold mb-4">Your Music Asset Purchases</h2>
+      <div className="rounded-lg p-6 mb-6 border-b border-gray-800">
+        <h2 className="!text-xl font-bold mb-4">Your Music Asset Purchases</h2>
         {myMusicAssetPurchases.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <p className="text-xl text-gray-400">No logs yet</p>
@@ -273,8 +274,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       </div>
 
       {/* Full Purchase Log Section */}
-      <div className="bg-black rounded-lg p-6">
-        <h2 className="!text-2xl font-bold mb-4">Your Full Purchase Log</h2>
+      <div className="rounded-lg p-6 border-b border-gray-800">
+        <h2 className="!text-xl font-bold mb-4">Your Full Purchase Log</h2>
         {myPaymentLogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <p className="text-xl text-gray-400">No logs yet</p>
@@ -390,39 +391,57 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
 
   return (
     <div className="flex flex-col w-full px-4">
-      {/* Tab Navigation - Only show if user is an artist */}
-      <div className="mt-3 mb-6">
-        <div className="flex space-x-4">
-          {isUserArtistType(userWeb2AccountDetails.profileTypes) && (
-            <button
-              onClick={() => setActiveTab("artist")}
-              className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === "artist" ? "bg-yellow-300 text-black" : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
-              }`}>
-              Artist Profile
-            </button>
-          )}
-          <button
-            onClick={() => setActiveTab("profile")}
-            className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === "profile" ? "bg-yellow-300 text-black" : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
-            }`}>
-            Account Details
-          </button>
+      <div className="artist-tabs flex flex-col items-start w-full">
+        {/* Tabs Navigation */}
+        <div className="tabs-menu w-full overflow-x-auto pb-5 md:pb-0 mb-3 border-b border-gray-800">
+          <div className="flex space-x-8 whitespace-nowrap min-w-max">
+            {tabsOrdered.includes("artist") && (
+              <button
+                onClick={() => {
+                  setActiveTab("artist");
+                }}
+                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "artist"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                Artist Profile
+              </button>
+            )}
+            {tabsOrdered.includes("profile") && (
+              <button
+                onClick={() => {
+                  setActiveTab("profile");
+                }}
+                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "profile"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                Account Details
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Render content based on active tab */}
       {activeTab === "artist" ? (
-        <ArtistProfile onCloseMusicPlayer={onCloseMusicPlayer} viewSolData={viewSolData} setHomeMode={setHomeMode} />
+        <ArtistProfile
+          onCloseMusicPlayer={onCloseMusicPlayer}
+          viewSolData={viewSolData}
+          setHomeMode={setHomeMode}
+          navigateToDeepAppView={navigateToDeepAppView}
+        />
       ) : (
         renderAppProfile()
       )}
 
-      {/* NFMe ID Claim Modal */}
-      {showNfMeIdModal && <GetNFMeModal setShowNfMeIdModal={setShowNfMeIdModal} setShowNfMePreferencesModal={setShowNfMePreferencesModal} />}
-
-      {/* NFMe Preferences Modal */}
+      {/* Preferences Modal */}
       <NFMePreferencesModal isOpen={showNfMePreferencesModal} onClose={() => setShowNfMePreferencesModal(false)} />
 
       {/* Edit User Profile Modal */}
