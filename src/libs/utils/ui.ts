@@ -251,7 +251,7 @@ export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTrack
       songTitle: track.promptParams.songTitle + ` (V${index + 1})`,
       genre: track.promptParams.genre,
       mood: track.promptParams.mood,
-      image: track.image,
+      image: fixImgIconForRemixes(track.image),
       streamUrl: version.streamUrl,
       bountyId: version.bountyId,
       status: track.status,
@@ -286,7 +286,7 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
     artist: "Licensed AI Remixes",
     category: "Remix",
     album: "Licensed AI Remixes",
-    cover_art_url: remix.image,
+    cover_art_url: fixImgIconForRemixes(remix.image),
     title: remix.songTitle,
     stream: remix.streamUrl,
     bountyId: remix.bountyId,
@@ -311,3 +311,11 @@ export const isValidUrl = (url: string): boolean => {
     return false;
   }
 };
+
+export function fixImgIconForRemixes(dbImage: string) {
+  if (dbImage === "[blob_it]") {
+    return "https://placehold.co/300x300/ffc75f/black?font=Noto%20Sans&text=pending";
+  } else {
+    return dbImage;
+  }
+}

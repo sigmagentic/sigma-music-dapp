@@ -19,15 +19,17 @@ import { Badge } from "libComponents/Badge";
 import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
 import { TrackListModal } from "pages/MUI/components/TrackListModal";
+import { useAppStore } from "store/app";
 
 type ArtistProfileProps = {
   onCloseMusicPlayer: () => void;
   viewSolData: (e: number, f?: any, g?: boolean, h?: MusicTrack[]) => void;
   setHomeMode: (homeMode: string) => void;
+  navigateToDeepAppView: (logicParams: any) => void;
 };
 
 // Render the artist profile content
-export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: ArtistProfileProps) => {
+export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, navigateToDeepAppView }: ArtistProfileProps) => {
   const { publicKey: web3AuthPublicKey, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { userWeb2AccountDetails, myAiRemixRawTracks, updateMyAiRemixRawTracks, userArtistProfile, updateUserArtistProfile } = useAccountStore();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
@@ -347,18 +349,18 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
   return (
     <>
       {/* Music Catalog Section */}
-      <div className="bg-black rounded-lg p-6 mb-6">
+      <div className="rounded-lg p-6 mb-6 border-b border-gray-800">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-0">
-          <h2 className="!text-2xl font-bold mb-4">Your Music Catalog</h2>
+          <h2 className="!text-xl font-bold mb-4">Your Music Catalog</h2>
 
           {myAlbums.length > 0 && (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="text-xs">
                   {myAlbums.length} {myAlbums.length === 1 ? "Album" : "Albums"}
                 </Badge>
                 {myAlbums.some((album) => album.isPublished === "1") && (
-                  <Badge variant="secondary" className="bg-green-600 text-white">
+                  <Badge variant="secondary" className="bg-yellow-400 text-black text-xs">
                     {myAlbums.filter((album) => album.isPublished === "1").length} Published
                   </Badge>
                 )}
@@ -383,6 +385,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
               onAddNewAlbum={handleAddNewAlbum}
               onViewCurrentTracks={handleViewCurrentTracks}
               isLoadingTracks={isLoadingTracks}
+              navigateToDeepAppView={navigateToDeepAppView}
             />
           )
         )}
@@ -399,9 +402,9 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
       </div>
 
       {/* Artist Profile Section */}
-      <div className="bg-black rounded-lg p-6 mb-6">
+      <div className="rounded-lg p-6 mb-6 border-b border-gray-800">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-0">
-          <h2 className="!text-2xl font-bold mb-4">Your Artist Profile</h2>
+          <h2 className="!text-xl font-bold mb-4">Your Artist Profile</h2>
 
           <div
             className={`text-md font-bold border-2 rounded-lg p-2 ${userArtistProfile.isVerifiedArtist ? "bg-yellow-300text-black" : "bg-gray-500 text-white"}`}>
@@ -557,17 +560,26 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
                   )}
                 </div>
 
-                <div className="flex justify-center md:justify-end">
+                <div className="flex justify-center md:justify-end space-x-2">
                   {!userArtistProfile.artistId && noArtistIdError && (
                     <div className="flex flex-col justify-center mr-2 p-2 mt-3">
                       <p className="text-red-400">Artist Profile Not Created! Get Started 👉</p>
                     </div>
                   )}
-                  <button
-                    className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
+
+                  {userArtistProfile.artistId && (
+                    <Button
+                      className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
+                      onClick={() => navigateToDeepAppView({ artistSlug: userArtistProfile.slug })}>
+                      View Public Profile
+                    </Button>
+                  )}
+
+                  <Button
+                    className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
                     onClick={() => setShowEditArtistProfileModal(true)}>
                     Edit Artist Profile
-                  </button>
+                  </Button>
                 </div>
               </>
             </div>
@@ -576,15 +588,15 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
       </div>
 
       {/* Artist Remixes Section */}
-      <div className="bg-black rounded-lg p-6 mb-6">
-        <h2 className="!text-2xl font-bold mb-4">Your Music - AI Remixes</h2>
+      <div className="rounded-lg p-6 mb-6 border-b border-gray-800">
+        <h2 className="!text-xl font-bold mb-4">Your Music - AI Remixes</h2>
 
         {myAiRemixRawTracks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             {DISABLE_AI_REMIX_FEATURES === "0" ? (
-              <p className="text-xl text-gray-400">No remixes found</p>
+              <p className="text-md text-gray-400">No remixes found</p>
             ) : (
-              <p className="text-xl text-gray-400">Coming soon!</p>
+              <p className="text-md text-gray-400">Coming soon!</p>
             )}
           </div>
         ) : (
@@ -628,20 +640,20 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
         )}
 
         <div className="flex justify-center md:justify-end">
-          <button
-            className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
+          <Button
+            className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
             onClick={() => {
               setHomeMode(`ai-remix-${new Date().getTime()}`);
             }}>
             Launch AI Remix
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Artist Payouts Section */}
-      <div className="bg-black rounded-lg p-6">
+      <div className="rounded-lg p-6 border-b border-gray-800">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4">
-          <h2 className="!text-2xl !md:text-2xl font-bold mb-4 text-center md:text-left">Artist Payouts</h2>
+          <h2 className="!text-xl !md:text-xl font-bold mb-4 text-center md:text-left">Artist Payouts</h2>
           {payoutLogs.length > 0 && (
             <div className="text-md text-yellow-300 font-bold border-2 border-yellow-300 rounded-lg p-2">
               Total Payout: <span className="text-2xl font-bold">${totalPayout.toFixed(2)}</span>
@@ -655,7 +667,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode }: 
           </div>
         ) : payoutLogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <p className="text-xl text-gray-400">No payouts found</p>
+            <p className="text-md text-gray-400">No payouts found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -806,23 +818,26 @@ const ArtistAlbumList: React.FC<{
   onAddNewAlbum: () => void;
   onViewCurrentTracks: (albumId: string, albumTitle: string, albumImg: string) => void;
   isLoadingTracks: boolean;
-}> = ({ albums, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, isLoadingTracks }) => {
+  navigateToDeepAppView: (logicParams: any) => void;
+}> = ({ albums, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, isLoadingTracks, navigateToDeepAppView }) => {
+  const { artistLookupEverything } = useAppStore();
+
   return (
     <div className="space-y-6">
       {albums.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {albums.map((album) => (
-            <Card key={album.albumId} className="p-6 hover:shadow-lg transition-shadow bg-black border-gray-700 flex flex-col">
+            <Card key={album.albumId} className="p-6 hover:shadow-lg transition-shadow bg-black/50 border-gray-700 flex flex-col">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-200 mb-1">{album.title}</h3>
-                  <p className="text-sm text-gray-400 mb-2">ID: {album.albumId}</p>
+                  <h3 className="!text-md font-semibold text-gray-200 mb-1">{album.title}</h3>
+                  <p className="text-xs text-gray-600 mb-2">id: {album.albumId}</p>
                   <p className="text-sm text-gray-400 mb-2">
                     Status:{" "}
                     {album?.isPublished === "1" ? (
-                      <span className="text-green-400 font-medium">Published</span>
+                      <span className="text-yellow-400 font-medium">Published</span>
                     ) : (
-                      <span className="text-yellow-400 font-medium">Draft</span>
+                      <span className="text-gray-400 font-medium">Draft</span>
                     )}
                   </p>
                   <div className="flex items-center space-x-4 text-sm text-gray-400">
@@ -831,15 +846,23 @@ const ArtistAlbumList: React.FC<{
                         Explicit
                       </Badge>
                     )}
-                    {album?.isPublished === "1" && (
-                      <Badge variant="secondary" className="text-xs bg-green-600 text-white">
+                    {/* {album?.isPublished === "1" && (
+                      <Badge variant="secondary" className="text-xs bg-yellow-400 text-black">
                         Published
                       </Badge>
-                    )}
+                    )} */}
                   </div>
                 </div>
                 {album.img && (
-                  <div className="ml-4">
+                  <div
+                    className="ml-4 cursor-alias hover:scale-110 transition-transform duration-200"
+                    onClick={() => {
+                      const slug = artistLookupEverything[album.albumId.split("_")[0]]?.slug;
+                      navigateToDeepAppView({
+                        artistSlug: slug,
+                        albumId: album.albumId,
+                      });
+                    }}>
                     <img src={album.img} alt={album.title} className="w-16 h-16 rounded-lg object-cover" />
                   </div>
                 )}
@@ -855,13 +878,13 @@ const ArtistAlbumList: React.FC<{
 
               <div className="flex gap-2 flex-wrap mt-auto">
                 <Button
-                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
+                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
                   onClick={() => onEditAlbum(album)}>
                   Edit Album
                 </Button>
 
                 <Button
-                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
+                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
                   onClick={() => onViewCurrentTracks(album.albumId, album.title, album.img)}
                   disabled={isLoadingTracks}>
                   Edit Tracks {isLoadingTracks ? <Loader className="animate-spin ml-2" size={16} /> : null}

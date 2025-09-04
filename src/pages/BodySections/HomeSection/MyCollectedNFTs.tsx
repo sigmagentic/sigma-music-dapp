@@ -266,7 +266,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   }
 
   return (
-    <div id="myCollectedAlbums" className="flex flex-col justify-center items-center w-full">
+    <div id="myCollectedAlbums" className="flex flex-col justify-center items-center w-full mt-3">
       <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
         <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
           <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
@@ -291,9 +291,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                     <>
                       {myCollectedArtistsAlbums.length > 0 ? (
                         <>
-                          <div className="font-bold text-2xl mb-5">
+                          <div className="font-bold text-xl mb-5">
                             You have collected{" "}
-                            <span className="text-2xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
+                            <span className="text-xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
                               {allOwnedAlbums.length} {allOwnedAlbums.length > 1 ? `albums` : `album`}
                             </span>
                           </div>
@@ -374,9 +374,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                     </div>
                   ) : (
                     <>
-                      <div className="my-2 font-bold text-2xl mb-5 ">
+                      <div className="my-2 font-bold text-xl mb-5 ">
                         You have{" "}
-                        <span className="text-2xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+                        <span className="text-xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
                           {allOwnedFanMemberships.length} {allOwnedFanMemberships.length > 1 ? `fan memberships` : `fan membership`}
                         </span>
                       </div>
@@ -462,10 +462,13 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                 </div>
               ) : (
                 <>
-                  <div className="my-2 font-bold text-2xl mb-5">
+                  <div className="my-2 font-bold text-xl mb-5">
                     {myStoryProtocolLicenses.length > 0 ? (
                       <>
-                        You have {myStoryProtocolLicenses.length} {myStoryProtocolLicenses.length > 1 ? `licenses` : `license`}
+                        You have purchased{" "}
+                        <span className="text-xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
+                          {myStoryProtocolLicenses.length} {myStoryProtocolLicenses.length > 1 ? `licenses` : `license`}
+                        </span>
                       </>
                     ) : (
                       <div className="text-lg">

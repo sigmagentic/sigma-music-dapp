@@ -104,9 +104,9 @@ export const TrackList: React.FC<TrackListProps> = ({
       apiDownloadFailed = true;
     }
 
-    if (apiDownloadFailed && track.file) {
+    if (apiDownloadFailed && (track.file || track.stream)) {
       const link = document.createElement("a");
-      link.href = track.file;
+      link.href = track.file || track.stream || "";
       link.download = `${album.albumId}-${track.alId}-${track.title}.mp3`;
       link.target = "_blank"; // Open in new tab as fallback
       link.click();
@@ -150,7 +150,7 @@ export const TrackList: React.FC<TrackListProps> = ({
             </button>
 
             <div>
-              <h2 className="text-2xl font-bold text-white flex items-center">
+              <h2 className="!text-2xl font-bold text-white flex items-center">
                 {album.title}
                 <span className="ml-1">
                   {album.isExplicit && album.isExplicit === "1" && (

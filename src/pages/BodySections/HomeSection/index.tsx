@@ -862,7 +862,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                           }}>
                           {currentWord}
                         </p>
-                        <span className="ml-3">Ways</span>
+                        <p className="mt-[7px]">Ways</p>
                       </span>
                     </div>
                   </div>

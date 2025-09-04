@@ -217,6 +217,7 @@ export interface PaymentLog {
     mood: string;
     refTrack_alId: string;
     refTrack_file: string;
+    refTrack_arId: string;
   };
   XPBeingBought?: string;
   XPPurchasedFromUrl?: string;
@@ -281,6 +282,7 @@ export interface AiRemixLaunch {
     mood: string;
     refTrack_alId: string;
     refTrack_file: string;
+    refTrack_arId: string;
   };
   graduated?: number;
   graduatedStreamUrl?: string;

@@ -260,16 +260,16 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">{album.title}</h3>
-                    <p className="text-sm text-gray-500 mb-2">ID: {album.albumId}</p>
+                    <p className="text-sm text-gray-500 mb-2">{album.albumId}</p>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
                       {album?.isExplicit === "1" && (
                         <Badge variant="destructive" className="text-xs">
                           Explicit
                         </Badge>
                       )}
-                      <Badge variant={album?.isPublished === "1" ? "default" : "secondary"} className="text-xs">
+                      {/* <Badge variant={album?.isPublished === "1" ? "default" : "secondary"} className="text-xs">
                         {album?.isPublished === "1" ? "Published" : "Draft"}
-                      </Badge>
+                      </Badge> */}
                     </div>
                   </div>
                   {album.img && (

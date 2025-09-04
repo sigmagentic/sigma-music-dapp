@@ -1523,6 +1523,7 @@ export const saveMediaToServerViaAPI = async (file: File, solSignature: string, 
     formData.append("solSignature", solSignature);
     formData.append("signatureNonce", signatureNonce);
     formData.append("creatorWallet", creatorWallet);
+
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/account/uploadMedia`, {
       method: "POST",
       body: formData,
@@ -1530,21 +1531,6 @@ export const saveMediaToServerViaAPI = async (file: File, solSignature: string, 
 
     if (response.ok) {
       const mediaUploadResponse = await response.json();
-
-      //   {
-      //     "error": false,
-      //     "success": true,
-      //     "data": {
-      //         "fileUrl": "https://api.itheumcloud-stg.com/app_sigmamusic/3CYHT-HRojo/mp3/trim-1756106666625.mp3",
-      //         "fileName": "trim-1756106666625.mp3",
-      //         "fileSize": 254479,
-      //         "fileType": "audio/mpeg",
-      //         "s3Key": "app_sigmamusic/3CYHT-HRojo/mp3/trim-1756106666625.mp3",
-      //         "originalName": "trim.mp3",
-      //         "folderType": "mp3",
-      //         "userSubdirectory": "3CYHT-HRojo"
-      //     }
-      // }
 
       if (mediaUploadResponse.error) {
         throw new Error("API Error on saveMediaToServerViaAPI");
