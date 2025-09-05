@@ -213,7 +213,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       // does the user have the nft collectible?
       const findMusicNft = solMusicAssetNfts.find((nft) => {
         const nftPrefix = nft.content.metadata.name.split(/[-\s]/)[0];
-        const albumPrefix = selectedAlbumToShowEntitlements.solNftName.split(/[-\s]/)[0];
+        const albumPrefix = selectedAlbumToShowEntitlements?.solNftName?.split(/[-\s]/)[0] || "";
         // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2)
         return (
           nftPrefix.toLowerCase() === albumPrefix.toLowerCase() ||

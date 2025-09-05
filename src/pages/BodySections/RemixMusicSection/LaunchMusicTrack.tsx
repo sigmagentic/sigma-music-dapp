@@ -2,7 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { Loader, ArrowLeft } from "lucide-react";
-import { GENERATE_MUSIC_MEME_PRICE_IN_USD, SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ALL_MUSIC_GENRES, ALL_MUSIC_MOODS, ONE_USD_IN_XP } from "config";
+import {
+  GENERATE_MUSIC_MEME_PRICE_IN_USD,
+  ALL_MUSIC_GENRES,
+  ALL_MUSIC_MOODS_FOR_REMIX,
+  ONE_USD_IN_XP,
+  MUSIC_GEN_PROMPT_LIBRARY,
+  MUSIC_GEN_PROMPT_FALLBACK_LIBRARY,
+} from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -62,8 +69,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   const [selectedReferenceTrack, setSelectedReferenceTrack] = useState<FastStreamTrack | null>(null);
   const [playingReferenceTrack, setPlayingReferenceTrack] = useState(false);
   const [trackStyle, setTrackStyle] = useState<"with-vocals" | "instrumental">("instrumental");
-  const [selectedGenre, setSelectedGenre] = useState<string>("");
-  const [selectedMood, setSelectedMood] = useState<string>("");
+  const [selectedGenre, setSelectedGenre] = useState<string>("original");
+  const [selectedMood, setSelectedMood] = useState<string>("original");
   const [tweetText, setTweetText] = useState<string>("");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -342,7 +349,6 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   };
 
   const handleTrackGeneration = () => {
-    // if (!publicKey?.toBase58() || !songTitle || !selectedReferenceTrack || !selectedGenre || !selectedMood) {
     if (!publicKey?.toBase58() || !songTitle || !selectedReferenceTrack) {
       alert("Please fill in all fields");
       return;
@@ -387,7 +393,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
     onCloseModal(true);
   }
 
-  const handlePaymentConfirmation_XP = async (priceInXP: number, priceInUSD: number) => {
+  const handlePaymentConfirmation_XP = async (priceInXP: number, priceInUSD: number, textPromptIfUsingGenreAndMood?: string) => {
     if (!publicKey || !priceInXP || !priceInUSD || !selectedReferenceTrack || !selectedReferenceTrack.arId) {
       alert("Missing required fields");
       return;
@@ -411,6 +417,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
     // return;
     // // E: TEST UI WORKFLOW HERE
 
+    debugger;
     // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
     const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
       solPreaccessNonce,
@@ -462,12 +469,16 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
         refTrack_arId: selectedReferenceTrack.arId,
       };
 
-      if (selectedGenre !== "") {
+      if (selectedGenre !== "" && selectedGenre !== "original") {
         promptParams.genre = selectedGenre;
       }
 
-      if (selectedMood !== "") {
+      if (selectedMood !== "" && selectedMood !== "original") {
         promptParams.mood = selectedMood;
+      }
+
+      if (textPromptIfUsingGenreAndMood && textPromptIfUsingGenreAndMood.length > 10) {
+        promptParams.textPrompt = textPromptIfUsingGenreAndMood;
       }
 
       const _logPaymentToAPIResponse = await logPaymentToAPI({
@@ -585,16 +596,59 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
     const priceInXP = Number(priceInUSD) * ONE_USD_IN_XP;
     const notEnoughXP = priceInXP > solBitzBalance;
 
+    let textPromptIfUsingGenreAndMood = null;
+
+    if (selectedMood !== "original" && selectedGenre !== "original") {
+      textPromptIfUsingGenreAndMood = MUSIC_GEN_PROMPT_LIBRARY[selectedMood][selectedGenre];
+    } else if (selectedMood !== "original" && selectedGenre === "original") {
+      textPromptIfUsingGenreAndMood = MUSIC_GEN_PROMPT_FALLBACK_LIBRARY["moodOnly"][selectedMood];
+    } else if (selectedMood === "original" && selectedGenre !== "original") {
+      textPromptIfUsingGenreAndMood = MUSIC_GEN_PROMPT_FALLBACK_LIBRARY["genreOnly"][selectedGenre];
+    }
+
+    if (textPromptIfUsingGenreAndMood && textPromptIfUsingGenreAndMood.length > 0) {
+      textPromptIfUsingGenreAndMood = textPromptIfUsingGenreAndMood[Math.floor(Math.random() * textPromptIfUsingGenreAndMood.length)];
+    }
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
         <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
           <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm XP Payment" : "Payment Transfer in Process..."}</h3>
-          <div className="space-y-4">
-            <p>Amount to pay: {priceInXP.toLocaleString()} XP</p>
-            <p>Your XP balance: {solBitzBalance.toLocaleString()} XP</p>
+          <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
+            You are about to create a
+            {selectedMood !== "original" && (
+              <>
+                <span className="text-yellow-300 font-bold"> {selectedMood.toUpperCase()},</span>
+              </>
+            )}
+            {selectedGenre !== "original" && (
+              <>
+                <span className="text-yellow-400 font-bold"> {selectedGenre.toUpperCase()},</span>
+              </>
+            )}
+            <span className="text-yellow-500 font-bold">
+              {" "}
+              {trackStyle === "instrumental" ? "Melody Instrumental".toUpperCase() : "rack with Vocals".toUpperCase()}
+            </span>{" "}
+            AI Remix of the song: <span className="text-yellow-600 font-bold">{selectedReferenceTrack?.title.toUpperCase()}</span> titled{" "}
+            <span className="text-yellow-700 font-bold">{songTitle.toUpperCase()}</span>
+          </div>
+
+          {textPromptIfUsingGenreAndMood && (
+            <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
+              <p className="text-yellow-300 font-bold">Prompt:</p>
+              <p className="text-yellow-300">{textPromptIfUsingGenreAndMood}</p>
+            </div>
+          )}
+
+          <div>
+            <div className="mb-2">
+              <p className="text-sm">Amount to pay: {priceInXP.toLocaleString()} XP</p>
+              <p className="text-sm">Your XP balance: {solBitzBalance.toLocaleString()} XP</p>
+            </div>
 
             {paymentStatus === "processing" ? (
-              <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
+              <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg mt-2">
                 <Loader className="w-full text-center animate-spin hover:scale-105" />
                 <p className="text-yellow-300">Payment in process... do not close this page</p>
               </div>
@@ -605,7 +659,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
                 </Button>
                 <Button
                   onClick={() => {
-                    handlePaymentConfirmation_XP(priceInXP, Number(priceInUSD));
+                    handlePaymentConfirmation_XP(priceInXP, Number(priceInUSD), textPromptIfUsingGenreAndMood);
                   }}
                   className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
                   disabled={notEnoughXP}>
@@ -615,7 +669,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
             )}
 
             {notEnoughXP && (
-              <div className="flex-1 bg-red-500 text-white p-2 rounded-lg text-sm">
+              <div className="flex-1 bg-red-500 text-white p-2 rounded-lg text-sm mt-2">
                 <p>You do not have enough XP to proceed. You can earn more XP or buy an XP boost. Check for options in the top app menu.</p>
               </div>
             )}
@@ -800,7 +854,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
       ) : (
         <div className="p-4 rounded-lg border border-gray-600 bg-[#2A2A2A] text-center">
           <p className="text-sm text-gray-400 mb-2">No reference track selected</p>
-          <p className="text-xs text-gray-500">Browse your commercial licenses to select a track</p>
+          <p className="text-xs text-gray-500">Use Reference Track Navigator to browse your commercial licenses to select a track</p>
         </div>
       )}
     </div>
@@ -853,9 +907,17 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   const GenreSelector = () => {
     const aiRemixGenres = ALL_MUSIC_GENRES.filter((genre) => genre.isAiRemixOption);
 
+    aiRemixGenres.splice(0, 0, {
+      code: "original",
+      label: "Match Reference Track",
+      tier: "tier1" as any,
+      tileImgBg: "",
+      isAiRemixOption: true,
+    });
+
     return (
-      <div className="space-y-3 opacity-50 pointer-events-none cursor-not-allowed">
-        <label className="block text-sm font-medium mb-2">Desired Genre (coming soon)</label>
+      <div className="space-y-3">
+        <label className="block text-sm font-medium mb-2">Desired Genre</label>
         <div
           className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
@@ -879,13 +941,13 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
 
   const MoodSelector = () => {
     return (
-      <div className="space-y-3 opacity-50 pointer-events-none cursor-not-allowed">
-        <label className="block text-sm font-medium mb-2">Desired Mood (coming soon)</label>
+      <div className="space-y-3">
+        <label className="block text-sm font-medium mb-2">Desired Mood</label>
         <div
           className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-          {ALL_MUSIC_MOODS.map((mood) => (
+          {ALL_MUSIC_MOODS_FOR_REMIX.map((mood) => (
             <button
               key={mood.code}
               onClick={() => setSelectedMood(mood.code)}
@@ -920,7 +982,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
         {/* Left Column - Form */}
         <div>
           <div className="mb-6 flex justify-between items-center">
-            <h2 className="!text-2xl font-bold">Generate New AI Remix</h2>
+            <h2 className="!text-xl font-bold">Generate New AI Remix</h2>
             <Button
               onClick={() => setShowHowItWorks(true)}
               variant="outline"
@@ -974,7 +1036,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
           ) : (
             <>
               <div className="mb-2">
-                <h3 className="text-xl font-bold mb-2">Reference Track Navigator</h3>
+                <h3 className="!text-xl font-bold mb-2">Reference Track Navigator</h3>
                 <p className="text-sm text-gray-300">Browse and select reference tracks for your AI remixes</p>
               </div>
 

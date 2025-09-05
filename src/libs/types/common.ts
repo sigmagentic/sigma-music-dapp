@@ -218,6 +218,7 @@ export interface PaymentLog {
     refTrack_alId: string;
     refTrack_file: string;
     refTrack_arId: string;
+    textPrompt?: string;
   };
   XPBeingBought?: string;
   XPPurchasedFromUrl?: string;
@@ -283,6 +284,7 @@ export interface AiRemixLaunch {
     refTrack_alId: string;
     refTrack_file: string;
     refTrack_arId: string;
+    textPrompt?: string;
   };
   graduated?: number;
   graduatedStreamUrl?: string;
@@ -300,6 +302,7 @@ export interface AiRemixRawTrack {
   status: "new" | "graduated" | "published";
   bountyId: string;
   refTrack_alId?: string;
+  textPrompt?: string;
 }
 
 export interface FastStreamTrack {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { debounce } from "lodash";
-import { Rocket, Info, Loader, Pause, Play, Pointer } from "lucide-react";
+import { Rocket, Info, Loader, Pause, Play, Pointer, RefreshCcw } from "lucide-react";
 import toast from "react-hot-toast";
 import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -45,9 +45,16 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-4xl w-full mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold mr-auto">Your Jobs History</h3>
-          <Button className="mr-4" onClick={onRefresh}>
-            Refresh
-          </Button>
+          <div
+            className={`cursor-pointer flex items-center gap-2 text-sm mr-5`}
+            onClick={() => {
+              onRefresh();
+            }}>
+            <>
+              <RefreshCcw className="w-5 h-5" />
+              Refresh
+            </>
+          </div>
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors">
@@ -62,7 +69,7 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
                 <th className="text-left p-2">Date</th>
                 <th className="text-left p-2">Amount</th>
                 <th className="text-left p-2">Status</th>
-                <th className="text-left p-2">Transaction</th>
+                <th className="text-left p-2">Receipt</th>
                 <th className="text-left p-2">Job</th>
               </tr>
             </thead>
@@ -70,7 +77,7 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
               {jobs.map((job, index) => (
                 <tr key={index} className="border-b border-gray-700/50 hover:bg-white/5">
                   <td className="p-2">{new Date(job.createdOn).toLocaleDateString()}</td>
-                  <td className="p-2">{job.amount} SOL</td>
+                  <td className="p-2">{job.amount} XP</td>
                   <td className="p-2">
                     {job.paymentStatus === "new" || job.paymentStatus === "async_processing" ? (
                       <span className="bg-yellow-900 text-yellow-300 px-2 py-1 rounded-md">Pending AI Remix...</span>
@@ -79,12 +86,27 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
                     )}
                   </td>
                   <td className="p-2 text-xs">
-                    <a href={`https://solscan.io/tx/${job.tx}`} target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:underline">
-                      {job.tx.slice(0, 4)}...{job.tx.slice(-4)}
-                    </a>
+                    <div className="relative group">
+                      <button
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(job.tx);
+                            toast.success("Transaction hash copied to clipboard!");
+                          } catch (err) {
+                            console.error("Failed to copy: ", err);
+                            toast.error("Failed to copy to clipboard");
+                          }
+                        }}
+                        className="text-yellow-300 hover:text-yellow-200 hover:underline cursor-pointer transition-colors">
+                        {job.tx.slice(0, 4)}...{job.tx.slice(-4)}
+                      </button>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                        Click to Copy
+                      </div>
+                    </div>
                   </td>
 
-                  <td className="p-2">Remix Track: {job.promptParams?.songTitle}</td>
+                  <td className="p-2">Remix Track: {job.promptParams?.refTrack_alId}</td>
                 </tr>
               ))}
             </tbody>
@@ -110,7 +132,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [newLaunchesData, setNewLaunchesData] = useState<AiRemixLaunch[]>([]);
   const [graduatedLaunchesData, setGraduatedLaunchesData] = useState<AiRemixLaunch[]>([]);
-  const [onPumpFunLaunchesData, setOnPumpFunLaunchesData] = useState<AiRemixLaunch[]>([]);
+  const [publishedLaunchesData, setPublishedLaunchesData] = useState<AiRemixLaunch[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentTime, setCurrentTime] = useState("0:00");
   const [bountyBitzSumGlobalMapping, setBountyBitzSumGlobalMapping] = useState<BountyBitzSumMapping>({});
@@ -145,9 +167,30 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
   >([]);
 
   const [isJobsModalOpen, setIsJobsModalOpen] = useState(false);
-  const [showAllMusic, setShowAllMusic] = useState(true); // Add state for music filter toggle
+  const [showAllMusicUI, setShowAllMusicUI] = useState(true); // UI state for immediate switch response
+  const [switchChangeThrottled, setSwitchChangeThrottled] = useState(false);
+  const [showAllMusic, setShowAllMusic] = useState(true); // Business logic state for data fetching
   const [shouldRefreshData, setShouldRefreshData] = useState(false); // Add new state to track pending refreshes
   const [checkingIfNewJobsHaveCompleted, setCheckingIfNewJobsHaveCompleted] = useState(false);
+
+  // Debounced function to update business logic state after 2 seconds of inactivity
+  const debouncedSetShowAllMusic = useCallback(
+    debounce((value: boolean) => {
+      setShowAllMusic(value);
+      setSwitchChangeThrottled(false);
+    }, 2000),
+    []
+  );
+
+  // Handle switch change - update UI immediately, debounce business logic
+  const handleSwitchChange = useCallback(
+    (value: boolean) => {
+      setShowAllMusicUI(value); // Update UI immediately
+      setSwitchChangeThrottled(true);
+      debouncedSetShowAllMusic(value); // Debounce business logic
+    },
+    [debouncedSetShowAllMusic]
+  );
 
   // Add useCallback for the debounced refresh function (to move new items to graduated if votes are enough)
   const debouncedRefreshData = useCallback(
@@ -258,6 +301,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
   useEffect(() => {
     if (addressSol) {
       setShowAllMusic(false);
+      setShowAllMusicUI(false);
     }
   }, [addressSol]);
 
@@ -266,14 +310,14 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
       setIsDataLoading(true);
       setNewLaunchesData([]);
       setGraduatedLaunchesData([]);
-      setOnPumpFunLaunchesData([]);
+      setPublishedLaunchesData([]);
 
       const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setNewLaunchesData(responseA);
       const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setGraduatedLaunchesData(responseB);
       const responseC = await getRemixLaunchesViaAPI({ launchStatus: "published", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
-      setOnPumpFunLaunchesData(responseC);
+      setPublishedLaunchesData(responseC);
 
       // Fetch payment logs if user is logged in
       if (showMyMusicOnly && addressSol) {
@@ -438,7 +482,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
         }`}>
         <div className="flex flex-col">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative md:w-24 md:h-24">
+            <div className="relative w-[100px] h-[auto]">
               <img
                 src={fixImgIconForRemixes(item.image)}
                 alt={item?.promptParams?.songTitle || "LEGACY"}
@@ -478,15 +522,15 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                 )}
                 on {new Date(item.createdOn).toLocaleDateString()}
               </p>
-              <p className="text-xs text-gray-600">Launch Id: {item.launchId}</p>
+              <p className="text-xs text-gray-600">Id: {item.launchId}</p>
             </div>
           </div>
 
           <div className="mt-4">
             {type === "new" && (
               <>
-                <div className="flex flex-col gap-2 mt-2">
-                  <div className="text-xs text-gray-400">Vote with XP to get this remix published</div>
+                <div className="flex flex-col mt-2">
+                  <div className="text-[10px] text-gray-400">Vote with XP to get this remix published</div>
                   {item.versions.map((version, index) => (
                     <div key={index} className="flex flex-col gap-2">
                       <div className="votes-progress flex items-center gap-2 text-xs text-gray-400">
@@ -581,8 +625,8 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
 
             {type === "graduated" && (
               <>
-                <div className="flex flex-col gap-2 mt-2">
-                  <div className="text-xs text-gray-400">Vote with more XP to get it published faster!</div>
+                <div className="flex flex-col mt-2">
+                  <div className="text-[10px] text-gray-400">Vote with more XP to get it published faster!</div>
                   {(() => {
                     const { graduatedVersions, nonGraduatedVersions } = getVersionGroups();
                     const isExpanded = expandedLaunchIds.has(item.launchId);
@@ -607,7 +651,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                                   bountyId: version.bountyId,
                                   skipAutoStatusChangeViaAPI: true,
                                 })
-                                  ? "This is being published..."
+                                  ? "Will be published..."
                                   : getVotesNeededText(VOTES_TO_GRADUATE - (bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0))}
                               </span>
                             </div>
@@ -976,8 +1020,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
             {addressSol && (
               <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3">
                 <span className="text-sm font-medium text-gray-300">My Music Only</span>
-
-                <Switch checked={showAllMusic} onCheckedChange={setShowAllMusic} className="" />
+                <Switch checked={showAllMusicUI} onCheckedChange={handleSwitchChange} className="" />
                 <span className="text-sm font-medium text-gray-300">All Music</span>
               </div>
             )}
@@ -1003,7 +1046,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
           {/* New */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-xl font-semibold">{!showAllMusic ? "My New AI Music Remixes" : "New AI Music Remixes - Vote Now!"}</h2>
+              <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My New AI Music Remixes" : "New AI Music Remixes - Vote Now!"}</h2>
               <button
                 onClick={() =>
                   toast(
@@ -1057,7 +1100,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                 </div>
               )}
 
-              {isDataLoading ? (
+              {isDataLoading || switchChangeThrottled ? (
                 <>
                   <LoadingSkeleton />
                   <LoadingSkeleton />
@@ -1066,10 +1109,8 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
               ) : newLaunchesData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                   <span className="text-3xl mb-4">🎵</span>
-                  <p className="text-center">{!showAllMusic ? "No remixes created by you yet!" : "No new remixes yet!"}</p>
-                  <p className="text-center text-sm mb-4">
-                    {!showAllMusic ? "Create your first remix to see it here!" : "Buy a remix license on an album to get started!"}
-                  </p>
+                  <p className="text-center mb-4">{!showAllMusicUI ? "No remixes created by you yet!" : "No new remixes yet!"}</p>
+
                   <GenerateMusicMemeButton />
                 </div>
               ) : (
@@ -1081,7 +1122,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
           {/* Graduated */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-xl font-semibold">{!showAllMusic ? "My Remixes Waiting to be Published" : "Remixes Waiting to be Published"}</h2>
+              <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My Remixes Waiting to be Published" : "Remixes Waiting to be Published"}</h2>
               <button
                 onClick={() =>
                   toast(
@@ -1116,7 +1157,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
               </button>
             </div>
             <div className="space-y-4">
-              {isDataLoading ? (
+              {isDataLoading || switchChangeThrottled ? (
                 <>
                   <LoadingSkeleton />
                   <LoadingSkeleton />
@@ -1125,12 +1166,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
               ) : graduatedLaunchesData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                   <span className="text-3xl mb-4">🎓</span>
-                  <p className="text-center">{!showAllMusic ? "No remixes created by you have been voted in yet!" : "No remixes voted in yet!"}</p>
-                  <p className="text-center text-sm">
-                    {!showAllMusic
-                      ? "Keep creating remixes and encourage others to vote for them!"
-                      : "Vote for your favorite remixes to help them get published on Sigma Music!"}
-                  </p>
+                  <p className="text-center">{!showAllMusicUI ? "No remixes created by you have been voted in yet!" : "No remixes voted in yet!"}</p>
                 </div>
               ) : (
                 graduatedLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="graduated" />)
@@ -1141,7 +1177,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
           {/* Pump.fun Launches */}
           <div className="flex flex-col bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-xl font-semibold">{!showAllMusic ? "My Music Live on Sigma Music" : "Live on Sigma Music"}</h2>
+              <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My Music Live on Sigma Music" : "Live on Sigma Music"}</h2>
               <button
                 onClick={() =>
                   toast(
@@ -1171,22 +1207,19 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
               </button>
             </div>
             <div className="space-y-4">
-              {isDataLoading ? (
+              {isDataLoading || switchChangeThrottled ? (
                 <>
                   <LoadingSkeleton />
                   <LoadingSkeleton />
                   <LoadingSkeleton />
                 </>
-              ) : onPumpFunLaunchesData.length === 0 ? (
+              ) : publishedLaunchesData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                   <span className="text-3xl mb-4">🚀</span>
-                  <p className="text-center">{!showAllMusic ? "No remixes created by you are published yet!" : "No remixes published yet!"}</p>
-                  <p className="text-center text-sm">
-                    {!showAllMusic ? "Rally your community to vote for your remixes to get them published!" : "Get remixes published by voting for them!"}
-                  </p>
+                  <p className="text-center">{!showAllMusicUI ? "No remixes created by you are published yet!" : "No remixes published yet!"}</p>
                 </div>
               ) : (
-                onPumpFunLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="published" />)
+                publishedLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="published" />)
               )}
             </div>
           </div>

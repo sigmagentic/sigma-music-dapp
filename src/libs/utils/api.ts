@@ -1122,8 +1122,12 @@ export async function getRemixLaunchesViaAPI({ launchStatus, addressSol }: { lau
 
       const res = await fetch(callUrl);
       const toJson = await res.json();
-
       const data: PaymentLog[] = toJson.items || [];
+
+      // if addressSol path, then the items wont be ordered by createdOn, so lets do it here
+      if (addressSol) {
+        data.sort((a: any, b: any) => b.createdOn - a.createdOn);
+      }
 
       // Update cache
       cache_remixLaunches[`${launchStatus}-${addressSol || "all"}`] = {
