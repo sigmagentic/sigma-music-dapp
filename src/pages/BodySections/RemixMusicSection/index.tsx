@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { debounce } from "lodash";
-import { Rocket, Info, Loader, Pause, Play, Pointer, RefreshCcw } from "lucide-react";
+import { Rocket, Info, Loader, Pause, Play, Pointer, RefreshCcw, FileMusicIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { Switch } from "libComponents/Switch";
-import { BountyBitzSumMapping, AiRemixLaunch, AiRemixTrackVersion } from "libs/types";
-import { Artist } from "libs/types";
-import { getPaymentLogsViaAPI, getRemixLaunchesViaAPI, logStatusChangeToAPI, mergeRawAiRemixTracks, sleep } from "libs/utils";
+import { BountyBitzSumMapping, AiRemixLaunch, AiRemixTrackVersion, MusicTrack, Album } from "libs/types";
+import { Artist, AiRemixRawTrack } from "libs/types";
+import { getPaymentLogsViaAPI, getRemixLaunchesViaAPI, logStatusChangeToAPI, mergeRawAiRemixTracks, sleep, mapRawAiRemixTracksToMusicTracks } from "libs/utils";
 import { SendBitzPowerUp } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { updateBountyBitzSumGlobalMappingWindow } from "pages/BodySections/HomeSection/shared/utils";
@@ -18,6 +18,9 @@ import { useNftsStore } from "store/nfts";
 import { LaunchMusicTrack } from "./LaunchMusicTrack";
 import { routeNames } from "routes";
 import { fixImgIconForRemixes } from "libs/utils/ui";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import { TrackList } from "pages/BodySections/HomeSection/components/TrackList";
+import { useAudioPlayerStore } from "store/audioPlayer";
 
 const VOTES_TO_GRADUATE = 5;
 // const HOURS_TO_GRADUATE = 24;
@@ -62,7 +65,7 @@ const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onCl
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-700">
@@ -121,11 +124,22 @@ let newJobsInterval: NodeJS.Timeout | null = null;
 
 interface RemixMusicSectionContentProps {
   navigateToDeepAppView: (e: any) => void;
+  onCloseMusicPlayer: () => void;
+  viewSolData: (e: number, f?: any, g?: boolean, h?: MusicTrack[]) => void;
 }
 
-export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSectionContentProps) => {
-  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
+export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) => {
+  const { navigateToDeepAppView, onCloseMusicPlayer, viewSolData } = props;
+  const { publicKey: web3AuthPublicKey } = useWeb3Auth();
+  const { publicKey: publicKeySol, walletType, isLoading: isLoadingSolanaWallet } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
+  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : publicKeySol; // Use the appropriate public key based on wallet type
+  const { solBitzNfts } = useNftsStore();
+  const { artistLookupEverything } = useAppStore();
+  const { updateMyAiRemixRawTracks } = useAccountStore();
+  const { updateAssetPlayIsQueued } = useAudioPlayerStore();
+
+  const [bountyBitzSumGlobalMapping, setBountyBitzSumGlobalMapping] = useState<BountyBitzSumMapping>({});
   const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -133,19 +147,12 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
   const [newLaunchesData, setNewLaunchesData] = useState<AiRemixLaunch[]>([]);
   const [graduatedLaunchesData, setGraduatedLaunchesData] = useState<AiRemixLaunch[]>([]);
   const [publishedLaunchesData, setPublishedLaunchesData] = useState<AiRemixLaunch[]>([]);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
+  const [virtualAiRemixAlbum, setVirtualAiRemixAlbum] = useState<Album | null>(null);
   const [currentTime, setCurrentTime] = useState("0:00");
-  const [bountyBitzSumGlobalMapping, setBountyBitzSumGlobalMapping] = useState<BountyBitzSumMapping>({});
-  const { solBitzNfts } = useNftsStore();
   const [focusedLaunchId, setFocusedLaunchId] = useState<string | null>(null);
   const [launchMusicMemeModalOpen, setLaunchMusicMemeModalOpen] = useState<boolean>(false);
-  const { artistLookupEverything } = useAppStore();
-  const { updateMyAiRemixRawTracks } = useAccountStore();
-
-  // Add state to track which launch cards have their "other versions" expanded
-  const [expandedLaunchIds, setExpandedLaunchIds] = useState<Set<string>>(new Set());
-
-  // give bits to a bounty (power up or like)
+  const [expandedLaunchIds, setExpandedLaunchIds] = useState<Set<string>>(new Set()); // Add state to track which launch cards have their "other versions" expanded
   const [giveBitzForMusicBountyConfig, setGiveBitzForMusicBountyConfig] = useState<{
     creatorIcon: string | undefined;
     creatorName: string | undefined;
@@ -153,8 +160,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
     giveBitzToCampaignId: string;
     isLikeMode?: boolean | undefined;
     isRemixVoteMode?: boolean | undefined;
-  }>({ creatorIcon: undefined, creatorName: undefined, giveBitzToWho: "", giveBitzToCampaignId: "", isLikeMode: undefined, isRemixVoteMode: undefined });
-
+  }>({ creatorIcon: undefined, creatorName: undefined, giveBitzToWho: "", giveBitzToCampaignId: "", isLikeMode: undefined, isRemixVoteMode: undefined }); // give bits to a bounty (power up or like)
   const [myJobsPayments, setMyJobsPayments] = useState<
     Array<{
       amount: string;
@@ -165,18 +171,30 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
       paymentStatus?: string;
     }>
   >([]);
-
   const [isJobsModalOpen, setIsJobsModalOpen] = useState(false);
-  const [showAllMusicUI, setShowAllMusicUI] = useState(true); // UI state for immediate switch response
+  const [showPublicVotingAreaUI, setShowPublicVotingAreaUI] = useState(false); // my workspace vs public voting area view (UI throttled)
+  const [showPublicVotingArea, setShowPublicVotingArea] = useState(false); // my workspace vs public voting area view
+  const [showAllMusicUI, setShowAllMusicUI] = useState(false); // if it's public voting, show my music only vs all music view (UI throttled)
+  const [showAllMusic, setShowAllMusic] = useState<boolean | null>(null); // if it's public voting, show my music only vs all music view
   const [switchChangeThrottled, setSwitchChangeThrottled] = useState(false);
-  const [showAllMusic, setShowAllMusic] = useState(true); // Business logic state for data fetching
   const [shouldRefreshData, setShouldRefreshData] = useState(false); // Add new state to track pending refreshes
   const [checkingIfNewJobsHaveCompleted, setCheckingIfNewJobsHaveCompleted] = useState(false);
+  const [appViewLoaded, setAppViewLoaded] = useState(false);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Debounced function to update business logic state after 2 seconds of inactivity
   const debouncedSetShowAllMusic = useCallback(
     debounce((value: boolean) => {
       setShowAllMusic(value);
+      setSwitchChangeThrottled(false);
+    }, 2000),
+    []
+  );
+
+  const debouncedSetShowPublicVotingArea = useCallback(
+    debounce((value: boolean) => {
+      setShowPublicVotingArea(value);
       setSwitchChangeThrottled(false);
     }, 2000),
     []
@@ -190,6 +208,15 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
       debouncedSetShowAllMusic(value); // Debounce business logic
     },
     [debouncedSetShowAllMusic]
+  );
+
+  const handleSwitchChangeWorkspace = useCallback(
+    (value: boolean) => {
+      setShowPublicVotingAreaUI(value); // Update UI immediately
+      setSwitchChangeThrottled(true);
+      debouncedSetShowPublicVotingArea(value); // Debounce business logic
+    },
+    [debouncedSetShowPublicVotingArea]
   );
 
   // Add useCallback for the debounced refresh function (to move new items to graduated if votes are enough)
@@ -236,8 +263,10 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
         audioRef.current.pause();
         audioRef.current.src = "";
       }
+
       setIsPlaying(false);
       setCurrentPlayingId(null);
+
       if (newJobsInterval) {
         clearInterval(newJobsInterval);
       }
@@ -252,18 +281,22 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
   }, [shouldRefreshData]);
 
   useEffect(() => {
+    if (showAllMusic === null) return;
+
     if (showAllMusic) {
-      fetchDataAllSwimLaneData(false);
+      fetchDataAllSwimLaneData({ showMyMusicOnly: false });
     } else {
-      fetchDataAllSwimLaneData(true); // this will fetch all the data for all users
+      fetchDataAllSwimLaneData({ showMyMusicOnly: true });
     }
   }, [showAllMusic]);
 
-  useEffect(() => {
-    if (newLaunchesData.length > 0 || graduatedLaunchesData.length > 0) {
-      queueBitzPowerUpsAndLikesForAllOwnedAlbums();
-    }
-  }, [newLaunchesData, graduatedLaunchesData]);
+  // Need to improve the performance of this @TODO
+  // useEffect(() => {
+  //   if (!showPublicVotingAreaUI || !showAllMusicUI) return;
+  //   if (newLaunchesData.length > 0 || graduatedLaunchesData.length > 0) {
+  //     queueBitzPowerUpsAndLikesForAllOwnedAlbums();
+  //   }
+  // }, [newLaunchesData, graduatedLaunchesData, showPublicVotingAreaUI, showAllMusicUI]);
 
   useEffect(() => {
     if (myJobsPayments.length > 0 && addressSol) {
@@ -276,7 +309,14 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
           setNewLaunchesData(responseA);
 
           if (responseA.length > 0 && addressSol) {
-            updateMyAiRemixRawTracks(mergeRawAiRemixTracks(responseA, [], []));
+            const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, [], []);
+            updateMyAiRemixRawTracks(allMyRemixes); // is this an issue? as there may be other tracks prev loaded from other swimlanes and this may override them
+
+            const { allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
+
+            // merge in any new items from allMyRemixesAsMusicTracks into virtualAiRemixAlbumTracks
+            // note that there will be onther tracks prev loaded from other swimlanes, so we should not replace the existing tracks
+            setVirtualAiRemixAlbumTracks([...virtualAiRemixAlbumTracks, ...allMyRemixesAsMusicTracks]);
           }
 
           // dont clear and reload here as it break app bootup logic
@@ -299,18 +339,35 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
   }, [myJobsPayments, addressSol]);
 
   useEffect(() => {
+    if (isLoadingSolanaWallet) return;
+
     if (addressSol) {
+      setShowPublicVotingArea(false);
+      setShowPublicVotingAreaUI(false);
+
       setShowAllMusic(false);
       setShowAllMusicUI(false);
-    }
-  }, [addressSol]);
 
-  const fetchDataAllSwimLaneData = async (showMyMusicOnly: boolean) => {
+      setAppViewLoaded(true);
+    } else {
+      setShowPublicVotingArea(true);
+      setShowPublicVotingAreaUI(true);
+      setShowAllMusic(true);
+      setShowAllMusicUI(true);
+
+      setAppViewLoaded(true);
+    }
+  }, [addressSol, isLoadingSolanaWallet]);
+
+  const fetchDataAllSwimLaneData = async ({ showMyMusicOnly }: { showMyMusicOnly: boolean }) => {
+    console.log("_____ fetchDataAllSwimLaneData called with showMyMusicOnly:", showMyMusicOnly);
     try {
       setIsDataLoading(true);
       setNewLaunchesData([]);
       setGraduatedLaunchesData([]);
       setPublishedLaunchesData([]);
+      setVirtualAiRemixAlbumTracks([]);
+      setVirtualAiRemixAlbum(null);
 
       const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setNewLaunchesData(responseA);
@@ -325,7 +382,12 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
         setMyJobsPayments(responseD);
 
         if (responseA.length > 0 || responseB.length > 0 || responseC.length > 0) {
-          updateMyAiRemixRawTracks(mergeRawAiRemixTracks(responseA, responseB, responseC));
+          const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, responseC);
+
+          const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
+          setVirtualAiRemixAlbum(virtualAlbum);
+          setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
+          updateMyAiRemixRawTracks(allMyRemixes);
         }
       }
     } catch (error) {
@@ -487,11 +549,6 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
                 src={fixImgIconForRemixes(item.image)}
                 alt={item?.promptParams?.songTitle || "LEGACY"}
                 className="w-full h-full m-auto md:m-0 rounded-lg object-cover"
-              />
-              <img
-                src="https://raw.githubusercontent.com/Itheum/data-assets/main/Misc/Random/play_overlay_icon.png"
-                alt="play"
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 md:w-8 h-12 md:h-8 opacity-80 hover:opacity-100 transition-opacity"
               />
             </div>
             <div className="flex flex-col flex-grow">
@@ -981,7 +1038,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
     return (
       <Button
         disabled={DISABLE_REMIX_LAUNCH_BUTTON}
-        className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-sm text-center p-2 md:p-4 rounded-lg h-[48px]"
+        className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-lg text-center p-2 md:p-4 rounded-lg h-[48px]"
         onClick={() => {
           if (!addressSol) {
             window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
@@ -991,13 +1048,10 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
           }
         }}>
         <div>
-          {DISABLE_REMIX_LAUNCH_BUTTON ? (
-            <div>Create New AI Music Remix! (Offline For Now!)</div>
-          ) : !addressSol ? (
-            <div>Login to Create New AI Music Remix!</div>
-          ) : (
-            <div>Create New AI Music Remix!</div>
-          )}
+          <div className="flex items-center justify-center">
+            <FileMusicIcon className="w-6 h-6 mr-2" />
+            {DISABLE_REMIX_LAUNCH_BUTTON ? <div>Create! (Offline For Now!)</div> : !addressSol ? <div>Login to Create!</div> : <div>Create!</div>}
+          </div>
         </div>
       </Button>
     );
@@ -1010,18 +1064,25 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
           <div>
             <h1 className="!text-2xl font-semibold text-center md:text-left">
               <span className="text-2xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
-                Sigma REMiX <span className="text-xs text-gray-500">Beta</span>
+                Sigma AI REMiX <span className="text-xs text-gray-500">Beta</span>
               </span>
             </h1>
             <p className="text-sm text-gray-500">Create & Publish IP-Safe AI Remixes</p>
           </div>
 
           <div className="flex flex-col md:flex-row md:gap-4 gap-2">
-            {addressSol && (
+            {addressSol && showPublicVotingArea && (
               <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3">
                 <span className="text-sm font-medium text-gray-300">My Music Only</span>
                 <Switch checked={showAllMusicUI} onCheckedChange={handleSwitchChange} className="" />
                 <span className="text-sm font-medium text-gray-300">All Music</span>
+              </div>
+            )}
+            {addressSol && (
+              <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3">
+                <span className="text-sm font-medium text-gray-300">My Workspace</span>
+                <Switch checked={showPublicVotingAreaUI} onCheckedChange={handleSwitchChangeWorkspace} className="" />
+                <span className="text-sm font-medium text-gray-300">Public Voting Area</span>
               </div>
             )}
             {myJobsPayments.length > 0 && (
@@ -1042,189 +1103,312 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
             <GenerateMusicMemeButton />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-          {/* New */}
-          <div className="flex flex-col bg-white/5 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My New AI Music Remixes" : "New AI Music Remixes - Vote Now!"}</h2>
-              <button
-                onClick={() =>
-                  toast(
-                    (t) => (
-                      <div className="flex items-start gap-4">
-                        <div className="flex-1 space-y-2">
-                          <span className="text-yellow-300 font-bold text-lg">You can be a Remix Artist!</span>
-                          <p>
-                            Buy a commercial IP license from a real-world artist and use Sigma's AI model to generate an IP-safe remix of the original track.
-                          </p>
-                          <p>You will get one remixed track and they will appear in this list for everyone to listen to.</p>
-                          <p>People can use their XP to vote on each version. They can vote for both as well if they like both versions.</p>
-                          <p>
-                            Once at least {VOTES_TO_GRADUATE} votes have been cast on a track, it becomes a candidate that gets included in Sigma Music's
-                            official catalog.
-                          </p>
-                          <p>
-                            If you don't receive enough votes, then not to worry, your track will still be available on your artist page for the public to
-                            listen to and you also get to keep it. But you will not be able to sell it or commercialize it.
-                          </p>
-                          <p>Once music is published in the official catalog, it can be bought by users or be available as part of the subscription service.</p>
-                          <p>As you are the Remix Artist who created the track, you will get a share of the revenue from the track!</p>
-                          <p>The original artist will also get a share of the revenue from the new remixed track!</p>
+
+        {appViewLoaded ? (
+          <div>
+            {/* My Workspace */}
+            {addressSol && !showPublicVotingArea && (
+              <>
+                {!switchChangeThrottled ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-[7fr_3fr] gap-2 w-full bgx-red-900">
+                    {/* First Column - Launch Music Track */}
+                    <div className="">
+                      <LaunchMusicTrack
+                        renderInline={true}
+                        onCloseModal={(refreshPaymentLogs?: boolean) => {
+                          if (refreshPaymentLogs) {
+                            handleRefreshJobs();
+                          }
+                        }}
+                        navigateToDeepAppView={(e: any) => {
+                          // Handle navigation if needed
+                          console.log("Navigate to deep app view:", e);
+                        }}
+                      />
+                    </div>
+
+                    {/* Second Column - My Tracks */}
+                    <div className="flex flex-col bg-white/5 rounded-lg p-6">
+                      <div className="flex items-center justify-between">
+                        <h2 className="!text-lg font-semibold">My Workspace</h2>
+                        <div
+                          className={`cursor-pointer flex items-center gap-2 text-sm mr-5`}
+                          onClick={() => {
+                            fetchDataAllSwimLaneData({ showMyMusicOnly: true });
+                          }}>
+                          <>
+                            <RefreshCcw className="w-5 h-5" />
+                            Refresh
+                          </>
                         </div>
-                        <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white p-1">
-                          ✕
-                        </button>
                       </div>
-                    ),
-                    customToastStyle
-                  )
-                }
-                className="p-1 rounded-full hover:bg-white/10">
-                <Info className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0 && (
-                <div className="flex flex-col items-center py-2 bg-yellow-900 text-yellow-300 rounded-md">
-                  <p className="text-sm text-center m-auto">
-                    <span className="mr-1">
-                      {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length}
-                    </span>{" "}
-                    Remix Jobs Pending{" "}
-                    {checkingIfNewJobsHaveCompleted && (
-                      <span className="text-yellow-300 flex items-center justify-center ml-2 mt-2">
-                        <Loader className="w-4 h-4 animate-spin mr-2" /> rechecking...
-                      </span>
+
+                      {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0 && (
+                        <div className="flex flex-col items-center py-2 bg-yellow-900 text-yellow-300 rounded-md mt-2">
+                          <p className="text-sm text-center m-auto">
+                            <span className="mr-1">
+                              {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length}
+                            </span>{" "}
+                            Remix Jobs Pending{" "}
+                            {checkingIfNewJobsHaveCompleted && (
+                              <span className="text-yellow-300 flex items-center justify-center ml-2 mt-2">
+                                <Loader className="w-4 h-4 animate-spin mr-2" /> rechecking...
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      )}
+
+                      <>
+                        {virtualAiRemixAlbum && virtualAiRemixAlbumTracks.length > 0 ? (
+                          <div className="mx-auto md:m-[initial] p-3">
+                            <TrackList
+                              album={virtualAiRemixAlbum}
+                              artistId={"virtual-artist-id-" + displayPublicKey?.toString()}
+                              artistName={""}
+                              virtualTrackList={virtualAiRemixAlbumTracks}
+                              onBack={() => {
+                                onCloseMusicPlayer();
+                              }}
+                              onPlayTrack={(album, jumpToPlaylistTrackIndex) => {
+                                updateAssetPlayIsQueued(true);
+                                onCloseMusicPlayer();
+
+                                setTimeout(() => {
+                                  viewSolData(
+                                    0,
+                                    {
+                                      artistId: "virtual-artist-id-" + displayPublicKey?.toString(),
+                                      albumId: virtualAiRemixAlbum.albumId,
+                                      jumpToPlaylistTrackIndex: jumpToPlaylistTrackIndex,
+                                    },
+                                    false,
+                                    virtualAiRemixAlbumTracks
+                                  );
+
+                                  updateAssetPlayIsQueued(false);
+                                }, 5000);
+                              }}
+                              checkOwnershipOfMusicAsset={() => 0}
+                              trackPlayIsQueued={false}
+                              assetPlayIsQueued={false}
+                              condensedView={true}
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                            <Loader className="w-10 h-10 animate-spin text-yellow-500" />
+                          </div>
+                        )}
+                      </>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-400 h-[60vh]">
+                      <Loader className="w-10 h-10 animate-spin text-yellow-500" />
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {/* Public Voting Area */}
+            {showPublicVotingArea && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                {/* New */}
+                <div className="flex flex-col bg-white/5 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My Remixes" : "New Remixes - Vote Now!"}</h2>
+                    <button
+                      onClick={() =>
+                        toast(
+                          (t) => (
+                            <div className="flex items-start gap-4">
+                              <div className="flex-1 space-y-2">
+                                <span className="text-yellow-300 font-bold text-lg">You can be a Remix Artist!</span>
+                                <p>
+                                  Buy a commercial IP license from a real-world artist and use Sigma's AI model to generate an IP-safe remix of the original
+                                  track.
+                                </p>
+                                <p>You will get one remixed track and they will appear in this list for everyone to listen to.</p>
+                                <p>People can use their XP to vote on each version. They can vote for both as well if they like both versions.</p>
+                                <p>
+                                  Once at least {VOTES_TO_GRADUATE} votes have been cast on a track, it becomes a candidate that gets included in Sigma Music's
+                                  official catalog.
+                                </p>
+                                <p>
+                                  If you don't receive enough votes, then not to worry, your track will still be available on your artist page for the public to
+                                  listen to and you also get to keep it. But you will not be able to sell it or commercialize it.
+                                </p>
+                                <p>
+                                  Once music is published in the official catalog, it can be bought by users or be available as part of the subscription
+                                  service.
+                                </p>
+                                <p>As you are the Remix Artist who created the track, you will get a share of the revenue from the track!</p>
+                                <p>The original artist will also get a share of the revenue from the new remixed track!</p>
+                              </div>
+                              <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white p-1">
+                                ✕
+                              </button>
+                            </div>
+                          ),
+                          customToastStyle
+                        )
+                      }
+                      className="p-1 rounded-full hover:bg-white/10">
+                      <Info className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0 && (
+                      <div className="flex flex-col items-center py-2 bg-yellow-900 text-yellow-300 rounded-md">
+                        <p className="text-sm text-center m-auto">
+                          <span className="mr-1">
+                            {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length}
+                          </span>{" "}
+                          Remix Jobs Pending{" "}
+                          {checkingIfNewJobsHaveCompleted && (
+                            <span className="text-yellow-300 flex items-center justify-center ml-2 mt-2">
+                              <Loader className="w-4 h-4 animate-spin mr-2" /> rechecking...
+                            </span>
+                          )}
+                        </p>
+                      </div>
                     )}
-                  </p>
-                </div>
-              )}
 
-              {isDataLoading || switchChangeThrottled ? (
-                <>
-                  <LoadingSkeleton />
-                  <LoadingSkeleton />
-                  <LoadingSkeleton />
-                </>
-              ) : newLaunchesData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                  <span className="text-3xl mb-4">🎵</span>
-                  <p className="text-center mb-4">{!showAllMusicUI ? "No remixes created by you yet!" : "No new remixes yet!"}</p>
+                    {isDataLoading || switchChangeThrottled ? (
+                      <>
+                        <LoadingSkeleton />
+                        <LoadingSkeleton />
+                        <LoadingSkeleton />
+                      </>
+                    ) : newLaunchesData.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                        <p className="text-center mb-4">{!showAllMusicUI ? "No remixes created by you yet!" : "No new remixes yet!"}</p>
 
-                  <GenerateMusicMemeButton />
-                </div>
-              ) : (
-                newLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="new" />)
-              )}
-            </div>
-          </div>
-
-          {/* Graduated */}
-          <div className="flex flex-col bg-white/5 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My Remixes Waiting to be Published" : "Remixes Waiting to be Published"}</h2>
-              <button
-                onClick={() =>
-                  toast(
-                    (t) => (
-                      <div className="flex items-start gap-4">
-                        <div className="flex-1 space-y-2">
-                          <p className="mb-4">
-                            <strong className="text-yellow-300">The Best Remixes!</strong> New music tracks that have received enough votes to be published will
-                            appear here.
-                          </p>
-                          <p className="mb-4">
-                            The most voted tracks will be featured in this list and the best tracks will be selected and added to the official Sigma Music
-                            catalog.
-                          </p>
-                          <p>
-                            Once included in the official catalog, the track will be available for purchase (as part of a remix album) by users or be available
-                            as part of the subscription service.
-                          </p>
-                          <p>As you are the Remix Artist who created the track, you will get a share of the revenue from the track!</p>
-                          <p>The original artist will also get a share of the revenue from the new remixed track!</p>
-                        </div>
-                        <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white p-1">
-                          ✕
-                        </button>
+                        <GenerateMusicMemeButton />
                       </div>
-                    ),
-                    customToastStyle
-                  )
-                }
-                className="p-1 rounded-full hover:bg-white/10">
-                <Info className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              {isDataLoading || switchChangeThrottled ? (
-                <>
-                  <LoadingSkeleton />
-                  <LoadingSkeleton />
-                  <LoadingSkeleton />
-                </>
-              ) : graduatedLaunchesData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                  <span className="text-3xl mb-4">🎓</span>
-                  <p className="text-center">{!showAllMusicUI ? "No remixes created by you have been voted in yet!" : "No remixes voted in yet!"}</p>
+                    ) : (
+                      newLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="new" />)
+                    )}
+                  </div>
                 </div>
-              ) : (
-                graduatedLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="graduated" />)
-              )}
-            </div>
-          </div>
 
-          {/* Pump.fun Launches */}
-          <div className="flex flex-col bg-white/5 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My Music Live on Sigma Music" : "Live on Sigma Music"}</h2>
-              <button
-                onClick={() =>
-                  toast(
-                    (t) => (
-                      <div className="flex items-start gap-4">
-                        <div className="flex-1 space-y-2">
-                          <p className="mb-4">
-                            <strong className="text-yellow-300">Published on Sigma Music:</strong> These tracks have been officially published on the Sigma
-                            Music platform.
-                          </p>
-                          <p className="mb-4">
-                            These tracks are available for purchase (as part of a remix album) by users or be available as part of the subscription service. If
-                            you are the remix artist you earn a share of the sales and if you are the original artist you also earn!
-                          </p>
-                          <p className="mb-4">These tracks also get featured and promoted on Sigma Music's social channels and our music apps.</p>
-                        </div>
-                        <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white p-1">
-                          ✕
-                        </button>
+                {/* Graduated */}
+                <div className="flex flex-col bg-white/5 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My Remixes Waiting to be Published" : "Remixes Waiting to be Published"}</h2>
+                    <button
+                      onClick={() =>
+                        toast(
+                          (t) => (
+                            <div className="flex items-start gap-4">
+                              <div className="flex-1 space-y-2">
+                                <p className="mb-4">
+                                  <strong className="text-yellow-300">The Best Remixes!</strong> New music tracks that have received enough votes to be
+                                  published will appear here.
+                                </p>
+                                <p className="mb-4">
+                                  The most voted tracks will be featured in this list and the best tracks will be selected and added to the official Sigma Music
+                                  catalog.
+                                </p>
+                                <p>
+                                  Once included in the official catalog, the track will be available for purchase (as part of a remix album) by users or be
+                                  available as part of the subscription service.
+                                </p>
+                                <p>As you are the Remix Artist who created the track, you will get a share of the revenue from the track!</p>
+                                <p>The original artist will also get a share of the revenue from the new remixed track!</p>
+                              </div>
+                              <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white p-1">
+                                ✕
+                              </button>
+                            </div>
+                          ),
+                          customToastStyle
+                        )
+                      }
+                      className="p-1 rounded-full hover:bg-white/10">
+                      <Info className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {isDataLoading || switchChangeThrottled ? (
+                      <>
+                        <LoadingSkeleton />
+                        <LoadingSkeleton />
+                        <LoadingSkeleton />
+                      </>
+                    ) : graduatedLaunchesData.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                        <p className="text-center">{!showAllMusicUI ? "No remixes created by you have been voted in yet!" : "No remixes voted in yet!"}</p>
                       </div>
-                    ),
-                    customToastStyle
-                  )
-                }
-                className="p-1 rounded-full hover:bg-white/10">
-                <Info className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              {isDataLoading || switchChangeThrottled ? (
-                <>
-                  <LoadingSkeleton />
-                  <LoadingSkeleton />
-                  <LoadingSkeleton />
-                </>
-              ) : publishedLaunchesData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                  <span className="text-3xl mb-4">🚀</span>
-                  <p className="text-center">{!showAllMusicUI ? "No remixes created by you are published yet!" : "No remixes published yet!"}</p>
+                    ) : (
+                      graduatedLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="graduated" />)
+                    )}
+                  </div>
                 </div>
-              ) : (
-                publishedLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="published" />)
-              )}
-            </div>
-          </div>
-        </div>
 
+                {/* Pump.fun Launches */}
+                <div className="flex flex-col bg-white/5 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My Music Live on Sigma Music" : "Live on Sigma Music"}</h2>
+                    <button
+                      onClick={() =>
+                        toast(
+                          (t) => (
+                            <div className="flex items-start gap-4">
+                              <div className="flex-1 space-y-2">
+                                <p className="mb-4">
+                                  <strong className="text-yellow-300">Published on Sigma Music:</strong> These tracks have been officially published on the
+                                  Sigma Music platform.
+                                </p>
+                                <p className="mb-4">
+                                  These tracks are available for purchase (as part of a remix album) by users or be available as part of the subscription
+                                  service. If you are the remix artist you earn a share of the sales and if you are the original artist you also earn!
+                                </p>
+                                <p className="mb-4">These tracks also get featured and promoted on Sigma Music's social channels and our music apps.</p>
+                              </div>
+                              <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white p-1">
+                                ✕
+                              </button>
+                            </div>
+                          ),
+                          customToastStyle
+                        )
+                      }
+                      className="p-1 rounded-full hover:bg-white/10">
+                      <Info className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {isDataLoading || switchChangeThrottled ? (
+                      <>
+                        <LoadingSkeleton />
+                        <LoadingSkeleton />
+                        <LoadingSkeleton />
+                      </>
+                    ) : publishedLaunchesData.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                        <p className="text-center">{!showAllMusicUI ? "No remixes created by you are published yet!" : "No remixes published yet!"}</p>
+                      </div>
+                    ) : (
+                      publishedLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="published" />)
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col items-center justify-center py-8 text-gray-400 h-[60vh]">
+              <Loader className="w-10 h-10 animate-spin text-yellow-500" />
+            </div>
+          </>
+        )}
+
+        {/* Send XP Power Up Modal */}
         <>
           {/* The bitz power up for creators and album likes */}
           {giveBitzForMusicBountyConfig.giveBitzToWho !== "" && giveBitzForMusicBountyConfig.giveBitzToCampaignId !== "" && (
@@ -1265,6 +1449,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
           )}
         </>
 
+        {/* Launch Music Track Modal */}
         <>
           {launchMusicMemeModalOpen && (
             <LaunchMusicTrack
@@ -1279,6 +1464,7 @@ export const RemixMusicSectionContent = ({ navigateToDeepAppView }: RemixMusicSe
           )}
         </>
 
+        {/* Jobs Modal */}
         <JobsModal isOpen={isJobsModalOpen} onClose={() => setIsJobsModalOpen(false)} jobs={myJobsPayments} onRefresh={() => handleRefreshJobs(true)} />
       </div>
     </>

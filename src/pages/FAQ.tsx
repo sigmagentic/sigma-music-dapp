@@ -187,11 +187,11 @@ const faqSections: FAQSection[] = [
 
               <div>
                 <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <span>🤖</span> Sigma REMiX: Co-Create Music with AI
+                  <span>🤖</span> Sigma AI REMiX: Remix your favorite artist's tracks
                 </h4>
                 <p>
-                  With Sigma REMiX, fans can use AI to remix real music from artists. The remix gets minted into a Music NFT—and both the artist and the fan
-                  earn revenue from sales.
+                  With Sigma AI REMiX, fans can use AI to remix real music from their favorite artists. Allow artists to sell commercial IP licenses and
+                  allowing fans to use AI to legally remix and amplify the original tracks by creating new derivative works.
                 </p>
               </div>
 
@@ -421,7 +421,7 @@ const faqSections: FAQSection[] = [
                 <h4 className="text-lg font-semibold mb-2">2. Token-Gated Features & Access</h4>
                 <p className="mb-2">Holding $FAN unlocks powerful perks and gated features:</p>
                 <ul className="list-disc pl-6 space-y-1">
-                  <li>Generation of longer tracks in Sigma REMiX, our AI-powered remixing tool</li>
+                  <li>Generation of longer tracks in Sigma AI REMiX, our AI-powered remixing tool</li>
                   <li>Exclusive discounts on platform-wide music subscriptions</li>
                   <li>Buy IP rights to music for remixing, social sharing, and influencer licensing</li>
                 </ul>
@@ -530,7 +530,7 @@ const faqSections: FAQSection[] = [
                   <ul className="list-disc pl-6 space-y-2">
                     <li>Airdrops based on XP, streams, purchases, and fan memberships</li>
                     <li>Airdrops to artists who launch music and engage fans</li>
-                    <li>Airdrops to fans who use Sigma REMiX to create standout remixes</li>
+                    <li>Airdrops to fans who use Sigma AI REMiX to create standout remixes</li>
                     <li>Airdrops to collaborators who co-create new music</li>
                   </ul>
                 </div>

@@ -588,7 +588,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
       </div>
 
       {/* Artist Remixes Section */}
-      <div className="rounded-lg p-6 mb-6 border-b border-gray-800">
+      {/* <div className="rounded-lg p-6 mb-6 border-b border-gray-800">
         <h2 className="!text-xl font-bold mb-4">Your Music - AI Remixes</h2>
 
         {myAiRemixRawTracks.length === 0 ? (
@@ -648,7 +648,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
             Launch AI Remix
           </Button>
         </div>
-      </div>
+      </div> */}
 
       {/* Artist Payouts Section */}
       <div className="rounded-lg p-6 border-b border-gray-800">

@@ -17,6 +17,7 @@ interface TrackListProps {
   checkOwnershipOfMusicAsset: (album: any) => number;
   trackPlayIsQueued?: boolean;
   assetPlayIsQueued?: boolean;
+  condensedView?: boolean;
 }
 
 export const TrackList: React.FC<TrackListProps> = ({
@@ -29,6 +30,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   checkOwnershipOfMusicAsset,
   trackPlayIsQueued,
   assetPlayIsQueued,
+  condensedView,
 }) => {
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loading, setLoading] = useState(true);

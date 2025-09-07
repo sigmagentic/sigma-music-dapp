@@ -89,6 +89,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   // Animated text rotation words
   const rotatingWords = [
     "New",
+    "Future-Ready",
     "AI",
     "Web3",
     "Innovative",
@@ -1032,7 +1033,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
             {homeMode.includes("ai-remix") && (
               <div className="w-full mt-5">
-                <Remix navigateToDeepAppView={navigateToDeepAppView} />
+                <Remix navigateToDeepAppView={navigateToDeepAppView} onCloseMusicPlayer={resetMusicPlayerState} viewSolData={viewSolData} />
               </div>
             )}
           </>

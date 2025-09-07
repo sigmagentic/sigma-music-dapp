@@ -180,7 +180,7 @@ export const Layout = ({
                     </button>
                   </Tooltip> */}
                   {DISABLE_AI_REMIX_FEATURES === "0" && (
-                    <Tooltip text="AI REMiX : Create & Publish IP-Safe AI Remixes">
+                    <Tooltip text="Sigma AI REMiX">
                       <button
                         onClick={() => {
                           removeDeepSectionParamsFromUrl();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { Loader, ArrowLeft } from "lucide-react";
+import { Loader, ArrowLeft, FileMusicIcon } from "lucide-react";
 import {
   GENERATE_MUSIC_MEME_PRICE_IN_USD,
   ALL_MUSIC_GENRES,
@@ -14,8 +14,8 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { FastStreamTrack, Artist } from "libs/types/common";
-import { injectXUserNameIntoTweet, toastSuccess, fetchMyAlbumsFromMintLogsViaAPI, sleep } from "libs/utils";
-import { fetchSolPriceViaAPI, getApiWeb2Apps, logPaymentToAPI, sendRemixJobAfterPaymentViaAPI } from "libs/utils/api";
+import { injectXUserNameIntoTweet, toastSuccess, fetchMyAlbumsFromMintLogsViaAPI } from "libs/utils";
+import { logPaymentToAPI, sendRemixJobAfterPaymentViaAPI } from "libs/utils/api";
 import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
 import { getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import { useAccountStore } from "store/account";
@@ -29,15 +29,15 @@ import { useNftsStore } from "store/nfts";
 const MAX_TITLE_LENGTH = 50;
 
 interface LaunchMusicTrackProps {
+  renderInline?: boolean;
   onCloseModal: (refreshPaymentLogs: boolean) => void;
   navigateToDeepAppView: (e: any) => void;
 }
 
-export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: LaunchMusicTrackProps) => {
+export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepAppView }: LaunchMusicTrackProps) => {
   const { publicKey, walletType } = useSolanaWallet();
   const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
-  const { connection } = useConnection();
-  const { sendTransaction, signMessage } = useWallet();
+  const { signMessage } = useWallet();
   const { artistLookupEverything } = useAppStore();
   const { bitzBalance: solBitzBalance, givenBitzSum: givenBitzSumSol, updateBitzBalance, updateGivenBitzSum, isSigmaWeb2XpSystem } = useSolBitzStore();
   const { solBitzNfts } = useNftsStore();
@@ -53,13 +53,10 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   } = useAccountStore();
 
   const [songTitle, setSongTitle] = useState("");
-  const [requiredSolAmount, setRequiredSolAmount] = useState<number | null>(null);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
-  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
   const [remixingStatus, setRemixingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
-  // const [paymentTx, setPaymentTx] = useState("");
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
   const [myStoryProtocolLicenses, setMyStoryProtocolLicenses] = useState<any[]>([]);
@@ -72,6 +69,8 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   const [selectedGenre, setSelectedGenre] = useState<string>("original");
   const [selectedMood, setSelectedMood] = useState<string>("original");
   const [tweetText, setTweetText] = useState<string>("");
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [selectedAiModel, setSelectedAiModel] = useState<"sigma-ai" | "other">("sigma-ai");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -89,26 +88,12 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
     };
   }, []);
 
-  // Load artist album dataset and SOL price
+  // Load artist album dataset
   useEffect(() => {
     (async () => {
       const { albumArtistLookupData } = await getArtistsAlbumsData();
       setArtistAlbumDataset(albumArtistLookupData);
     })();
-
-    const fetchPrice = async () => {
-      try {
-        const { currentSolPrice } = await fetchSolPriceViaAPI();
-
-        // Calculate required SOL amount based on USD price
-        const solAmount = GENERATE_MUSIC_MEME_PRICE_IN_USD / currentSolPrice;
-        setRequiredSolAmount(Number(solAmount.toFixed(4))); // Round to 4 decimal places
-      } catch (error) {
-        console.error("Failed to fetch SOL price:", error);
-      }
-    };
-
-    fetchPrice();
   }, []);
 
   // Load Story Protocol licenses on mount
@@ -169,20 +154,6 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
       setFreeLincensedAlbums([freeRemixAlbum1]);
     }
   }, [myAlbumMintLogs, artistAlbumDataset]);
-
-  // Add effect to fetch wallet balance
-  useEffect(() => {
-    const fetchBalance = async () => {
-      if (!publicKey) return;
-      try {
-        const balance = await connection.getBalance(publicKey);
-        setWalletBalance(balance / 1e9); // Convert lamports to SOL
-      } catch (error) {
-        console.error("Failed to fetch balance:", error);
-      }
-    };
-    fetchBalance();
-  }, [publicKey, connection]);
 
   // Handle audio ended event
   useEffect(() => {
@@ -417,7 +388,6 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
     // return;
     // // E: TEST UI WORKFLOW HERE
 
-    debugger;
     // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
     const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
       solPreaccessNonce,
@@ -635,9 +605,18 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
           </div>
 
           {textPromptIfUsingGenreAndMood && (
-            <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
-              <p className="text-yellow-300 font-bold">Prompt:</p>
-              <p className="text-yellow-300">{textPromptIfUsingGenreAndMood}</p>
+            <div className="mb-4">
+              {!showPrompt && (
+                <p className="text-xs cursor-pointer" onClick={() => setShowPrompt(true)}>
+                  - Click to view prompt
+                </p>
+              )}
+              {showPrompt && (
+                <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
+                  <p className="text-xs font-bold text-yellow-300">Prompt:</p>
+                  <p className="text-xs">{textPromptIfUsingGenreAndMood}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -772,7 +751,7 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
                   resetStateToPristine();
                 }}
                 className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
-                Back to Sigma Remix Home
+                Back to Sigma AI REMiX Home
               </Button>
 
               <div className="bg-yellow-300 rounded-full p-[10px] -z-1 ">
@@ -895,8 +874,9 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
               <span className="text-white text-sm">🎤</span>
             </div>
             <div>
-              <p className="text-xs font-medium text-white">With Vocals (coming soon)</p>
+              <p className="text-xs font-medium text-white">With Vocals</p>
               <p className="text-xs text-gray-400">Include vocal elements</p>
+              <p className="text-xs text-gray-400">Coming soon...</p>
             </div>
           </div>
         </button>
@@ -965,60 +945,106 @@ export const LaunchMusicTrack = ({ onCloseModal, navigateToDeepAppView }: Launch
   };
 
   return (
-    <div className="fixed inset-0 bg-yellow-400 bg-opacity-30 flex items-center justify-center z-50">
+    <div className={`${renderInline ? "w-full h-full" : "fixed inset-0 bg-yellow-400 bg-opacity-30 flex items-center justify-center z-50"}`}>
       {showPaymentConfirmation && <PaymentConfirmationPopup_XP />}
       {showHowItWorks && <HowItWorksModal />}
       {(remixingStatus === "processing" || remixingStatus === "confirmed" || remixingStatus === "failed") && <AiGenerationInProgressPopup />}
 
-      <div className="relative bg-[#1A1A1A] rounded-lg p-6 max-w-5xl w-full mx-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div
+        className={`${renderInline ? "w-full h-full grid grid-cols-1 lg:grid-cols-2 gap-2" : "relative bg-[#1A1A1A] rounded-lg p-6 max-w-5xl w-full mx-4 grid grid-cols-1 lg:grid-cols-2 gap-6"}`}>
         {/* Close button - moved outside the grid */}
-        <button
-          disabled={paymentStatus === "processing"}
-          onClick={() => onCloseModal(false)}
-          className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
-          ✕
-        </button>
+        {!renderInline && (
+          <button
+            disabled={paymentStatus === "processing"}
+            onClick={() => onCloseModal(false)}
+            className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
+            ✕
+          </button>
+        )}
 
-        {/* Left Column - Form */}
-        <div>
-          <div className="mb-6 flex justify-between items-center">
-            <h2 className="!text-xl font-bold">Generate New AI Remix</h2>
-            <Button
-              onClick={() => setShowHowItWorks(true)}
-              variant="outline"
-              className="bg-gradient-to-r from-gray-200 to-gray-500 text-black hover:text-black  py-2 px-4 rounded-lg hover:opacity-90 transition-opacity text-sm h-[40px] opacity-80">
-              How it works?
-            </Button>
+        {/* Left Column - Prompt Form */}
+        <div className="bg-gradient-to-br from-yellow-600/10 to-orange-600/10 rounded-lg p-6">
+          {!renderInline && (
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="!text-xl font-bold">Generate New AI Remix</h2>
+              <Button
+                onClick={() => setShowHowItWorks(true)}
+                variant="outline"
+                className="bg-gradient-to-r from-gray-200 to-gray-500 text-black hover:text-black  py-2 px-4 rounded-lg hover:opacity-90 transition-opacity text-sm h-[40px] opacity-80">
+                How it works?
+              </Button>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-3 text-gray-200">AI Model Selection</label>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSelectedAiModel("sigma-ai")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedAiModel === "sigma-ai"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25"
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white border border-gray-600"
+                }`}>
+                SigmaAI V1
+              </button>
+              <button
+                onClick={() => setSelectedAiModel("other")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedAiModel === "other"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25"
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white border border-gray-600"
+                }`}>
+                Suno, Udio or Others
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4">
-            <div className={`flex flex-col gap-4`}>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Song Title
-                  <span className="float-right text-gray-400">{MAX_TITLE_LENGTH - songTitle.length} characters left</span>
-                </label>
-                <input
-                  type="text"
-                  value={songTitle}
-                  onChange={handleTitleChange}
-                  maxLength={MAX_TITLE_LENGTH}
-                  className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
-                />
+            <>
+              <div className={`flex flex-col gap-4`}>
+                {selectedAiModel === "sigma-ai" && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      New Track Title
+                      <span className="float-right text-gray-400 text-xs">{MAX_TITLE_LENGTH - songTitle.length} characters left</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={songTitle}
+                      onChange={handleTitleChange}
+                      maxLength={MAX_TITLE_LENGTH}
+                      className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
+                    />
+                  </div>
+                )}
+
+                <ReferenceTrackSelector />
+
+                {selectedAiModel === "sigma-ai" && (
+                  <>
+                    <TrackStyleSelector />
+
+                    <GenreSelector />
+
+                    <MoodSelector />
+                  </>
+                )}
+
+                {selectedAiModel === "other" && (
+                  <p className="text-sm text-gray-300">
+                    Want to take your reference track and remix it with a different AI music platform like Suno, Udio or others? This is coming soon so stay
+                    tuned...
+                  </p>
+                )}
               </div>
-
-              <ReferenceTrackSelector />
-
-              <TrackStyleSelector />
-
-              <GenreSelector />
-
-              <MoodSelector />
-            </div>
+            </>
 
             <Button
               onClick={handleTrackGeneration}
-              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+              disabled={selectedAiModel === "other"}
+              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-lg font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+              <FileMusicIcon className="w-6 h-6 mr-2" />
               Generate Remix
             </Button>
           </div>

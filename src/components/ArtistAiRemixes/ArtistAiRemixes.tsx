@@ -83,9 +83,9 @@ export default function ArtistAiRemixes({ artistId, setActiveTab, onFeaturedArti
             ) : (
               <div className="streams-leaderboard-container">
                 <h1 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
-                  Licensed AI Remixes
+                  My AI Remixes
                 </h1>
-                <p className="text-xl mb-10 text-center md:text-left opacity-50">No official licensed AI remixes found</p>
+                <p className="text-xl mb-10 text-center md:text-left opacity-50">No official AI remixes found</p>
               </div>
             )}
           </>

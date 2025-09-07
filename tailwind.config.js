@@ -158,15 +158,15 @@ module.exports = {
             borderImageSlice: "1",
           },
           "25%": {
-            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 75%, transparent 100%) 1",
+            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 50%, transparent 100%) 1",
             borderImageSlice: "1",
           },
           "50%": {
-            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 100%, transparent 100%) 1",
+            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 50%, transparent 100%) 1",
             borderImageSlice: "1",
           },
           "75%": {
-            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 75%, transparent 100%) 1",
+            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 50%, transparent 100%) 1",
             borderImageSlice: "1",
           },
           "100%": {
