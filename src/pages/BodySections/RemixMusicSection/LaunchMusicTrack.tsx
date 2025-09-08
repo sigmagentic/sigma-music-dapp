@@ -1032,9 +1032,9 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
                 )}
 
                 {selectedAiModel === "other" && (
-                  <p className="text-sm text-gray-300">
-                    Want to take your reference track and remix it with a different AI music platform like Suno, Udio or others? This is coming soon so stay
-                    tuned...
+                  <p className="text-xs text-gray-300">
+                    Want to take your reference track and remix it with a different AI music platform like Suno, Udio or others and then launch it on Sigma
+                    Music? This is coming very soon...
                   </p>
                 )}
               </div>

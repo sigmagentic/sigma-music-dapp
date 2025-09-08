@@ -1036,24 +1036,28 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
 
   const GenerateMusicMemeButton = () => {
     return (
-      <Button
-        disabled={DISABLE_REMIX_LAUNCH_BUTTON}
-        className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-lg text-center p-2 md:p-4 rounded-lg h-[48px]"
-        onClick={() => {
-          if (!addressSol) {
-            window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
-            return;
-          } else {
-            setLaunchMusicMemeModalOpen(true);
-          }
-        }}>
-        <div>
-          <div className="flex items-center justify-center">
-            <FileMusicIcon className="w-6 h-6 mr-2" />
-            {DISABLE_REMIX_LAUNCH_BUTTON ? <div>Create! (Offline For Now!)</div> : !addressSol ? <div>Login to Create!</div> : <div>Create!</div>}
-          </div>
-        </div>
-      </Button>
+      <>
+        {DISABLE_REMIX_LAUNCH_BUTTON || !addressSol ? (
+          <Button
+            disabled={DISABLE_REMIX_LAUNCH_BUTTON}
+            className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-lg text-center p-2 md:p-4 rounded-lg h-[48px]"
+            onClick={() => {
+              if (!addressSol) {
+                window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
+                return;
+              } else {
+                setLaunchMusicMemeModalOpen(true);
+              }
+            }}>
+            <div>
+              <div className="flex items-center justify-center">
+                <FileMusicIcon className="w-6 h-6 mr-2" />
+                {DISABLE_REMIX_LAUNCH_BUTTON ? <div>Create! (Offline For Now!)</div> : !addressSol ? <div>Login to Create!</div> : null}
+              </div>
+            </div>
+          </Button>
+        ) : null}
+      </>
     );
   };
 
@@ -1067,7 +1071,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                 Sigma AI REMiX <span className="text-xs text-gray-500">Beta</span>
               </span>
             </h1>
-            <p className="text-sm text-gray-500">Create & Publish IP-Safe AI Remixes</p>
+            <p className="text-sm text-gray-500">Launch IP-Safe AI Remixes influenced by the work of your favorite artists</p>
           </div>
 
           <div className="flex flex-col md:flex-row md:gap-4 gap-2">
@@ -1078,13 +1082,13 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                 <span className="text-sm font-medium text-gray-300">All Music</span>
               </div>
             )}
-            {addressSol && (
+            {/* {addressSol && (
               <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3">
                 <span className="text-sm font-medium text-gray-300">My Workspace</span>
                 <Switch checked={showPublicVotingAreaUI} onCheckedChange={handleSwitchChangeWorkspace} className="" />
                 <span className="text-sm font-medium text-gray-300">Public Voting Area</span>
               </div>
-            )}
+            )} */}
             {myJobsPayments.length > 0 && (
               <div className="relative">
                 <Button
@@ -1100,6 +1104,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                 )}
               </div>
             )}
+
             <GenerateMusicMemeButton />
           </div>
         </div>

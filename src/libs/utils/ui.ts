@@ -248,7 +248,8 @@ export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTrack
   const allAiRemixRawTracks: AiRemixRawTrack[] = [...newTracks, ...graduatedTracks, ...publishedTracks].flatMap((track: any) =>
     track.versions.map((version: any, index: number) => ({
       createdOn: track.createdOn,
-      songTitle: track.promptParams.songTitle + ` (V${index + 1})`,
+      // songTitle: track.promptParams.songTitle + ` (V${index + 1})`,
+      songTitle: track.promptParams.songTitle,
       genre: track.promptParams.genre,
       mood: track.promptParams.mood,
       image: fixImgIconForRemixes(track.image),
