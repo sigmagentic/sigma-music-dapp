@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useConnection } from "@solana/wallet-adapter-react";
 import { Loader, ArrowLeft, FileMusicIcon } from "lucide-react";
 import {
   GENERATE_MUSIC_MEME_PRICE_IN_USD,
@@ -875,7 +874,6 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
             </div>
             <div>
               <p className="text-xs font-medium text-white">With Vocals</p>
-              <p className="text-xs text-gray-400">Include vocal elements</p>
               <p className="text-xs text-gray-400">Coming soon...</p>
             </div>
           </div>
@@ -883,6 +881,9 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
       </div>
     </div>
   );
+
+  const genreScrollRef = useRef<HTMLDivElement>(null);
+  const moodScrollRef = useRef<HTMLDivElement>(null);
 
   const GenreSelector = () => {
     const aiRemixGenres = ALL_MUSIC_GENRES.filter((genre) => genre.isAiRemixOption);
@@ -895,17 +896,37 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
       isAiRemixOption: true,
     });
 
+    const handleGenreClick = (genreCode: string) => {
+      // Store current scroll positions for both containers
+      const genreScrollLeft = genreScrollRef.current?.scrollLeft || 0;
+      const moodScrollLeft = moodScrollRef.current?.scrollLeft || 0;
+
+      // Update the selected genre
+      setSelectedGenre(genreCode);
+
+      // Restore both scroll positions after state update
+      setTimeout(() => {
+        if (genreScrollRef.current) {
+          genreScrollRef.current.scrollLeft = genreScrollLeft;
+        }
+        if (moodScrollRef.current) {
+          moodScrollRef.current.scrollLeft = moodScrollLeft;
+        }
+      }, 0);
+    };
+
     return (
       <div className="space-y-3">
         <label className="block text-sm font-medium mb-2">Desired Genre</label>
         <div
+          ref={genreScrollRef}
           className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
           {aiRemixGenres.map((genre) => (
             <button
               key={genre.code}
-              onClick={() => setSelectedGenre(genre.code)}
+              onClick={() => handleGenreClick(genre.code)}
               className={`px-4 py-2 rounded-lg border transition-all duration-300 whitespace-nowrap ${
                 selectedGenre === genre.code
                   ? "border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 text-white"
@@ -920,17 +941,37 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
   };
 
   const MoodSelector = () => {
+    const handleMoodClick = (moodCode: string) => {
+      // Store current scroll positions for both containers
+      const genreScrollLeft = genreScrollRef.current?.scrollLeft || 0;
+      const moodScrollLeft = moodScrollRef.current?.scrollLeft || 0;
+
+      // Update the selected mood
+      setSelectedMood(moodCode);
+
+      // Restore both scroll positions after state update
+      setTimeout(() => {
+        if (genreScrollRef.current) {
+          genreScrollRef.current.scrollLeft = genreScrollLeft;
+        }
+        if (moodScrollRef.current) {
+          moodScrollRef.current.scrollLeft = moodScrollLeft;
+        }
+      }, 0);
+    };
+
     return (
       <div className="space-y-3">
         <label className="block text-sm font-medium mb-2">Desired Mood</label>
         <div
+          ref={moodScrollRef}
           className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
           {ALL_MUSIC_MOODS_FOR_REMIX.map((mood) => (
             <button
               key={mood.code}
-              onClick={() => setSelectedMood(mood.code)}
+              onClick={() => handleMoodClick(mood.code)}
               className={`px-4 py-2 rounded-lg border transition-all duration-300 whitespace-nowrap ${
                 selectedMood === mood.code
                   ? "border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 text-white"
@@ -983,7 +1024,7 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
                 onClick={() => setSelectedAiModel("sigma-ai")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   selectedAiModel === "sigma-ai"
-                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25"
+                    ? "bg-gradient-to-r from-yellow-500 to-orange-500 shadow-lg shadow-yellow-500/25 text-black"
                     : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white border border-gray-600"
                 }`}>
                 SigmaAI V1
@@ -992,7 +1033,7 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
                 onClick={() => setSelectedAiModel("other")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   selectedAiModel === "other"
-                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25"
+                    ? "bg-gradient-to-r from-orange-500 to-yellow-500 shadow-lg shadow-yellow-500/25 text-black"
                     : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white border border-gray-600"
                 }`}>
                 Suno, Udio or Others

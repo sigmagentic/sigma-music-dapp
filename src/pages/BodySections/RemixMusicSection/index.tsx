@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { debounce } from "lodash";
-import { Rocket, Info, Loader, Pause, Play, Pointer, RefreshCcw, FileMusicIcon } from "lucide-react";
+import { Rocket, Info, Loader, Pause, Play, Pointer, RefreshCcw, FileMusicIcon, Plus, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -8,7 +8,16 @@ import { Button } from "libComponents/Button";
 import { Switch } from "libComponents/Switch";
 import { BountyBitzSumMapping, AiRemixLaunch, AiRemixTrackVersion, MusicTrack, Album } from "libs/types";
 import { Artist, AiRemixRawTrack } from "libs/types";
-import { getPaymentLogsViaAPI, getRemixLaunchesViaAPI, logStatusChangeToAPI, mergeRawAiRemixTracks, sleep, mapRawAiRemixTracksToMusicTracks } from "libs/utils";
+import {
+  getPaymentLogsViaAPI,
+  getRemixLaunchesViaAPI,
+  logStatusChangeToAPI,
+  mergeRawAiRemixTracks,
+  sleep,
+  mapRawAiRemixTracksToMusicTracks,
+  getAlbumTracksFromDBViaAPI,
+  getAlbumFromDBViaAPI,
+} from "libs/utils";
 import { SendBitzPowerUp } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { updateBountyBitzSumGlobalMappingWindow } from "pages/BodySections/HomeSection/shared/utils";
@@ -17,16 +26,18 @@ import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { LaunchMusicTrack } from "./LaunchMusicTrack";
 import { routeNames } from "routes";
-import { fixImgIconForRemixes } from "libs/utils/ui";
+import { fixImgIconForRemixes, toastSuccess } from "libs/utils/ui";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { TrackList } from "pages/BodySections/HomeSection/components/TrackList";
 import { useAudioPlayerStore } from "store/audioPlayer";
+import { TrackListModal } from "pages/MUI/components/TrackListModal";
+import { JobsModal } from "./JobsModal";
+import { AlbumSelectorModal } from "./AlbumSelectorModal";
 
 const VOTES_TO_GRADUATE = 5;
-// const HOURS_TO_GRADUATE = 24;
 
 // Add this custom toast style near the top of the file after imports
-const customToastStyle = {
+const customInfoToastStyle = {
   style: {
     maxWidth: "800px",
     padding: "16px",
@@ -38,86 +49,6 @@ const customToastStyle = {
     border: "1px solid #eab308",
   },
   duration: Infinity, // Make toast stay until dismissed
-};
-
-const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onClose: () => void; jobs: Array<any>; onRefresh: () => void }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
-      <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-4xl w-full mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold mr-auto">Your Jobs History</h3>
-          <div
-            className={`cursor-pointer flex items-center gap-2 text-sm mr-5`}
-            onClick={() => {
-              onRefresh();
-            }}>
-            <>
-              <RefreshCcw className="w-5 h-5" />
-              Refresh
-            </>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors">
-            ✕
-          </button>
-        </div>
-
-        <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-700">
-                <th className="text-left p-2">Date</th>
-                <th className="text-left p-2">Amount</th>
-                <th className="text-left p-2">Status</th>
-                <th className="text-left p-2">Receipt</th>
-                <th className="text-left p-2">Job</th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.map((job, index) => (
-                <tr key={index} className="border-b border-gray-700/50 hover:bg-white/5">
-                  <td className="p-2">{new Date(job.createdOn).toLocaleDateString()}</td>
-                  <td className="p-2">{job.amount} XP</td>
-                  <td className="p-2">
-                    {job.paymentStatus === "new" || job.paymentStatus === "async_processing" ? (
-                      <span className="bg-yellow-900 text-yellow-300 px-2 py-1 rounded-md">Pending AI Remix...</span>
-                    ) : (
-                      job.paymentStatus.charAt(0).toUpperCase() + job.paymentStatus.slice(1)
-                    )}
-                  </td>
-                  <td className="p-2 text-xs">
-                    <div className="relative group">
-                      <button
-                        onClick={async () => {
-                          try {
-                            await navigator.clipboard.writeText(job.tx);
-                            toast.success("Transaction hash copied to clipboard!");
-                          } catch (err) {
-                            console.error("Failed to copy: ", err);
-                            toast.error("Failed to copy to clipboard");
-                          }
-                        }}
-                        className="text-yellow-300 hover:text-yellow-200 hover:underline cursor-pointer transition-colors">
-                        {job.tx.slice(0, 4)}...{job.tx.slice(-4)}
-                      </button>
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                        Click to Copy
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="p-2">Remix Track: {job.promptParams?.refTrack_alId}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 let newJobsInterval: NodeJS.Timeout | null = null;
@@ -136,7 +67,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : publicKeySol; // Use the appropriate public key based on wallet type
   const { solBitzNfts } = useNftsStore();
   const { artistLookupEverything } = useAppStore();
-  const { updateMyAiRemixRawTracks } = useAccountStore();
+  const { updateMyAiRemixRawTracks, userArtistProfile } = useAccountStore();
   const { updateAssetPlayIsQueued } = useAudioPlayerStore();
 
   const [bountyBitzSumGlobalMapping, setBountyBitzSumGlobalMapping] = useState<BountyBitzSumMapping>({});
@@ -181,6 +112,15 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const [checkingIfNewJobsHaveCompleted, setCheckingIfNewJobsHaveCompleted] = useState(false);
   const [appViewLoaded, setAppViewLoaded] = useState(false);
 
+  // add track to album state params (from My Workspace)
+  const [showEditTrackModal, setShowEditTrackModal] = useState<boolean>(false);
+  const [selectedAlbumTracks, setSelectedAlbumTracks] = useState<MusicTrack[]>([]);
+  const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string>("");
+  const [selectedAlbumImg, setSelectedAlbumImg] = useState<string>("");
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string>("");
+  const [isLoadingTracksInSelectedAlbum, setIsLoadingTracksInSelectedAlbum] = useState(false);
+  const [trackToAddToAlbum, setTrackToAddToAlbum] = useState<MusicTrack | null>(null);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Debounced function to update business logic state after 2 seconds of inactivity
@@ -201,7 +141,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   );
 
   // Handle switch change - update UI immediately, debounce business logic
-  const handleSwitchChange = useCallback(
+  const handleSwitchChangePublicVoting = useCallback(
     (value: boolean) => {
       setShowAllMusicUI(value); // Update UI immediately
       setSwitchChangeThrottled(true);
@@ -360,7 +300,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   }, [addressSol, isLoadingSolanaWallet]);
 
   const fetchDataAllSwimLaneData = async ({ showMyMusicOnly }: { showMyMusicOnly: boolean }) => {
-    console.log("_____ fetchDataAllSwimLaneData called with showMyMusicOnly:", showMyMusicOnly);
     try {
       setIsDataLoading(true);
       setNewLaunchesData([]);
@@ -499,8 +438,9 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     return `${votesNeeded} more XP needed`;
   };
 
-  // Helper function to toggle expanded state for showing other versions
   const toggleExpandedVersions = (launchId: string) => {
+    // Helper function to toggle expanded state for showing other versions
+
     setExpandedLaunchIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(launchId)) {
@@ -510,6 +450,176 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       }
       return newSet;
     });
+  };
+
+  function handleSendBitzForMusicBounty({
+    creatorIcon,
+    creatorName,
+    giveBitzToWho,
+    giveBitzToCampaignId,
+    isLikeMode,
+    isRemixVoteMode,
+  }: {
+    creatorIcon: string;
+    creatorName: string;
+    giveBitzToWho: string;
+    giveBitzToCampaignId: string;
+    isLikeMode?: boolean;
+    isRemixVoteMode?: boolean;
+  }) {
+    // here we set the power up object that will trigger the modal that allows a user to sent bitz to a target bounty
+
+    setGiveBitzForMusicBountyConfig({
+      creatorIcon,
+      creatorName,
+      giveBitzToWho,
+      giveBitzToCampaignId,
+      isLikeMode,
+      isRemixVoteMode,
+    });
+  }
+
+  const hasGraduated = ({
+    launchId,
+    createdOn,
+    bountyId,
+    skipAutoStatusChangeViaAPI,
+  }: {
+    launchId: string;
+    createdOn: number;
+    bountyId: string;
+    skipAutoStatusChangeViaAPI?: boolean;
+  }) => {
+    const currentVotes = bountyBitzSumGlobalMapping[bountyId]?.bitsSum || 0;
+    const tokenGraduated = VOTES_TO_GRADUATE - currentVotes <= 0;
+
+    if (tokenGraduated && !skipAutoStatusChangeViaAPI) {
+      // Stop any playing music and reset playback state
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+      setIsPlaying(false);
+      setCurrentPlayingId(null);
+      setCurrentTime("0:00");
+
+      // Make the API call
+      try {
+        logStatusChangeToAPI({
+          launchId,
+          createdOn,
+          newStatus: "graduated",
+          bountyId,
+        });
+
+        // Trigger a refresh of the graduated data
+        setShouldRefreshData(true);
+      } catch (error) {
+        toast.error("Error with status change to graduated");
+      }
+    }
+
+    return tokenGraduated;
+  };
+
+  const addTrackToAlbum_getCurrentTracksInAlbum = async ({
+    albumId,
+    albumTitle,
+    albumImg,
+    onlyRefresh,
+  }: {
+    albumId: string;
+    albumTitle: string;
+    albumImg: string;
+    onlyRefresh: boolean;
+  }) => {
+    setIsLoadingTracksInSelectedAlbum(true);
+
+    try {
+      const albumTracksFromDb: MusicTrack[] = await getAlbumTracksFromDBViaAPI(userArtistProfile.artistId, albumId, true, true);
+
+      if (albumTracksFromDb.length > 0) {
+        setSelectedAlbumTracks(albumTracksFromDb);
+      } else {
+        setSelectedAlbumTracks([]);
+      }
+
+      // the user just added or edited a track, so we just need to refresh the track list, we don't need to open the track list modal as its already one open
+      if (onlyRefresh) {
+        return;
+      }
+
+      setSelectedAlbumTitle(albumTitle);
+      setSelectedAlbumId(albumId);
+      setSelectedAlbumImg(albumImg);
+      setShowEditTrackModal(true);
+    } catch (error) {
+      console.error("Error fetching tracks:", error);
+    } finally {
+      setIsLoadingTracksInSelectedAlbum(false);
+    }
+  };
+
+  const addTrackToAlbum_ResetToPrestine = () => {
+    setShowEditTrackModal(false);
+    setSelectedAlbumTracks([]);
+    setSelectedAlbumTitle("");
+    setSelectedAlbumImg("");
+    setSelectedAlbumId("");
+    setIsLoadingTracksInSelectedAlbum(false);
+    setTrackToAddToAlbum(null);
+  };
+
+  const LoadingSkeletonItem = () => (
+    <div className="bg-[#1A1A1A] rounded-lg p-4 mb-4 animate-pulse">
+      <div className="flex gap-4">
+        <div className="w-24 h-24 bg-gray-700 rounded-lg"></div>
+        <div className="flex-grow">
+          <div className="h-6 bg-gray-700 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-gray-700 rounded w-2/3"></div>
+        </div>
+      </div>
+      <div className="mt-4">
+        <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
+        <div className="h-8 bg-gray-700 rounded w-full"></div>
+      </div>
+    </div>
+  );
+
+  const LoadingSkeleton = () => (
+    <>
+      {" "}
+      {[...Array(3)].map((_, index) => (
+        <LoadingSkeletonItem key={index} />
+      ))}{" "}
+    </>
+  );
+
+  const GenerateMusicMemeButton = () => {
+    return (
+      <>
+        {DISABLE_REMIX_LAUNCH_BUTTON || !addressSol ? (
+          <Button
+            disabled={DISABLE_REMIX_LAUNCH_BUTTON}
+            className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-lg text-center p-2 md:p-4 rounded-lg h-[48px]"
+            onClick={() => {
+              if (!addressSol) {
+                window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
+                return;
+              } else {
+                setLaunchMusicMemeModalOpen(true);
+              }
+            }}>
+            <div>
+              <div className="flex items-center justify-center">
+                <FileMusicIcon className="w-6 h-6 mr-2" />
+                {DISABLE_REMIX_LAUNCH_BUTTON ? <div>Create! (Offline For Now!)</div> : !addressSol ? <div>Login to Create!</div> : null}
+              </div>
+            </div>
+          </Button>
+        ) : null}
+      </>
+    );
   };
 
   const LaunchCard = ({ item, type, idx }: { item: AiRemixLaunch; type: string; idx: number }) => {
@@ -948,119 +1058,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     );
   };
 
-  const LoadingSkeleton = () => (
-    <div className="bg-[#1A1A1A] rounded-lg p-4 mb-4 animate-pulse">
-      <div className="flex gap-4">
-        <div className="w-24 h-24 bg-gray-700 rounded-lg"></div>
-        <div className="flex-grow">
-          <div className="h-6 bg-gray-700 rounded w-1/3 mb-2"></div>
-          <div className="h-4 bg-gray-700 rounded w-2/3"></div>
-        </div>
-      </div>
-      <div className="mt-4">
-        <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
-        <div className="h-8 bg-gray-700 rounded w-full"></div>
-      </div>
-    </div>
-  );
-
-  // here we set the power up object that will trigger the modal that allows a user to sent bitz to a target bounty
-  function handleSendBitzForMusicBounty({
-    creatorIcon,
-    creatorName,
-    giveBitzToWho,
-    giveBitzToCampaignId,
-    isLikeMode,
-    isRemixVoteMode,
-  }: {
-    creatorIcon: string;
-    creatorName: string;
-    giveBitzToWho: string;
-    giveBitzToCampaignId: string;
-    isLikeMode?: boolean;
-    isRemixVoteMode?: boolean;
-  }) {
-    setGiveBitzForMusicBountyConfig({
-      creatorIcon,
-      creatorName,
-      giveBitzToWho,
-      giveBitzToCampaignId,
-      isLikeMode,
-      isRemixVoteMode,
-    });
-  }
-
-  // Modify the hasGraduated function
-  const hasGraduated = ({
-    launchId,
-    createdOn,
-    bountyId,
-    skipAutoStatusChangeViaAPI,
-  }: {
-    launchId: string;
-    createdOn: number;
-    bountyId: string;
-    skipAutoStatusChangeViaAPI?: boolean;
-  }) => {
-    const currentVotes = bountyBitzSumGlobalMapping[bountyId]?.bitsSum || 0;
-    const tokenGraduated = VOTES_TO_GRADUATE - currentVotes <= 0;
-
-    if (tokenGraduated && !skipAutoStatusChangeViaAPI) {
-      // Stop any playing music and reset playback state
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-      }
-      setIsPlaying(false);
-      setCurrentPlayingId(null);
-      setCurrentTime("0:00");
-
-      // Make the API call
-      try {
-        logStatusChangeToAPI({
-          launchId,
-          createdOn,
-          newStatus: "graduated",
-          bountyId,
-        });
-
-        // Trigger a refresh of the graduated data
-        setShouldRefreshData(true);
-      } catch (error) {
-        toast.error("Error with status change to graduated");
-      }
-    }
-
-    return tokenGraduated;
-  };
-
-  const GenerateMusicMemeButton = () => {
-    return (
-      <>
-        {DISABLE_REMIX_LAUNCH_BUTTON || !addressSol ? (
-          <Button
-            disabled={DISABLE_REMIX_LAUNCH_BUTTON}
-            className="animate-gradient bg-gradient-to-r from-yellow-300 to-orange-500 bg-[length:200%_200%] transition ease-in-out delay-50 duration-100 hover:translate-y-1.5 hover:-translate-x-[8px] hover:scale-100 text-lg text-center p-2 md:p-4 rounded-lg h-[48px]"
-            onClick={() => {
-              if (!addressSol) {
-                window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
-                return;
-              } else {
-                setLaunchMusicMemeModalOpen(true);
-              }
-            }}>
-            <div>
-              <div className="flex items-center justify-center">
-                <FileMusicIcon className="w-6 h-6 mr-2" />
-                {DISABLE_REMIX_LAUNCH_BUTTON ? <div>Create! (Offline For Now!)</div> : !addressSol ? <div>Login to Create!</div> : null}
-              </div>
-            </div>
-          </Button>
-        ) : null}
-      </>
-    );
-  };
-
   return (
     <>
       <div className="flex flex-col min-h-screen w-full mt-3">
@@ -1078,7 +1075,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
             {addressSol && showPublicVotingArea && (
               <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3">
                 <span className="text-sm font-medium text-gray-300">My Music Only</span>
-                <Switch checked={showAllMusicUI} onCheckedChange={handleSwitchChange} className="" />
+                <Switch checked={showAllMusicUI} onCheckedChange={handleSwitchChangePublicVoting} className="" />
                 <span className="text-sm font-medium text-gray-300">All Music</span>
               </div>
             )}
@@ -1132,7 +1129,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                       />
                     </div>
 
-                    {/* Second Column - My Tracks */}
+                    {/* Second Column - My Tracks Workspace */}
                     <div className="flex flex-col bg-white/5 rounded-lg p-6">
                       <div className="flex items-center justify-between">
                         <h2 className="!text-lg font-semibold">My Workspace</h2>
@@ -1172,6 +1169,10 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                               artistId={"virtual-artist-id-" + displayPublicKey?.toString()}
                               artistName={""}
                               virtualTrackList={virtualAiRemixAlbumTracks}
+                              checkOwnershipOfMusicAsset={() => 0}
+                              trackPlayIsQueued={false}
+                              assetPlayIsQueued={false}
+                              remixWorkspaceView={true}
                               onBack={() => {
                                 onCloseMusicPlayer();
                               }}
@@ -1194,15 +1195,17 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                   updateAssetPlayIsQueued(false);
                                 }, 5000);
                               }}
-                              checkOwnershipOfMusicAsset={() => 0}
-                              trackPlayIsQueued={false}
-                              assetPlayIsQueued={false}
-                              condensedView={true}
+                              handleTrackSelection={(selectedTrack: MusicTrack) => {
+                                // set the isSigmaAiRemix flag to 1
+                                const _selectedTrack: MusicTrack = { ...selectedTrack, isSigmaAiRemix: 1 } as MusicTrack;
+                                addTrackToAlbum_ResetToPrestine(); // best we reset to prestine here as this is the "point of entry" to add track workflow
+                                setTrackToAddToAlbum(_selectedTrack);
+                              }}
                             />
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                            <Loader className="w-10 h-10 animate-spin text-yellow-500" />
+                            <Loader className="w-5 h-5 animate-spin text-yellow-500" />
                           </div>
                         )}
                       </>
@@ -1211,7 +1214,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                 ) : (
                   <>
                     <div className="flex flex-col items-center justify-center py-8 text-gray-400 h-[60vh]">
-                      <Loader className="w-10 h-10 animate-spin text-yellow-500" />
+                      <Loader className="w-5 h-5 animate-spin text-yellow-500" />
                     </div>
                   </>
                 )}
@@ -1258,7 +1261,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                               </button>
                             </div>
                           ),
-                          customToastStyle
+                          customInfoToastStyle
                         )
                       }
                       className="p-1 rounded-full hover:bg-white/10">
@@ -1283,11 +1286,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                     )}
 
                     {isDataLoading || switchChangeThrottled ? (
-                      <>
-                        <LoadingSkeleton />
-                        <LoadingSkeleton />
-                        <LoadingSkeleton />
-                      </>
+                      <LoadingSkeleton />
                     ) : newLaunchesData.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                         <p className="text-center mb-4">{!showAllMusicUI ? "No remixes created by you yet!" : "No new remixes yet!"}</p>
@@ -1330,7 +1329,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                               </button>
                             </div>
                           ),
-                          customToastStyle
+                          customInfoToastStyle
                         )
                       }
                       className="p-1 rounded-full hover:bg-white/10">
@@ -1339,11 +1338,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                   </div>
                   <div className="space-y-4">
                     {isDataLoading || switchChangeThrottled ? (
-                      <>
-                        <LoadingSkeleton />
-                        <LoadingSkeleton />
-                        <LoadingSkeleton />
-                      </>
+                      <LoadingSkeleton />
                     ) : graduatedLaunchesData.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                         <p className="text-center">{!showAllMusicUI ? "No remixes created by you have been voted in yet!" : "No remixes voted in yet!"}</p>
@@ -1354,7 +1349,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                   </div>
                 </div>
 
-                {/* Pump.fun Launches */}
+                {/* Published Remixes */}
                 <div className="flex flex-col bg-white/5 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-4">
                     <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My Music Live on Sigma Music" : "Live on Sigma Music"}</h2>
@@ -1379,7 +1374,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                               </button>
                             </div>
                           ),
-                          customToastStyle
+                          customInfoToastStyle
                         )
                       }
                       className="p-1 rounded-full hover:bg-white/10">
@@ -1388,11 +1383,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                   </div>
                   <div className="space-y-4">
                     {isDataLoading || switchChangeThrottled ? (
-                      <>
-                        <LoadingSkeleton />
-                        <LoadingSkeleton />
-                        <LoadingSkeleton />
-                      </>
+                      <LoadingSkeleton />
                     ) : publishedLaunchesData.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                         <p className="text-center">{!showAllMusicUI ? "No remixes created by you are published yet!" : "No remixes published yet!"}</p>
@@ -1471,6 +1462,49 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
 
         {/* Jobs Modal */}
         <JobsModal isOpen={isJobsModalOpen} onClose={() => setIsJobsModalOpen(false)} jobs={myJobsPayments} onRefresh={() => handleRefreshJobs(true)} />
+
+        {/* Album Selector Modal for adding tracks */}
+        <AlbumSelectorModal
+          trackToAddToAlbum={trackToAddToAlbum}
+          albumTracksLoading={isLoadingTracksInSelectedAlbum}
+          isOpen={trackToAddToAlbum !== null}
+          onClose={() => {
+            setTrackToAddToAlbum(null);
+            addTrackToAlbum_ResetToPrestine(); // the entire add track to album workflow is closed -- so reset to prestine
+          }}
+          onViewCurrentTracks={(albumId, albumTitle, albumImg) => {
+            // this will trigger the track list modal to open (once we get the existing tracks)
+            addTrackToAlbum_getCurrentTracksInAlbum({ albumId, albumTitle, albumImg, onlyRefresh: false });
+          }}
+        />
+
+        {/* Once Album is selected, then add track modal */}
+        <TrackListModal
+          isOpen={showEditTrackModal}
+          isNonMUIMode={true}
+          tracks={selectedAlbumTracks as any}
+          albumTitle={selectedAlbumTitle}
+          artistId={userArtistProfile.artistId}
+          albumId={selectedAlbumId}
+          albumImg={selectedAlbumImg}
+          preloadExistingTrackToAlbum={trackToAddToAlbum}
+          onClose={() => {
+            // go back to the album selector modal
+            setShowEditTrackModal(false);
+          }}
+          onTracksUpdated={() => {
+            // addTrackToAlbum_getCurrentTracksInAlbum({
+            //   albumId: selectedAlbumId,
+            //   albumTitle: selectedAlbumTitle,
+            //   albumImg: selectedAlbumImg,
+            //   onlyRefresh: false,
+            // });
+
+            toastSuccess(`Track "${trackToAddToAlbum?.title || ""}" added to album "${selectedAlbumTitle}" successfully.`, true);
+
+            addTrackToAlbum_ResetToPrestine();
+          }}
+        />
       </div>
     </>
   );

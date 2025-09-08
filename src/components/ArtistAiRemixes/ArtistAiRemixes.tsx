@@ -14,10 +14,11 @@ interface ArtistAiRemixesProps {
 }
 
 export default function ArtistAiRemixes({ artistId, setActiveTab, onFeaturedArtistDeepLinkSlug, onCloseMusicPlayer, viewSolData }: ArtistAiRemixesProps) {
+  const { updateAssetPlayIsQueued } = useAudioPlayerStore();
+
   const [isLoading, setIsLoading] = useState(true);
   const [virtualAiRemixAlbum, setVirtualAiRemixAlbum] = useState<Album | null>(null);
   const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
-  const { updateAssetPlayIsQueued } = useAudioPlayerStore();
 
   useEffect(() => {
     const fetchRemixLaunches = async () => {
@@ -53,6 +54,10 @@ export default function ArtistAiRemixes({ artistId, setActiveTab, onFeaturedArti
                   artistId={"virtual-artist-id-PF6xCtUzeCMqXVdvqLCkZGsajKoz2XZ5JJJjuMRcjxD"}
                   artistName={"Fan Made AI Remixes"}
                   virtualTrackList={virtualAiRemixAlbumTracks}
+                  checkOwnershipOfMusicAsset={() => 0}
+                  trackPlayIsQueued={false}
+                  assetPlayIsQueued={false}
+                  disabledDownloadAlways={true}
                   onBack={() => {
                     onCloseMusicPlayer();
                   }}
@@ -75,9 +80,6 @@ export default function ArtistAiRemixes({ artistId, setActiveTab, onFeaturedArti
                       updateAssetPlayIsQueued(false);
                     }, 5000);
                   }}
-                  checkOwnershipOfMusicAsset={() => 0}
-                  trackPlayIsQueued={false}
-                  assetPlayIsQueued={false}
                 />
               </div>
             ) : (

@@ -285,7 +285,7 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
   const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
     idx: index,
     artist: "My AI Remixes",
-    category: "Remix",
+    category: "ai music, simremix",
     album: "My AI Remixes",
     cover_art_url: fixImgIconForRemixes(remix.image),
     title: remix.songTitle,

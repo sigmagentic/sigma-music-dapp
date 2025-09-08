@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Play, Loader, Download } from "lucide-react";
+import { ArrowLeft, Play, Loader, Download, MoreVertical, Plus } from "lucide-react";
 import ratingE from "assets/img/icons/rating-E.png";
 import { Button } from "libComponents/Button";
 import { Album, MusicTrack } from "libs/types";
 import { getAlbumTracksFromDBViaAPI, downloadMp3TrackViaAPI } from "libs/utils/api";
 import { scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { useAudioPlayerStore } from "store/audioPlayer";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "libComponents/DropdownMenu";
 
 interface TrackListProps {
   album: Album;
   artistId: string;
   artistName: string;
   virtualTrackList?: MusicTrack[];
-  onBack: () => void;
-  onPlayTrack: (album: any, jumpToPlaylistTrackIndex?: number) => void;
-  checkOwnershipOfMusicAsset: (album: any) => number;
   trackPlayIsQueued?: boolean;
   assetPlayIsQueued?: boolean;
-  condensedView?: boolean;
+  remixWorkspaceView?: boolean;
+  disabledDownloadAlways?: boolean;
+  checkOwnershipOfMusicAsset: (album: any) => number;
+  onBack: () => void;
+  onPlayTrack: (album: any, jumpToPlaylistTrackIndex?: number) => void;
+  handleTrackSelection?: (track: MusicTrack) => void;
 }
 
 export const TrackList: React.FC<TrackListProps> = ({
@@ -25,12 +28,14 @@ export const TrackList: React.FC<TrackListProps> = ({
   artistId,
   artistName,
   virtualTrackList,
-  onBack,
-  onPlayTrack,
-  checkOwnershipOfMusicAsset,
   trackPlayIsQueued,
   assetPlayIsQueued,
-  condensedView,
+  remixWorkspaceView,
+  disabledDownloadAlways,
+  checkOwnershipOfMusicAsset,
+  onBack,
+  onPlayTrack,
+  handleTrackSelection,
 }) => {
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loading, setLoading] = useState(true);
@@ -193,7 +198,7 @@ export const TrackList: React.FC<TrackListProps> = ({
         <div className="grid grid-cols-[50px_1fr_50px] gap-4 text-gray-400 text-sm font-medium">
           <div>#</div>
           <div>Title</div>
-          <div>Download</div>
+          {!disabledDownloadAlways && <div>{remixWorkspaceView ? "Options" : "Download"}</div>}
         </div>
       </div>
 
@@ -241,27 +246,69 @@ export const TrackList: React.FC<TrackListProps> = ({
               </div>
 
               {/* Download Button */}
-              <div className="flex items-center justify-center">
-                {userOwnsAlbum ? (
-                  <button
-                    className={`text-gray-400 hover:text-white transition-colors ${isHovered ? "opacity-100" : "opacity-0"}`}
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent track click handler from firing
-                      downloadTrackViaClientSide(track);
-                      // downloadMp3TrackViaAPI(artistId, album.albumId, track.alId || "", track.title || "");
-                    }}
-                    disabled={trackDownloadIsInProgress}
-                    title="Download track">
-                    {trackDownloadIsInProgress ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-5 h-5" />}
-                  </button>
-                ) : (
-                  <div
-                    className={`text-gray-400 transition-opacity cursor-not-allowed ${isHovered ? "opacity-50" : "opacity-0"}`}
-                    title="Buy the digital version of this album to download this track">
-                    <Download className="w-4 h-4" />
-                  </div>
-                )}
-              </div>
+              {!disabledDownloadAlways && !remixWorkspaceView && (
+                <div className="flex items-center justify-center">
+                  {userOwnsAlbum ? (
+                    <button
+                      className={`text-gray-400 hover:text-white transition-colors ${isHovered ? "opacity-100" : "opacity-0"}`}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent track click handler from firing
+                        downloadTrackViaClientSide(track);
+                        // downloadMp3TrackViaAPI(artistId, album.albumId, track.alId || "", track.title || "");
+                      }}
+                      disabled={trackDownloadIsInProgress}
+                      title="Download track">
+                      {trackDownloadIsInProgress ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-5 h-5" />}
+                    </button>
+                  ) : (
+                    <div
+                      className={`text-gray-400 transition-opacity cursor-not-allowed ${isHovered ? "opacity-50" : "opacity-0"}`}
+                      title="Buy the digital version of this album to download this track">
+                      <Download className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!disabledDownloadAlways && remixWorkspaceView && (
+                <div className="flex items-center justify-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className={`text-gray-400 hover:text-white transition-colors p-1 rounded-sm hover:bg-gray-700 ${
+                          isHovered ? "opacity-100" : "opacity-0"
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                        title="Track options">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 bg-gray-800 border-gray-700 text-white" sideOffset={5}>
+                      <DropdownMenuItem
+                        className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadTrackViaClientSide(track);
+                        }}
+                        disabled={trackDownloadIsInProgress}>
+                        <Download className="w-4 h-4 mr-2" />
+                        {trackDownloadIsInProgress ? "Downloading..." : "Download Track"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (handleTrackSelection) {
+                            handleTrackSelection(track);
+                          }
+                        }}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Track to Album
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
             </div>
           );
         })}

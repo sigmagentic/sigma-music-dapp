@@ -87,6 +87,12 @@ export const ALL_MUSIC_GENRES = [
     tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/OllyGMonaLisaRapSymphony.jpg",
   },
   {
+    code: "simremix",
+    label: "SigmaAI Remixes",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud-stg.com/app_sigmamusic/HYzBq-TYmRa/img/dj-sigma-square-1756778226645.jpg",
+  },
+  {
     code: "electronic",
     label: "Electronic",
     tier: GenreTier.TIER1,

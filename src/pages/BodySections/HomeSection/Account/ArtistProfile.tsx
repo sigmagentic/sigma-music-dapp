@@ -7,7 +7,7 @@ import { getAlbumTracksFromDBViaAPI, getPayoutLogsViaAPI, getRemixLaunchesViaAPI
 import { isUserArtistType, mergeRawAiRemixTracks } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
-import { TrackList } from "../components/TrackList";
+// import { TrackList } from "../components/TrackList";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { EditArtistProfileModal, ArtistProfileFormData } from "./EditArtistProfileModal";
 import { EditAlbumModal, AlbumFormData } from "./EditAlbumModal";
@@ -321,6 +321,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 
   const handleViewCurrentTracks = async (albumId: string, albumTitle: string, albumImg: string, onlyRefresh: boolean = false) => {
     setIsLoadingTracks(true);
+
     try {
       const albumTracksFromDb: MusicTrack[] = await getAlbumTracksFromDBViaAPI(userArtistProfile.artistId, albumId, true, true);
 
@@ -351,7 +352,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
       {/* Music Catalog Section */}
       <div className="rounded-lg p-6 mb-6 border-b border-gray-800">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-0">
-          <h2 className="!text-xl font-bold mb-4">Your Music Catalog</h2>
+          <h2 className="!text-xl font-bold mb-4">Your Album Catalog</h2>
 
           {myAlbums.length > 0 && (
             <div className="flex items-center justify-between">
@@ -395,7 +396,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
             <Button
               className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
               onClick={handleAddNewAlbum}>
-              Add New Album
+              Create New Album
             </Button>
           </div>
         )}
@@ -764,7 +765,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         albumId={selectedAlbumId}
         albumImg={selectedAlbumImg}
         onTracksUpdated={() => {
-          // setShowEditTrackModal(false);
           handleViewCurrentTracks(selectedAlbumId, selectedAlbumTitle, selectedAlbumImg);
           toastSuccess("Tracks updated successfully", true);
         }}
@@ -814,12 +814,12 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 // Artist Album List Component for Music Catalog Management
 const ArtistAlbumList: React.FC<{
   albums: Album[];
+  isLoadingTracks: boolean;
   onEditAlbum: (album: Album) => void;
   onAddNewAlbum: () => void;
   onViewCurrentTracks: (albumId: string, albumTitle: string, albumImg: string) => void;
-  isLoadingTracks: boolean;
   navigateToDeepAppView: (logicParams: any) => void;
-}> = ({ albums, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, isLoadingTracks, navigateToDeepAppView }) => {
+}> = ({ albums, isLoadingTracks, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, navigateToDeepAppView }) => {
   const { artistLookupEverything } = useAppStore();
 
   return (
@@ -827,7 +827,7 @@ const ArtistAlbumList: React.FC<{
       {albums.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {albums.map((album) => (
-            <Card key={album.albumId} className="p-6 hover:shadow-lg transition-shadow bg-black/50 border-gray-700 flex flex-col">
+            <Card key={album.albumId} className="p-6 hover:shadow-lg bg-gradient-to-br from-yellow-500/10 to-orange-500/10 flex flex-col">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="!text-md font-semibold text-gray-200 mb-1">{album.title}</h3>

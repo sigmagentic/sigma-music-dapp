@@ -12,7 +12,7 @@ import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { useAccountStore } from "store/account";
 import { Modal } from "./Modal";
 import { adminApi } from "../services";
-import { FastStreamTrack } from "libs/types";
+import { FastStreamTrack, MusicTrack } from "libs/types";
 import { MediaUpdate } from "libComponents/MediaUpdate";
 import { saveMediaToServerViaAPI } from "libs/utils/api";
 import { toastError } from "libs/utils/ui";
@@ -27,6 +27,7 @@ interface TrackListModalProps {
   artistId: string;
   albumId: string;
   albumImg: string;
+  preloadExistingTrackToAlbum?: MusicTrack | null;
   onTracksUpdated: () => void;
 }
 
@@ -50,6 +51,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
   artistId,
   albumId,
   albumImg,
+  preloadExistingTrackToAlbum,
   onTracksUpdated,
 }) => {
   const { publicKey, walletType } = useSolanaWallet();
@@ -89,22 +91,40 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
   }, []);
 
   useEffect(() => {
+    let titleToUse = "";
+    let fileToUse = "";
+    let coverArtUrlToUse = albumImg || "";
+    let categoryToUse = "";
+
+    if (preloadExistingTrackToAlbum) {
+      titleToUse = preloadExistingTrackToAlbum.title || "";
+      fileToUse = preloadExistingTrackToAlbum.stream || "";
+      coverArtUrlToUse = preloadExistingTrackToAlbum.cover_art_url || "";
+      categoryToUse = preloadExistingTrackToAlbum.category || "";
+    }
+
     setFormData({
       idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
       arId: artistId,
       alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
       bonus: 0,
-      category: "",
-      cover_art_url: albumImg || "",
-      file: "",
-      title: "",
+      category: categoryToUse,
+      cover_art_url: coverArtUrlToUse,
+      file: fileToUse,
+      title: titleToUse,
     });
+
     setErrors({});
     setIsEditing(false);
-    setIsFormView(false);
     setNewSelectedTrackCoverArtFile(null);
     setNewSelectedAudioFile(null);
-  }, [artistId, albumId, trackIdxNextGuess]);
+
+    if (preloadExistingTrackToAlbum) {
+      setIsFormView(true);
+    } else {
+      setIsFormView(false);
+    }
+  }, [artistId, albumId, trackIdxNextGuess, preloadExistingTrackToAlbum]);
 
   useEffect(() => {
     if (tracks.length > 0) {
@@ -317,7 +337,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     }
   };
 
-  const renderNewTrackFormView = () => (
+  const RenderNewTrackFormView = () => (
     <div className="">
       {isSubmitting && (
         <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
@@ -388,6 +408,11 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Genres <span className="text-red-400">*</span> (Select up to 5)
             </label>
+            {preloadExistingTrackToAlbum && (
+              <p className="text-xs text-gray-400 mb-2">
+                As this is a Sigma AI Remix, you cannot remove "AIM" or "Sigma AI Remix" as genres but you can add other genres.
+              </p>
+            )}
             <div className={`border rounded-md p-3 bg-gray-800 max-h-48 overflow-y-auto ${errors.category ? "border-red-500" : "border-gray-300"}`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {ALL_MUSIC_GENRES.map((genre) => {
@@ -405,6 +430,13 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                         type="checkbox"
                         checked={isSelected}
                         onChange={(e) => {
+                          // if preloadExistingTrackToAlbum is NOT null, then we should NOT allow them to remove either ai music or simremix
+                          if (preloadExistingTrackToAlbum) {
+                            if (genre.code === "ai music" || genre.code === "simremix") {
+                              return;
+                            }
+                          }
+
                           const currentGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
                           let newGenres;
 
@@ -512,7 +544,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     </div>
   );
 
-  const renderTrackListView = () => (
+  const RenderTrackListView = () => (
     <div className="space-y-4">
       {tracks.length > 0 && (
         <div className="flex items-end justify-end mb-6">
@@ -589,6 +621,8 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     </div>
   );
 
+  console.log("preloadExistingTrackToAlbum", preloadExistingTrackToAlbum);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -596,9 +630,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         handleCancelForm();
         onClose();
       }}
-      title={`${albumTitle} - Tracks`}
+      title={`${albumTitle} : Tracks`}
       size="lg">
-      {isFormView ? renderNewTrackFormView() : renderTrackListView()}
+      {isFormView ? RenderNewTrackFormView() : RenderTrackListView()}
     </Modal>
   );
 };

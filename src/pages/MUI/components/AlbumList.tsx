@@ -242,7 +242,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
 
         <div className="flex justify-start">
           <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-all duration-200" onClick={handleAddNewAlbum}>
-            Add New Album
+            Create New Album
           </Button>
         </div>
 
