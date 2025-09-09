@@ -320,6 +320,20 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       if (newSelectedArtistProfileImageFile.size > 3 * 1024 * 1024) {
         newErrors.img = "Profile image must be less than 3MB";
       }
+
+      // Validate file type
+      const fileName = newSelectedArtistProfileImageFile.name.toLowerCase();
+      const validExtensions = [".gif", ".png", ".jpg"];
+      const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
+
+      if (!hasValidExtension) {
+        newErrors.img = "Cover art must be a GIF, PNG, or JPG file";
+      }
+
+      // Check for JPEG and ask to rename to JPG
+      if (fileName.endsWith(".jpeg")) {
+        newErrors.img = "Please rename your JPEG file to JPG and try again";
+      }
     }
 
     // Slug validation - required, max 80 characters, no spaces or special chars, and must be available

@@ -24,16 +24,17 @@ import { showSuccessConfetti } from "libs/utils/uiShared";
 import useSolBitzStore from "store/solBitz";
 import { sendPowerUpSol, SendPowerUpSolResult } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 import { useNftsStore } from "store/nfts";
+import { MediaUpdate } from "libComponents/MediaUpdate";
 
 const MAX_TITLE_LENGTH = 50;
 
-interface LaunchMusicTrackProps {
+interface LaunchAiMusicTrackProps {
   renderInline?: boolean;
   onCloseModal: (refreshPaymentLogs: boolean) => void;
   navigateToDeepAppView: (e: any) => void;
 }
 
-export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepAppView }: LaunchMusicTrackProps) => {
+export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepAppView }: LaunchAiMusicTrackProps) => {
   const { publicKey, walletType } = useSolanaWallet();
   const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { signMessage } = useWallet();
@@ -71,7 +72,18 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
   const [showPrompt, setShowPrompt] = useState(false);
   const [selectedAiModel, setSelectedAiModel] = useState<"sigma-ai" | "other">("sigma-ai");
 
+  // Form data and validation for "other" AI model
+  const [formData, setFormData] = useState({
+    cover_art_url: "",
+    file: "",
+  });
+  const [errors, setErrors] = useState<{ cover_art_url?: string; file?: string }>({});
+  const [newSelectedTrackCoverArtFile, setNewSelectedTrackCoverArtFile] = useState<File | null>(null);
+  const [newSelectedAudioFile, setNewSelectedAudioFile] = useState<File | null>(null);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const genreScrollRef = useRef<HTMLDivElement>(null);
+  const moodScrollRef = useRef<HTMLDivElement>(null);
 
   // Add effect to prevent body scrolling when modal is open and cleanup audio on unmount
   useEffect(() => {
@@ -81,9 +93,7 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
     return () => {
       document.body.style.overflow = "unset";
 
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      stopPlayingAudio();
     };
   }, []);
 
@@ -167,6 +177,12 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
     }
   }, [audioRef.current]);
 
+  const stopPlayingAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  };
+
   const handleRefreshMyStoryProtocolLicenses = async () => {
     if (!publicKey) return;
 
@@ -194,13 +210,7 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
   };
 
   const handleTrackSelection = (track: any) => {
-    // Handle track selection for AI remix
-    console.log("Selected track for remix:", track);
-
-    // Stop any currently playing audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
+    stopPlayingAudio();
 
     // Reset audio player states
     setPlayingReferenceTrack(false);
@@ -213,116 +223,78 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
     setSelectedAlbumForTrackList(null);
   };
 
-  // Custom Reference Track List Component
-  const ReferenceTrackList = ({ album, artistId, artistName, onBack }: { album: any; artistId: string; artistName: string; onBack: () => void }) => {
-    const [tracks, setTracks] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [hoveredTrackIndex, setHoveredTrackIndex] = useState<number | null>(null);
-
-    useEffect(() => {
-      const fetchTracks = async () => {
-        setLoading(true);
-        try {
-          const tracksData = await getAlbumTracksFromDBViaAPI(artistId, album.albumId, true);
-          setTracks(tracksData || []);
-        } catch (error) {
-          console.error("Error fetching tracks:", error);
-          setTracks([]);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchTracks();
-    }, [artistId, album.albumId]);
-
-    const handleTrackClick = (track: any, trackIndex: number) => {
-      handleTrackSelection(track);
-    };
-
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center h-64">
-          <Loader className="animate-spin w-8 h-8 text-yellow-300" />
-        </div>
-      );
-    }
-
-    return (
-      <div className="w-full">
-        {/* Header */}
-        <div>
-          <Button variant="outline" className="text-sm px-3 py-2" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Albums
-          </Button>
-          <div className="flex items-center justify-between mb-6 mt-3">
-            <div className="flex items-center gap-6">
-              <div>
-                <h2 className="!text-2xl font-bold text-white flex items-center">{album.title}</h2>
-                <p className="text-gray-400">{artistName}</p>
-                <div className="text-gray-400 text-xs mt-1">Select a track to use as reference for AI remix</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              {album.img && (
-                <div className="hidden md:block md:w-24 md:h-24 rounded-lg overflow-hidden border border-gray-700">
-                  <img
-                    src={album.img}
-                    alt={`${album.title} cover`}
-                    className="w-full h-full object-cover"
-                    onError={({ currentTarget }) => {
-                      currentTarget.style.display = "none";
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Track List Header */}
-        <div className="border-b border-gray-700 pb-2 mb-4">
-          <div className="grid grid-cols-[50px_1fr] gap-4 text-gray-400 text-sm font-medium">
-            <div>#</div>
-            <div>Title</div>
-          </div>
-        </div>
-
-        {/* Track List */}
-        <div className="space-y-1">
-          {tracks.map((track, index) => {
-            const isHovered = hoveredTrackIndex === index;
-
-            return (
-              <div
-                key={`${track.albumTrackId || track.idx}-${index}`}
-                className="group grid grid-cols-[50px_1fr] gap-4 py-3 px-2 rounded-md transition-colors hover:bg-gray-800 cursor-pointer"
-                onMouseEnter={() => setHoveredTrackIndex(index)}
-                onMouseLeave={() => setHoveredTrackIndex(null)}
-                onClick={() => handleTrackClick(track, index)}>
-                {/* Track Number / Select Icon */}
-                <div className="flex items-center justify-center">
-                  {isHovered ? <span className="text-purple-400 text-sm">✓</span> : <span className="text-gray-400 text-sm">{index + 1}</span>}
-                </div>
-
-                {/* Track Title */}
-                <div className="flex flex-col">
-                  <span className="text-sm text-white">{track.title}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
   const handleTrackGeneration = () => {
     if (!publicKey?.toBase58() || !songTitle || !selectedReferenceTrack) {
-      alert("Please fill in all fields");
+      alert("Please fill in all fields to generate a remix");
       return;
     }
+
+    stopPlayingAudio();
+
+    setShowPaymentConfirmation(true);
+  };
+
+  const handleTrackUpload = () => {
+    if (!publicKey?.toBase58() || !selectedReferenceTrack || !newSelectedTrackCoverArtFile || !newSelectedAudioFile) {
+      alert("Please fill in all fields to upload a remix");
+      return;
+    }
+
+    // Validate required fields for "other" AI model
+    if (selectedAiModel === "other") {
+      const newErrors: { cover_art_url?: string; file?: string } = {};
+
+      if (!formData.cover_art_url.trim() && !newSelectedTrackCoverArtFile) {
+        newErrors.cover_art_url = "Cover art URL is required";
+      }
+
+      // Check if the cover art image is less than 3MB and has valid file type
+      if (newSelectedTrackCoverArtFile) {
+        if (newSelectedTrackCoverArtFile.size > 3 * 1024 * 1024) {
+          newErrors.cover_art_url = "Cover art image must be less than 3MB";
+        }
+
+        // Validate file type
+        const fileName = newSelectedTrackCoverArtFile.name.toLowerCase();
+        const validExtensions = [".gif", ".png", ".jpg"];
+        const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
+
+        if (!hasValidExtension) {
+          newErrors.cover_art_url = "Cover art must be a GIF, PNG, or JPG file";
+        }
+
+        // Check for JPEG and ask to rename to JPG
+        if (fileName.endsWith(".jpeg")) {
+          newErrors.cover_art_url = "Please rename your JPEG file to JPG and try again";
+        }
+      }
+
+      if (!formData.file.trim() && !newSelectedAudioFile) {
+        newErrors.file = "Audio file URL is required";
+      }
+
+      // Check if the audio file is less than 4.5MB and has valid file type
+      if (newSelectedAudioFile) {
+        if (newSelectedAudioFile.size > 4.5 * 1024 * 1024) {
+          newErrors.file = "Audio file must be less than 4.5MB";
+        }
+
+        // Validate file type for audio
+        const fileName = newSelectedAudioFile.name.toLowerCase();
+        if (!fileName.endsWith(".mp3")) {
+          newErrors.file = "Audio file must be an MP3 file";
+        }
+      }
+
+      setErrors(newErrors);
+
+      if (Object.keys(newErrors).length > 0) {
+        alert("Please fix the validation errors before proceeding");
+        return;
+      }
+    }
+
+    stopPlayingAudio();
 
     setShowPaymentConfirmation(true);
   };
@@ -332,6 +304,15 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
     setSongTitle(value);
   };
 
+  const handleFormDataChange = (field: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   const handlePlayReferenceTrack = () => {
     if (!selectedReferenceTrack?.file) return;
 
@@ -339,9 +320,7 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
       audioRef.current?.pause();
       setPlayingReferenceTrack(false);
     } else {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      stopPlayingAudio();
       audioRef.current = new Audio(selectedReferenceTrack.file);
       audioRef.current.play();
       setPlayingReferenceTrack(true);
@@ -359,6 +338,17 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
     setSongTitle("");
     setTrackStyle("instrumental");
     setBackendErrorMessage(null);
+
+    // Reset form data for "other" AI model
+    setFormData({
+      cover_art_url: "",
+      file: "",
+    });
+    setErrors({});
+    setNewSelectedTrackCoverArtFile(null);
+    setNewSelectedAudioFile(null);
+
+    handleBackToAlbums(); // if the user is in a nested reference track list, we need to go back to the albums list
 
     onCloseModal(true);
   }
@@ -583,45 +573,57 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
       <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
         <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
           <h3 className="text-xl font-bold mb-4">{paymentStatus === "idle" ? "Confirm XP Payment" : "Payment Transfer in Process..."}</h3>
-          <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
-            You are about to create a
-            {selectedMood !== "original" && (
-              <>
-                <span className="text-yellow-300 font-bold"> {selectedMood.toUpperCase()},</span>
-              </>
-            )}
-            {selectedGenre !== "original" && (
-              <>
-                <span className="text-yellow-400 font-bold"> {selectedGenre.toUpperCase()},</span>
-              </>
-            )}
-            <span className="text-yellow-500 font-bold">
-              {" "}
-              {trackStyle === "instrumental" ? "Melody Instrumental".toUpperCase() : "rack with Vocals".toUpperCase()}
-            </span>{" "}
-            AI Remix of the song: <span className="text-yellow-600 font-bold">{selectedReferenceTrack?.title.toUpperCase()}</span> titled{" "}
-            <span className="text-yellow-700 font-bold">{songTitle.toUpperCase()}</span>
-          </div>
+          {selectedAiModel === "sigma-ai" && (
+            <>
+              <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
+                You are about to create a
+                {selectedMood !== "original" && (
+                  <>
+                    <span className="text-yellow-300 font-bold"> {selectedMood.toUpperCase()},</span>
+                  </>
+                )}
+                {selectedGenre !== "original" && (
+                  <>
+                    <span className="text-yellow-400 font-bold"> {selectedGenre.toUpperCase()},</span>
+                  </>
+                )}
+                <span className="text-yellow-500 font-bold">
+                  {" "}
+                  {trackStyle === "instrumental" ? "Melody Instrumental".toUpperCase() : "rack with Vocals".toUpperCase()}
+                </span>{" "}
+                AI Remix of the song: <span className="text-yellow-600 font-bold">{selectedReferenceTrack?.title.toUpperCase()}</span> titled{" "}
+                <span className="text-yellow-700 font-bold">{songTitle.toUpperCase()}</span>
+              </div>
 
-          {textPromptIfUsingGenreAndMood && (
-            <div className="mb-4">
-              {!showPrompt && (
-                <p className="text-xs cursor-pointer" onClick={() => setShowPrompt(true)}>
-                  - Click to view prompt
-                </p>
-              )}
-              {showPrompt && (
-                <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
-                  <p className="text-xs font-bold text-yellow-300">Prompt:</p>
-                  <p className="text-xs">{textPromptIfUsingGenreAndMood}</p>
+              {textPromptIfUsingGenreAndMood && (
+                <div className="mb-4">
+                  {!showPrompt && (
+                    <p className="text-xs cursor-pointer" onClick={() => setShowPrompt(true)}>
+                      - Click to view prompt
+                    </p>
+                  )}
+                  {showPrompt && (
+                    <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
+                      <p className="text-xs font-bold text-yellow-300">Prompt:</p>
+                      <p className="text-xs">{textPromptIfUsingGenreAndMood}</p>
+                    </div>
+                  )}
                 </div>
               )}
+            </>
+          )}
+
+          {selectedAiModel === "other" && (
+            <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
+              <p className="font-bold text-yellow-300">You are uploading your own remixed track</p>
             </div>
           )}
 
           <div>
             <div className="mb-2">
-              <p className="text-sm">Amount to pay: {priceInXP.toLocaleString()} XP</p>
+              <p className="text-sm">
+                Amount to pay: {priceInXP.toLocaleString()} XP <span className="text-yellow-300 text-xs">({priceInUSD.toLocaleString()} USD)</span>
+              </p>
               <p className="text-sm">Your XP balance: {solBitzBalance.toLocaleString()} XP</p>
             </div>
 
@@ -657,7 +659,6 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
     );
   };
 
-  // How it works modal
   const HowItWorksModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-2xl w-full mx-4">
@@ -713,7 +714,6 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
     </div>
   );
 
-  // AI Generation in progress popup
   const AiGenerationInProgressPopup = () => (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
@@ -775,6 +775,110 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
     </div>
   );
 
+  const ReferenceTrackList = ({ album, artistId, artistName, onBack }: { album: any; artistId: string; artistName: string; onBack: () => void }) => {
+    const [tracks, setTracks] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [hoveredTrackIndex, setHoveredTrackIndex] = useState<number | null>(null);
+
+    useEffect(() => {
+      const fetchTracks = async () => {
+        setLoading(true);
+        try {
+          const tracksData = await getAlbumTracksFromDBViaAPI(artistId, album.albumId, true);
+          setTracks(tracksData || []);
+        } catch (error) {
+          console.error("Error fetching tracks:", error);
+          setTracks([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchTracks();
+    }, [artistId, album.albumId]);
+
+    const handleTrackClick = (track: any, trackIndex: number) => {
+      handleTrackSelection(track);
+    };
+
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <Loader className="animate-spin w-8 h-8 text-yellow-300" />
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full">
+        {/* Header */}
+        <div>
+          <Button variant="outline" className="text-sm px-3 py-2" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Albums
+          </Button>
+          <div className="flex items-center justify-between mb-6 mt-3">
+            <div className="flex items-center gap-6">
+              <div>
+                <h2 className="!text-2xl font-bold text-white flex items-center">{album.title}</h2>
+                <p className="text-gray-400">{artistName}</p>
+                <div className="text-gray-400 text-xs mt-1">Select a track to use as reference for AI remix</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              {album.img && (
+                <div className="hidden md:block md:w-24 md:h-24 rounded-lg overflow-hidden border border-gray-700">
+                  <img
+                    src={album.img}
+                    alt={`${album.title} cover`}
+                    className="w-full h-full object-cover"
+                    onError={({ currentTarget }) => {
+                      currentTarget.style.display = "none";
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Track List Header */}
+        <div className="border-b border-gray-700 pb-2 mb-4">
+          <div className="grid grid-cols-[50px_1fr] gap-4 text-gray-400 text-sm font-medium">
+            <div>#</div>
+            <div>Title</div>
+          </div>
+        </div>
+
+        {/* Track List */}
+        <div className="space-y-1">
+          {tracks.map((track, index) => {
+            const isHovered = hoveredTrackIndex === index;
+
+            return (
+              <div
+                key={`${track.albumTrackId || track.idx}-${index}`}
+                className="group grid grid-cols-[50px_1fr] gap-4 py-3 px-2 rounded-md transition-colors hover:bg-gray-800 cursor-pointer"
+                onMouseEnter={() => setHoveredTrackIndex(index)}
+                onMouseLeave={() => setHoveredTrackIndex(null)}
+                onClick={() => handleTrackClick(track, index)}>
+                {/* Track Number / Select Icon */}
+                <div className="flex items-center justify-center">
+                  {isHovered ? <span className="text-purple-400 text-sm">✓</span> : <span className="text-gray-400 text-sm">{index + 1}</span>}
+                </div>
+
+                {/* Track Title */}
+                <div className="flex flex-col">
+                  <span className="text-sm text-white">{track.title}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const ReferenceTrackSelector = () => (
     <div className="space-y-3">
       <label className="block text-sm font-medium mb-2">Selected Reference Track to Remix</label>
@@ -793,7 +897,7 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
               }`}>
               {playingReferenceTrack ? (
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6h4v12H6zm8 0h4v12h-4z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6h12v12H6z" />
                 </svg>
               ) : (
                 <svg className="w-6 h-6 text-white ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -817,7 +921,7 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
               onClick={() => {
                 // Stop the track if it's playing
                 if (playingReferenceTrack && audioRef.current) {
-                  audioRef.current.pause();
+                  stopPlayingAudio();
                   setPlayingReferenceTrack(false);
                 }
                 setSelectedReferenceTrack(null);
@@ -881,9 +985,6 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
       </div>
     </div>
   );
-
-  const genreScrollRef = useRef<HTMLDivElement>(null);
-  const moodScrollRef = useRef<HTMLDivElement>(null);
 
   const GenreSelector = () => {
     const aiRemixGenres = ALL_MUSIC_GENRES.filter((genre) => genre.isAiRemixOption);
@@ -1017,6 +1118,7 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
             </div>
           )}
 
+          {/* Pick AI Model To Use */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-3 text-gray-200">AI Model Selection</label>
             <div className="flex gap-3">
@@ -1041,6 +1143,7 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
             </div>
           </div>
 
+          {/* Prompt Generation Form Elements */}
           <div className="space-y-4">
             <>
               <div className={`flex flex-col gap-4`}>
@@ -1073,20 +1176,84 @@ export const LaunchMusicTrack = ({ renderInline, onCloseModal, navigateToDeepApp
                 )}
 
                 {selectedAiModel === "other" && (
-                  <p className="text-xs text-gray-300">
-                    Want to take your reference track and remix it with a different AI music platform like Suno, Udio or others and then launch it on Sigma
-                    Music? This is coming very soon...
-                  </p>
+                  <>
+                    {/* Asset Uploads */}
+                    <div className="flex flex-row gap-4 w-full md:col-span-2">
+                      {/* Cover Art URL */}
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium mb-1">
+                          Cover Art <span className="text-red-400">*</span>
+                        </label>
+
+                        <div className="mb-3">
+                          <MediaUpdate
+                            imageUrl={formData.cover_art_url}
+                            size="md"
+                            onFileSelect={(file) => {
+                              console.log("Selected file:", file);
+                              setNewSelectedTrackCoverArtFile(file);
+                              // Clear error when file is selected
+                              if (errors.cover_art_url) {
+                                setErrors((prev) => ({ ...prev, cover_art_url: undefined }));
+                              }
+                            }}
+                            onFileRevert={() => {
+                              console.log("File reverted");
+                              setNewSelectedTrackCoverArtFile(null);
+                            }}
+                            alt="Track Cover"
+                            imgPlaceholder="image"
+                          />
+                        </div>
+
+                        {errors.cover_art_url && <p className="text-red-400 text-xs mt-1">{errors.cover_art_url}</p>}
+                        <p className="text-gray-400 text-xs mt-1">
+                          Must be a GIF, JPG, or PNG file (Max size: 3MB). Note: JPEG files should be renamed to JPG.
+                        </p>
+                      </div>
+
+                      {/* File URL */}
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium mb-1">
+                          Audio File <span className="text-red-400">*</span>
+                        </label>
+
+                        <div className="mb-3">
+                          <MediaUpdate
+                            mediaUrl={formData.file}
+                            size="md"
+                            onFileSelect={(file) => {
+                              console.log("Selected file:", file);
+                              setNewSelectedAudioFile(file);
+                              // Clear error when file is selected
+                              if (errors.file) {
+                                setErrors((prev) => ({ ...prev, file: undefined }));
+                              }
+                            }}
+                            onFileRevert={() => {
+                              console.log("File reverted");
+                              setNewSelectedAudioFile(null);
+                            }}
+                            alt="Audio File"
+                            imgPlaceholder="audio"
+                            isAudio={true}
+                          />
+                        </div>
+
+                        {errors.file && <p className="text-red-400 text-xs mt-1">{errors.file}</p>}
+                        <p className="text-gray-400 text-xs mt-1">Must be an MP3 file (Max size: 4.5MB)</p>
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </>
 
             <Button
-              onClick={handleTrackGeneration}
-              disabled={selectedAiModel === "other"}
+              onClick={selectedAiModel === "sigma-ai" ? handleTrackGeneration : handleTrackUpload}
               className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-lg font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
               <FileMusicIcon className="w-6 h-6 mr-2" />
-              Generate Remix
+              {selectedAiModel === "sigma-ai" ? "Generate Remix" : "Upload Remix"}
             </Button>
           </div>
         </div>

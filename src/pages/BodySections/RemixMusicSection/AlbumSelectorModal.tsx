@@ -6,7 +6,6 @@ import { useAccountStore } from "store/account";
 import { Album, MusicTrack } from "libs/types/common";
 import { getAlbumFromDBViaAPI } from "libs/utils/api";
 import { useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
 
 export const AlbumSelectorModal = ({
   isOpen,
@@ -22,7 +21,9 @@ export const AlbumSelectorModal = ({
   onViewCurrentTracks: (albumId: string, albumTitle: string, albumImg: string) => void;
 }) => {
   if (!isOpen) return null;
+
   const { userArtistProfile } = useAccountStore();
+
   const [albumsLoading, setAlbumsLoading] = useState<boolean>(true);
   const [myAlbums, setMyAlbums] = useState<Album[]>([]);
 

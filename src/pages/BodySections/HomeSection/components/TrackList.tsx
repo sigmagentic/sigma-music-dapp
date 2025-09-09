@@ -62,10 +62,14 @@ export const TrackList: React.FC<TrackListProps> = ({
       }
     };
 
-    if (!virtualTrackList || virtualTrackList.length === 0) {
+    if (album.title !== "My AI Remixes") {
       fetchTracks(); // get live tracks from the DB
     } else {
-      setTracks(virtualTrackList); // we are loading a manual virtual track list (e.g. for the user's remixes)
+      // we are loading a manual list of remixes (most likely for the user's remixes -- i.e. album is "My AI Remixes")
+      if (virtualTrackList) {
+        setTracks(virtualTrackList); // we are loading a manual virtual track list (e.g. for the user's remixes)
+      }
+
       setLoading(false);
     }
   }, [artistId, album.albumId, virtualTrackList]);

@@ -16,7 +16,6 @@ import {
   sleep,
   mapRawAiRemixTracksToMusicTracks,
   getAlbumTracksFromDBViaAPI,
-  getAlbumFromDBViaAPI,
 } from "libs/utils";
 import { SendBitzPowerUp } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
@@ -24,7 +23,7 @@ import { updateBountyBitzSumGlobalMappingWindow } from "pages/BodySections/HomeS
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
-import { LaunchMusicTrack } from "./LaunchMusicTrack";
+import { LaunchAiMusicTrack } from "./LaunchAiMusicTrack";
 import { routeNames } from "routes";
 import { fixImgIconForRemixes, toastSuccess } from "libs/utils/ui";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
@@ -74,11 +73,12 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isSwimLaneDataLoading, setIsSwimLaneDataLoading] = useState(true);
   const [newLaunchesData, setNewLaunchesData] = useState<AiRemixLaunch[]>([]);
   const [graduatedLaunchesData, setGraduatedLaunchesData] = useState<AiRemixLaunch[]>([]);
   const [publishedLaunchesData, setPublishedLaunchesData] = useState<AiRemixLaunch[]>([]);
   const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
+  const [virtualAiRemixAlbumTracksLoading, setVirtualAiRemixAlbumTracksLoading] = useState(false);
   const [virtualAiRemixAlbum, setVirtualAiRemixAlbum] = useState<Album | null>(null);
   const [currentTime, setCurrentTime] = useState("0:00");
   const [focusedLaunchId, setFocusedLaunchId] = useState<string | null>(null);
@@ -108,7 +108,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const [showAllMusicUI, setShowAllMusicUI] = useState(false); // if it's public voting, show my music only vs all music view (UI throttled)
   const [showAllMusic, setShowAllMusic] = useState<boolean | null>(null); // if it's public voting, show my music only vs all music view
   const [switchChangeThrottled, setSwitchChangeThrottled] = useState(false);
-  const [shouldRefreshData, setShouldRefreshData] = useState(false); // Add new state to track pending refreshes
+  const [shouldRefreshSwimlaneDataOnGraduation, setShouldRefreshSwimlaneDataOnGraduation] = useState(false);
   const [checkingIfNewJobsHaveCompleted, setCheckingIfNewJobsHaveCompleted] = useState(false);
   const [appViewLoaded, setAppViewLoaded] = useState(false);
 
@@ -140,6 +140,44 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     []
   );
 
+  // Add useCallback for the debounced refresh function (to move new items to graduated if votes are enough)
+  const debouncedRefreshData = useCallback(
+    debounce(async () => {
+      try {
+        setIsSwimLaneDataLoading(true);
+
+        const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol || null });
+        const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: addressSol || null });
+        setNewLaunchesData(responseA);
+        setGraduatedLaunchesData(responseB);
+
+        if ((responseA.length > 0 || responseB.length > 0) && addressSol) {
+          setVirtualAiRemixAlbumTracksLoading(true);
+          setVirtualAiRemixAlbumTracks([]); // only clear this if we got track (we should always do -- but just in case)
+
+          // take the new launches, and prev fetched graduated and published launches, and merge them together
+          const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, publishedLaunchesData);
+          const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
+
+          // it may already have been set (i.e. user had no tracks and then added one vs there are already tracks), so dont reset it
+          if (!virtualAiRemixAlbum) {
+            setVirtualAiRemixAlbum(virtualAlbum);
+          }
+          setVirtualAiRemixAlbumTracks([...allMyRemixesAsMusicTracks]);
+          updateMyAiRemixRawTracks(allMyRemixes);
+        }
+      } catch (error) {
+        console.error("Error refreshing graduated data:", error);
+      } finally {
+        setIsSwimLaneDataLoading(false);
+        setVirtualAiRemixAlbumTracksLoading(false);
+      }
+
+      setShouldRefreshSwimlaneDataOnGraduation(false);
+    }, 3000), // 3 second delay
+    []
+  );
+
   // Handle switch change - update UI immediately, debounce business logic
   const handleSwitchChangePublicVoting = useCallback(
     (value: boolean) => {
@@ -157,26 +195,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       debouncedSetShowPublicVotingArea(value); // Debounce business logic
     },
     [debouncedSetShowPublicVotingArea]
-  );
-
-  // Add useCallback for the debounced refresh function (to move new items to graduated if votes are enough)
-  const debouncedRefreshData = useCallback(
-    debounce(async () => {
-      try {
-        const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol || null });
-        setNewLaunchesData(responseA);
-        const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: addressSol || null });
-        setGraduatedLaunchesData(responseB);
-
-        if ((responseA.length > 0 || responseB.length > 0) && addressSol) {
-          updateMyAiRemixRawTracks(mergeRawAiRemixTracks(responseA, responseB, []));
-        }
-      } catch (error) {
-        console.error("Error refreshing graduated data:", error);
-      }
-      setShouldRefreshData(false);
-    }, 3000), // 3 second delay
-    []
   );
 
   useEffect(() => {
@@ -215,10 +233,10 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
 
   // Add effect to handle the refresh
   useEffect(() => {
-    if (shouldRefreshData) {
+    if (shouldRefreshSwimlaneDataOnGraduation) {
       debouncedRefreshData();
     }
-  }, [shouldRefreshData]);
+  }, [shouldRefreshSwimlaneDataOnGraduation]);
 
   useEffect(() => {
     if (showAllMusic === null) return;
@@ -238,40 +256,43 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   //   }
   // }, [newLaunchesData, graduatedLaunchesData, showPublicVotingAreaUI, showAllMusicUI]);
 
+  // Use a interval to monitor the status of new jobs and refresh data if needed
   useEffect(() => {
-    if (myJobsPayments.length > 0 && addressSol) {
+    if (!addressSol) return;
+
+    if (myJobsPayments.length > 0) {
+      console.log("Pending jobs monitor --- Start");
       // if there are some jobs that are "new", then every 60 seconds, we need to recheck if they are "completed"
       newJobsInterval = setInterval(async () => {
+        console.log("Pending jobs monitor --- Interval A");
+
         setCheckingIfNewJobsHaveCompleted(true);
 
         if (myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0) {
-          const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol });
-          setNewLaunchesData(responseA);
-
-          if (responseA.length > 0 && addressSol) {
-            const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, [], []);
-            updateMyAiRemixRawTracks(allMyRemixes); // is this an issue? as there may be other tracks prev loaded from other swimlanes and this may override them
-
-            const { allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
-
-            // merge in any new items from allMyRemixesAsMusicTracks into virtualAiRemixAlbumTracks
-            // note that there will be onther tracks prev loaded from other swimlanes, so we should not replace the existing tracks
-            setVirtualAiRemixAlbumTracks([...virtualAiRemixAlbumTracks, ...allMyRemixesAsMusicTracks]);
-          }
+          console.log("Pending jobs monitor --- Interval B -- Pending jobs found!");
 
           // dont clear and reload here as it break app bootup logic
+          // ... there are some pending jobs, so lets get them again to cechk if their are completed
           handleRefreshJobs();
         } else {
+          console.log("Pending jobs monitor --- Interval C -- No pending jobs found!");
+
           if (newJobsInterval) {
+            console.log("Pending jobs monitor --- Interval D -- Clearing interval!");
             clearInterval(newJobsInterval);
+            refreshOnlyNewLaunchesData();
           }
         }
 
         await sleep(3);
         setCheckingIfNewJobsHaveCompleted(false);
       }, 15000);
+
       return () => {
+        console.log("Pending jobs monitor --- End A");
         if (newJobsInterval) {
+          console.log("Pending jobs monitor --- End B");
+
           clearInterval(newJobsInterval);
         }
       };
@@ -299,14 +320,46 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     }
   }, [addressSol, isLoadingSolanaWallet]);
 
+  const refreshOnlyNewLaunchesData = async () => {
+    if (!addressSol) return;
+    console.log("Pending jobs monitor --- refreshOnlyNewLaunchesData called");
+
+    setIsSwimLaneDataLoading(true);
+    setNewLaunchesData([]);
+
+    // looks like some jobs that were pending, have completed --- so lets get the new track
+    const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol });
+    setNewLaunchesData(responseA);
+
+    if (responseA.length > 0) {
+      setVirtualAiRemixAlbumTracksLoading(true);
+      setVirtualAiRemixAlbumTracks([]); // only clear this if we got track (we should always do -- but just in case)
+
+      // take the new launches, and prev fetched graduated and published launches, and merge them together
+      const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, graduatedLaunchesData, publishedLaunchesData);
+      const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
+
+      // it may already have been set (i.e. user had no tracks and then added one vs there are already tracks), so dont reset it
+      if (!virtualAiRemixAlbum) {
+        setVirtualAiRemixAlbum(virtualAlbum);
+      }
+      setVirtualAiRemixAlbumTracks([...allMyRemixesAsMusicTracks]);
+      updateMyAiRemixRawTracks(allMyRemixes);
+      setVirtualAiRemixAlbumTracksLoading(false);
+    }
+
+    setIsSwimLaneDataLoading(false);
+  };
+
   const fetchDataAllSwimLaneData = async ({ showMyMusicOnly }: { showMyMusicOnly: boolean }) => {
     try {
-      setIsDataLoading(true);
+      setIsSwimLaneDataLoading(true);
       setNewLaunchesData([]);
       setGraduatedLaunchesData([]);
       setPublishedLaunchesData([]);
       setVirtualAiRemixAlbumTracks([]);
       setVirtualAiRemixAlbum(null);
+      setVirtualAiRemixAlbumTracksLoading(true);
 
       const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setNewLaunchesData(responseA);
@@ -324,7 +377,10 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
           const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, responseC);
 
           const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
-          setVirtualAiRemixAlbum(virtualAlbum);
+          // it may already have been set (i.e. user had no tracks and then added one vs there are already tracks), so dont reset it
+          if (!virtualAiRemixAlbum) {
+            setVirtualAiRemixAlbum(virtualAlbum);
+          }
           setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
           updateMyAiRemixRawTracks(allMyRemixes);
         }
@@ -333,7 +389,8 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       console.error("Error fetching data:", error);
       toast.error("Failed to load data");
     } finally {
-      setIsDataLoading(false);
+      setIsSwimLaneDataLoading(false);
+      setVirtualAiRemixAlbumTracksLoading(false);
     }
   };
 
@@ -345,6 +402,8 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       }
       await sleep(1);
       const responseD = await getPaymentLogsViaAPI({ addressSol, byTaskFilter: "remix" });
+
+      console.log("Pending jobs monitor --- handleRefreshJobs called and data reloaded...");
       setMyJobsPayments(responseD);
     }
   };
@@ -513,7 +572,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         });
 
         // Trigger a refresh of the graduated data
-        setShouldRefreshData(true);
+        setShouldRefreshSwimlaneDataOnGraduation(true);
       } catch (error) {
         toast.error("Error with status change to graduated");
       }
@@ -1115,7 +1174,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                   <div className="grid grid-cols-1 lg:grid-cols-[7fr_3fr] gap-2 w-full bgx-red-900">
                     {/* First Column - Launch Music Track */}
                     <div className="">
-                      <LaunchMusicTrack
+                      <LaunchAiMusicTrack
                         renderInline={true}
                         onCloseModal={(refreshPaymentLogs?: boolean) => {
                           if (refreshPaymentLogs) {
@@ -1145,6 +1204,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                         </div>
                       </div>
 
+                      {/* We have a remix job pending */}
                       {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0 && (
                         <div className="flex flex-col items-center py-2 bg-yellow-900 text-yellow-300 rounded-md mt-2">
                           <p className="text-sm text-center m-auto">
@@ -1161,54 +1221,59 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                         </div>
                       )}
 
-                      <>
-                        {virtualAiRemixAlbum && virtualAiRemixAlbumTracks.length > 0 ? (
-                          <div className="mx-auto md:m-[initial] p-3">
-                            <TrackList
-                              album={virtualAiRemixAlbum}
-                              artistId={"virtual-artist-id-" + displayPublicKey?.toString()}
-                              artistName={""}
-                              virtualTrackList={virtualAiRemixAlbumTracks}
-                              checkOwnershipOfMusicAsset={() => 0}
-                              trackPlayIsQueued={false}
-                              assetPlayIsQueued={false}
-                              remixWorkspaceView={true}
-                              onBack={() => {
-                                onCloseMusicPlayer();
-                              }}
-                              onPlayTrack={(album, jumpToPlaylistTrackIndex) => {
-                                updateAssetPlayIsQueued(true);
-                                onCloseMusicPlayer();
+                      {/* My list of tracks */}
+                      {virtualAiRemixAlbumTracksLoading ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                          <Loader className="w-5 h-5 animate-spin text-yellow-500" />
+                        </div>
+                      ) : (
+                        <>
+                          {virtualAiRemixAlbum && virtualAiRemixAlbumTracks.length > 0 ? (
+                            <div className="mx-auto md:m-[initial] p-3">
+                              <TrackList
+                                album={virtualAiRemixAlbum}
+                                artistId={"virtual-artist-id-" + displayPublicKey?.toString()}
+                                artistName={""}
+                                virtualTrackList={virtualAiRemixAlbumTracks}
+                                checkOwnershipOfMusicAsset={() => 0}
+                                trackPlayIsQueued={false}
+                                assetPlayIsQueued={false}
+                                remixWorkspaceView={true}
+                                onBack={() => {
+                                  onCloseMusicPlayer();
+                                }}
+                                onPlayTrack={(album, jumpToPlaylistTrackIndex) => {
+                                  updateAssetPlayIsQueued(true);
+                                  onCloseMusicPlayer();
 
-                                setTimeout(() => {
-                                  viewSolData(
-                                    0,
-                                    {
-                                      artistId: "virtual-artist-id-" + displayPublicKey?.toString(),
-                                      albumId: virtualAiRemixAlbum.albumId,
-                                      jumpToPlaylistTrackIndex: jumpToPlaylistTrackIndex,
-                                    },
-                                    false,
-                                    virtualAiRemixAlbumTracks
-                                  );
+                                  setTimeout(() => {
+                                    viewSolData(
+                                      0,
+                                      {
+                                        artistId: "virtual-artist-id-" + displayPublicKey?.toString(),
+                                        albumId: virtualAiRemixAlbum.albumId,
+                                        jumpToPlaylistTrackIndex: jumpToPlaylistTrackIndex,
+                                      },
+                                      false,
+                                      virtualAiRemixAlbumTracks
+                                    );
 
-                                  updateAssetPlayIsQueued(false);
-                                }, 5000);
-                              }}
-                              handleTrackSelection={(selectedTrack: MusicTrack) => {
-                                // set the isSigmaAiRemix flag to 1
-                                const _selectedTrack: MusicTrack = { ...selectedTrack, isSigmaAiRemix: 1 } as MusicTrack;
-                                addTrackToAlbum_ResetToPrestine(); // best we reset to prestine here as this is the "point of entry" to add track workflow
-                                setTrackToAddToAlbum(_selectedTrack);
-                              }}
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                            <Loader className="w-5 h-5 animate-spin text-yellow-500" />
-                          </div>
-                        )}
-                      </>
+                                    updateAssetPlayIsQueued(false);
+                                  }, 5000);
+                                }}
+                                handleTrackSelection={(selectedTrack: MusicTrack) => {
+                                  // set the isSigmaAiRemix flag to 1
+                                  const _selectedTrack: MusicTrack = { ...selectedTrack, isSigmaAiRemix: 1 } as MusicTrack;
+                                  addTrackToAlbum_ResetToPrestine(); // best we reset to prestine here as this is the "point of entry" to add track workflow
+                                  setTrackToAddToAlbum(_selectedTrack);
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center py-8 text-gray-400">No remixes found. Create one now!</div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -1285,7 +1350,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                       </div>
                     )}
 
-                    {isDataLoading || switchChangeThrottled ? (
+                    {isSwimLaneDataLoading || switchChangeThrottled ? (
                       <LoadingSkeleton />
                     ) : newLaunchesData.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-gray-400">
@@ -1337,7 +1402,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                     </button>
                   </div>
                   <div className="space-y-4">
-                    {isDataLoading || switchChangeThrottled ? (
+                    {isSwimLaneDataLoading || switchChangeThrottled ? (
                       <LoadingSkeleton />
                     ) : graduatedLaunchesData.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-gray-400">
@@ -1382,7 +1447,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                     </button>
                   </div>
                   <div className="space-y-4">
-                    {isDataLoading || switchChangeThrottled ? (
+                    {isSwimLaneDataLoading || switchChangeThrottled ? (
                       <LoadingSkeleton />
                     ) : publishedLaunchesData.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-gray-400">
@@ -1448,7 +1513,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         {/* Launch Music Track Modal */}
         <>
           {launchMusicMemeModalOpen && (
-            <LaunchMusicTrack
+            <LaunchAiMusicTrack
               onCloseModal={(refreshPaymentLogs?: boolean) => {
                 if (refreshPaymentLogs) {
                   handleRefreshJobs();
@@ -1493,13 +1558,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
             setShowEditTrackModal(false);
           }}
           onTracksUpdated={() => {
-            // addTrackToAlbum_getCurrentTracksInAlbum({
-            //   albumId: selectedAlbumId,
-            //   albumTitle: selectedAlbumTitle,
-            //   albumImg: selectedAlbumImg,
-            //   onlyRefresh: false,
-            // });
-
             toastSuccess(`Track "${trackToAddToAlbum?.title || ""}" added to album "${selectedAlbumTitle}" successfully.`, true);
 
             addTrackToAlbum_ResetToPrestine();

@@ -105,6 +105,20 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
       if (newSelectedProfileImageFile.size > 3 * 1024 * 1024) {
         newErrors.profileImage = "Profile image must be less than 3MB";
       }
+
+      // Validate file type
+      const fileName = newSelectedProfileImageFile.name.toLowerCase();
+      const validExtensions = [".gif", ".png", ".jpg"];
+      const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
+
+      if (!hasValidExtension) {
+        newErrors.profileImage = "Cover art must be a GIF, PNG, or JPG file";
+      }
+
+      // Check for JPEG and ask to rename to JPG
+      if (fileName.endsWith(".jpeg")) {
+        newErrors.profileImage = "Please rename your JPEG file to JPG and try again";
+      }
     }
 
     setErrors(newErrors);

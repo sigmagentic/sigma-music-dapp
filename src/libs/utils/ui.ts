@@ -260,6 +260,9 @@ export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTrack
     }))
   );
 
+  // lets sort by createdOn descending  (latest on top)
+  allAiRemixRawTracks.sort((a, b) => b.createdOn - a.createdOn);
+
   return allAiRemixRawTracks;
 };
 
