@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Loader, ArrowLeft, FileMusicIcon } from "lucide-react";
+import { Loader, ArrowLeft, FileMusicIcon, Download } from "lucide-react";
 import {
   GENERATE_MUSIC_MEME_PRICE_IN_USD,
   ALL_MUSIC_GENRES,
@@ -13,7 +13,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { FastStreamTrack, Artist } from "libs/types/common";
-import { injectXUserNameIntoTweet, toastSuccess, fetchMyAlbumsFromMintLogsViaAPI } from "libs/utils";
+import { injectXUserNameIntoTweet, toastSuccess, fetchMyAlbumsFromMintLogsViaAPI, downloadTrackViaClientSide } from "libs/utils";
 import { logPaymentToAPI, sendRemixJobAfterPaymentViaAPI } from "libs/utils/api";
 import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
 import { getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
@@ -25,6 +25,7 @@ import useSolBitzStore from "store/solBitz";
 import { sendPowerUpSol, SendPowerUpSolResult } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 import { useNftsStore } from "store/nfts";
 import { MediaUpdate } from "libComponents/MediaUpdate";
+import { MusicTrack } from "libs/types";
 
 const MAX_TITLE_LENGTH = 50;
 
@@ -71,6 +72,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   const [tweetText, setTweetText] = useState<string>("");
   const [showPrompt, setShowPrompt] = useState(false);
   const [selectedAiModel, setSelectedAiModel] = useState<"sigma-ai" | "other">("sigma-ai");
+  const [trackDownloadIsInProgress, setTrackDownloadIsInProgress] = useState<boolean>(false);
 
   // Form data and validation for "other" AI model
   const [formData, setFormData] = useState({
@@ -659,6 +661,20 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     );
   };
 
+  const downloadTrackViaClientSideWrapper = async () => {
+    setTrackDownloadIsInProgress(true);
+    const artistId = selectedReferenceTrack?.arId;
+    const albumId = selectedReferenceTrack?.alId?.split("-")[0] || "";
+    await downloadTrackViaClientSide({
+      trackMediaUrl: selectedReferenceTrack?.file || "",
+      artistId: artistId || "",
+      albumId,
+      alId: selectedReferenceTrack?.alId || "",
+      trackTitle: selectedReferenceTrack?.title || "",
+    });
+    setTrackDownloadIsInProgress(false);
+  };
+
   const HowItWorksModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
       <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-2xl w-full mx-4">
@@ -917,6 +933,16 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                 {selectedAlbumForTrackList?.title} • {artistLookupEverything[selectedReferenceTrack.arId]?.name || "Unknown Artist"}
               </p>
             </div>
+            <button
+              className={`text-gray-400 hover:text-white transition-colors`}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent track click handler from firing
+                downloadTrackViaClientSideWrapper();
+              }}
+              disabled={trackDownloadIsInProgress}
+              title="Download track">
+              {trackDownloadIsInProgress ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-5 h-5" />}
+            </button>
             <button
               onClick={() => {
                 // Stop the track if it's playing
@@ -1177,12 +1203,16 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
                 {selectedAiModel === "other" && (
                   <>
+                    <p className="text-xs text-gray-300">
+                      Want to use Suno, Udio or others to remix your track and then launch it on Sigma Music? You can do that here...
+                    </p>
+
                     {/* Asset Uploads */}
                     <div className="flex flex-row gap-4 w-full md:col-span-2">
                       {/* Cover Art URL */}
                       <div className="flex-1">
                         <label className="block text-sm font-medium mb-1">
-                          Cover Art <span className="text-red-400">*</span>
+                          Remix Track Art <span className="text-red-400">*</span>
                         </label>
 
                         <div className="mb-3">
@@ -1215,7 +1245,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                       {/* File URL */}
                       <div className="flex-1">
                         <label className="block text-sm font-medium mb-1">
-                          Audio File <span className="text-red-400">*</span>
+                          Remix Audio File <span className="text-red-400">*</span>
                         </label>
 
                         <div className="mb-3">

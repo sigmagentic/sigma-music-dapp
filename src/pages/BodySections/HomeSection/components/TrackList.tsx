@@ -3,8 +3,8 @@ import { ArrowLeft, Play, Loader, Download, MoreVertical, Plus } from "lucide-re
 import ratingE from "assets/img/icons/rating-E.png";
 import { Button } from "libComponents/Button";
 import { Album, MusicTrack } from "libs/types";
-import { getAlbumTracksFromDBViaAPI, downloadMp3TrackViaAPI } from "libs/utils/api";
-import { scrollToTopOnMainContentArea } from "libs/utils/ui";
+import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
+import { scrollToTopOnMainContentArea, downloadTrackViaClientSide } from "libs/utils/ui";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "libComponents/DropdownMenu";
 
@@ -104,25 +104,15 @@ export const TrackList: React.FC<TrackListProps> = ({
     onPlayTrack(album, track.idx);
   };
 
-  const downloadTrackViaClientSide = async (track: MusicTrack) => {
+  const downloadTrackViaClientSideWrapper = async (track: MusicTrack) => {
     setTrackDownloadIsInProgress(true);
-    let apiDownloadFailed = false;
-    try {
-      apiDownloadFailed = !(await downloadMp3TrackViaAPI(artistId, album.albumId, track.alId || "", track.title || ""));
-    } catch (error) {
-      console.error("Error downloading track:", error);
-      // Fallback to the original method if fetch fails
-      apiDownloadFailed = true;
-    }
-
-    if (apiDownloadFailed && (track.file || track.stream)) {
-      const link = document.createElement("a");
-      link.href = track.file || track.stream || "";
-      link.download = `${album.albumId}-${track.alId}-${track.title}.mp3`;
-      link.target = "_blank"; // Open in new tab as fallback
-      link.click();
-    }
-
+    await downloadTrackViaClientSide({
+      trackMediaUrl: track.file || track.stream || "",
+      artistId,
+      albumId: album.albumId,
+      alId: track.alId || "",
+      trackTitle: track.title || "",
+    });
     setTrackDownloadIsInProgress(false);
   };
 
@@ -257,7 +247,7 @@ export const TrackList: React.FC<TrackListProps> = ({
                       className={`text-gray-400 hover:text-white transition-colors ${isHovered ? "opacity-100" : "opacity-0"}`}
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent track click handler from firing
-                        downloadTrackViaClientSide(track);
+                        downloadTrackViaClientSideWrapper(track);
                         // downloadMp3TrackViaAPI(artistId, album.albumId, track.alId || "", track.title || "");
                       }}
                       disabled={trackDownloadIsInProgress}
@@ -292,7 +282,7 @@ export const TrackList: React.FC<TrackListProps> = ({
                         className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
                         onClick={(e) => {
                           e.stopPropagation();
-                          downloadTrackViaClientSide(track);
+                          downloadTrackViaClientSideWrapper(track);
                         }}
                         disabled={trackDownloadIsInProgress}>
                         <Download className="w-4 h-4 mr-2" />

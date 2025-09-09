@@ -35,6 +35,11 @@ export const AlbumSelectorModal = ({
         setMyAlbums(albums);
         setAlbumsLoading(false);
       });
+    } else {
+      // most likely a fan or non-artist user is trying to add a track to an album, get them to complete their artist profile first
+      if (!userArtistProfile || Object.keys(userArtistProfile).length === 0) {
+        setAlbumsLoading(false);
+      }
     }
   }, [userArtistProfile]);
 

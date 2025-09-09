@@ -2,6 +2,7 @@ import { clsx, ClassValue } from "clsx";
 import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
 import { AiRemixRawTrack, AiRemixLaunch, MusicTrack, Album } from "libs/types";
+import { downloadMp3TrackViaAPI } from ".";
 
 /*
     UI should import Toaster
@@ -323,3 +324,35 @@ export function fixImgIconForRemixes(dbImage: string) {
     return dbImage;
   }
 }
+
+export const downloadTrackViaClientSide = async ({
+  trackMediaUrl,
+  artistId,
+  albumId,
+  alId,
+  trackTitle,
+}: {
+  trackMediaUrl: string;
+  artistId: string;
+  albumId: string;
+  alId: string;
+  trackTitle: string;
+}) => {
+  let apiDownloadFailed = false;
+
+  try {
+    apiDownloadFailed = !(await downloadMp3TrackViaAPI(artistId, albumId, alId, trackTitle || ""));
+  } catch (error) {
+    console.error("Error downloading track:", error);
+    // Fallback to the original method if fetch fails
+    apiDownloadFailed = true;
+  }
+
+  if (apiDownloadFailed && trackMediaUrl) {
+    const link = document.createElement("a");
+    link.href = trackMediaUrl;
+    link.download = `${albumId}-${alId}-${trackTitle}.mp3`;
+    link.target = "_blank"; // Open in new tab as fallback
+    link.click();
+  }
+};
