@@ -13,8 +13,8 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { FastStreamTrack, Artist } from "libs/types/common";
-import { injectXUserNameIntoTweet, toastSuccess, fetchMyAlbumsFromMintLogsViaAPI, downloadTrackViaClientSide } from "libs/utils";
-import { logPaymentToAPI, sendRemixJobAfterPaymentViaAPI } from "libs/utils/api";
+import { injectXUserNameIntoTweet, toastSuccess, fetchMyAlbumsFromMintLogsViaAPI, downloadTrackViaClientSide, toastError } from "libs/utils";
+import { logPaymentToAPI, saveMediaToServerViaAPI, sendRemixJobAfterPaymentViaAPI } from "libs/utils/api";
 import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
 import { getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import { useAccountStore } from "store/account";
@@ -25,7 +25,6 @@ import useSolBitzStore from "store/solBitz";
 import { sendPowerUpSol, SendPowerUpSolResult } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 import { useNftsStore } from "store/nfts";
 import { MediaUpdate } from "libComponents/MediaUpdate";
-import { MusicTrack } from "libs/types";
 
 const MAX_TITLE_LENGTH = 50;
 
@@ -35,8 +34,11 @@ interface LaunchAiMusicTrackProps {
   navigateToDeepAppView: (e: any) => void;
 }
 
+let SIMULATE_AI_GENERATION_FLAG = false;
+
 export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepAppView }: LaunchAiMusicTrackProps) => {
   const { publicKey, walletType } = useSolanaWallet();
+  const addressSol = publicKey?.toBase58();
   const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { signMessage } = useWallet();
   const { artistLookupEverything } = useAppStore();
@@ -89,6 +91,12 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
   // Add effect to prevent body scrolling when modal is open and cleanup audio on unmount
   useEffect(() => {
+    // if a query string param called simulateAIGenerations=1 is present, then we will simulate the AI generations
+    if (window.location.search.includes("simulateAIGenerations=1")) {
+      alert("Simulating AI generations");
+      SIMULATE_AI_GENERATION_FLAG = true;
+    }
+
     // Prevent scrolling on mount
     document.body.style.overflow = "hidden";
     // Re-enable scrolling on unmount
@@ -237,7 +245,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   };
 
   const handleTrackUpload = () => {
-    if (!publicKey?.toBase58() || !selectedReferenceTrack || !newSelectedTrackCoverArtFile || !newSelectedAudioFile) {
+    if (!publicKey?.toBase58() || !songTitle || !selectedReferenceTrack || !newSelectedTrackCoverArtFile || !newSelectedAudioFile) {
       alert("Please fill in all fields to upload a remix");
       return;
     }
@@ -246,7 +254,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     if (selectedAiModel === "other") {
       const newErrors: { cover_art_url?: string; file?: string } = {};
 
-      if (!formData.cover_art_url.trim() && !newSelectedTrackCoverArtFile) {
+      if (!newSelectedTrackCoverArtFile) {
         newErrors.cover_art_url = "Cover art URL is required";
       }
 
@@ -356,7 +364,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   }
 
   const handlePaymentConfirmation_XP = async (priceInXP: number, priceInUSD: number, textPromptIfUsingGenreAndMood?: string) => {
-    if (!publicKey || !priceInXP || !priceInUSD || !selectedReferenceTrack || !selectedReferenceTrack.arId) {
+    if (!publicKey || !addressSol || !priceInXP || !priceInUSD || !selectedReferenceTrack || !selectedReferenceTrack.arId) {
       alert("Missing required fields");
       return;
     }
@@ -390,6 +398,35 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
       updateSolSignedPreaccess,
       updateSolPreaccessTimestamp,
     });
+
+    if (selectedAiModel === "other") {
+      try {
+        if (newSelectedTrackCoverArtFile) {
+          const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedTrackCoverArtFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+
+          if (fileUploadResponse) {
+            formData.cover_art_url = fileUploadResponse;
+          } else {
+            toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+            return;
+          }
+        }
+
+        if (newSelectedAudioFile) {
+          const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedAudioFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+
+          if (fileUploadResponse) {
+            formData.file = fileUploadResponse;
+          } else {
+            toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+            return;
+          }
+        }
+      } catch (error) {
+        alert("Error uploading your tracks media. Please try again after a few seconds. Error: " + (error as Error).message);
+        return;
+      }
+    }
 
     try {
       let xpPaymentReceipt = "";
@@ -430,12 +467,18 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         refTrack_arId: selectedReferenceTrack.arId,
       };
 
-      if (selectedGenre !== "" && selectedGenre !== "original") {
-        promptParams.genre = selectedGenre;
-      }
+      // we use this way to identify if the remix is byo (i.e. use uploaded track they may elsewhere) or not
+      if (selectedAiModel === "other") {
+        promptParams.isByo = "1";
+      } else {
+        // these are for the sigma-ai model only
+        if (selectedGenre !== "" && selectedGenre !== "original") {
+          promptParams.genre = selectedGenre;
+        }
 
-      if (selectedMood !== "" && selectedMood !== "original") {
-        promptParams.mood = selectedMood;
+        if (selectedMood !== "" && selectedMood !== "original") {
+          promptParams.mood = selectedMood;
+        }
       }
 
       if (textPromptIfUsingGenreAndMood && textPromptIfUsingGenreAndMood.length > 10) {
@@ -518,16 +561,26 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         signatureNonce,
         forSolAddr: publicKey?.toBase58(),
         paymentHash: paymentMadeTx,
-        // _simulateAIGenerations: "1",
       };
+
+      if (SIMULATE_AI_GENERATION_FLAG) {
+        remixParams._simulateAIGenerations = "1";
+      }
+
+      if (selectedAiModel === "other") {
+        remixParams.remixByoFormData = formData;
+      }
 
       const _sendRemixJobAfterPaymentResponse = await sendRemixJobAfterPaymentViaAPI(remixParams);
 
       if (_sendRemixJobAfterPaymentResponse.error) {
-        throw new Error(_sendRemixJobAfterPaymentResponse.errorMessage || "Remix job sending failed");
+        throw new Error(
+          _sendRemixJobAfterPaymentResponse.errorMessage || (selectedAiModel === "other" ? "Remix upload sending failed" : "Remix job sending failed")
+        );
       }
 
-      toastSuccess("Remixing Job Sent!", true);
+      toastSuccess(selectedAiModel === "other" ? "Remix Upload Sent!" : "Remixing Job Sent!", true);
+
       setRemixingStatus("confirmed");
 
       // custom tweet text generation
@@ -552,23 +605,39 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     }
   };
 
+  const downloadTrackViaClientSideWrapper = async () => {
+    setTrackDownloadIsInProgress(true);
+    const artistId = selectedReferenceTrack?.arId;
+    const albumId = selectedReferenceTrack?.alId?.split("-")[0] || "";
+    await downloadTrackViaClientSide({
+      trackMediaUrl: selectedReferenceTrack?.file || "",
+      artistId: artistId || "",
+      albumId,
+      alId: selectedReferenceTrack?.alId || "",
+      trackTitle: selectedReferenceTrack?.title || "",
+    });
+    setTrackDownloadIsInProgress(false);
+  };
+
   const PaymentConfirmationPopup_XP = () => {
-    const priceInUSD = GENERATE_MUSIC_MEME_PRICE_IN_USD;
+    const priceInUSD = selectedAiModel === "other" ? GENERATE_MUSIC_MEME_PRICE_IN_USD / 2 : GENERATE_MUSIC_MEME_PRICE_IN_USD;
     const priceInXP = Number(priceInUSD) * ONE_USD_IN_XP;
     const notEnoughXP = priceInXP > solBitzBalance;
 
     let textPromptIfUsingGenreAndMood = null;
 
-    if (selectedMood !== "original" && selectedGenre !== "original") {
-      textPromptIfUsingGenreAndMood = MUSIC_GEN_PROMPT_LIBRARY[selectedMood][selectedGenre];
-    } else if (selectedMood !== "original" && selectedGenre === "original") {
-      textPromptIfUsingGenreAndMood = MUSIC_GEN_PROMPT_FALLBACK_LIBRARY["moodOnly"][selectedMood];
-    } else if (selectedMood === "original" && selectedGenre !== "original") {
-      textPromptIfUsingGenreAndMood = MUSIC_GEN_PROMPT_FALLBACK_LIBRARY["genreOnly"][selectedGenre];
-    }
+    if (selectedAiModel === "sigma-ai") {
+      if (selectedMood !== "original" && selectedGenre !== "original") {
+        textPromptIfUsingGenreAndMood = MUSIC_GEN_PROMPT_LIBRARY[selectedMood][selectedGenre];
+      } else if (selectedMood !== "original" && selectedGenre === "original") {
+        textPromptIfUsingGenreAndMood = MUSIC_GEN_PROMPT_FALLBACK_LIBRARY["moodOnly"][selectedMood];
+      } else if (selectedMood === "original" && selectedGenre !== "original") {
+        textPromptIfUsingGenreAndMood = MUSIC_GEN_PROMPT_FALLBACK_LIBRARY["genreOnly"][selectedGenre];
+      }
 
-    if (textPromptIfUsingGenreAndMood && textPromptIfUsingGenreAndMood.length > 0) {
-      textPromptIfUsingGenreAndMood = textPromptIfUsingGenreAndMood[Math.floor(Math.random() * textPromptIfUsingGenreAndMood.length)];
+      if (textPromptIfUsingGenreAndMood && textPromptIfUsingGenreAndMood.length > 0) {
+        textPromptIfUsingGenreAndMood = textPromptIfUsingGenreAndMood[Math.floor(Math.random() * textPromptIfUsingGenreAndMood.length)];
+      }
     }
 
     return (
@@ -617,7 +686,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
           {selectedAiModel === "other" && (
             <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
-              <p className="font-bold text-yellow-300">You are uploading your own remixed track</p>
+              <p className="font-bold text-yellow-300">You are uploading your own remixed track.</p>
             </div>
           )}
 
@@ -659,20 +728,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         </div>
       </div>
     );
-  };
-
-  const downloadTrackViaClientSideWrapper = async () => {
-    setTrackDownloadIsInProgress(true);
-    const artistId = selectedReferenceTrack?.arId;
-    const albumId = selectedReferenceTrack?.alId?.split("-")[0] || "";
-    await downloadTrackViaClientSide({
-      trackMediaUrl: selectedReferenceTrack?.file || "",
-      artistId: artistId || "",
-      albumId,
-      alId: selectedReferenceTrack?.alId || "",
-      trackTitle: selectedReferenceTrack?.title || "",
-    });
-    setTrackDownloadIsInProgress(false);
   };
 
   const HowItWorksModal = () => (
@@ -1147,6 +1202,11 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
           {/* Pick AI Model To Use */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-3 text-gray-200">AI Model Selection</label>
+            {SIMULATE_AI_GENERATION_FLAG && (
+              <div className="text-xs text-gray-300 mb-3">
+                <span className="text-red-500 font-bold">Simulating AI generations</span>
+              </div>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={() => setSelectedAiModel("sigma-ai")}
@@ -1173,21 +1233,19 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
           <div className="space-y-4">
             <>
               <div className={`flex flex-col gap-4`}>
-                {selectedAiModel === "sigma-ai" && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      New Track Title
-                      <span className="float-right text-gray-400 text-xs">{MAX_TITLE_LENGTH - songTitle.length} characters left</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={songTitle}
-                      onChange={handleTitleChange}
-                      maxLength={MAX_TITLE_LENGTH}
-                      className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
-                    />
-                  </div>
-                )}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    New Track Title
+                    <span className="float-right text-gray-400 text-xs">{MAX_TITLE_LENGTH - songTitle.length} characters left</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={songTitle}
+                    onChange={handleTitleChange}
+                    maxLength={MAX_TITLE_LENGTH}
+                    className="w-full p-2 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none"
+                  />
+                </div>
 
                 <ReferenceTrackSelector />
 

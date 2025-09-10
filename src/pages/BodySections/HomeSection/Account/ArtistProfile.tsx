@@ -6,12 +6,11 @@ import { AiRemixRawTrack, Album, Artist, MusicTrack } from "libs/types";
 import { getAlbumTracksFromDBViaAPI, getPayoutLogsViaAPI, getRemixLaunchesViaAPI, mapRawAiRemixTracksToMusicTracks } from "libs/utils";
 import { isUserArtistType, mergeRawAiRemixTracks } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
-import { useAudioPlayerStore } from "store/audioPlayer";
-// import { TrackList } from "../components/TrackList";
+// import { useAudioPlayerStore } from "store/audioPlayer";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { EditArtistProfileModal, ArtistProfileFormData } from "./EditArtistProfileModal";
 import { EditAlbumModal, AlbumFormData } from "./EditAlbumModal";
-import { DISABLE_AI_REMIX_FEATURES, SOL_ENV_ENUM } from "config";
+import { SOL_ENV_ENUM } from "config";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { toastSuccess, toastError, updateArtistProfileOnBackEndAPI, getAlbumFromDBViaAPI, updateAlbumOnBackEndAPI } from "libs/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -33,7 +32,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   const { publicKey: web3AuthPublicKey, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { userWeb2AccountDetails, myAiRemixRawTracks, updateMyAiRemixRawTracks, userArtistProfile, updateUserArtistProfile } = useAccountStore();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
-  const { updateAssetPlayIsQueued } = useAudioPlayerStore();
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey; // Use the appropriate public key based on wallet type
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
@@ -42,8 +40,8 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   const [payoutLogs, setPayoutLogs] = useState<any[]>([]);
   const [loadingPayouts, setLoadingPayouts] = useState<boolean>(false);
   const [totalPayout, setTotalPayout] = useState<number>(0);
-  const [virtualAiRemixAlbum, setVirtualAiRemixAlbum] = useState<Album | null>(null);
-  const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
+  // const [virtualAiRemixAlbum, setVirtualAiRemixAlbum] = useState<Album | null>(null);
+  // const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
   const [showEditArtistProfileModal, setShowEditArtistProfileModal] = useState<boolean>(false);
   const [albumsLoading, setAlbumsLoading] = useState<boolean>(true);
   const [noArtistIdError, setNoArtistIdError] = useState<boolean>(false); //there can be a situation where the artist profile is not yet created, so we need to handle that
@@ -62,35 +60,35 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
     setShowVerificationInfoModal(true);
   };
 
-  useEffect(() => {
-    if (myAiRemixRawTracks.length === 0 && displayPublicKey) {
-      // we need to check if this user has made any remixes and if so, we can flag them as an artist
-      try {
-        const fetchRemixLaunches = async () => {
-          const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: displayPublicKey?.toString() || null });
-          const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: displayPublicKey?.toString() || null });
-          const responseC = await getRemixLaunchesViaAPI({ launchStatus: "launched", addressSol: displayPublicKey?.toString() || null });
+  // useEffect(() => {
+  //   if (myAiRemixRawTracks.length === 0 && displayPublicKey) {
+  //     // we need to check if this user has made any remixes and if so, we can flag them as an artist
+  //     try {
+  //       const fetchRemixLaunches = async () => {
+  //         const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: displayPublicKey?.toString() || null });
+  //         const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: displayPublicKey?.toString() || null });
+  //         const responseC = await getRemixLaunchesViaAPI({ launchStatus: "launched", addressSol: displayPublicKey?.toString() || null });
 
-          if (responseA.length > 0 || responseB.length > 0 || responseC.length > 0) {
-            const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, responseC);
+  //         if (responseA.length > 0 || responseB.length > 0 || responseC.length > 0) {
+  //           const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, responseC);
 
-            const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
-            setVirtualAiRemixAlbum(virtualAlbum);
-            setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
-            updateMyAiRemixRawTracks(allMyRemixes);
-          }
-        };
+  //           const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
+  //           setVirtualAiRemixAlbum(virtualAlbum);
+  //           setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
+  //           updateMyAiRemixRawTracks(allMyRemixes);
+  //         }
+  //       };
 
-        fetchRemixLaunches();
-      } catch (error) {
-        console.error("Error refreshing graduated data:", error);
-      }
-    } else if (myAiRemixRawTracks.length > 0) {
-      const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(myAiRemixRawTracks);
-      setVirtualAiRemixAlbum(virtualAlbum);
-      setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
-    }
-  }, [myAiRemixRawTracks, displayPublicKey]);
+  //       fetchRemixLaunches();
+  //     } catch (error) {
+  //       console.error("Error refreshing graduated data:", error);
+  //     }
+  //   } else if (myAiRemixRawTracks.length > 0) {
+  //     const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(myAiRemixRawTracks);
+  //     setVirtualAiRemixAlbum(virtualAlbum);
+  //     setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
+  //   }
+  // }, [myAiRemixRawTracks, displayPublicKey]);
 
   // Fetch payout logs when artist profile is active
   useEffect(() => {
@@ -587,69 +585,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
           </div>
         )}
       </div>
-
-      {/* Artist Remixes Section */}
-      {/* <div className="rounded-lg p-6 mb-6 border-b border-gray-800">
-        <h2 className="!text-xl font-bold mb-4">Your Music - AI Remixes</h2>
-
-        {myAiRemixRawTracks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            {DISABLE_AI_REMIX_FEATURES === "0" ? (
-              <p className="text-md text-gray-400">No remixes found</p>
-            ) : (
-              <p className="text-md text-gray-400">Coming soon!</p>
-            )}
-          </div>
-        ) : (
-          <>
-            {virtualAiRemixAlbum && virtualAiRemixAlbumTracks.length > 0 && (
-              <div className="mx-auto md:m-[initial] p-3">
-                <TrackList
-                  album={virtualAiRemixAlbum}
-                  artistId={"virtual-artist-id-" + displayPublicKey?.toString()}
-                  artistName={"My AI Remixes"}
-                  virtualTrackList={virtualAiRemixAlbumTracks}
-                  onBack={() => {
-                    onCloseMusicPlayer();
-                  }}
-                  onPlayTrack={(album, jumpToPlaylistTrackIndex) => {
-                    updateAssetPlayIsQueued(true);
-                    onCloseMusicPlayer();
-
-                    setTimeout(() => {
-                      viewSolData(
-                        0,
-                        {
-                          artistId: "virtual-artist-id-" + displayPublicKey?.toString(),
-                          albumId: virtualAiRemixAlbum.albumId,
-                          jumpToPlaylistTrackIndex: jumpToPlaylistTrackIndex,
-                        },
-                        false,
-                        virtualAiRemixAlbumTracks
-                      );
-
-                      updateAssetPlayIsQueued(false);
-                    }, 5000);
-                  }}
-                  checkOwnershipOfMusicAsset={() => 0}
-                  trackPlayIsQueued={false}
-                  assetPlayIsQueued={false}
-                />
-              </div>
-            )}
-          </>
-        )}
-
-        <div className="flex justify-center md:justify-end">
-          <Button
-            className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
-            onClick={() => {
-              setHomeMode(`ai-remix-${new Date().getTime()}`);
-            }}>
-            Launch AI Remix
-          </Button>
-        </div>
-      </div> */}
 
       {/* Artist Payouts Section */}
       <div className="rounded-lg p-6 border-b border-gray-800">

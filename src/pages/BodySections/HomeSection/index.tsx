@@ -541,8 +541,18 @@ export const HomeSection = (props: HomeSectionProps) => {
       if (albumTracksFromDb.length > 0) {
         _musicPlayerTrackListFromDb = true;
 
+        // find the first track that has a file (as a bonus track wont have a file)
+        // and if playAlbumNowParams is NOT given, then we also set playAlbumNowParams.jumpToPlaylistTrackIndex to the track with a file
+        const firstTrackWithFile = albumTracksFromDb.find((track: MusicTrack) => track.file);
+        if (firstTrackWithFile) {
+          setFirstAlbumSongBlobUrl(firstTrackWithFile.file);
+          if (playAlbumNowParams && typeof playAlbumNowParams.jumpToPlaylistTrackIndex === "undefined") {
+            playAlbumNowParams.jumpToPlaylistTrackIndex = firstTrackWithFile.idx;
+          }
+        }
+
+        // setFirstAlbumSongBlobUrl(albumTracksFromDb[0].file);
         setMusicPlayerAlbumTrackList(albumTracksFromDb);
-        setFirstAlbumSongBlobUrl(albumTracksFromDb[0].file);
         setIsFetchingDataMarshal(false);
         setMusicPlayerTrackListFromDb(true);
       }

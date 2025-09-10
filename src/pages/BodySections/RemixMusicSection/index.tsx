@@ -280,7 +280,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
           if (newJobsInterval) {
             console.log("Pending jobs monitor --- Interval D -- Clearing interval!");
             clearInterval(newJobsInterval);
-            refreshOnlyNewLaunchesData();
+            await refreshOnlyNewLaunchesData();
           }
         }
 
@@ -343,6 +343,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       if (!virtualAiRemixAlbum) {
         setVirtualAiRemixAlbum(virtualAlbum);
       }
+
       setVirtualAiRemixAlbumTracks([...allMyRemixesAsMusicTracks]);
       updateMyAiRemixRawTracks(allMyRemixes);
       setVirtualAiRemixAlbumTracksLoading(false);
@@ -357,8 +358,8 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       setNewLaunchesData([]);
       setGraduatedLaunchesData([]);
       setPublishedLaunchesData([]);
-      setVirtualAiRemixAlbumTracks([]);
-      setVirtualAiRemixAlbum(null);
+      // setVirtualAiRemixAlbumTracks([]);
+      // setVirtualAiRemixAlbum(null);
       setVirtualAiRemixAlbumTracksLoading(true);
 
       const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
@@ -400,6 +401,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       if (clearAndRefresh) {
         setMyJobsPayments([]);
       }
+
       await sleep(1);
       const responseD = await getPaymentLogsViaAPI({ addressSol, byTaskFilter: "remix" });
 
@@ -1127,7 +1129,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                 Sigma AI REMiX <span className="text-xs text-gray-500">Beta</span>
               </span>
             </h1>
-            <p className="text-sm text-gray-500">Launch IP-Safe AI Remixes influenced by the work of your favorite artists</p>
+            <p className="text-sm text-gray-500">Launch IP-Safe AI Remixes influenced by the music of your favorite artists</p>
           </div>
 
           <div className="flex flex-col md:flex-row md:gap-4 gap-2">
@@ -1176,9 +1178,15 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                     <div className="">
                       <LaunchAiMusicTrack
                         renderInline={true}
-                        onCloseModal={(refreshPaymentLogs?: boolean) => {
+                        onCloseModal={async (refreshPaymentLogs?: boolean) => {
                           if (refreshPaymentLogs) {
                             handleRefreshJobs();
+
+                            // show a notice to the user that we are checking for new jobs
+                            setCheckingIfNewJobsHaveCompleted(true);
+                            await refreshOnlyNewLaunchesData();
+                            await sleep(3);
+                            setCheckingIfNewJobsHaveCompleted(false);
                           }
                         }}
                         navigateToDeepAppView={(e: any) => {
@@ -1211,13 +1219,16 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                             <span className="mr-1">
                               {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length}
                             </span>{" "}
-                            Remix Jobs Pending{" "}
-                            {checkingIfNewJobsHaveCompleted && (
-                              <span className="text-yellow-300 flex items-center justify-center ml-2 mt-2">
-                                <Loader className="w-4 h-4 animate-spin mr-2" /> rechecking...
-                              </span>
-                            )}
+                            Remix Jobs Pending
                           </p>
+                        </div>
+                      )}
+                      {checkingIfNewJobsHaveCompleted && (
+                        <div className="flex flex-col items-center py-2 bg-yellow-900/50 text-yellow-300 rounded-md mt-1">
+                          <span className="text-yellow-300 flex items-center justify-center text-sm">
+                            <Loader className="w-4 h-4 animate-spin mr-2" />
+                            finding your new tracks...
+                          </span>
                         </div>
                       )}
 
@@ -1340,13 +1351,16 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                           <span className="mr-1">
                             {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length}
                           </span>{" "}
-                          Remix Jobs Pending{" "}
-                          {checkingIfNewJobsHaveCompleted && (
-                            <span className="text-yellow-300 flex items-center justify-center ml-2 mt-2">
-                              <Loader className="w-4 h-4 animate-spin mr-2" /> rechecking...
-                            </span>
-                          )}
+                          Remix Jobs Pending
                         </p>
+                      </div>
+                    )}
+                    {checkingIfNewJobsHaveCompleted && (
+                      <div className="flex flex-col items-center py-2 bg-yellow-900/50 text-yellow-300 rounded-md mt-1">
+                        <span className="text-yellow-300 flex items-center justify-center text-sm">
+                          <Loader className="w-4 h-4 animate-spin mr-2" />
+                          finding your new tracks...
+                        </span>
                       </div>
                     )}
 
