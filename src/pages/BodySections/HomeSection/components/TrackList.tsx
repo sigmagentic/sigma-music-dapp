@@ -7,6 +7,8 @@ import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
 import { scrollToTopOnMainContentArea, downloadTrackViaClientSide } from "libs/utils/ui";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "libComponents/DropdownMenu";
+import { InfoTooltip } from "libComponents/Tooltip";
+import { LICENSE_BLURBS } from "config";
 
 interface TrackListProps {
   album: Album;
@@ -232,6 +234,11 @@ export const TrackList: React.FC<TrackListProps> = ({
                 <div className="flex items-center gap-2">
                   <span className={`text-sm ${isDisabled || isCurrentlyPlaying ? "text-gray-500" : "text-white"}`}>
                     {track.title}
+                    {track.isSigmaAiRemixUsingFreeLicense && (
+                      <span className="text-xs text-black px-2 py-1 rounded-full">
+                        <InfoTooltip content={`This was remixed with a CC BY-NC 4.0 license - ${LICENSE_BLURBS["CC BY-NC 4.0"].blurb}`} position="right" />
+                      </span>
+                    )}
                     {isCurrentlyPlaying && <span className="text-yellow-300 ml-2 text-xs">Playing...</span>}
                   </span>
                   {isBonusTrack && <span className="text-xs bg-orange-500 text-black px-2 py-1 rounded-full">Bonus</span>}
@@ -248,7 +255,6 @@ export const TrackList: React.FC<TrackListProps> = ({
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent track click handler from firing
                         downloadTrackViaClientSideWrapper(track);
-                        // downloadMp3TrackViaAPI(artistId, album.albumId, track.alId || "", track.title || "");
                       }}
                       disabled={trackDownloadIsInProgress}
                       title="Download track">

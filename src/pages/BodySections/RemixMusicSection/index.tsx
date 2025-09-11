@@ -163,6 +163,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
           if (!virtualAiRemixAlbum) {
             setVirtualAiRemixAlbum(virtualAlbum);
           }
+
           setVirtualAiRemixAlbumTracks([...allMyRemixesAsMusicTracks]);
           updateMyAiRemixRawTracks(allMyRemixes);
         }
@@ -1275,7 +1276,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                 }}
                                 handleTrackSelection={(selectedTrack: MusicTrack) => {
                                   // set the isSigmaAiRemix flag to 1
-                                  const _selectedTrack: MusicTrack = { ...selectedTrack, isSigmaAiRemix: 1 } as MusicTrack;
+                                  const _selectedTrack: MusicTrack = { ...selectedTrack, isSigmaAiRemix: "1" } as MusicTrack;
                                   addTrackToAlbum_ResetToPrestine(); // best we reset to prestine here as this is the "point of entry" to add track workflow
                                   setTrackToAddToAlbum(_selectedTrack);
                                 }}

@@ -9,6 +9,8 @@ import {
   MUSIC_GEN_PROMPT_LIBRARY,
   MUSIC_GEN_PROMPT_FALLBACK_LIBRARY,
   DISABLE_AI_REMIX_LIVE_MODEL_USAGE,
+  FREE_LICENSED_ALBUM_ID,
+  LICENSE_BLURBS,
 } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
@@ -26,6 +28,7 @@ import useSolBitzStore from "store/solBitz";
 import { sendPowerUpSol, SendPowerUpSolResult } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 import { useNftsStore } from "store/nfts";
 import { MediaUpdate } from "libComponents/MediaUpdate";
+import { InfoTooltip } from "libComponents/Tooltip";
 
 const MAX_TITLE_LENGTH = 50;
 
@@ -76,6 +79,8 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   const [showPrompt, setShowPrompt] = useState(false);
   const [selectedAiModel, setSelectedAiModel] = useState<"sigma-ai" | "other">("sigma-ai");
   const [trackDownloadIsInProgress, setTrackDownloadIsInProgress] = useState<boolean>(false);
+  const [selectedAiPlatform, setSelectedAiPlatform] = useState<string>("suno");
+  const [customAiPlatform, setCustomAiPlatform] = useState<string>("");
 
   // Form data and validation for "other" AI model
   const [formData, setFormData] = useState({
@@ -159,7 +164,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     // load a free album if no free albums are loaded
     if (freeLincensedAlbums.length === 0) {
       const freeRemixAlbum1 = {
-        albumId: "ar142_a1",
+        albumId: FREE_LICENSED_ALBUM_ID,
         albumImage: "https://api.itheumcloud-stg.com/app_sigmamusic/HYzBq-TYmRa/img/dj-sigma-mix-tape-1-1756778980811.png",
         albumName: "Sigma Mix Tape Vol. 1",
         createdOnTS: 1756779201513,
@@ -214,6 +219,8 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
       .map((artist) => artist.albums)
       .flat()
       .find((_album: any) => _album.albumId === license.albumId);
+
+    console.log("album", album);
 
     if (album) {
       setSelectedAlbumForTrackList(album);
@@ -315,13 +322,17 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     setSongTitle(value);
   };
 
-  const handleFormDataChange = (field: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+  const handleAiPlatformChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedAiPlatform(e.target.value);
+    // Clear custom platform when selecting a predefined option
+    if (e.target.value !== "others") {
+      setCustomAiPlatform("");
     }
+  };
+
+  const handleCustomAiPlatformChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.slice(0, 100); // Limit to 100 characters
+    setCustomAiPlatform(value);
   };
 
   const handlePlayReferenceTrack = () => {
@@ -358,6 +369,10 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     setErrors({});
     setNewSelectedTrackCoverArtFile(null);
     setNewSelectedAudioFile(null);
+
+    // Reset AI platform selection
+    setSelectedAiPlatform("suno");
+    setCustomAiPlatform("");
 
     handleBackToAlbums(); // if the user is in a nested reference track list, we need to go back to the albums list
 
@@ -468,9 +483,20 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         refTrack_arId: selectedReferenceTrack.arId,
       };
 
+      // we need to flag that this is a free licensed album so we can enfore some restrictions on the remix output
+      if (selectedAlbumForTrackList && selectedAlbumForTrackList.albumId === FREE_LICENSED_ALBUM_ID) {
+        promptParams.meta = {};
+        promptParams.meta.isFreeLicense = "1";
+      }
+
       // we use this way to identify if the remix is byo (i.e. use uploaded track they may elsewhere) or not
       if (selectedAiModel === "other") {
-        promptParams.isByo = "1";
+        if (!promptParams.meta) {
+          promptParams.meta = {};
+        }
+
+        promptParams.meta.isByo = "1";
+        promptParams.meta.byoPlatform = selectedAiPlatform === "others" ? customAiPlatform : selectedAiPlatform;
       } else {
         // these are for the sigma-ai model only
         if (selectedGenre !== "" && selectedGenre !== "original") {
@@ -570,6 +596,12 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
       if (selectedAiModel === "other") {
         remixParams.remixByoFormData = formData;
+
+        // Add byoPlatform parameter
+        const byoPlatform = selectedAiPlatform === "others" ? customAiPlatform : selectedAiPlatform;
+        if (byoPlatform) {
+          remixParams.byoPlatform = byoPlatform;
+        }
       }
 
       const _sendRemixJobAfterPaymentResponse = await sendRemixJobAfterPaymentViaAPI(remixParams);
@@ -1235,14 +1267,47 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
             <>
               <div className={`flex flex-col gap-4`}>
                 {selectedAiModel === "other" && (
-                  <p className="text-xs text-gray-300">
-                    Want to use Suno, Udio or others to remix your track and then launch it on Sigma Music? You can do that here...
-                  </p>
+                  <>
+                    <p className="text-xs text-gray-300">
+                      Want to use Suno, Udio or others to remix your track and then launch it on Sigma Music? You can do that here...
+                    </p>
+
+                    <div className="">
+                      <label className="block text-sm font-medium mb-2">What AI platform are you using?</label>
+
+                      <div className="flex flex-row gap-2">
+                        <div className="flex-1">
+                          <select
+                            value={selectedAiPlatform}
+                            onChange={handleAiPlatformChange}
+                            className="w-full text-sm p-3 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none text-white h-[40px]">
+                            <option value="suno">Suno</option>
+                            <option value="udio">Udio</option>
+                            <option value="others">Others</option>
+                          </select>
+                        </div>
+                        {selectedAiPlatform === "others" ? (
+                          <div>
+                            <input
+                              type="text"
+                              value={customAiPlatform}
+                              onChange={handleCustomAiPlatformChange}
+                              maxLength={100}
+                              placeholder="AI platform name..."
+                              className="w-full text-sm p-3 rounded-lg bg-[#2A2A2A] border border-gray-600 focus:border-yellow-500 focus:outline-none text-white placeholder-gray-400 h-[40px]"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex-1"></div>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
 
-                <div>
+                <div className="mt-2">
                   <label className="block text-sm font-medium mb-2">
-                    New Track Title
+                    Your Track Name
                     <span className="float-right text-gray-400 text-xs">{MAX_TITLE_LENGTH - songTitle.length} characters left</span>
                   </label>
                   <input
@@ -1439,7 +1504,10 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
               <div className="space-y-4 mt-5">
                 <div className="bg-[#2A2A2A] rounded-lg p-4">
                   <h4 className="!text-lg font-medium">Free Albums You Can Remix</h4>
-                  <p className="text-xs text-gray-300 mb-3">Remix these albums but you don't own the rights to the remixes</p>
+                  <p className="text-xs text-gray-300 mb-3">
+                    Remix for personal use only{" "}
+                    <InfoTooltip content={`You get a CC BY-NC 4.0 license - ${LICENSE_BLURBS["CC BY-NC 4.0"].blurb}`} position="right" />{" "}
+                  </p>
                   <div className="space-y-3 overflow-y-auto max-h-[calc(80vh-200px)]">
                     {freeLincensedAlbums.map((license: any, index: number) => (
                       <div

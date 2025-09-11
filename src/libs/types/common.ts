@@ -34,7 +34,8 @@ export interface MusicTrack {
   alId?: string; // the album and track index in the format (ar22_a1-1) -- it comes for DB in this format, but in the app we normalize it to albumTrackId
   albumTrackId?: string; // (same as above alid, the playlist (prev radio) streams json has it in this format) the album and track index in the format (ar22_a1-1)
   artistSlug?: string;
-  isSigmaAiRemix?: number; // 0 or 1 indicated if the track was published via Sigma AI Remix feature
+  isSigmaAiRemix?: string; // 0 or 1 indicated if the track was published via Sigma AI Remix
+  isSigmaAiRemixUsingFreeLicense?: string; // 0 or 1 indicated if the track was published via Sigma AI Remix using a free license track
 }
 
 export interface Album {
@@ -304,6 +305,7 @@ export interface AiRemixRawTrack {
   bountyId: string;
   refTrack_alId?: string;
   textPrompt?: string;
+  refTrackWasFreeLicense?: string; // 0 or 1 indicated if the reference track was a free license track (i.e. sigma platform owns the rights to the remix)
 }
 
 export interface FastStreamTrack {

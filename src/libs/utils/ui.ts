@@ -249,7 +249,6 @@ export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTrack
   const allAiRemixRawTracks: AiRemixRawTrack[] = [...newTracks, ...graduatedTracks, ...publishedTracks].flatMap((track: any) =>
     track.versions.map((version: any, index: number) => ({
       createdOn: track.createdOn,
-      // songTitle: track.promptParams.songTitle + ` (V${index + 1})`,
       songTitle: track.promptParams.songTitle,
       genre: track.promptParams.genre,
       mood: track.promptParams.mood,
@@ -258,6 +257,7 @@ export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTrack
       bountyId: version.bountyId,
       status: track.status,
       refTrack_alId: track.promptParams.refTrack_alId,
+      refTrackWasFreeLicense: track.promptParams.meta?.isFreeLicense ? "1" : undefined,
     }))
   );
 
@@ -285,6 +285,8 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
     solNftName: "",
   };
 
+  console.log("allMyRemixes", allMyRemixes);
+
   // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
   const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
     idx: index,
@@ -295,6 +297,7 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
     title: remix.songTitle,
     stream: remix.streamUrl,
     bountyId: remix.bountyId,
+    isSigmaAiRemixUsingFreeLicense: remix.refTrackWasFreeLicense ? "1" : undefined,
   }));
 
   return { virtualAlbum, allMyRemixesAsMusicTracks };

@@ -7,6 +7,8 @@ export const apiTimeout = 10_000; // 10s
 
 export const DEFAULT_BITZ_COLLECTION_SOL = IS_DEVNET ? "AXvaYiSwE7XKdiM4eSWTfagkswmWKVF7KzwW5EpjCDGk" : "JAWEFUJSWErkDj8RefehQXGp1nUhCoWbtZnpeo8Db8KN";
 
+export const FREE_LICENSED_ALBUM_ID = IS_DEVNET ? "ar142_a1" : "ar142_a1";
+
 export const MARSHAL_CACHE_DURATION_SECONDS = import.meta.env.VITE_ENV_MARSHAL_CACHE_DURATION_SECONDS
   ? parseInt(import.meta.env.VITE_ENV_MARSHAL_CACHE_DURATION_SECONDS, 10)
   : 300; // 5 minutes
@@ -368,21 +370,36 @@ export const MUSIC_GEN_PROMPT_FALLBACK_LIBRARY: any = {
   },
 };
 
+export const LICENSE_BLURBS: any = {
+  "CC BY-NC 4.0": {
+    blurb: "Attribution Needed, Non Commercial Use, Derivatives and Distribution allowed",
+    link: "https://creativecommons.org/licenses/by-nc/4.0/",
+  },
+  "CC BY-NC-ND 4.0": {
+    blurb: "Attribution Needed, Non Commercial Use, Derivatives allowed but Distribution not allowed",
+    link: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  },
+  "CC BY 4.0": {
+    blurb: "Attribution Only. Commercial Use, Derivatives and Distribution allowed.",
+    link: "https://creativecommons.org/licenses/by/4.0/",
+  },
+};
+
 export const LICENSE_TERMS_MAP = {
   [AlbumSaleTypeOption.priceOption1]: {
-    shortDescription: "CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives",
-    urlToLicense: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+    shortDescription: LICENSE_BLURBS["CC BY-NC-ND 4.0"].blurb,
+    urlToLicense: LICENSE_BLURBS["CC BY-NC-ND 4.0"].link,
   },
   [AlbumSaleTypeOption.priceOption2]: {
-    shortDescription: "CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives",
-    urlToLicense: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+    shortDescription: LICENSE_BLURBS["CC BY-NC-ND 4.0"].blurb,
+    urlToLicense: LICENSE_BLURBS["CC BY-NC-ND 4.0"].link,
   },
   [AlbumSaleTypeOption.priceOption3]: {
-    shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license",
-    urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
+    shortDescription: `${LICENSE_BLURBS["CC BY 4.0"].blurb}. Comes with Story Protocol license`,
+    urlToLicense: LICENSE_BLURBS["CC BY 4.0"].link,
   },
   [AlbumSaleTypeOption.priceOption4]: {
-    shortDescription: "CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license",
+    shortDescription: `${LICENSE_BLURBS["CC BY 4.0"].blurb}. Comes with Story Protocol license`,
     urlToLicense: "https://creativecommons.org/licenses/by/4.0/",
   },
 };

@@ -175,3 +175,9 @@ So my inner circle fans get access to some perks IRL or virtual
 [COMPOSING ARTISTs make 80% of everything that's sold on the platform that's linked to their work]
 [COMPOSING ARTISTs make 10% of every derative work sold that a REMIX ARTIST's SOLD that used a license]
 [COMPOSING ARTISTs get 5$ a week if their tracks are used to make the weekly award for best AI REMIX]
+
+# mega release runsheet
+
+-- app
+
+- on prod, for FREE_LICENSED_ALBUM_ID, we need to put the mainnet album for "Sigma Mix Tape Vol. 1"
