@@ -104,23 +104,39 @@ export const Navbar = ({
 
   const handleCloseProductTour = () => {
     setShowProductTour(false);
+
     const searchParams = new URLSearchParams(location.search);
+
     if (searchParams.has("g")) {
       searchParams.delete("g");
       const newSearch = searchParams.toString();
       const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
       navigate(newPath, { replace: true });
     }
+
+    localStorage.setItem("sig-ux-new-user-demo", Date.now().toString());
   };
 
   const handleCloseNewUserExtendedProfileSetup = () => {
     setShowNewUserExtendedProfileSetup(false);
+
     const searchParams = new URLSearchParams(location.search);
+
     if (searchParams.has("e")) {
       searchParams.delete("e");
       const newSearch = searchParams.toString();
       const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
       navigate(newPath, { replace: true });
+    }
+
+    // Show the demo workflow if the user has not seen it yet (or) it's been more than 48 hours since they last saw it
+    const lastClosedTimestamp = localStorage.getItem("sig-ux-new-user-demo");
+
+    const ALERT_IGNORE_HOURS_MS = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
+
+    const timeSinceLastClose = Date.now() - parseInt(lastClosedTimestamp || "0");
+    if (!lastClosedTimestamp || timeSinceLastClose > ALERT_IGNORE_HOURS_MS) {
+      setShowProductTour(true);
     }
   };
 

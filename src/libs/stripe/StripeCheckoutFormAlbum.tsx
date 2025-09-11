@@ -90,10 +90,10 @@ const StripeCheckoutFormAlbum = ({
 
     try {
       const albumId = albumToBuyAndMint.albumId;
-      const artistSlug = artistProfile.slug;
-      const albumImg = albumToBuyAndMint.img;
-      const albumTitle = albumToBuyAndMint.title;
-      const albumArtist = artistProfile.name;
+      const artistSlug = encodeURIComponent(artistProfile.slug);
+      const albumImg = encodeURIComponent(albumToBuyAndMint.img);
+      const albumTitle = encodeURIComponent(albumToBuyAndMint.title);
+      const albumArtist = encodeURIComponent(artistProfile.name);
       const creatorWallet = artistProfile.creatorPaymentsWallet;
       const buyerSolAddress = publicKey?.toBase58();
 
@@ -107,7 +107,7 @@ const StripeCheckoutFormAlbum = ({
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSD}&billingEmail=${encodeURIComponent(email)}&albumSaleTypeOption=${albumSaleTypeOption}&IpTokenId=${IpTokenId}`,
+          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${albumImg}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSD}&billingEmail=${encodeURIComponent(email)}&albumSaleTypeOption=${albumSaleTypeOption}&IpTokenId=${IpTokenId}`,
           receipt_email: email,
         },
       });

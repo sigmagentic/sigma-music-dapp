@@ -11,7 +11,7 @@ interface Slide {
 
 const slides: Slide[] = [
   {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-1-most-streamed.png",
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/stream-playlists.png",
     text: "Start the Music Player for free personalized music or view the most streamed songs",
   },
   {
@@ -20,35 +20,39 @@ const slides: Slide[] = [
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-b-music-player.png",
-    text: "Stream and enjoy all music albums",
+    text: "Stream and enjoy music albums from your favorite indie artists",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-c-buy-premium-albums-as-nfts.png",
-    text: "Love an album? Buy a limited edition premium album with bonus tracks as a Music Collectible (pay via Solana or Credit Card!)",
+    text: "Love an album? Buy a digital limited edition premium album with bonus tracks as a Music Collectible (pay via Credit Card, SOL or XP!)",
+  },
+  {
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/monatize-music-in-many-ways.png",
+    text: "Indie Artists: Sigma Music has so many ways to get paid for your music!",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-3-join-fan-membership.png",
-    text: "Love a musician? Join their Inner Circle fan club and get a unique fan collectible, perks, and share in revenue!",
+    text: "Love a musician? Join their Inner Circle fan club and get a unique limited edition fan collectible and perks!",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4-join-live-campaigns-for-irl-collectibles.png",
-    text: "Join Real World Events via Campaigns like the World Supremacy Battleground Dance Competition, collect unique collectibles, support artists, and share in revenue!",
+    text: "Join Real World Events via 'Micro-Campaigns', collect unique collectibles, support artists, unlock exclusive perks and rewards!",
   },
-  // {
-  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4a-reward-pools.png",
-  //   text: "Participate in Reward Pools and win a share of app revenue!",
-  // },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-5-collect-free-xp.png",
-    text: "Play an XP game every 6 hours and get free app XP",
+    text: "Play an XP game every 6 hours and get free app XP. You can use your XP like real-world money inside the app!",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-6-climb-xp-leaderboards.png",
-    text: "Give XP to your favorite content and climb XP leaderboards to get free airdrops and rewards",
+    text: "Give XP to your favorite content and climb XP leaderboards to get free airdrops and platform rewards",
   },
   {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-7-launch-ai-meme-coins.png",
-    text: "REMiX any music content on our platform using AI, mint them as Music NFTs or launch them as Music Meme Coins!",
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/buy-story-protocol-licenses.png",
+    text: "Sigma Music offers AI Remix commercial licenses powered by Story Protocol! (pay via Credit Card, SOL or XP!)",
+  },
+  {
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/use-sigma-ai-remix.png",
+    text: "Use Sigma Music's AI Remix tool to remix your favorite artist's tracks and sell your remixes as albums!",
   },
 ];
 
@@ -77,6 +81,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose, handl
   const { isConnected: isLoggedInSol } = useSolanaWallet();
   const [currentSlide, setCurrentSlide] = useState(-1);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+
   // Preload images when component mounts
   useEffect(() => {
     const loadImages = async () => {
@@ -116,8 +121,8 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose, handl
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100]">
-        <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-3xl w-full mx-4 relative">
+      <div className="fixed inset-0 z-10 flex items-center justify-center bg-yellow-400 bg-opacity-30 p-4">
+        <div className="bg-black rounded-lg p-6 max-w-4xl w-full mx-4 relative max-h-[90vh] overflow-y-auto">
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
             <X size={24} />
           </button>

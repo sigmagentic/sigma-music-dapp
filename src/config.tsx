@@ -27,6 +27,7 @@ export const DISABLE_BITZ_FEATURES = import.meta.env.VITE_ENV_DISABLE_BITZ_FEATU
 export const DISABLE_REMIX_LAUNCH_BUTTON = import.meta.env.VITE_ENV_DISABLE_REMIX_LAUNCH || false;
 export const DISABLE_COMMERCIAL_LICENSE_BUY_OPTION = import.meta.env.VITE_ENV_DISABLE_COMMERCIAL_LICENSE_BUY_OPTION || "1";
 export const DISABLE_AI_REMIX_FEATURES = import.meta.env.VITE_ENV_DISABLE_AI_REMIX_FEATURES || "1";
+export const DISABLE_AI_REMIX_LIVE_MODEL_USAGE = import.meta.env.VITE_ENV_DISABLE_AI_REMIX_LIVE_MODEL_USAGE || "1";
 
 export const GENERATE_MUSIC_MEME_PRICE_IN_USD = 0.04; // how much for a single version
 

@@ -84,7 +84,6 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
     updateSolSignedPreaccess,
     updateSolPreaccessTimestamp,
   } = useAccountStore();
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const [currentStep, setCurrentStep] = useState<WorkflowStep>("welcome");
   const [userProfileData, setUserProfileData] = useState<ProfileFormData>({
@@ -1018,18 +1017,6 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       <p className="text-gray-300 mb-8">Your profile has been setup successfully. Let's explore the app now!</p>
 
       <div className="flex justify-center gap-4">
-        {/* <Button
-          onClick={() => {
-            const currentParams = Object.fromEntries(searchParams.entries());
-            delete currentParams["e"];
-            currentParams["g"] = "1";
-            setSearchParams(currentParams);
-            onClose();
-          }}
-          className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-400 font-semibold">
-          Give Me a Quick Tour & Free XP
-        </Button> */}
-
         {(userProfileData.profileTypes.includes("remixer") || userProfileData.profileTypes.includes("composer")) && (
           <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
             <Button
@@ -1066,17 +1053,6 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       </div>
       <p className="text-gray-300 mb-8 text-sm">You can still explore the app and complete your profile setup later.</p>
       <div className="flex justify-center gap-4">
-        {/* <Button
-          onClick={() => {
-            const currentParams = Object.fromEntries(searchParams.entries());
-            delete currentParams["e"];
-            currentParams["g"] = "1";
-            setSearchParams(currentParams);
-            onClose();
-          }}
-          className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-400 font-semibold">
-          Give Me a Quick Tour & Free XP
-        </Button> */}
         <div className="bg-gradient-to-r from-gray-500 to-gray-600 p-[1px] px-[2px] rounded-lg justify-center">
           <Button
             onClick={onClose}

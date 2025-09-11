@@ -8,6 +8,7 @@ import {
   ONE_USD_IN_XP,
   MUSIC_GEN_PROMPT_LIBRARY,
   MUSIC_GEN_PROMPT_FALLBACK_LIBRARY,
+  DISABLE_AI_REMIX_LIVE_MODEL_USAGE,
 } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
@@ -92,8 +93,8 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   // Add effect to prevent body scrolling when modal is open and cleanup audio on unmount
   useEffect(() => {
     // if a query string param called simulateAIGenerations=1 is present, then we will simulate the AI generations
-    if (window.location.search.includes("simulateAIGenerations=1")) {
-      alert("Simulating AI generations");
+    if (window.location.search.includes("simulateAIGenerations=1") || DISABLE_AI_REMIX_LIVE_MODEL_USAGE === "1") {
+      alert("Please note: We are simulating AI generations in this demo mode. This is for testing purposes only.");
       SIMULATE_AI_GENERATION_FLAG = true;
     }
 
