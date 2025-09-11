@@ -12,47 +12,55 @@ interface Slide {
 const slides: Slide[] = [
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/stream-playlists.png",
-    text: "Start the Music Player for free personalized music or view the most streamed songs",
+    text: "Stream music from real-world artists and AI remix artists",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-a-listen-to-free-albums.png",
     text: "Listen to any music album for free",
   },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-b-music-player.png",
-    text: "Stream and enjoy music albums from your favorite indie artists",
-  },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-c-buy-premium-albums-as-nfts.png",
-    text: "Love an album? Buy a digital limited edition premium album with bonus tracks as a Music Collectible (pay via Credit Card, SOL or XP!)",
-  },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-b-music-player.png",
+  //   text: "Stream and enjoy music albums from your favorite indie artists",
+  // },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-c-buy-premium-albums-as-nfts.png",
+  //   text: "Love an album? Buy a digital limited edition premium album with bonus tracks as a Music Collectible (pay via Credit Card, SOL or XP!)",
+  // },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/monatize-music-in-many-ways.png",
-    text: "Indie Artists: Sigma Music has so many ways to get paid for your music!",
+    text: "Sigma Music has so many ways to get Artists paid for their music!",
   },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-3-join-fan-membership.png",
-    text: "Love a musician? Join their Inner Circle fan club and get a unique limited edition fan collectible and perks!",
-  },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4-join-live-campaigns-for-irl-collectibles.png",
-    text: "Join Real World Events via 'Micro-Campaigns', collect unique collectibles, support artists, unlock exclusive perks and rewards!",
-  },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-5-collect-free-xp.png",
-    text: "Play an XP game every 6 hours and get free app XP. You can use your XP like real-world money inside the app!",
-  },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-6-climb-xp-leaderboards.png",
-    text: "Give XP to your favorite content and climb XP leaderboards to get free airdrops and platform rewards",
-  },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-3-join-fan-membership.png",
+  //   text: "Love a musician? Join their Inner Circle fan club and get a unique limited edition fan collectible and perks!",
+  // },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4-join-live-campaigns-for-irl-collectibles.png",
+  //   text: "Join Real World Events via 'Micro-Campaigns', collect unique collectibles, support artists, unlock exclusive perks and rewards!",
+  // },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-6-climb-xp-leaderboards.png",
+  //   text: "Give XP to your favorite content and climb XP leaderboards to get free airdrops and platform rewards",
+  // },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/buy-story-protocol-licenses.png",
     text: "Sigma Music offers AI Remix commercial licenses powered by Story Protocol! (pay via Credit Card, SOL or XP!)",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/use-sigma-ai-remix.png",
-    text: "Use Sigma Music's AI Remix tool to remix your favorite artist's tracks and sell your remixes as albums!",
+    text: "use your Story Protocol licensed tracks with Sigma Music's own AI to remix your favorite artist's tracks and sell your remixes as albums! Want to use Suno instead? You can do that too!",
+  },
+  {
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-5-collect-free-xp.png",
+    text: "Play an XP game every 6 hours and get free app XP. You can use your XP like real-world money inside the app (to buy licenses, buy albums, use AI to remix tracks, and so much more)!",
+  },
+  {
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-c-buy-premium-albums-as-nfts.png",
+    text: "Love an album? Buy a digital limited edition premium album with bonus tracks as a Music Collectible (pay via Credit Card, SOL or XP!)",
+  },
+  {
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-3-join-fan-membership.png",
+    text: "Love a musician? Join their Inner Circle fan club and get a unique limited edition fan collectible and perks!",
   },
 ];
 
@@ -138,7 +146,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose, handl
               </div>
             ) : currentSlide === slides.length ? (
               <div className="text-center py-8">
-                <h2 className="text-2xl font-bold mb-4">Ready to Get Started!</h2>
+                <h2 className="text-2xl font-bold mb-4">Sigma Music Is Awesome!</h2>
                 <p className="text-lg mb-8">OK, let's get you using Sigma Music.</p>
                 <div className="flex flex-col md:flex-row gap-4 justify-center">
                   <Button onClick={onClose} className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-2 rounded-lg">
