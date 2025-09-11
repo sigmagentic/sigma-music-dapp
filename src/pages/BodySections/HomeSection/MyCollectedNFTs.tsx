@@ -314,6 +314,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                                   setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
                                   viewSolData={viewSolData}
                                   onCloseMusicPlayer={onCloseMusicPlayer}
+                                  navigateToDeepAppView={navigateToDeepAppView}
                                 />
                               </div>
                             );
@@ -511,7 +512,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                           </div>
                           <div className="text-center max-w-[300px]">{albumName}</div>
 
-                          <StoryIPLicenseDisplay license={license} />
+                          <StoryIPLicenseDisplay license={license} navigateToDeepAppView={navigateToDeepAppView} />
                         </div>
                       );
                     })}

@@ -49,6 +49,7 @@ type FeaturedArtistsAndAlbumsProps = {
   onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => any;
   onCloseMusicPlayer: () => void;
   setLoadIntoTileView: (e: boolean) => void;
+  navigateToDeepAppView: (e: any) => any;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
@@ -71,6 +72,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     onFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
     setLoadIntoTileView,
+    navigateToDeepAppView,
   } = props;
   const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
@@ -1093,6 +1095,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               viewSolData={viewSolData}
                               openActionFireLogic={openActionFireLogic}
                               onCloseMusicPlayer={onCloseMusicPlayer}
+                              navigateToDeepAppView={navigateToDeepAppView}
                             />
                           </div>
                         )}

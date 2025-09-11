@@ -686,7 +686,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
           {selectedAiModel === "other" && (
             <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
-              <p className="font-bold text-yellow-300">You are uploading your own remixed track.</p>
+              <p className="font-bold text-yellow-300">You are uploading your own remixed track. Your small fee is required for platform costs.</p>
             </div>
           )}
 
@@ -1233,6 +1233,12 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
           <div className="space-y-4">
             <>
               <div className={`flex flex-col gap-4`}>
+                {selectedAiModel === "other" && (
+                  <p className="text-xs text-gray-300">
+                    Want to use Suno, Udio or others to remix your track and then launch it on Sigma Music? You can do that here...
+                  </p>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     New Track Title
@@ -1261,10 +1267,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
                 {selectedAiModel === "other" && (
                   <>
-                    <p className="text-xs text-gray-300">
-                      Want to use Suno, Udio or others to remix your track and then launch it on Sigma Music? You can do that here...
-                    </p>
-
                     {/* Asset Uploads */}
                     <div className="flex flex-row gap-4 w-full md:col-span-2">
                       {/* Cover Art URL */}

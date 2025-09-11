@@ -369,7 +369,7 @@ export const PaymentSuccess = () => {
             <h2 className={`!text-xl text-center font-bold`}>Purchase In Progress</h2>
           </div>
           <div className="space-y-4">
-            <div className="flex flex-col items-center p-3 shadow-xl">
+            <div className="flex flex-col items-center p-3">
               <div className="relative group mb-6">
                 {itemImg ? (
                   <img

@@ -1192,6 +1192,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                         navigateToDeepAppView={(e: any) => {
                           // Handle navigation if needed
                           console.log("Navigate to deep app view:", e);
+                          navigateToDeepAppView(e);
                         }}
                       />
                     </div>

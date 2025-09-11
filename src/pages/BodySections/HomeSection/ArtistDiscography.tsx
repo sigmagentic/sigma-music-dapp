@@ -65,6 +65,7 @@ type ArtistDiscographyProps = {
   openActionFireLogic: (e: any) => any;
   setFeaturedArtistDeepLinkSlug?: (e: any) => any;
   onCloseMusicPlayer: () => void;
+  navigateToDeepAppView: (e: any) => any;
 };
 
 export const ArtistDiscography = (props: ArtistDiscographyProps) => {
@@ -88,6 +89,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
+    navigateToDeepAppView,
   } = props;
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,10 +97,11 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const { updateSolNfts, solMusicAssetNfts } = useNftsStore();
   const userLoggedInWithWallet = publicKeySol;
   const { updateAssetPlayIsQueued, trackPlayIsQueued, assetPlayIsQueued, albumIdBeingPlayed } = useAudioPlayerStore();
+  const { updateMyRawPaymentLogs, myMusicAssetPurchases, myAlbumMintLogs, updateMyAlbumMintLogs, userArtistProfile } = useAccountStore();
+
   const [queueAlbumPlay, setQueueAlbumPlay] = useState(false);
   const [albumToBuyAndMint, setAlbumToBuyAndMint] = useState<Album | undefined>();
   const [albumsWithCanBeMintedFlags, setAlbumsWithCanBeMintedFlags] = useState<Album[]>([]);
-  const { updateMyRawPaymentLogs, myMusicAssetPurchases, myAlbumMintLogs, updateMyAlbumMintLogs } = useAccountStore();
   const [showEntitlementsModal, setShowEntitlementsModal] = useState(false);
   const [selectedAlbumToShowEntitlements, setSelectedAlbumToShowEntitlements] = useState<Album | null>(null);
   const [entitlementsForSelectedAlbum, setEntitlementsForSelectedAlbum] = useState<EntitlementForMusicAsset | null>(null);
@@ -109,6 +112,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const [ownedStoryProtocolCommercialLicense, setOwnedStoryProtocolCommercialLicense] = useState<any | null>(null);
   const [showAlbumPurchasedCongratsModal, setShowAlbumPurchasedCongratsModal] = useState(false);
   const [tweetText, setTweetText] = useState<string>("");
+  const [isArtistLookingAtTheirOwnPage, setIsArtistLookingAtTheirOwnPage] = useState(false);
+  const [isArtistFeatureLoading, setIsArtistFeatureLoading] = useState(false);
 
   useEffect(() => {
     if (artistProfile && albums.length > 0) {
@@ -122,14 +127,9 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       };
 
       const fetchAlbumsWithCanBeMinted = async () => {
-        // lets also fetch albums from the DB
-        // const albumsFromDb = await getAlbumFromDBViaAPI(artistProfile.artistId);
-        // console.log("albumsFromDb", albumsFromDb);
-        // console.log("albums", albums);
-        // const allAlbums = [...albumsFromDb, ...albums]; //
         const allAlbums = [...albums];
 
-        const albumsWithCanBeMinted = await Promise.all(
+        const albumsWithCanBeMintedAndFastStreamed = await Promise.all(
           allAlbums.map(async (album) => {
             const meta = await checkIfAlbumCanBeMintedViaAPI(album.albumId);
             const albumCanBeFastStreamed = await doFastStreamOnAlbumCheckViaAPI(`${album.albumId}-1`); // we check if the first track is loaded and if so, we know it can be fast streamed
@@ -143,7 +143,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
         // in the above we get some live data to make sure option 2 and 3 are correct (as it needs to double check we have the NFT metadata setup in the backend)
         // .., now we augment it with some static data for option 1
-        const albumsWithCanBeMintedAndStaticData = albumsWithCanBeMinted.map((album) => {
+        const albumsWithCanBeMintedAndStaticData = albumsWithCanBeMintedAndFastStreamed.map((album) => {
           const adjustedWithFlatPurchaseData = {
             ...album,
           };
@@ -282,6 +282,14 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     }
   }, [addressSol, artistProfile]); // Only re-run if addressSol changes
 
+  useEffect(() => {
+    if (addressSol && !inCollectedAlbumsView && artistProfile && userArtistProfile) {
+      if (userArtistProfile.artistId === artistProfile.artistId) {
+        setIsArtistLookingAtTheirOwnPage(true);
+      }
+    }
+  }, [artistProfile, addressSol, inCollectedAlbumsView, userArtistProfile]);
+
   function thisIsPlayingOnMusicPlayer(album: any): boolean {
     if (albumIdBeingPlayed) {
       return albumIdBeingPlayed === album.albumId;
@@ -395,12 +403,32 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     }
   }
 
+  async function fetchAndLoadAnyDraftAlbums() {
+    setIsArtistFeatureLoading(true);
+    const albumsFromDb = await getAlbumFromDBViaAPI(artistProfile.artistId);
+
+    if (albumsFromDb.length > 0) {
+      const albumsWithCanBeMintedAndFastStreamed = await Promise.all(
+        albumsFromDb.map(async (album: Album) => {
+          const albumCanBeFastStreamed = await doFastStreamOnAlbumCheckViaAPI(`${album.albumId}-1`); // we check if the first track is loaded and if so, we know it can be fast streamed
+          return {
+            ...album,
+            _albumCanBeFastStreamed: Boolean(albumCanBeFastStreamed),
+          };
+        })
+      );
+
+      setAlbumsWithCanBeMintedFlags([...albumsWithCanBeMintedFlags, ...albumsWithCanBeMintedAndFastStreamed]);
+    }
+    setIsArtistFeatureLoading(false);
+  }
+
   return (
     <>
       {albums.length === 0 && (
         <div className="max-w-4xl mx-auto md:m-[initial] p-3 flex flex-col">
           <h2 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left">
-            No Playable Content Yet
+            No Live Albums Yet
           </h2>
         </div>
       )}
@@ -868,10 +896,37 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 </>
               </div>
 
-              <span className="text-xs text-gray-700 ml-0 text-left mt-2 mb-[15px]">id: {album.albumId}</span>
+              <span className="text-xs text-gray-700 ml-0 text-left mt-2 mb-[15px]">
+                id: {album.albumId} <span className="text-orange-500 ml-1">{album.isPublished === "0" ? "Draft" : ""}</span>
+              </span>
             </div>
           </div>
         ))
+      )}
+
+      {isArtistLookingAtTheirOwnPage && (
+        <div
+          className={`b-2 border border-orange-500 bg-orange-500/10 p-2 rounded-lg mt-5 ${isArtistFeatureLoading ? "opacity-50 pointer-events-none cursor-not-allowed" : ""}`}>
+          <div className="text-sm text-orange-500">This is your own artist page. Custom Options:</div>
+          <ul className="text-sm">
+            <li
+              className="cursor-pointer hover:underline"
+              onClick={() => {
+                fetchAndLoadAnyDraftAlbums();
+              }}>
+              1. View and Sample Draft or Recently Published Albums
+            </li>
+            <li
+              className="cursor-pointer hover:underline"
+              onClick={() => {
+                navigateToDeepAppView({
+                  toSection: "profile",
+                });
+              }}>
+              2. Edit Albums and Artist Profile
+            </li>
+          </ul>
+        </div>
       )}
 
       {/* Entitlements Modal */}
@@ -943,7 +998,9 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   </Button>
                 </div>
 
-                {ownedStoryProtocolCommercialLicense && <StoryIPLicenseDisplay license={ownedStoryProtocolCommercialLicense} />}
+                {ownedStoryProtocolCommercialLicense && (
+                  <StoryIPLicenseDisplay license={ownedStoryProtocolCommercialLicense} navigateToDeepAppView={navigateToDeepAppView} />
+                )}
               </div>
 
               {/* View Collectible Section */}

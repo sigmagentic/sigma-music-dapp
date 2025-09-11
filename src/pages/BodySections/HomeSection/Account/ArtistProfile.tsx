@@ -30,7 +30,7 @@ type ArtistProfileProps = {
 // Render the artist profile content
 export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, navigateToDeepAppView }: ArtistProfileProps) => {
   const { publicKey: web3AuthPublicKey, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
-  const { userWeb2AccountDetails, myAiRemixRawTracks, updateMyAiRemixRawTracks, userArtistProfile, updateUserArtistProfile } = useAccountStore();
+  const { userWeb2AccountDetails, userArtistProfile, updateUserArtistProfile } = useAccountStore();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey; // Use the appropriate public key based on wallet type
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -59,36 +59,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   const showVerificationInfo = () => {
     setShowVerificationInfoModal(true);
   };
-
-  // useEffect(() => {
-  //   if (myAiRemixRawTracks.length === 0 && displayPublicKey) {
-  //     // we need to check if this user has made any remixes and if so, we can flag them as an artist
-  //     try {
-  //       const fetchRemixLaunches = async () => {
-  //         const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: displayPublicKey?.toString() || null });
-  //         const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: displayPublicKey?.toString() || null });
-  //         const responseC = await getRemixLaunchesViaAPI({ launchStatus: "launched", addressSol: displayPublicKey?.toString() || null });
-
-  //         if (responseA.length > 0 || responseB.length > 0 || responseC.length > 0) {
-  //           const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, responseC);
-
-  //           const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
-  //           setVirtualAiRemixAlbum(virtualAlbum);
-  //           setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
-  //           updateMyAiRemixRawTracks(allMyRemixes);
-  //         }
-  //       };
-
-  //       fetchRemixLaunches();
-  //     } catch (error) {
-  //       console.error("Error refreshing graduated data:", error);
-  //     }
-  //   } else if (myAiRemixRawTracks.length > 0) {
-  //     const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(myAiRemixRawTracks);
-  //     setVirtualAiRemixAlbum(virtualAlbum);
-  //     setVirtualAiRemixAlbumTracks(allMyRemixesAsMusicTracks);
-  //   }
-  // }, [myAiRemixRawTracks, displayPublicKey]);
 
   // Fetch payout logs when artist profile is active
   useEffect(() => {

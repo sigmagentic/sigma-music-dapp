@@ -27,7 +27,7 @@ import { MyCollectedNFTs } from "./MyCollectedNFTs";
 import { MyProfile } from "./Account/MyProfile";
 import { RewardPools } from "./RewardPools";
 import { SendBitzPowerUp } from "./SendBitzPowerUp";
-import { getFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
+import { getArtistsAlbumsData, getFirstTrackBlobData, updateBountyBitzSumGlobalMappingWindow } from "./shared/utils";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 type HomeSectionProps = {
@@ -58,7 +58,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const { solBitzNfts, solMusicAssetNfts } = useNftsStore();
-  const { artistLookupEverything } = useAppStore();
+  const { artistLookupEverything, updateArtistLookupEverything, updateArtistLookup, updateAlbumLookup } = useAppStore();
 
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
@@ -83,8 +83,6 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
   const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
 
   // Animated text rotation words
   const rotatingWords = [
@@ -527,7 +525,48 @@ export const HomeSection = (props: HomeSectionProps) => {
       }
 
       let albumTracksFromDb = await getAlbumTracksFromDBViaAPI(playAlbumNowParams.artistId, playAlbumNowParams.albumId, userOwnsAlbum);
-      const artistData = artistLookupEverything[playAlbumNowParams.artistId];
+      let artistData = artistLookupEverything[playAlbumNowParams.artistId];
+
+      // S: there is a chance that it's a brand NEW artist, so if artistData is not found maybe it just didnt get indexed into the app yet. so lets try again by refreshing some core data into the store
+      const { albumArtistLookupData, albumArtistLookupDataEverything } = await getArtistsAlbumsData();
+
+      const artistLookupMapLatest = albumArtistLookupData.reduce(
+        (acc, artist) => {
+          acc[artist.artistId] = artist;
+          return acc;
+        },
+        {} as Record<string, any>
+      );
+
+      // Create album lookup
+      const albumLookupMapLatest = albumArtistLookupData.reduce(
+        (acc, artist) => {
+          artist.albums.forEach((album: any) => {
+            acc[album.albumId] = album;
+          });
+          return acc;
+        },
+        {} as Record<string, any>
+      );
+
+      const artistLookupEverythingMapLatest = albumArtistLookupDataEverything.reduce(
+        (acc, artist) => {
+          acc[artist.artistId] = artist;
+          return acc;
+        },
+        {} as Record<string, any>
+      );
+
+      updateArtistLookup(artistLookupMapLatest);
+      updateAlbumLookup(albumLookupMapLatest);
+      updateArtistLookupEverything(artistLookupEverythingMapLatest);
+      // E: there is a chance that it's a ....
+
+      artistData = artistLookupEverythingMapLatest[playAlbumNowParams.artistId];
+
+      if (!artistData) {
+        throw new Error("No artist data found for artist. Please refresh the page and try again.");
+      }
 
       albumTracksFromDb = albumTracksFromDb.map((track: MusicTrack) => ({
         ...track,
@@ -562,6 +601,8 @@ export const HomeSection = (props: HomeSectionProps) => {
         if (!publicKeySol) throw new Error("Not logged in to stream music via Data NFT");
 
         const dataNft = solMusicAssetNfts[albumInOwnershipListIndex];
+
+        if (!dataNft) throw new Error("No data NFT found for album");
 
         const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
           solPreaccessNonce,
@@ -966,6 +1007,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                     setLoadIntoTileView={setLoadIntoTileView}
                     isAllAlbumsMode={homeMode.includes("albums")}
                     filterByArtistCampaignCode={homeMode.includes("campaigns-wsb") ? campaignCodeFilter : -1}
+                    navigateToDeepAppView={navigateToDeepAppView}
                   />
                 </div>
               </>
