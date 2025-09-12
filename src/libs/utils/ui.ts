@@ -16,6 +16,14 @@ export const toastError = (message: string, showTopCenter?: boolean) => {
   toast.error(message, {
     position: showTopCenter ? "top-center" : "top-right",
     duration: 6000,
+    style: {
+      background: "#1A1A1A",
+      color: "white",
+      border: "1px solid #eab308",
+      minWidth: "260px",
+      fontSize: "14px",
+      fontFamily: "var(--font-sans)",
+    },
   });
 };
 
@@ -23,6 +31,14 @@ export const toastSuccess = (message: string, showTopCenter?: boolean) => {
   toast.success(message, {
     position: showTopCenter ? "top-center" : "top-right",
     duration: 6000,
+    style: {
+      background: "#1A1A1A",
+      color: "white",
+      border: "1px solid #eab308",
+      minWidth: "260px",
+      fontSize: "14px",
+      fontFamily: "var(--font-sans)",
+    },
   });
 };
 

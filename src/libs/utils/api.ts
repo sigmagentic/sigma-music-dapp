@@ -1553,3 +1553,34 @@ export const saveMediaToServerViaAPI = async (file: File, solSignature: string, 
     throw new Error("Failed to save media to server");
   }
 };
+
+export const logAssetRatingToAPI = async ({ assetId, rating, address }: { assetId: string; rating: string; address: string }) => {
+  try {
+    let APIEndpoint = `${getApiWeb2Apps()}/datadexapi/sigma/assetRating`;
+
+    const headerConfig: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    const response = await fetch(APIEndpoint, {
+      method: "POST",
+      headers: headerConfig,
+      body: JSON.stringify({ assetId, rating, raterAddr: address }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error saving asset rating data:", error);
+    throw error;
+  }
+};
