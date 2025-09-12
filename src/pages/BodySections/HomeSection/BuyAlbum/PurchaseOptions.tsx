@@ -31,6 +31,9 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
     if (option === "priceOption1") {
       return buyNowMeta?.[option]?.priceInUSD && buyNowMeta[option]?.priceInUSD !== "";
     } else if (option === "priceOption4") {
+      if (DISABLE_COMMERCIAL_LICENSE_BUY_OPTION === "1") {
+        return false;
+      }
       // this is the pure commercial license option, but it depends on if iptoken exits on priceOption3 as well as that is where the main IP is
       return buyNowMeta?.[option]?.priceInUSD && buyNowMeta[option]?.priceInUSD !== "" && buyNowMeta?.["priceOption3"]?.IpTokenId;
     } else if (DISABLE_COMMERCIAL_LICENSE_BUY_OPTION === "1" && option === "priceOption3") {
@@ -66,7 +69,9 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
         {!available && (
           <div className="absolute inset-0 flex items-center justify-center z-20">
             <span className="bg-white text-black px-4 py-2 rounded-lg font-semibold shadow-lg">
-              {DISABLE_COMMERCIAL_LICENSE_BUY_OPTION === "1" && option === "priceOption3" ? "Currently Offline" : "Currently Not Offered"}
+              {DISABLE_COMMERCIAL_LICENSE_BUY_OPTION === "1" && (option === "priceOption3" || option === "priceOption4")
+                ? "Currently Offline"
+                : "Currently Not Offered"}
             </span>
           </div>
         )}
