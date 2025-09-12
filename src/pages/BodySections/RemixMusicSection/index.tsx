@@ -599,7 +599,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       });
 
       // Show feedback to user
-      toastSuccess(`Track ${rating === "up" ? "liked" : "disliked"}!`, true);
+      toastSuccess(`Track ${rating === "up" ? "liked" : "disliked"}!`);
     } catch (error) {
       console.error("Error sending vote:", error);
       toastError("Failed to submit vote. Most likely you have already voted on this track. Please try again later.");

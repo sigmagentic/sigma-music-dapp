@@ -218,7 +218,7 @@ export const JoinInnerCircleCC = ({
 
     // // TEST UI WORKFLOW HERE
     // // need to pull it out of the ui thread of for some reason the confetti goes first
-    // toastSuccess("Payment Successful!", true);
+    // toastSuccess("Payment Successful!");
     // setPaymentStatus("confirmed");
     // setShowPaymentConfirmation(false);
 
@@ -226,7 +226,7 @@ export const JoinInnerCircleCC = ({
 
     // await sleep(3);
 
-    // toastSuccess("Minting Successful!", true);
+    // toastSuccess("Minting Successful!");
     // setMintingStatus("confirmed");
 
     // // need to pull it out of the ui thread of for some reason the confetti goes first
