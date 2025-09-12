@@ -91,11 +91,11 @@ const GetBitzSol = (props: any) => {
           startVelocity: 45,
           particleCount: 400,
           scalar: 2,
-          shapes: ["emoji", "circle", "square"],
+          shapes: ["emoji"],
           colors: ["#FFD700", "#FFA500", "#FF4500", "#ff0000", "#00ff00"],
           shapeOptions: {
             emoji: {
-              value: ["🎉", "💎", "🏆", "⭐", "💫", "🌟", "🔥", "👑"],
+              value: ["💛", "⭐", "✨", "💫", "🌟", "⚡️"],
             },
           },
           origin: { y: 0.7 },
@@ -110,10 +110,10 @@ const GetBitzSol = (props: any) => {
           startVelocity: 30,
           particleCount: 200,
           scalar: 2,
-          shapes: ["emoji", "circle", "square"],
+          shapes: ["emoji"],
           shapeOptions: {
             emoji: {
-              value: ["💎", "⭐", "✨", "💫"],
+              value: ["💛", "⭐", "✨", "💫", "🌟", "⚡️"],
             },
           },
         });

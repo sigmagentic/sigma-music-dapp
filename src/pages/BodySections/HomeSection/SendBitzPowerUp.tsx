@@ -163,10 +163,10 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
       startVelocity: 30,
       particleCount: 200,
       scalar: 2,
-      shapes: ["emoji", "circle", "square"],
+      shapes: ["emoji"],
       shapeOptions: {
         emoji: {
-          value: ["💎", "⭐", "✨", "💫", "🎵", "🎶", "🎸", "🎼"],
+          value: ["💛", "⭐", "✨", "💫", "🌟", "⚡️"],
         },
       },
     });

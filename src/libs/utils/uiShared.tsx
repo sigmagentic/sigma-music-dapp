@@ -35,7 +35,7 @@ export const showSuccessConfetti = async () => {
     startVelocity: 30,
     particleCount: 200,
     scalar: 2,
-    shapes: ["emoji", "circle", "square"],
+    shapes: ["emoji"],
     shapeOptions: {
       emoji: {
         value: ["💛", "⭐", "✨", "💫", "🌟", "⚡️"],
