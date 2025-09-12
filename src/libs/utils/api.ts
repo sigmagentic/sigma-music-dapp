@@ -1537,20 +1537,20 @@ export const saveMediaToServerViaAPI = async (file: File, solSignature: string, 
       const mediaUploadResponse = await response.json();
 
       if (mediaUploadResponse.error) {
-        throw new Error("API Error on saveMediaToServerViaAPI");
+        throw new Error("API Error on upload media" + mediaUploadResponse.errorMessage || " - unknown error");
       } else {
         if (mediaUploadResponse?.data?.fileUrl) {
           return mediaUploadResponse.data.fileUrl;
         } else {
-          throw new Error("API Error on saveMediaToServerViaAPI - did not get a fileUrl back");
+          throw new Error("API Error on upload media - did not get a fileUrl back");
         }
       }
     } else {
-      throw new Error("API Error on saveMediaToServerViaAPI - did not get a fileUrl back");
+      throw new Error("API Error on upload media - did not get a success response back");
     }
   } catch (error) {
     console.error("Error saving media to server:", error);
-    throw new Error("Failed to save media to server");
+    throw new Error("Failed to upload media to server " + (error as Error).message);
   }
 };
 

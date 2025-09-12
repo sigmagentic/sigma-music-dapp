@@ -432,12 +432,17 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       }
 
       if (newSelectedProfileImageFile) {
-        const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedProfileImageFile, usedPreAccessSignature, usedPreAccessNonce, addressSol);
+        try {
+          const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedProfileImageFile, usedPreAccessSignature, usedPreAccessNonce, addressSol);
 
-        if (fileUploadResponse) {
-          userProfileData.profileImage = fileUploadResponse;
-        } else {
-          toastError("Error uploading profile image but other profile data was saved. You can upload a profile image later.");
+          if (fileUploadResponse) {
+            userProfileData.profileImage = fileUploadResponse;
+          } else {
+            toastError("Error uploading profile image but other profile data was saved. You can upload a profile image later.");
+            return;
+          }
+        } catch (error) {
+          toastError("Error uploading profile image: " + (error as Error)?.message);
           return;
         }
       }

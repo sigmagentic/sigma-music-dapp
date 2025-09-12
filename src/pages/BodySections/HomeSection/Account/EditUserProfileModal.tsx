@@ -195,12 +195,17 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
         throw new Error("Failed to valid signature to prove account ownership");
       }
 
-      const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedProfileImageFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+      try {
+        const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedProfileImageFile, solPreaccessSignature, solPreaccessNonce, addressSol);
 
-      if (fileUploadResponse) {
-        formData.profileImage = fileUploadResponse;
-      } else {
-        toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+        if (fileUploadResponse) {
+          formData.profileImage = fileUploadResponse;
+        } else {
+          toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+          return;
+        }
+      } catch (error) {
+        toastError("Error uploading profile image: " + (error as Error)?.message);
         return;
       }
     }

@@ -14,6 +14,14 @@ export const toastClosableError = (msg: string) => {
     ),
     {
       position: "top-right",
+      style: {
+        background: "#1A1A1A",
+        color: "white",
+        border: "1px solid #eab308",
+        minWidth: "260px",
+        fontSize: "14px",
+        fontFamily: "var(--font-sans)",
+      },
     }
   );
 };
@@ -30,7 +38,7 @@ export const showSuccessConfetti = async () => {
     shapes: ["emoji", "circle", "square"],
     shapeOptions: {
       emoji: {
-        value: ["💎", "⭐", "✨", "💫"],
+        value: ["💛", "⭐", "✨", "💫", "🌟", "⚡️"],
       },
     },
   });

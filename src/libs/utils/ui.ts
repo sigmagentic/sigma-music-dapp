@@ -4,14 +4,6 @@ import { twMerge } from "tailwind-merge";
 import { AiRemixRawTrack, AiRemixLaunch, MusicTrack, Album } from "libs/types";
 import { downloadMp3TrackViaAPI } from ".";
 
-/*
-    UI should import Toaster
-    /////////////////////////////////////////////
-    import { Toaster } from 'react-hot-toast';
-    <Toaster />
-    /////////////////////////////////////////////
-*/
-
 export const toastError = (message: string, showTopCenter?: boolean) => {
   toast.error(message, {
     position: showTopCenter ? "top-center" : "top-right",

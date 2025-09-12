@@ -22,7 +22,7 @@ import { ENABLE_APP_OFFLINE } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
-import { AlertBanner } from "./AlertBanner";
+// import { AlertBanner } from "./AlertBanner";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
 

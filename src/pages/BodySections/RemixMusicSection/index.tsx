@@ -23,7 +23,7 @@ import { SendBitzPowerUp } from "pages/BodySections/HomeSection/SendBitzPowerUp"
 import { updateBountyBitzSumGlobalMappingWindow } from "pages/BodySections/HomeSection/shared/utils";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
-import { useNftsStore } from "store/nfts";
+// import { useNftsStore } from "store/nfts";
 import { LaunchAiMusicTrack } from "./LaunchAiMusicTrack";
 import { routeNames } from "routes";
 import { fixImgIconForRemixes, toastError, toastSuccess } from "libs/utils/ui";

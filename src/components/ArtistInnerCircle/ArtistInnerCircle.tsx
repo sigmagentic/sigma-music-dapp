@@ -18,7 +18,6 @@ import { JoinInnerCircleSOL } from "./JoinInnerCircleSOL";
 import { tierData, perksData } from "./tierData";
 import { Switch } from "libComponents/Switch";
 import { showSuccessConfetti } from "libs/utils/uiShared";
-
 import { ONE_USD_IN_XP } from "config";
 import { useAccountStore } from "store/account";
 

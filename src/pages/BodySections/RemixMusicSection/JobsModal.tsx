@@ -1,6 +1,6 @@
 import React from "react";
 import { RefreshCcw } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toastError, toastSuccess } from "libs/utils/ui";
 
 export const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onClose: () => void; jobs: Array<any>; onRefresh: () => void }) => {
   if (!isOpen) return null;
@@ -56,10 +56,10 @@ export const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolea
                         onClick={async () => {
                           try {
                             await navigator.clipboard.writeText(job.tx);
-                            toast.success("Transaction hash copied to clipboard!");
+                            toastSuccess("Transaction hash copied to clipboard!", true);
                           } catch (err) {
                             console.error("Failed to copy: ", err);
-                            toast.error("Failed to copy to clipboard");
+                            toastError("Failed to copy to clipboard", true);
                           }
                         }}
                         className="text-yellow-300 hover:text-yellow-200 hover:underline cursor-pointer transition-colors">

@@ -292,23 +292,33 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
       if (addressSol) {
         if (newSelectedTrackCoverArtFile) {
-          const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedTrackCoverArtFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+          try {
+            const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedTrackCoverArtFile, solPreaccessSignature, solPreaccessNonce, addressSol);
 
-          if (fileUploadResponse) {
-            formData.cover_art_url = fileUploadResponse;
-          } else {
-            toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+            if (fileUploadResponse) {
+              formData.cover_art_url = fileUploadResponse;
+            } else {
+              toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+              return;
+            }
+          } catch (error) {
+            toastError("Error uploading cover art image: " + (error as Error)?.message);
             return;
           }
         }
 
         if (newSelectedAudioFile) {
-          const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedAudioFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+          try {
+            const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedAudioFile, solPreaccessSignature, solPreaccessNonce, addressSol);
 
-          if (fileUploadResponse) {
-            formData.file = fileUploadResponse;
-          } else {
-            toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+            if (fileUploadResponse) {
+              formData.file = fileUploadResponse;
+            } else {
+              toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+              return;
+            }
+          } catch (error) {
+            toastError("Error uploading audio file: " + (error as Error)?.message);
             return;
           }
         }

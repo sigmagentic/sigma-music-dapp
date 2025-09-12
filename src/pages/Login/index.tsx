@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import axios from "axios";
 import { Loader } from "lucide-react";
-import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthRedirectWrapper } from "components";
 import { SOL_ENV_ENUM } from "config";
@@ -88,17 +87,6 @@ const LoginPage = () => {
         const celebrateEmojis = ["🥳", "🎊", "🍾", "🥂", "🍻", "🍾"];
 
         if (userLoggedInCallData?.newUserAccountCreated) {
-          // toast.success("Welcome New Music Fan! Its Great To Have You Here.", {
-          //   position: "bottom-center",
-          //   duration: 6000,
-          //   icon: celebrateEmojis[Math.floor(Math.random() * celebrateEmojis.length)],
-          //   style: {
-          //     background: "#1a1a1a",
-          //     color: "#fff",
-          //     border: "1px solid #333",
-          //   },
-          // });
-
           updateUserWeb2AccountDetails(userLoggedInCallData);
 
           // isTriggerProductTour = "g=1";
