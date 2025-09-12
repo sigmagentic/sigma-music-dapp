@@ -1719,7 +1719,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
             setShowEditTrackModal(false);
           }}
           onTracksUpdated={() => {
-            toastSuccess(`Track "${trackToAddToAlbum?.title || ""}" added to album "${selectedAlbumTitle}" successfully.`, true);
+            toastSuccess(`Track "${trackToAddToAlbum?.title || ""}" added to album "${selectedAlbumTitle}" successfully.`);
 
             addTrackToAlbum_ResetToPrestine();
           }}

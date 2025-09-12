@@ -719,7 +719,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
           {selectedAiModel === "other" && (
             <div className="text-sm bg-gray-800 p-4 rounded-lg mb-4">
-              <p className="font-bold text-yellow-300">You are uploading your own remixed track. Your small fee is required for platform costs.</p>
+              <p className="font-bold text-yellow-300">You are uploading your own remixed track. A small XP fee is required for platform costs.</p>
             </div>
           )}
 
