@@ -4,7 +4,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { Album, Artist, MusicTrack } from "libs/types";
 import { getAlbumTracksFromDBViaAPI, getPayoutLogsViaAPI } from "libs/utils";
-import { isUserArtistType, mergeRawAiRemixTracks } from "libs/utils/ui";
+import { isUserArtistType } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { EditArtistProfileModal, ArtistProfileFormData } from "./EditArtistProfileModal";
@@ -39,8 +39,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   const [payoutLogs, setPayoutLogs] = useState<any[]>([]);
   const [loadingPayouts, setLoadingPayouts] = useState<boolean>(false);
   const [totalPayout, setTotalPayout] = useState<number>(0);
-  // const [virtualAiRemixAlbum, setVirtualAiRemixAlbum] = useState<Album | null>(null);
-  // const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
   const [showEditArtistProfileModal, setShowEditArtistProfileModal] = useState<boolean>(false);
   const [albumsLoading, setAlbumsLoading] = useState<boolean>(true);
   const [noArtistIdError, setNoArtistIdError] = useState<boolean>(false); //there can be a situation where the artist profile is not yet created, so we need to handle that
@@ -185,11 +183,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         setMyAlbums((prevAlbums) =>
           prevAlbums.map((album) => (album.albumId === selectedAlbumForEdit.albumId ? { ...album, ...response.fullAlbumData } : album))
         );
-        toastSuccess("Album updated successfully", true);
+        toastSuccess("Album updated successfully");
       } else if (response.created && response.fullAlbumData) {
         // Add new album to myAlbums
         setMyAlbums((prevAlbums) => [...prevAlbums, response.fullAlbumData]);
-        toastSuccess("Album created successfully", true);
+        toastSuccess("Album created successfully");
       } else {
         throw new Error("Failed to save album");
       }
@@ -197,7 +195,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
       return true;
     } catch (error) {
       console.error("Error saving album:", error);
-      toastError("Error saving album - " + (error as Error).message, true);
+      toastError("Error saving album - " + (error as Error).message);
       return false;
     }
   };
@@ -276,12 +274,12 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         setNoArtistIdError(false); // reset this flag as we have now created the artist profile
       }
 
-      toastSuccess("Profile saved successfully", true);
+      toastSuccess("Profile saved successfully");
 
       return true;
     } catch (error) {
       console.error("Error updating profile:", error);
-      toastError("Error updating profile - " + (error as Error).message, true);
+      toastError("Error updating profile - " + (error as Error).message);
       throw error;
     }
   };
@@ -670,7 +668,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         albumImg={selectedAlbumImg}
         onTracksUpdated={() => {
           handleViewCurrentTracks(selectedAlbumId, selectedAlbumTitle, selectedAlbumImg);
-          toastSuccess("Tracks updated successfully", true);
+          toastSuccess("Tracks updated successfully");
         }}
       />
 

@@ -4,9 +4,9 @@ import { twMerge } from "tailwind-merge";
 import { AiRemixRawTrack, AiRemixLaunch, MusicTrack, Album } from "libs/types";
 import { downloadMp3TrackViaAPI } from ".";
 
-export const toastError = (message: string, showTopCenter?: boolean) => {
+export const toastError = (message: string, showTopRight?: boolean) => {
   toast.error(message, {
-    position: showTopCenter ? "top-center" : "top-right",
+    position: showTopRight ? "top-right" : "top-center",
     duration: 6000,
     style: {
       background: "#1A1A1A",
@@ -19,9 +19,9 @@ export const toastError = (message: string, showTopCenter?: boolean) => {
   });
 };
 
-export const toastSuccess = (message: string, showTopCenter?: boolean) => {
+export const toastSuccess = (message: string, showTopRight?: boolean) => {
   toast.success(message, {
-    position: showTopCenter ? "top-center" : "top-right",
+    position: showTopRight ? "top-right" : "top-center",
     duration: 6000,
     style: {
       background: "#1A1A1A",

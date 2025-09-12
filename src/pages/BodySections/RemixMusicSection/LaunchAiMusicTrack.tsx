@@ -389,7 +389,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
     // // S: TEST UI WORKFLOW HERE
     // await sleep(5);
-    // toastSuccess("Payment Successful!", true);
+    // toastSuccess("Payment Successful!");
     // setPaymentStatus("confirmed");
     // setShowPaymentConfirmation(false);
 
@@ -528,7 +528,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
       }
 
-      toastSuccess("Payment Successful!", true);
+      toastSuccess("Payment Successful!");
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
@@ -564,7 +564,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
     // // S: TEST UI WORKFLOW HERE
     // await sleep(5);
-    // toastSuccess("Remixing Job Sent!", true);
+    // toastSuccess("Remixing Job Sent!");
     // setRemixingStatus("confirmed");
 
     // const tweetMsg = injectXUserNameIntoTweet(
@@ -612,7 +612,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         );
       }
 
-      toastSuccess(selectedAiModel === "other" ? "Remix Upload Sent!" : "Remixing Job Sent!", true);
+      toastSuccess(selectedAiModel === "other" ? "Remix Upload Sent!" : "Remixing Job Sent!");
 
       setRemixingStatus("confirmed");
 

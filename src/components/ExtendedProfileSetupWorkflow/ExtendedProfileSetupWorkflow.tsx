@@ -505,7 +505,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           const artistResponse = await updateArtistProfileOnBackEndAPI(artistProfileDataToSave);
 
           if (artistResponse.created) {
-            toastSuccess("Artist profile created successfully!", true);
+            toastSuccess("Artist profile created successfully!");
 
             // artists.fullArtistData will return the FULL artist profile data
             // we need to update the userWeb2AccountDetails with the full artist profile data
@@ -519,7 +519,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           return;
         }
       } else {
-        toastSuccess("Profile saved successfully!", true);
+        toastSuccess("Profile saved successfully!");
       }
 
       setCurrentStep("success");

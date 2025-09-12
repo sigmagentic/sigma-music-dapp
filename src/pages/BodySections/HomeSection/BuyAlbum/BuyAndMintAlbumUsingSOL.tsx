@@ -188,7 +188,7 @@ export const BuyAndMintAlbumUsingSOL = ({
         throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
       }
 
-      toastSuccess("Payment Successful!", true);
+      toastSuccess("Payment Successful!");
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
@@ -199,7 +199,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
         await sleep(3);
 
-        toastSuccess("Digital Album Purchase Successful!", true);
+        toastSuccess("Digital Album Purchase Successful!");
 
         // need to pull it out of the ui thread of for some reason the confetti goes first
         setTimeout(() => {
@@ -238,7 +238,7 @@ export const BuyAndMintAlbumUsingSOL = ({
     // TEST UI WORKFLOW HERE
     setTimeout(async () => {
       // need to pull it out of the ui thread of for some reason the confetti goes first
-      toastSuccess("Payment Successful!", true);
+      toastSuccess("Payment Successful!");
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
@@ -247,7 +247,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
       await sleep(3);
 
-      toastSuccess("Digital Album Purchase Successful!", true);
+      toastSuccess("Digital Album Purchase Successful!");
 
       // need to pull it out of the ui thread of for some reason the confetti goes first
       setTimeout(() => {
@@ -340,7 +340,7 @@ export const BuyAndMintAlbumUsingSOL = ({
         throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
       }
 
-      toastSuccess("Payment Successful!", true);
+      toastSuccess("Payment Successful!");
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
@@ -355,7 +355,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
         await sleep(3);
 
-        toastSuccess("Digital Album Purchase Successful!", true);
+        toastSuccess("Digital Album Purchase Successful!");
 
         // need to pull it out of the ui thread of for some reason the confetti goes first
         setTimeout(() => {
@@ -384,7 +384,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
       // Log payment to web2 API
 
-      toastSuccess("Payment Successful!", true);
+      toastSuccess("Payment Successful!");
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
@@ -455,7 +455,7 @@ export const BuyAndMintAlbumUsingSOL = ({
         responseMessage = "Your on-chain commercial license is being processed and will be available in 'Your Collectibles Wallet' shortly.";
       }
 
-      toastSuccess(responseMessage, true);
+      toastSuccess(responseMessage);
       setMintingStatus("confirmed");
 
       // need to pull it out of the ui thread of for some reason the confetti goes first
@@ -486,7 +486,7 @@ export const BuyAndMintAlbumUsingSOL = ({
       // });
       await sleep(5);
       // throw new Error("Minting failed");
-      toastSuccess("Minting Successful!", true);
+      toastSuccess("Minting Successful!");
       setMintingStatus("confirmed");
       // need to pull it out of the ui thread of for some reason the confetti goes first
       setTimeout(() => {

@@ -297,7 +297,7 @@ export const JoinInnerCircleCC = ({
         throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
       }
 
-      toastSuccess("Payment Successful!", true);
+      toastSuccess("Payment Successful!");
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
@@ -342,7 +342,7 @@ export const JoinInnerCircleCC = ({
       // sleep for an extra 10 seconds after success to the RPC indexing can update
       await sleep(10);
 
-      toastSuccess("Minting Successful!", true);
+      toastSuccess("Minting Successful!");
       setMintingStatus("confirmed");
 
       // need to pull it out of the ui thread of for some reason the confetti goes first

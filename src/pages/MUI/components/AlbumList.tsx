@@ -208,11 +208,11 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
         setMyAlbums((prevAlbums) =>
           prevAlbums.map((album) => (album.albumId === selectedAlbumForEdit.albumId ? { ...album, ...response.fullAlbumData } : album))
         );
-        toastSuccess("Album updated successfully", true);
+        toastSuccess("Album updated successfully");
       } else if (response.created && response.fullAlbumData) {
         // Add new album to myAlbums
         setMyAlbums((prevAlbums) => [...prevAlbums, response.fullAlbumData]);
-        toastSuccess("Album created successfully", true);
+        toastSuccess("Album created successfully");
       } else {
         throw new Error("Failed to save album");
       }
@@ -220,7 +220,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
       return true;
     } catch (error) {
       console.error("Error saving album:", error);
-      toastError("Error saving album - " + (error as Error).message, true);
+      toastError("Error saving album - " + (error as Error).message);
       return false;
     }
   };

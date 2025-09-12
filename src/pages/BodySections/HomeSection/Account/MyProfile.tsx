@@ -71,7 +71,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       console.log("Saving profile data:", data);
 
       if (Object.keys(data).length === 0) {
-        toastError("Nothing changed so skipped saving", true);
+        toastError("Nothing changed so skipped saving");
         return true;
       }
 
@@ -127,13 +127,12 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       delete updatedUserWeb2AccountDetails.chainId;
 
       updateUserWeb2AccountDetails(updatedUserWeb2AccountDetails);
-
-      toastSuccess("Profile saved successfully", true);
+      toastSuccess("Profile saved successfully");
 
       return true;
     } catch (error) {
       console.error("Error updating profile:", error);
-      toastError("Error updating profile - " + (error as Error).message, true);
+      toastError("Error updating profile - " + (error as Error).message);
       throw error;
     }
   };

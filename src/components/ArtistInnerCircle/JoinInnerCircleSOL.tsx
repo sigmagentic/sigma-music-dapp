@@ -175,7 +175,7 @@ export const JoinInnerCircleSOL = ({
         throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
       }
 
-      toastSuccess("Payment Successful!", true);
+      toastSuccess("Payment Successful!");
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
@@ -253,7 +253,7 @@ export const JoinInnerCircleSOL = ({
         throw new Error(_logPaymentToAPIResponse.errorMessage || "Payment failed");
       }
 
-      toastSuccess("Payment Successful!", true);
+      toastSuccess("Payment Successful!");
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
@@ -283,7 +283,7 @@ export const JoinInnerCircleSOL = ({
 
       // Log payment to web2 API
 
-      toastSuccess("Payment Successful!", true);
+      toastSuccess("Payment Successful!");
       setPaymentStatus("confirmed");
       setShowPaymentConfirmation(false);
 
@@ -325,7 +325,7 @@ export const JoinInnerCircleSOL = ({
       // sleep for an extra 10 seconds after success to the RPC indexing can update
       await sleep(10);
 
-      toastSuccess("Minting Successful!", true);
+      toastSuccess("Minting Successful!");
       setMintingStatus("confirmed");
 
       // need to pull it out of the ui thread of for some reason the confetti goes first
@@ -356,7 +356,7 @@ export const JoinInnerCircleSOL = ({
       // });
       await sleep(5);
 
-      toastSuccess("Minting Successful!", true);
+      toastSuccess("Minting Successful!");
       setMintingStatus("confirmed");
 
       // need to pull it out of the ui thread of for some reason the confetti goes first

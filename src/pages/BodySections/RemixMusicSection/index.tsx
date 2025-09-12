@@ -569,7 +569,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
 
   const handleTrackRating = async (bountyId: string, rating: "up" | "down") => {
     if (!addressSol) {
-      toastError("You must be logged in to vote on a track!", true);
+      toastError("You must be logged in to vote on a track!");
       return;
     }
 
@@ -602,7 +602,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       toastSuccess(`Track ${rating === "up" ? "liked" : "disliked"}!`, true);
     } catch (error) {
       console.error("Error sending vote:", error);
-      toastError("Failed to submit vote. Most likely you have already voted on this track. Please try again later.", true);
+      toastError("Failed to submit vote. Most likely you have already voted on this track. Please try again later.");
     }
   };
 
