@@ -373,8 +373,8 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
           <h2 className="!text-xl font-bold mb-4">Your Artist Profile</h2>
 
           <div
-            className={`text-md font-bold border-2 rounded-lg p-2 ${userArtistProfile.isVerifiedArtist ? "bg-yellow-300text-black" : "bg-gray-500 text-white"}`}>
-            {userWeb2AccountDetails.isVerifiedArtist ? "Verified Artist Account" : "Unverified Artist Account"}
+            className={`text-md font-bold border-2 rounded-lg p-2 ${userWeb2AccountDetails.isVerifiedArtist ? "bg-yellow-300 text-black" : "bg-gray-500 text-white"}`}>
+            {userWeb2AccountDetails.isVerifiedArtist ? "☑️ Verified Artist Account" : "Unverified Artist Account"}
             {!userWeb2AccountDetails.isVerifiedArtist && (
               <button type="button" onClick={showVerificationInfo} className="text-gray-400 hover:text-yellow-400 transition-colors p-1 ml-2">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -442,7 +442,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                   <p className="text-lg font-mono">{userArtistProfile.creatorWallet}</p>
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Artist X Link</label>
+                  <label className="text-gray-400 text-sm">X Link</label>
                   {userArtistProfile.xLink ? (
                     <a
                       href={userArtistProfile.xLink}
@@ -456,7 +456,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                   )}
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Artist YT Link</label>
+                  <label className="text-gray-400 text-sm">YouTube Link</label>
                   {userArtistProfile.ytLink ? (
                     <a
                       href={userArtistProfile.ytLink}
@@ -470,7 +470,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                   )}
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Artist TikTok Link</label>
+                  <label className="text-gray-400 text-sm">TikTok Link</label>
                   {userArtistProfile.tikTokLink ? (
                     <a
                       href={userArtistProfile.tikTokLink}
@@ -484,7 +484,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                   )}
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Artist Instagram Link</label>
+                  <label className="text-gray-400 text-sm">Instagram Link</label>
                   {userArtistProfile.instaLink ? (
                     <a
                       href={userArtistProfile.instaLink}
@@ -498,7 +498,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                   )}
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Artist Web Link</label>
+                  <label className="text-gray-400 text-sm">Website Link</label>
                   {userArtistProfile.webLink ? (
                     <a
                       href={userArtistProfile.webLink}
@@ -512,7 +512,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                   )}
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm">Artist Alt Main Portfolio Link</label>
+                  <label className="text-gray-400 text-sm">Alternate Portfolio Link</label>
                   {userArtistProfile.altMainPortfolioLink ? (
                     <a
                       href={userArtistProfile.altMainPortfolioLink}
@@ -687,9 +687,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 
             <div className="text-white space-y-4 text-sm leading-relaxed">
               <p>
-                Once you are verified, your artist profile will be fully public and visible to all users. To get Verified, make sure you have provided 'Artist
-                Alt Main Portfolio Link' (so we can review some of your music) and also provide AT LEAST a X, TikTok or Instagram link and we will DM you to
-                verify your identity on one of these social channels.
+                All artist profiles and content are fully public and visible but{" "}
+                <span className="text-yellow-400 font-bold">
+                  only Verified Artists will be able to monetize their content, sell on-chain Story Protocol powered licenses and music and fan club
+                  collectibles.
+                </span>
               </p>
 
               <p>
@@ -697,7 +699,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                 <a href="/faq#get-verified-artist-status" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:text-yellow-300 underline">
                   here
                 </a>
-                .
               </p>
             </div>
 

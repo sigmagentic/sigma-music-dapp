@@ -87,26 +87,7 @@ const faqSections: FAQSection[] = [
           </div>
         ),
       },
-      {
-        id: "how-to-get-started",
-        question: "I am a music artist, how can I get started with Sigma Music?",
-        answer: (
-          <div>
-            <p>
-              We provide a red-carpet experience for artists and give you all the support your need to launch your music and fan memberships on Sigma Music. If
-              you're interested in joining us, please reach out to us on the dedicated{" "}
-              <a
-                href="https://t.me/SigmaXMusicOfficial"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-yellow-300 hover:text-yellow-300 transition-colors">
-                Telegram channel for Musicans
-              </a>
-              .
-            </p>
-          </div>
-        ),
-      },
+
       {
         id: "traction",
         question: "What is the traction of Sigma Music?",
@@ -130,6 +111,68 @@ const faqSections: FAQSection[] = [
                 for the first IRL music competition in Dubai in April 2025
               </li>
             </ul>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    title: "Music Artists",
+    questions: [
+      {
+        id: "how-to-get-started",
+        question: "I am a music artist, how can I get started with Sigma Music?",
+        answer: (
+          <div>
+            <p>
+              Sigma Music is fully "self-serve" for Musicans. Musicans can join and publish their music on Sigma Music for free. Just click on "Login" on the
+              top menu and sign up as a Musican. If you need any help from our team, please reach out to us on the dedicated{" "}
+              <a
+                href="https://t.me/SigmaXMusicOfficial"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-yellow-300 hover:text-yellow-300 transition-colors">
+                Telegram channel for Musicans
+              </a>
+              .
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: "get-verified-artist-status",
+        question: "I want to get verified as an artist, how can I do that?",
+        answer: (
+          <div>
+            <p>
+              All artist profiles and content are fully public and visible but only Verified Artists will be able to monetize their content, sell on-chain Story
+              Protocol powered licenses and music and fan club collectibles.
+            </p>
+            <p className="text-lg font-semibold mb-4 mt-6"> How can you get verified as an artist?</p>
+            <ol className="list-decimal pl-6 space-y-2">
+              <li>Sign up as a Musican. (Just click on "Login" on the top menu and sign up as a Musican)</li>
+              <li>Make sure your Artist Profile has the following information (at the very least): </li>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Artist Name</li>
+                <li>Artist Bio</li>
+                <li>Artist Image</li>
+                <li>Alternate Portfolio Link (Soundcloud, Bandcamp, Spotify, Apple Music, YouTube, etc)</li>
+                <li>
+                  At least 2 social media links (X, TikTok, Instagram, etc) which have some content, followers and engagement on them (i.e. it's not a new
+                  account with no content)
+                </li>
+              </ul>
+              <li>
+                Once the above is done, fill this form to have our team verify your artist profile:{" "}
+                <a
+                  href="https://forms.gle/eXLcwbyRj7DwGoD4A"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-yellow-300 hover:text-yellow-300 transition-colors">
+                  https://forms.gle/eXLcwbyRj7DwGoD4A
+                </a>
+              </li>
+            </ol>
           </div>
         ),
       },
@@ -202,16 +245,6 @@ const faqSections: FAQSection[] = [
                 <p>
                   Sigma isn't just an AI. She knows every track, album, and artist on the platform—and helps fans discover music or remix it. You can even chat
                   with her on X to make music.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <span>💰</span> Revenue Sharing
-                </h4>
-                <p>
-                  Starting with raffles for holders, and soon expanding to include reward systems based on your social reach and referrals. Promote your fav
-                  artists, grow the platform, and get rewarded.
                 </p>
               </div>
 
@@ -404,7 +437,6 @@ const faqSections: FAQSection[] = [
                 <h4 className="text-lg font-semibold mb-2">1. Revenue Sharing for Fans</h4>
                 <p className="mb-2">Sigma shares up to 10% of all platform revenue back with die-hard fans through raffles. To enter, you need:</p>
                 <ul className="list-disc pl-6 space-y-1">
-                  <li>A "Inner Circle" fan membership or music NFT (your raffle ticket)</li>
                   <li>At least $9.99 worth of $FAN (each multiple gives you more chances)</li>
                 </ul>
                 <p className="mt-2">This creates a model where fans are incentivized to support artists—and win alongside them.</p>
@@ -412,8 +444,8 @@ const faqSections: FAQSection[] = [
 
               <div className="bg-gray-800 p-4 rounded-lg">
                 <p className="text-yellow-300">
-                  ⚠️ Note: The revenue share model is still being finalized. We intend to launch with the above structure and iterate based on community
-                  feedback and platform performance.
+                  ⚠️ Note: The revenue share model is yet to be launched and is subject to change if the economics deem it non-viable. So for now, assume this
+                  is not active.
                 </p>
               </div>
 

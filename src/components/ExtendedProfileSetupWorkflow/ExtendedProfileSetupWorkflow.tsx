@@ -892,7 +892,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
               {/* Main Music Portfolio Account (Soundcloud, Bandcamp, Spotify, Apple Music, etc) */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Main Music Portfolio
+                  Alternate Portfolio Link
                   <InfoTooltip
                     content="Enter Full URL of your preferred Music Portfolio profile (Soundcloud, Bandcamp, Spotify, Apple Music, YouTube, etc)"
                     position="right"

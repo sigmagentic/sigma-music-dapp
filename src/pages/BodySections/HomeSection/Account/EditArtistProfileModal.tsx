@@ -496,7 +496,7 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
                 {/* Main Music Portfolio Account */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Main Music Portfolio
+                    Alternate Portfolio Link
                     <InfoTooltip
                       content="Enter Full URL of your preferred Music Portfolio profile (Soundcloud, Bandcamp, Spotify, Apple Music, etc)"
                       position="right"

@@ -41,8 +41,15 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const { signMessage } = useWallet();
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
+  const {
+    solPreaccessNonce,
+    solPreaccessSignature,
+    solPreaccessTimestamp,
+    updateSolPreaccessNonce,
+    updateSolPreaccessTimestamp,
+    updateSolSignedPreaccess,
+    userWeb2AccountDetails,
+  } = useAccountStore();
 
   const [formData, setFormData] = useState<AlbumFormData>({ ...initialData });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -319,7 +326,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
           </div>
 
           {/* Album Sale Options */}
-          <div className="space-y-6">
+          <div className="space-y-2">
             {/* Disclaimer */}
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
               <div className="flex items-start space-x-3">
@@ -339,133 +346,144 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
             </div>
 
             {/* Pricing Options */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Option 1: Digital Album + Bonus Tracks Only */}
-              <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-md font-medium text-white">Digital Album + Bonus Tracks Only</h4>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      showPricingInfo(
-                        "Digital Album + Bonus Tracks Only",
-                        "Buyer gets Stream + MP3 downloads incl. bonus tracks. Enabled immediately.\n\nLicense: CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives"
-                      )
-                    }
-                    className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
+            <div className="relative">
+              {!userWeb2AccountDetails.isVerifiedArtist && (
+                <p className="mb-2 absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-yellow-400 rounded-lg p-2 text-center text-black z-10">
+                  Only Verified Artists can offer pricing options. Find out how to get verified{" "}
+                  <a href="/faq#get-verified-artist-status" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                    here
+                  </a>
+                </p>
+              )}
+              <div
+                className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${userWeb2AccountDetails.isVerifiedArtist ? "" : "opacity-20 cursor-not-allowed pointer-events-none"}`}>
+                {/* Option 1: Digital Album + Bonus Tracks Only */}
+                <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-md font-medium text-white">Digital Album + Bonus Tracks Only</h4>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        showPricingInfo(
+                          "Digital Album + Bonus Tracks Only",
+                          "Buyer gets Stream + MP3 downloads incl. bonus tracks. Enabled immediately.\n\nLicense: CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives"
+                        )
+                      }
+                      className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <select
+                    value={formData.albumPriceOption1}
+                    onChange={(e) => handleInputChange("albumPriceOption1", e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Not offered</option>
+                    <option value="4">$4 (less than 6 tracks album)</option>
+                    <option value="9">$9 (more than 6 tracks in album)</option>
+                  </select>
                 </div>
-                <select
-                  value={formData.albumPriceOption1}
-                  onChange={(e) => handleInputChange("albumPriceOption1", e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Not offered</option>
-                  <option value="4">$4 (less than 6 tracks album)</option>
-                  <option value="9">$9 (more than 6 tracks in album)</option>
-                </select>
-              </div>
 
-              {/* Option 4: Album + Commercial AI Remix License */}
-              <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-md font-medium text-white">Album + Commercial AI Remix License</h4>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      showPricingInfo(
-                        "Album + Commercial AI Remix License",
-                        "Buyer gets full digital Album + commercial use license. Takes a few days to setup and be enabled.\n\nLicense: CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license"
-                      )
-                    }
-                    className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
+                {/* Option 4: Album + Commercial AI Remix License */}
+                <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-md font-medium text-white">Album + Commercial AI Remix License</h4>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        showPricingInfo(
+                          "Album + Commercial AI Remix License",
+                          "Buyer gets full digital Album + commercial use license. Takes a few days to setup and be enabled.\n\nLicense: CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license"
+                        )
+                      }
+                      className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <select
+                    value={formData.albumPriceOption4}
+                    onChange={(e) => handleInputChange("albumPriceOption4", e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Not offered</option>
+                    <option value="34">$34 (less than 6 tracks album)</option>
+                    <option value="39">$39 (more than 6 tracks in album)</option>
+                  </select>
                 </div>
-                <select
-                  value={formData.albumPriceOption4}
-                  onChange={(e) => handleInputChange("albumPriceOption4", e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Not offered</option>
-                  <option value="34">$34 (less than 6 tracks album)</option>
-                  <option value="39">$39 (more than 6 tracks in album)</option>
-                </select>
-              </div>
 
-              {/* Option 2: Album + Fan Collectible (NFT) */}
-              <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-md font-medium text-white">Album + Fan Collectible (NFT)</h4>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      showPricingInfo(
-                        "Album + Fan Collectible (NFT)",
-                        "Buyer gets full digital Album + limited edition digital collectible. Takes a few days to setup and be enabled.\n\nLicense: CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives"
-                      )
-                    }
-                    className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
+                {/* Option 2: Album + Fan Collectible (NFT) */}
+                <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-md font-medium text-white">Album + Fan Collectible (NFT)</h4>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        showPricingInfo(
+                          "Album + Fan Collectible (NFT)",
+                          "Buyer gets full digital Album + limited edition digital collectible. Takes a few days to setup and be enabled.\n\nLicense: CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives"
+                        )
+                      }
+                      className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <select
+                    value={formData.albumPriceOption2}
+                    onChange={(e) => handleInputChange("albumPriceOption2", e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Not offered</option>
+                    <option value="14">$14 (less than 6 tracks album)</option>
+                    <option value="19">$19 (more than 6 tracks in album)</option>
+                  </select>
                 </div>
-                <select
-                  value={formData.albumPriceOption2}
-                  onChange={(e) => handleInputChange("albumPriceOption2", e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Not offered</option>
-                  <option value="14">$14 (less than 6 tracks album)</option>
-                  <option value="19">$19 (more than 6 tracks in album)</option>
-                </select>
-              </div>
 
-              {/* Option 3: Album + Fan Collectible + Commercial License */}
-              <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-md font-medium text-white">Album + Fan Collectible + Commercial License</h4>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      showPricingInfo(
-                        "Album + Fan Collectible + Commercial License",
-                        "Buyer gets full digital Album + fan collectible + commercial license. Ultimate web3 + AI Remix ready package! Takes a few days to setup and be enabled.\n\nLicense: CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license"
-                      )
-                    }
-                    className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
+                {/* Option 3: Album + Fan Collectible + Commercial License */}
+                <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-md font-medium text-white">Album + Fan Collectible + Commercial License</h4>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        showPricingInfo(
+                          "Album + Fan Collectible + Commercial License",
+                          "Buyer gets full digital Album + fan collectible + commercial license. Ultimate web3 + AI Remix ready package! Takes a few days to setup and be enabled.\n\nLicense: CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license"
+                        )
+                      }
+                      className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <select
+                    value={formData.albumPriceOption3}
+                    onChange={(e) => handleInputChange("albumPriceOption3", e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Not offered</option>
+                    <option value="44">$44 (less than 6 tracks album)</option>
+                    <option value="49">$49 (more than 6 tracks in album)</option>
+                  </select>
                 </div>
-                <select
-                  value={formData.albumPriceOption3}
-                  onChange={(e) => handleInputChange("albumPriceOption3", e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Not offered</option>
-                  <option value="44">$44 (less than 6 tracks album)</option>
-                  <option value="49">$49 (more than 6 tracks in album)</option>
-                </select>
               </div>
             </div>
           </div>
