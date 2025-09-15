@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { debounce } from "lodash";
-import { Rocket, Info, Loader, Pause, Play, Pointer, RefreshCcw, FileMusicIcon, ThumbsUp, ThumbsDown, X } from "lucide-react";
+import { Rocket, Info, Loader, Pause, Play, Pointer, RefreshCcw, FileMusicIcon, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { DISABLE_BITZ_FEATURES, DISABLE_REMIX_LAUNCH_BUTTON } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -16,7 +16,6 @@ import {
   sleep,
   mapRawAiRemixTracksToMusicTracks,
   getAlbumTracksFromDBViaAPI,
-  logAssetRatingToAPI,
 } from "libs/utils";
 import { SendBitzPowerUp } from "pages/BodySections/HomeSection/SendBitzPowerUp";
 // import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
@@ -33,6 +32,8 @@ import { useAudioPlayerStore } from "store/audioPlayer";
 import { TrackListModal } from "pages/MUI/components/TrackListModal";
 import { JobsModal } from "./JobsModal";
 import { AlbumSelectorModal } from "./AlbumSelectorModal";
+import { TrackRatingButtons } from "components/TrackRatingButtons";
+import { useTrackVoting } from "hooks/useTrackVoting";
 
 const VOTES_TO_GRADUATE = 5;
 
@@ -123,8 +124,17 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const [isLoadingTracksInSelectedAlbum, setIsLoadingTracksInSelectedAlbum] = useState(false);
   const [trackToAddToAlbum, setTrackToAddToAlbum] = useState<MusicTrack | null>(null);
 
+  // Calculate bounty IDs for voting system - memoized to prevent re-render loops
+  const bountyIds = useMemo(
+    () => [
+      ...newLaunchesData.flatMap((launch) => launch.versions.map((v) => v.bountyId)),
+      ...publishedLaunchesData.flatMap((launch) => launch.versions.map((v) => v.bountyId)),
+    ],
+    [newLaunchesData, publishedLaunchesData]
+  );
+
   // Rating system state - tracks which specific votes user has made to prevent spam
-  const [userVotedOptions, setUserVotedOptions] = useState<Record<string, Set<"up" | "down">>>({});
+  const { userVotedOptions, setUserVotedOptions } = useTrackVoting({ bountyIds });
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -329,31 +339,25 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     }
   }, [addressSol, isLoadingSolanaWallet]);
 
-  // Load existing voted options from session storage on component mount
   useEffect(() => {
-    const loadExistingVotedOptions = () => {
-      const allBountyIds = [
-        ...newLaunchesData.flatMap((launch) => launch.versions.map((v) => v.bountyId)),
-        // ...graduatedLaunchesData.flatMap((launch) => launch.versions.map((v) => v.bountyId)),
-        ...publishedLaunchesData.flatMap((launch) => launch.versions.map((v) => v.bountyId)),
-      ];
+    const handleRefreshJobsAndLaunchData = async () => {
+      setVirtualAiRemixAlbumTracksLoading(true);
 
-      const existingVotedOptions: Record<string, Set<"up" | "down">> = {};
-      allBountyIds.forEach((bountyId) => {
-        const votedOptions = getVotedOptionsFromSessionStorage(bountyId);
-        if (votedOptions.size > 0) {
-          existingVotedOptions[bountyId] = votedOptions;
-        }
-      });
-
-      if (Object.keys(existingVotedOptions).length > 0) {
-        setUserVotedOptions(existingVotedOptions);
+      // the app loaded up into my workspace, lets get any jobs the user had.
+      if (appViewLoaded && myJobsPayments.length === 0) {
+        await handleRefreshJobs();
       }
+
+      // ... the jobs have loaded, lets refresh the launch data so we can show it in the track list
+      if (appViewLoaded && myJobsPayments.length > 0) {
+        await refreshOnlyNewLaunchesData();
+      }
+
+      setVirtualAiRemixAlbumTracksLoading(false);
     };
 
-    loadExistingVotedOptions();
-    // }, [newLaunchesData, graduatedLaunchesData, publishedLaunchesData]);
-  }, [newLaunchesData, publishedLaunchesData]);
+    handleRefreshJobsAndLaunchData();
+  }, [appViewLoaded, myJobsPayments]);
 
   const refreshOnlyNewLaunchesData = async () => {
     if (!addressSol) return;
@@ -544,75 +548,60 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     return `${votesNeeded} more XP needed`;
   };
 
-  // Rating system utility functions
-  const getVotedOptionsFromSessionStorage = (bountyId: string): Set<"up" | "down"> => {
-    try {
-      const votedOptions = sessionStorage.getItem(`sig-ux-track-voted-${bountyId}`);
-      if (votedOptions) {
-        const options = JSON.parse(votedOptions);
-        return new Set(options);
-      }
-      return new Set();
-    } catch (error) {
-      console.error("Error reading from session storage:", error);
-      return new Set();
-    }
-  };
+  // const saveVotedOptionToSessionStorage = (bountyId: string, votedOptions: Set<"up" | "down">) => {
+  //   try {
+  //     sessionStorage.setItem(`sig-ux-track-voted-${bountyId}`, JSON.stringify(Array.from(votedOptions)));
+  //   } catch (error) {
+  //     console.error("Error saving to session storage:", error);
+  //   }
+  // };
 
-  const saveVotedOptionToSessionStorage = (bountyId: string, votedOptions: Set<"up" | "down">) => {
-    try {
-      sessionStorage.setItem(`sig-ux-track-voted-${bountyId}`, JSON.stringify(Array.from(votedOptions)));
-    } catch (error) {
-      console.error("Error saving to session storage:", error);
-    }
-  };
+  // const handleTrackRating = async (bountyId: string, rating: "up" | "down") => {
+  //   if (!addressSol) {
+  //     toastError("You must be logged in to vote on a track!");
+  //     return;
+  //   }
 
-  const handleTrackRating = async (bountyId: string, rating: "up" | "down") => {
-    if (!addressSol) {
-      toastError("You must be logged in to vote on a track!");
-      return;
-    }
+  //   // Check if user has already voted this specific option
+  //   if (hasUserVotedOption(bountyId, rating)) {
+  //     toastError(`You have already ${rating === "up" ? "liked" : "disliked"} this track!`);
+  //     return;
+  //   }
 
-    // Check if user has already voted this specific option
-    if (hasUserVotedOption(bountyId, rating)) {
-      toastError(`You have already ${rating === "up" ? "liked" : "disliked"} this track!`);
-      return;
-    }
+  //   try {
+  //     // TODO: Replace with actual API call
+  //     // await sendVoteToAPI(bountyId, rating);
+  //     console.log(`Sending vote to API: ${bountyId} - ${rating}`);
 
-    try {
-      // TODO: Replace with actual API call
-      // await sendVoteToAPI(bountyId, rating);
-      console.log(`Sending vote to API: ${bountyId} - ${rating}`);
+  //     await logAssetRatingToAPI({ assetId: bountyId, rating, address: addressSol });
 
-      await logAssetRatingToAPI({ assetId: bountyId, rating, address: addressSol });
+  //     // Update local state to prevent spam
+  //     setUserVotedOptions((prev) => {
+  //       const newVotedOptions = new Set(prev[bountyId] || []);
+  //       newVotedOptions.add(rating);
+  //       const updated = { ...prev, [bountyId]: newVotedOptions };
 
-      // Update local state to prevent spam
-      setUserVotedOptions((prev) => {
-        const newVotedOptions = new Set(prev[bountyId] || []);
-        newVotedOptions.add(rating);
-        const updated = { ...prev, [bountyId]: newVotedOptions };
+  //       // Save to session storage
+  //       saveVotedOptionToSessionStorage(bountyId, newVotedOptions);
 
-        // Save to session storage
-        saveVotedOptionToSessionStorage(bountyId, newVotedOptions);
+  //       return updated;
+  //     });
 
-        return updated;
-      });
+  //     // Show feedback to user
+  //     toastSuccess(`Track ${rating === "up" ? "liked" : "disliked"}!`);
+  //   } catch (error) {
+  //     console.error("Error sending vote:", error);
+  //     toastError("Failed to submit vote. Most likely you have already voted on this track. Please try again later.");
+  //   }
+  // };
 
-      // Show feedback to user
-      toastSuccess(`Track ${rating === "up" ? "liked" : "disliked"}!`);
-    } catch (error) {
-      console.error("Error sending vote:", error);
-      toastError("Failed to submit vote. Most likely you have already voted on this track. Please try again later.");
-    }
-  };
+  // const hasUserVotedOption = (bountyId: string, rating: "up" | "down"): boolean => {
+  //   return userVotedOptions[bountyId]?.has(rating) || false;
+  // };
 
-  const hasUserVotedOption = (bountyId: string, rating: "up" | "down"): boolean => {
-    return userVotedOptions[bountyId]?.has(rating) || false;
-  };
-
-  const getUserVotedOptions = (bountyId: string): Set<"up" | "down"> => {
-    return userVotedOptions[bountyId] || new Set();
-  };
+  // const getUserVotedOptions = (bountyId: string): Set<"up" | "down"> => {
+  //   return userVotedOptions[bountyId] || new Set();
+  // };
 
   const toggleExpandedVersions = (launchId: string) => {
     // Helper function to toggle expanded state for showing other versions
@@ -798,35 +787,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     );
   };
 
-  // Rating component for individual tracks
-  const TrackRatingButtons = ({ bountyId }: { bountyId: string }) => {
-    const hasVotedUp = hasUserVotedOption(bountyId, "up");
-    const hasVotedDown = hasUserVotedOption(bountyId, "down");
-
-    return (
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => handleTrackRating(bountyId, "up")}
-          disabled={hasVotedUp}
-          className={`p-1 rounded transition-colors ${
-            hasVotedUp ? "text-green-400 cursor-not-allowed" : "text-gray-400 hover:text-green-400 hover:bg-green-400/10"
-          }`}
-          title={hasVotedUp ? "You already liked this track" : "Like this track"}>
-          <ThumbsUp className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => handleTrackRating(bountyId, "down")}
-          disabled={hasVotedDown}
-          className={`p-1 rounded transition-colors ${
-            hasVotedDown ? "text-red-400 cursor-not-allowed" : "text-gray-400 hover:text-red-400 hover:bg-red-400/10"
-          }`}
-          title={hasVotedDown ? "You already disliked this track" : "Dislike this track"}>
-          <ThumbsDown className="w-4 h-4" />
-        </button>
-      </div>
-    );
-  };
-
   const LaunchCard = ({ item, type, idx }: { item: AiRemixLaunch; type: string; idx: number }) => {
     const isFocused = focusedLaunchId === item.launchId;
     // Helper function to separate graduated and non-graduated versions
@@ -946,7 +906,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <TrackRatingButtons bountyId={version.bountyId} />
+                          <TrackRatingButtons bountyId={version.bountyId} userVotedOptions={userVotedOptions} setUserVotedOptions={setUserVotedOptions} />
                         </div>
                         {/* <div className="hidden flex flex-col gap-2 flex-grow ml-4">
                           <div className="flex items-center gap-2">
@@ -1057,7 +1017,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                 )}
                               </div>
                               <div className="flex items-center gap-2">
-                                <TrackRatingButtons bountyId={version.bountyId} />
+                                <TrackRatingButtons bountyId={version.bountyId} userVotedOptions={userVotedOptions} setUserVotedOptions={setUserVotedOptions} />
                               </div>
                               <div className="flex flex-col gap-2 flex-grow ml-4">
                                 <div className="flex items-center gap-2">
@@ -1165,7 +1125,11 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                         )}
                                       </div>
                                       <div className="flex items-center gap-2">
-                                        <TrackRatingButtons bountyId={version.bountyId} />
+                                        <TrackRatingButtons
+                                          bountyId={version.bountyId}
+                                          userVotedOptions={userVotedOptions}
+                                          setUserVotedOptions={setUserVotedOptions}
+                                        />
                                       </div>
                                       <div className="flex flex-col gap-2 flex-grow ml-4">
                                         <div className="flex items-center gap-2">
@@ -1625,7 +1589,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         ) : (
           <>
             <div className="flex flex-col items-center justify-center py-8 text-gray-400 h-[60vh]">
-              <Loader className="w-10 h-10 animate-spin text-yellow-500" />
+              <Loader className="w-5 h-5 animate-spin text-yellow-500" />
             </div>
           </>
         )}

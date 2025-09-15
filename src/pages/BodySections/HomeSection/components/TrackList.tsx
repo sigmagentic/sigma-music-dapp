@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { ArrowLeft, Play, Loader, Download, MoreVertical, Plus } from "lucide-react";
 import ratingE from "assets/img/icons/rating-E.png";
 import { Button } from "libComponents/Button";
@@ -9,6 +9,8 @@ import { useAudioPlayerStore } from "store/audioPlayer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "libComponents/DropdownMenu";
 import { InfoTooltip } from "libComponents/Tooltip";
 import { LICENSE_BLURBS } from "config";
+import { TrackRatingButtons } from "components/TrackRatingButtons";
+import { useTrackVoting } from "hooks/useTrackVoting";
 
 interface TrackListProps {
   album: Album;
@@ -44,6 +46,11 @@ export const TrackList: React.FC<TrackListProps> = ({
   const [hoveredTrackIndex, setHoveredTrackIndex] = useState<number | null>(null);
   const { playlistTrackIndexBeingPlayed, albumIdBeingPlayed, updateJumpToTrackIndexInAlbumBeingPlayed } = useAudioPlayerStore();
   const [trackDownloadIsInProgress, setTrackDownloadIsInProgress] = useState<boolean>(false);
+  // Calculate bounty IDs for voting system - memoized to prevent re-render loops
+  const bountyIds = useMemo(() => [...(virtualTrackList?.map((track) => track.bountyId).filter(Boolean) || [])] as string[], [virtualTrackList]);
+
+  // Rating system state - tracks which specific votes user has made to prevent spam
+  const { userVotedOptions, setUserVotedOptions } = useTrackVoting({ bountyIds });
 
   useEffect(() => {
     scrollToTopOnMainContentArea();
@@ -217,16 +224,23 @@ export const TrackList: React.FC<TrackListProps> = ({
               onMouseLeave={() => setHoveredTrackIndex(null)}
               onClick={() => handleTrackClick(track, index)}>
               {/* Track Number / Play Button */}
-              <div className="flex items-center justify-center">
-                {isCurrentlyPlaying ? (
-                  <span className="text-yellow-300 text-sm font-medium">▶</span>
-                ) : isQueued && isHovered ? (
-                  <Loader className="w-4 h-4 animate-spin" />
-                ) : isHovered && !isDisabled && !isQueued && !isCurrentlyPlaying ? (
-                  <Play className="w-4 h-4 text-white" />
-                ) : (
-                  <span className="text-gray-400 text-sm">{index + 1}</span>
-                )}
+              <div className="flex items-center justify-start">
+                <>
+                  {isCurrentlyPlaying ? (
+                    <span className="text-yellow-300 text-sm font-medium">▶</span>
+                  ) : isQueued && isHovered ? (
+                    <Loader className="w-4 h-4 animate-spin" />
+                  ) : isHovered && !isDisabled && !isQueued && !isCurrentlyPlaying ? (
+                    <Play className="w-4 h-4 text-white" />
+                  ) : (
+                    <span className="text-gray-400 text-sm">{index + 1}</span>
+                  )}
+                  {track.isSigmaAiRemixUsingFreeLicense && (
+                    <span className="text-xs text-black px-2 py-1 rounded-full">
+                      <InfoTooltip content={`This was remixed with a CC BY-NC 4.0 license - ${LICENSE_BLURBS["CC BY-NC 4.0"].blurb}`} position="right" />
+                    </span>
+                  )}
+                </>
               </div>
 
               {/* Track Title and Artist */}
@@ -234,11 +248,7 @@ export const TrackList: React.FC<TrackListProps> = ({
                 <div className="flex items-center gap-2">
                   <span className={`text-sm ${isDisabled || isCurrentlyPlaying ? "text-gray-500" : "text-white"}`}>
                     {track.title}
-                    {track.isSigmaAiRemixUsingFreeLicense && (
-                      <span className="text-xs text-black px-2 py-1 rounded-full">
-                        <InfoTooltip content={`This was remixed with a CC BY-NC 4.0 license - ${LICENSE_BLURBS["CC BY-NC 4.0"].blurb}`} position="right" />
-                      </span>
-                    )}
+
                     {isCurrentlyPlaying && <span className="text-yellow-300 ml-2 text-xs">Playing...</span>}
                   </span>
                   {isBonusTrack && <span className="text-xs bg-orange-500 text-black px-2 py-1 rounded-full">Bonus</span>}
@@ -307,6 +317,10 @@ export const TrackList: React.FC<TrackListProps> = ({
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  {track.bountyId && (
+                    <TrackRatingButtons bountyId={track.bountyId} userVotedOptions={userVotedOptions} setUserVotedOptions={setUserVotedOptions} />
+                  )}
                 </div>
               )}
             </div>
