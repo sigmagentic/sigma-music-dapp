@@ -16,6 +16,7 @@ import {
   X,
   Image,
   List,
+  Copy,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingE from "assets/img/icons/rating-E.png";
@@ -36,6 +37,7 @@ import {
   isMostLikelyMobile,
 } from "libs/utils";
 import { showSuccessConfetti } from "libs/utils/uiShared";
+import { toastSuccess } from "libs/utils/ui";
 import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
@@ -899,6 +901,20 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               <span className="text-xs text-gray-700 ml-0 text-left mt-2 mb-[15px]">
                 id: {album.albumId} <span className="text-orange-500 ml-1">{album.isPublished === "0" ? "Draft" : ""}</span>
               </span>
+              <button
+                className="inline-flex items-center gap-1 text-xs text-gray-600 px-2 py-1 rounded transition-colors duration-200 mt-2 mb-[15px] hover:text-white"
+                title="Copy Direct Link to Album to Share"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(`${window.location.origin}/?artist=${artistProfile.slug}~${album.albumId}`);
+                    toastSuccess("Album link copied!");
+                  } catch (err) {
+                    console.error("Failed to copy link:", err);
+                  }
+                }}>
+                <Copy className="w-3 h-3" />
+                Copy Link
+              </button>
             </div>
           </div>
         ))
