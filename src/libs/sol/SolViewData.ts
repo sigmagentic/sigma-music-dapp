@@ -75,6 +75,9 @@ export async function getOrCacheAccessNonceAndSignature({
   updateSolPreaccessTimestamp: any;
   forceNewSession?: boolean;
 }) {
+  console.log("getOrCacheAccessNonceAndSignature: Sig session [called]");
+  // console.trace(); // want to know who called it? uncomment if you want to know
+
   let usedPreAccessNonce = solPreaccessNonce;
   let usedPreAccessSignature = solPreaccessSignature;
 

@@ -1,6 +1,6 @@
 # Sigma Music
 
-**Sigma Music** (https://sigmamusic.fm) is a "fan-first" music platform reimagining the way fans and artists connect. Built with web3 technology under the hood but designed for a mainstream web2 experience, Sigma combines the best of platforms like Bandcamp and SoundCloud with powerful new monetization tools — including tokenized music assets, AI remix licensing, and IP finance.
+**Sigma Music** (https://sigmamusic.fm) is a next-gen music platform built on the intersection of music, fan engagement and AI. Built with web3 and AI technology under the hood but designed for a mainstream web2 experience, Sigma combines the best of platforms like Bandcamp and SoundCloud with powerful new monetization tools — including tokenized music assets, AI remix licensing, and IP finance.
 
 We believe in building in the open. This repo is part of our effort to make the future of music infrastructure community-owned and developer-friendly.
 
@@ -103,3 +103,75 @@ Start by reaching out to us on [Telegram](https://t.me/SigmaXMusicOfficial).
 ---
 
 Built with ❤️ for fans and artists.
+
+---
+
+## Primary User Stories
+
+### FAN Stories
+
+1/
+As a FAN
+I want to buy a Music Album Collectible with my Credit Card / SOL / XP
+To support my favorite artist and also stream/download the full album with bonus tracks
+
+- Digital Album Only - (SOL / XP pass)
+- Album + Commercial License - [used Cereals SOL -- PASS] [used TKO for XP -- PASS]
+- NFT + Digital Album - (SOL - Manu's elements - PASS) [Problem Child EP by LLLUNA01 for XP -- PASS]
+
+- Ultimate Package
+
+2/
+As a FAN
+I want to buy a Inner Circle Fan NFT with my Credit Card / SOL / XP
+To support my favorite artist
+
+- [used 7OGStrike SOL -- PASS] [used LLUNA for XP -- PASS]
+
+3/
+As a FAN
+I want to stream free music albums
+To enjoy music
+
+## Primary User Stories
+
+### REMIX ARTIST Stories
+
+1/
+As a REMIX ARTIST
+I want to use some free public reference tracks and pay to geberate a new derivative track with XP
+So I can have this new track as something i created in my account for personal use only
+
+As a REMIX ARTIST
+I want to buy a Commercial Music Licence with my Credit Card / SOL / XP
+So I can use the AI Remix section to remix my own tracks using the licnesed tracks as reference
+
+2/
+As a REMIX ARTIST
+I want to have the public vote with XP for my AI Remix tool remixed tracks
+So If my track becomes the higest rated track every week, it gets added to a official "Sigma mix tape" album and I get $5 and earn a share (% HOW MUCH?) of any public sales
+
+[5$ bounty per week for BEST remix track. 5$ is also given to the COMPOSING ARTIST who's track was used]
+
+3/ \*\*\*\*
+As a REMIX ARTIST
+I want to buy a Commercial Music Licence with my Credit Card / SOL / XP
+So I can down my favorite track, take to Suno, remix it and bring it back to Sigma Music and publish it as regular track in my own album.
+
+[REMIX ARTISTs make 80% of everything that's sold on the platform that's linked to their work BUT ONLY IF they own a license for the work]
+
+### COMPOSING ARTIST
+
+1/
+As a COMPOSING ARTIST
+I want to use sigma music to list my music tracks in album format
+So I ca list it for Free or sell it as a digital album, as a collectible or with a Story Protocol AI Remix licnese so others can but it and their own deravative works
+
+1/
+As a COMPOSING ARTIST
+I want to lauch my own fan club
+So my inner circle fans get access to some perks IRL or virtual
+
+[COMPOSING ARTISTs make 80% of everything that's sold on the platform that's linked to their work]
+[COMPOSING ARTISTs make 10% of every derative work sold that a REMIX ARTIST's SOLD that used a license]
+[COMPOSING ARTISTs get 5$ a week if their tracks are used to make the weekly award for best AI REMIX]

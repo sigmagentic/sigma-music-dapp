@@ -11,44 +11,56 @@ interface Slide {
 
 const slides: Slide[] = [
   {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-1-most-streamed.png",
-    text: "Start the Music Player for free personalized music or view the most streamed songs",
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/stream-playlists.png",
+    text: "Stream music from real-world artists and AI remix artists",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-a-listen-to-free-albums.png",
     text: "Listen to any music album for free",
   },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-b-music-player.png",
+  //   text: "Stream and enjoy music albums from your favorite indie artists",
+  // },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-c-buy-premium-albums-as-nfts.png",
+  //   text: "Love an album? Buy a digital limited edition premium album with bonus tracks as a Music Collectible (pay via Credit Card, SOL or XP!)",
+  // },
   {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-b-music-player.png",
-    text: "Stream and enjoy all music albums",
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/monatize-music-in-many-ways.png",
+    text: "Sigma Music has so many ways to get Artists paid for their music!",
+  },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-3-join-fan-membership.png",
+  //   text: "Love a musician? Join their Inner Circle fan club and get a unique limited edition fan collectible and perks!",
+  // },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4-join-live-campaigns-for-irl-collectibles.png",
+  //   text: "Join Real World Events via 'Micro-Campaigns', collect unique collectibles, support artists, unlock exclusive perks and rewards!",
+  // },
+  // {
+  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-6-climb-xp-leaderboards.png",
+  //   text: "Give XP to your favorite content and climb XP leaderboards to get free airdrops and platform rewards",
+  // },
+  {
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/buy-story-protocol-licenses.png",
+    text: "Sigma Music offers AI Remix commercial licenses powered by Story Protocol! (pay via Credit Card, SOL or XP!)",
+  },
+  {
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/use-sigma-ai-remix.png",
+    text: "use your Story Protocol licensed tracks with Sigma Music's own AI to remix your favorite artist's tracks and sell your remixes as albums! Want to use Suno instead? You can do that too!",
+  },
+  {
+    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-5-collect-free-xp.png",
+    text: "Play an XP game every 6 hours and get free app XP. You can use your XP like real-world money inside the app (to buy licenses, buy albums, use AI to remix tracks, and so much more)!",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-2-c-buy-premium-albums-as-nfts.png",
-    text: "Love an album? Buy a limited edition premium album with bonus tracks as a Music Collectible (pay via Solana or Credit Card!)",
+    text: "Love an album? Buy a digital limited edition premium album with bonus tracks as a Music Collectible (pay via Credit Card, SOL or XP!)",
   },
   {
     image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-3-join-fan-membership.png",
-    text: "Love a musician? Join their Inner Circle fan club and get a unique fan collectible, perks, and share in revenue!",
-  },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4-join-live-campaigns-for-irl-collectibles.png",
-    text: "Join Real World Events via Campaigns like the World Supremacy Battleground Dance Competition, collect unique collectibles, support artists, and share in revenue!",
-  },
-  // {
-  //   image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-4a-reward-pools.png",
-  //   text: "Participate in Reward Pools and win a share of app revenue!",
-  // },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-5-collect-free-xp.png",
-    text: "Play an XP game every 6 hours and get free app XP",
-  },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-6-climb-xp-leaderboards.png",
-    text: "Give XP to your favorite content and climb XP leaderboards to get free airdrops and rewards",
-  },
-  {
-    image: "https://api.itheumcloud.com/app_nftunes/assets/misc/step-7-launch-ai-meme-coins.png",
-    text: "REMiX any music content on our platform using AI, mint them as Music NFTs or launch them as Music Meme Coins!",
+    text: "Love a musician? Join their Inner Circle fan club and get a unique limited edition fan collectible and perks!",
   },
 ];
 
@@ -77,6 +89,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose, handl
   const { isConnected: isLoggedInSol } = useSolanaWallet();
   const [currentSlide, setCurrentSlide] = useState(-1);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+
   // Preload images when component mounts
   useEffect(() => {
     const loadImages = async () => {
@@ -116,8 +129,8 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose, handl
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-[100]">
-        <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-3xl w-full mx-4 relative">
+      <div className="fixed inset-0 z-10 flex items-center justify-center bg-yellow-400 bg-opacity-30 p-4">
+        <div className="bg-black rounded-lg p-6 max-w-4xl w-full mx-4 relative max-h-[90vh] overflow-y-auto">
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
             <X size={24} />
           </button>
@@ -133,7 +146,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose, handl
               </div>
             ) : currentSlide === slides.length ? (
               <div className="text-center py-8">
-                <h2 className="text-2xl font-bold mb-4">Ready to Get Started!</h2>
+                <h2 className="text-2xl font-bold mb-4">Sigma Music Is Awesome!</h2>
                 <p className="text-lg mb-8">OK, let's get you using Sigma Music.</p>
                 <div className="flex flex-col md:flex-row gap-4 justify-center">
                   <Button onClick={onClose} className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-2 rounded-lg">

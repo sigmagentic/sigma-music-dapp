@@ -104,7 +104,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                   */
                   // Get the prefix before first "-" or space from both strings
                   const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
-                  const albumPrefix = album.solNftName.split(/[-\s]/)[0];
+                  const albumPrefix = !album.solNftName ? "" : album.solNftName.split(/[-\s]/)[0];
                   // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2)
                   return nftPrefix.toLowerCase() === albumPrefix.toLowerCase() || (album.solNftAltCodes !== "" && album.solNftAltCodes?.includes(nftPrefix));
                 })
@@ -266,7 +266,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   }
 
   return (
-    <div id="myCollectedAlbums" className="flex flex-col justify-center items-center w-full">
+    <div id="myCollectedAlbums" className="flex flex-col justify-center items-center w-full mt-3">
       <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
         <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
           <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
@@ -291,9 +291,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                     <>
                       {myCollectedArtistsAlbums.length > 0 ? (
                         <>
-                          <div className="font-bold text-2xl mb-5">
+                          <div className="font-bold text-xl mb-5">
                             You have collected{" "}
-                            <span className="text-2xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
+                            <span className="text-xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
                               {allOwnedAlbums.length} {allOwnedAlbums.length > 1 ? `albums` : `album`}
                             </span>
                           </div>
@@ -314,6 +314,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                                   setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
                                   viewSolData={viewSolData}
                                   onCloseMusicPlayer={onCloseMusicPlayer}
+                                  navigateToDeepAppView={navigateToDeepAppView}
                                 />
                               </div>
                             );
@@ -321,25 +322,17 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                         </>
                       ) : (
                         <div className="text-lg">
-                          ⚠️ You have not collected any albums. Let's fix that!
-                          <span className="hidden">Get your </span>
-                          <span
-                            className="hidden text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
-                            onClick={() => {
-                              window.scrollTo({
-                                top: 0,
-                                behavior: "smooth",
-                              });
-                            }}>
-                            free airdrop on top of this page (if you are eligible)
-                          </span>{" "}
-                          Get some by{" "}
+                          <span>⚠️ You have not collected any albums.</span>{" "}
                           <span
                             className="text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
                             onClick={() => {
-                              setHomeMode(`artists-${new Date().getTime()}`);
+                              // setHomeMode(`artists-${new Date().getTime()}`);
+
+                              navigateToDeepAppView({
+                                toSection: "artists",
+                              });
                             }}>
-                            exploring artists and albums
+                            Explore artists and albums and buy some rare music collectibles!
                           </span>
                         </div>
                       )}
@@ -382,9 +375,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                     </div>
                   ) : (
                     <>
-                      <div className="my-2 font-bold text-2xl mb-5 ">
+                      <div className="my-2 font-bold text-xl mb-5 ">
                         You have{" "}
-                        <span className="text-2xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+                        <span className="text-xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
                           {allOwnedFanMemberships.length} {allOwnedFanMemberships.length > 1 ? `fan memberships` : `fan membership`}
                         </span>
                       </div>
@@ -412,7 +405,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                               {membership && membership.img && membership.img !== "" ? (
                                 <div
                                   key={index}
-                                  className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors"
+                                  className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors border"
                                   onClick={handleClick}>
                                   <img src={membership.img} alt={membership.desc} className="h-48 w-48 object-cover rounded-lg mb-4" />
                                   <div className="text-center max-w-[300px]">{membership.desc}</div>
@@ -470,13 +463,28 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                 </div>
               ) : (
                 <>
-                  <div className="my-2 font-bold text-2xl mb-5">
+                  <div className="my-2 font-bold text-xl mb-5">
                     {myStoryProtocolLicenses.length > 0 ? (
                       <>
-                        You have {myStoryProtocolLicenses.length} {myStoryProtocolLicenses.length > 1 ? `licenses` : `license`}
+                        You have purchased{" "}
+                        <span className="text-xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
+                          {myStoryProtocolLicenses.length} {myStoryProtocolLicenses.length > 1 ? `licenses` : `license`}
+                        </span>
                       </>
                     ) : (
-                      <p className="text-lg">⚠️ You have not collected any commercial licenses</p>
+                      <div className="text-lg">
+                        <span>⚠️ You have not purchased any commercial licenses yet.</span>
+                        <span
+                          className="ml-2 text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
+                          onClick={() => {
+                            navigateToDeepAppView({
+                              toSection: "albums",
+                              toView: "with_ai_remix_licenses",
+                            });
+                          }}>
+                          Click to find and buy commercial licenses from real-world artists!
+                        </span>
+                      </div>
                     )}
                   </div>
                   <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -484,7 +492,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                       const img = license.albumImage;
                       const albumName = license.albumName;
                       return (
-                        <div key={index} className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors">
+                        <div key={index} className="flex flex-col items-center p-4 rounded-lg cursor-pointer hover:bg-gray-800/50 transition-colors border">
                           <div
                             className="w-full h-full flex items-center justify-center"
                             onClick={() => {
@@ -504,7 +512,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                           </div>
                           <div className="text-center max-w-[300px]">{albumName}</div>
 
-                          <StoryIPLicenseDisplay license={license} />
+                          <StoryIPLicenseDisplay license={license} navigateToDeepAppView={navigateToDeepAppView} />
                         </div>
                       );
                     })}

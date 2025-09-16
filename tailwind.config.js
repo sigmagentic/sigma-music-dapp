@@ -148,6 +148,32 @@ module.exports = {
           "0%": { transform: "rotate(0deg) scale(10)" },
           "100%": { transform: "rotate(-360deg) scale(10)" },
         },
+        "pulse-fade": {
+          "0%, 100%": { borderColor: "rgb(253 224 71)" }, // yellow-300
+          "50%": { borderColor: "transparent" },
+        },
+        "breathing-border": {
+          "0%": {
+            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 50%, transparent 100%) 1",
+            borderImageSlice: "1",
+          },
+          "25%": {
+            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 50%, transparent 100%) 1",
+            borderImageSlice: "1",
+          },
+          "50%": {
+            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 50%, transparent 100%) 1",
+            borderImageSlice: "1",
+          },
+          "75%": {
+            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 50%, transparent 100%) 1",
+            borderImageSlice: "1",
+          },
+          "100%": {
+            borderImage: "linear-gradient(to right, transparent 0%, rgb(253 224 71) 50%, transparent 100%) 1",
+            borderImageSlice: "1",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -164,6 +190,8 @@ module.exports = {
         "text-gradient": "text-gradient 8s ease infinite",
         "text-shimmer": "text-shimmer 4s ease-in-out infinite",
         "border-rotate": "border-rotate 4s linear infinite",
+        "pulse-fade": "pulse-fade 2s ease-in-out infinite",
+        "breathing-border": "breathing-border 3s ease-in-out infinite",
       },
     },
   },

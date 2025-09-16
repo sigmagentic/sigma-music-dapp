@@ -216,7 +216,7 @@ export const Leaderboards = ({ navigateToDeepAppView }: { navigateToDeepAppView:
   );
 
   return (
-    <div className="flex flex-col justify-center items-center w-full">
+    <div className="flex flex-col justify-center items-center w-full mt-3">
       <div className="flex flex-col mb-8 justify-center w-full">
         <div className="mb-10 text-center md:text-left">
           <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
@@ -231,7 +231,7 @@ export const Leaderboards = ({ navigateToDeepAppView }: { navigateToDeepAppView:
             Most Generous Fans <span className="text-white text-lg"> (Fans who gave the most XP to support their favorite artists)</span>
           </h2>
 
-          <div className="flex items-center justify-center md:justify-start space-x-2 my-4 p-4 bg-gray-800/50 rounded-lg border border-yellow-300/20">
+          <div className="flex items-center justify-center md:justify-start space-x-2 my-4 p-4 bg-black/50 rounded-lg border border-yellow-300/20">
             <div className="text-lg text-white">Your Position:</div>
             {myPlaceOnLeaderboard === "" ? (
               <div className="flex items-center space-x-2">

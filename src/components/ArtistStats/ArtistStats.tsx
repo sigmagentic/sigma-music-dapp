@@ -33,13 +33,13 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
   const [streamMetricData, setStreamMetricData] = useState<StreamMetricData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { albumMasterLookup, musicTrackLookup, artistLookup } = useAppStore();
+  const [trackListError, setTrackListError] = useState(false);
 
   const calculateSummary = (sales: ArtistSale[], task: string): SalesSummary => {
     const now = Date.now();
     const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
     const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
     const threeMonthsAgo = now - 90 * 24 * 60 * 60 * 1000;
-
     const filteredSales = sales.filter((sale) => sale.task === task);
 
     return {
@@ -86,6 +86,9 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
 
     if (Object.keys(musicTrackLookup).length > 0) {
       loadArtistData();
+    } else {
+      setTrackListError(true);
+      setIsLoading(false);
     }
   }, [creatorPaymentsWallet, musicTrackLookup]);
 
@@ -269,6 +272,8 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
               </>
             )}
           </div>
+
+          {trackListError && <div className="text-md text-red-500 mb-10 text-center md:text-left">⚠️ Error loading track list</div>}
         </>
       )}
     </>

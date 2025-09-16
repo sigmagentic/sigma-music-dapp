@@ -89,10 +89,10 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePayment
       /* on the payment success page, we need some params so we can display the album purchase details and also redirect when it's done */
       const membershipId = membershipProfile.membershipId;
       const artistId = membershipProfile.artistId;
-      const artistSlug = membershipProfile.artistSlug;
-      const albumImg = membershipProfile.tokenImg;
-      const albumTitle = membershipProfile.membershipLabel;
-      const albumArtist = membershipProfile.artistName;
+      const artistSlug = encodeURIComponent(membershipProfile.artistSlug);
+      const albumImg = encodeURIComponent(membershipProfile.tokenImg);
+      const albumTitle = encodeURIComponent(membershipProfile.membershipLabel);
+      const albumArtist = encodeURIComponent(membershipProfile.artistName);
       const creatorWallet = membershipProfile.creatorPaymentsWallet;
       const buyerSolAddress = publicKey?.toBase58();
       const priceInUSDString = membershipProfile.membershipPriceUSD.toString();
@@ -102,7 +102,7 @@ const StripeCheckoutFormFanMembership = ({ membershipProfile, closeStripePayment
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artistId=${artistId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}&billingEmail=${encodeURIComponent(email)}&campaignCode=${campaignCode}&totalQuantity=${totalQuantity}`,
+          return_url: `${window.location.origin}/payment-success?membershipId=${membershipId}&artistId=${artistId}&artist=${artistSlug}&albumImg=${albumImg}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSDString}&billingEmail=${encodeURIComponent(email)}&campaignCode=${campaignCode}&totalQuantity=${totalQuantity}`,
           receipt_email: email,
         },
       });
