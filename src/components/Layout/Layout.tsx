@@ -17,12 +17,12 @@ import {
 import { AwardIcon } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import offlineAnimeHeroImage from "assets/img/offline-anime-hero.jpg";
-import { ENABLE_WSB_CAMPAIGN } from "config";
+import { DISABLE_AI_REMIX_FEATURES, ENABLE_WSB_CAMPAIGN } from "config";
 import { ENABLE_APP_OFFLINE } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
-import { AlertBanner } from "./AlertBanner";
+// import { AlertBanner } from "./AlertBanner";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
 
@@ -145,12 +145,8 @@ export const Layout = ({
                   <Tooltip text="Albums">
                     <button
                       onClick={() => {
+                        removeDeepSectionParamsFromUrl();
                         setHomeMode(`albums-${new Date().getTime()}`);
-
-                        // need to put it on a timer for some reason (otherwise seems the params come back to the url)
-                        setTimeout(() => {
-                          removeDeepSectionParamsFromUrl();
-                        }, 1000);
                       }}
                       className={`
                       flex items-center flex-shrink-0
@@ -183,14 +179,15 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI Agent</span>}
                     </button>
                   </Tooltip> */}
-                  <Tooltip text="AI REMiX : Generate & Own Royalty-Free Viral AI Music">
-                    <button
-                      onClick={() => {
-                        removeDeepSectionParamsFromUrl();
-                        setHomeMode(`remix`);
-                      }}
-                      disabled={homeMode === "remix"}
-                      className={`
+                  {DISABLE_AI_REMIX_FEATURES === "0" && (
+                    <Tooltip text="Sigma AI REMiX">
+                      <button
+                        onClick={() => {
+                          removeDeepSectionParamsFromUrl();
+                          setHomeMode(`ai-remix-${new Date().getTime()}`);
+                        }}
+                        disabled={homeMode.includes("ai-remix")}
+                        className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
                       py-3 px-4 rounded-lg transition-colors text-lg 
@@ -198,11 +195,12 @@ export const Layout = ({
                       hover:text-orange-500
                       peer
                     `}>
-                      <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">AI REMiX</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI REMiX</span>}
-                    </button>
-                  </Tooltip>
+                        <CursorArrowRippleIcon className="h-6 w-6 mr-1 md:mr-0" />
+                        <span className="md:hidden w-max">AI REMiX</span>
+                        {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI REMiX</span>}
+                      </button>
+                    </Tooltip>
+                  )}
                   {/* <Tooltip text="Play Music Mini-Games">
                     <button
                       onClick={() => {
@@ -249,6 +247,7 @@ export const Layout = ({
                   <Tooltip text="XP Leaderboards">
                     <button
                       onClick={() => {
+                        removeDeepSectionParamsFromUrl();
                         setHomeMode(`xp-leaderboards-${new Date().getTime()}`);
                       }}
                       disabled={homeMode.includes("xp-leaderboards")}
@@ -308,14 +307,10 @@ export const Layout = ({
                       <Tooltip text="Your Collectibles Wallet">
                         <button
                           onClick={() => {
-                            setHomeMode("wallet");
-
-                            // need to put it on a timer for some reason (otherwise seems the params come back to the url)
-                            setTimeout(() => {
-                              removeDeepSectionParamsFromUrl();
-                            }, 1000);
+                            removeDeepSectionParamsFromUrl();
+                            setHomeMode(`wallet-${new Date().getTime()}`);
                           }}
-                          disabled={homeMode === "wallet"}
+                          disabled={homeMode.includes("wallet")}
                           className={`
                           flex items-center flex-shrink-0
                           ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
@@ -332,14 +327,10 @@ export const Layout = ({
                       <Tooltip text="Your Profile">
                         <button
                           onClick={() => {
-                            setHomeMode("profile");
-
-                            // need to put it on a timer for some reason (otherwise seems the params come back to the url)
-                            setTimeout(() => {
-                              removeDeepSectionParamsFromUrl();
-                            }, 1000);
+                            removeDeepSectionParamsFromUrl();
+                            setHomeMode(`profile-${new Date().getTime()}`);
                           }}
-                          disabled={homeMode === "profile"}
+                          disabled={homeMode.includes("profile")}
                           className={`
                           flex items-center flex-shrink-0
                           ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 

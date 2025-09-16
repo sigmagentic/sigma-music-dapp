@@ -34,6 +34,7 @@ import { logStreamViaAPI } from "libs/utils/api";
 import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 type MusicPlayerProps = {
   trackList: MusicTrack[];
@@ -129,6 +130,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     onPlayHappened,
     navigateToDeepAppView,
   } = props;
+  const { publicKey, walletType } = useSolanaWallet();
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { updateTrackPlayIsQueued, updatePlaylistTrackIndexBeingPlayed, jumpToTrackIndexInAlbumBeingPlayed } = useAudioPlayerStore();
   const theme = localStorage.getItem("explorer-ui-theme");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -148,7 +151,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [duration, setDuration] = useState("00:00");
   const [isLoaded, setIsLoaded] = useState(false);
   const { signMessage } = useWallet();
-  const { publicKey } = useSolanaWallet();
   const [songSource, setSongSource] = useState<{ [key: string]: string }>({}); // map to keep the already fetched trackList
   const abortControllersRef = useRef<{ [key: string]: AbortController }>({}); // we use this to keep track of network requests for song blob caches and then abort them if the user clicks out
   const [imgLoading, setImgLoading] = useState(false);
@@ -427,7 +429,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             solPreaccessNonce,
             solPreaccessSignature,
             solPreaccessTimestamp,
-            signMessage,
+            signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
             publicKey,
             updateSolPreaccessNonce,
             updateSolSignedPreaccess,
@@ -1139,7 +1141,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
       {/* Bonus Track Modal */}
       {showBonusTrackModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
           <div className="relative bg-[#1A1A1A] rounded-lg p-6 w-full mx-4 max-w-xl">
             {/* Close button */}
             <button

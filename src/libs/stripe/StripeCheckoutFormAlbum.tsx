@@ -90,24 +90,24 @@ const StripeCheckoutFormAlbum = ({
 
     try {
       const albumId = albumToBuyAndMint.albumId;
-      const artistSlug = artistProfile.slug;
-      const albumImg = albumToBuyAndMint.img;
-      const albumTitle = albumToBuyAndMint.title;
-      const albumArtist = artistProfile.name;
+      const artistSlug = encodeURIComponent(artistProfile.slug);
+      const albumImg = encodeURIComponent(albumToBuyAndMint.img);
+      const albumTitle = encodeURIComponent(albumToBuyAndMint.title);
+      const albumArtist = encodeURIComponent(artistProfile.name);
       const creatorWallet = artistProfile.creatorPaymentsWallet;
       const buyerSolAddress = publicKey?.toBase58();
 
       // do we have an iptoken configured for priceOption3? if so, we need to pass it to the payment success page
       let IpTokenId = "";
 
-      if (albumSaleTypeOption === "priceOption3" && albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId) {
+      if ((albumSaleTypeOption === "priceOption3" || albumSaleTypeOption === "priceOption4") && albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId) {
         IpTokenId = albumToBuyAndMint._buyNowMeta?.priceOption3?.IpTokenId || "";
       }
 
       const { error: submitError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${encodeURIComponent(albumImg)}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSD}&billingEmail=${encodeURIComponent(email)}&albumSaleTypeOption=${albumSaleTypeOption}&IpTokenId=${IpTokenId}`,
+          return_url: `${window.location.origin}/payment-success?albumId=${albumId}&artist=${artistSlug}&albumImg=${albumImg}&albumTitle=${albumTitle}&albumArtist=${albumArtist}&creatorWallet=${creatorWallet}&buyerSolAddress=${buyerSolAddress}&priceInUSD=${priceInUSD}&billingEmail=${encodeURIComponent(email)}&albumSaleTypeOption=${albumSaleTypeOption}&IpTokenId=${IpTokenId}`,
           receipt_email: email,
         },
       });

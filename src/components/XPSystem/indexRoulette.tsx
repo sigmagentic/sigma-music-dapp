@@ -15,6 +15,7 @@ import { cn, sleep, computeRemainingCooldown } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 const rouletteData = [
   { option: "Rugged", bitz: "0", style: { backgroundColor: "#FF0000", textColor: "white" } }, // red
@@ -35,22 +36,20 @@ const rouletteData = [
 
 const GetBitzSol = (props: any) => {
   const { modalMode, onIsDataMarshalFetching, onHideBitzModel } = props;
-  const { signMessage } = useWallet();
-  const { publicKey: userPublicKey } = useSolanaWallet();
-  const address = userPublicKey?.toBase58();
-  const [checkingIfHasGameDataNFT, setCheckingIfHasGameDataNFT] = useState<boolean>(true);
-  const [hasGameDataNFT, setHasGameDataNFT] = useState<boolean>(false);
-  const navigate = useNavigate();
 
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
+  const { signMessage } = useWallet();
+  const { publicKey: userPublicKey, walletType } = useSolanaWallet();
+  const address = userPublicKey?.toBase58();
+  const navigate = useNavigate();
   const { cooldown, updateBitzBalance, updateCooldown, updateGivenBitzSum, updateCollectedBitzSum, updateBonusBitzSum, updateBonusTries, isSigmaWeb2XpSystem } =
     useSolBitzStore();
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+  const { solBitzNfts } = useNftsStore();
 
-  const solPreaccessNonce = useAccountStore((state: any) => state.solPreaccessNonce);
-  const solPreaccessSignature = useAccountStore((state: any) => state.solPreaccessSignature);
-  const solPreaccessTimestamp = useAccountStore((state: any) => state.solPreaccessTimestamp);
-  const updateSolPreaccessNonce = useAccountStore((state: any) => state.updateSolPreaccessNonce);
-  const updateSolPreaccessTimestamp = useAccountStore((state: any) => state.updateSolPreaccessTimestamp);
-  const updateSolSignedPreaccess = useAccountStore((state: any) => state.updateSolSignedPreaccess);
+  const [checkingIfHasGameDataNFT, setCheckingIfHasGameDataNFT] = useState<boolean>(true);
+  const [hasGameDataNFT, setHasGameDataNFT] = useState<boolean>(false);
 
   // a single game-play related (so we have to reset these if the user wants to "replay")
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(false);
@@ -59,7 +58,6 @@ const GetBitzSol = (props: any) => {
 
   // Game canvas related
   const [loadBlankGameCanvas, setLoadBlankGameCanvas] = useState<boolean>(false);
-  const { solBitzNfts } = useNftsStore();
   const [populatedBitzStore, setPopulatedBitzStore] = useState<boolean>(false);
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeNumber, setPrizeNumber] = useState<number>(0);
@@ -93,11 +91,11 @@ const GetBitzSol = (props: any) => {
           startVelocity: 45,
           particleCount: 400,
           scalar: 2,
-          shapes: ["emoji", "circle", "square"],
+          shapes: ["emoji"],
           colors: ["#FFD700", "#FFA500", "#FF4500", "#ff0000", "#00ff00"],
           shapeOptions: {
             emoji: {
-              value: ["🎉", "💎", "🏆", "⭐", "💫", "🌟", "🔥", "👑"],
+              value: ["💛", "⭐", "✨", "💫", "🌟", "⚡️"],
             },
           },
           origin: { y: 0.7 },
@@ -112,10 +110,10 @@ const GetBitzSol = (props: any) => {
           startVelocity: 30,
           particleCount: 200,
           scalar: 2,
-          shapes: ["emoji", "circle", "square"],
+          shapes: ["emoji"],
           shapeOptions: {
             emoji: {
-              value: ["💎", "⭐", "✨", "💫"],
+              value: ["💛", "⭐", "✨", "💫", "🌟", "⚡️"],
             },
           },
         });
@@ -206,7 +204,7 @@ const GetBitzSol = (props: any) => {
             solPreaccessNonce,
             solPreaccessSignature,
             solPreaccessTimestamp,
-            signMessage,
+            signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
             publicKey: userPublicKey,
             updateSolPreaccessNonce,
             updateSolSignedPreaccess,

@@ -1,37 +1,56 @@
-import React, { useEffect, useState } from "react";
-import { ArrowLeft, Play, Loader } from "lucide-react";
+import React, { useEffect, useState, useMemo } from "react";
+import { ArrowLeft, Play, Loader, Download, MoreVertical, Plus } from "lucide-react";
 import ratingE from "assets/img/icons/rating-E.png";
 import { Button } from "libComponents/Button";
 import { Album, MusicTrack } from "libs/types";
 import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
-import { scrollToTopOnMainContentArea } from "libs/utils/ui";
+import { scrollToTopOnMainContentArea, downloadTrackViaClientSide } from "libs/utils/ui";
 import { useAudioPlayerStore } from "store/audioPlayer";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "libComponents/DropdownMenu";
+import { InfoTooltip } from "libComponents/Tooltip";
+import { LICENSE_BLURBS } from "config";
+import { TrackRatingButtons } from "components/TrackRatingButtons";
+import { useTrackVoting } from "hooks/useTrackVoting";
 
 interface TrackListProps {
   album: Album;
   artistId: string;
   artistName: string;
-  onBack: () => void;
-  onPlayTrack: (album: any, jumpToPlaylistTrackIndex?: number) => void;
-  checkOwnershipOfMusicAsset: (album: any) => number;
+  virtualTrackList?: MusicTrack[];
   trackPlayIsQueued?: boolean;
   assetPlayIsQueued?: boolean;
+  remixWorkspaceView?: boolean;
+  disabledDownloadAlways?: boolean;
+  checkOwnershipOfMusicAsset: (album: any) => number;
+  onBack: () => void;
+  onPlayTrack: (album: any, jumpToPlaylistTrackIndex?: number) => void;
+  handleTrackSelection?: (track: MusicTrack) => void;
 }
 
 export const TrackList: React.FC<TrackListProps> = ({
   album,
   artistId,
   artistName,
-  onBack,
-  onPlayTrack,
-  checkOwnershipOfMusicAsset,
+  virtualTrackList,
   trackPlayIsQueued,
   assetPlayIsQueued,
+  remixWorkspaceView,
+  disabledDownloadAlways,
+  checkOwnershipOfMusicAsset,
+  onBack,
+  onPlayTrack,
+  handleTrackSelection,
 }) => {
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredTrackIndex, setHoveredTrackIndex] = useState<number | null>(null);
   const { playlistTrackIndexBeingPlayed, albumIdBeingPlayed, updateJumpToTrackIndexInAlbumBeingPlayed } = useAudioPlayerStore();
+  const [trackDownloadIsInProgress, setTrackDownloadIsInProgress] = useState<boolean>(false);
+  // Calculate bounty IDs for voting system - memoized to prevent re-render loops
+  const bountyIds = useMemo(() => [...(virtualTrackList?.map((track) => track.bountyId).filter(Boolean) || [])] as string[], [virtualTrackList]);
+
+  // Rating system state - tracks which specific votes user has made to prevent spam
+  const { userVotedOptions, setUserVotedOptions } = useTrackVoting({ bountyIds });
 
   useEffect(() => {
     scrollToTopOnMainContentArea();
@@ -52,8 +71,17 @@ export const TrackList: React.FC<TrackListProps> = ({
       }
     };
 
-    fetchTracks();
-  }, [artistId, album.albumId]);
+    if (album.title !== "My AI Remixes") {
+      fetchTracks(); // get live tracks from the DB
+    } else {
+      // we are loading a manual list of remixes (most likely for the user's remixes -- i.e. album is "My AI Remixes")
+      if (virtualTrackList) {
+        setTracks(virtualTrackList); // we are loading a manual virtual track list (e.g. for the user's remixes)
+      }
+
+      setLoading(false);
+    }
+  }, [artistId, album.albumId, virtualTrackList]);
 
   const handleTrackClick = (track: MusicTrack, trackIndex: number) => {
     // Don't allow clicking if audio player is being loaded
@@ -77,12 +105,24 @@ export const TrackList: React.FC<TrackListProps> = ({
 
     // if this album is already playing, we shortcut the MusicPlayer by getting the current player to jump to track the user wants to play
     if (albumIdBeingPlayed === album.albumId) {
-      updateJumpToTrackIndexInAlbumBeingPlayed(parseInt(track.idx));
+      updateJumpToTrackIndexInAlbumBeingPlayed(track.idx);
       return;
     }
 
     // Use the same play logic as the album play button
-    onPlayTrack(album, parseInt(track.idx));
+    onPlayTrack(album, track.idx);
+  };
+
+  const downloadTrackViaClientSideWrapper = async (track: MusicTrack) => {
+    setTrackDownloadIsInProgress(true);
+    await downloadTrackViaClientSide({
+      trackMediaUrl: track.file || track.stream || "",
+      artistId,
+      albumId: album.albumId,
+      alId: track.alId || "",
+      trackTitle: track.title || "",
+    });
+    setTrackDownloadIsInProgress(false);
   };
 
   const userOwnsAlbum = checkOwnershipOfMusicAsset(album) > -1;
@@ -99,10 +139,12 @@ export const TrackList: React.FC<TrackListProps> = ({
     <div className="w-full">
       {/* Header */}
       <div>
-        <Button variant="outline" className="text-sm px-3 py-2" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Albums
-        </Button>
+        {!virtualTrackList && (
+          <Button variant="outline" className="text-sm px-3 py-2" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Albums
+          </Button>
+        )}
         <div className="flex items-center justify-between mb-6 mt-3">
           <div className="flex items-center gap-6">
             {/* Large Circular Play Button */}
@@ -118,7 +160,7 @@ export const TrackList: React.FC<TrackListProps> = ({
             </button>
 
             <div>
-              <h2 className="text-2xl font-bold text-white flex items-center">
+              <h2 className="!text-2xl font-bold text-white flex items-center">
                 {album.title}
                 <span className="ml-1">
                   {album.isExplicit && album.isExplicit === "1" && (
@@ -156,9 +198,10 @@ export const TrackList: React.FC<TrackListProps> = ({
 
       {/* Track List Header */}
       <div className="border-b border-gray-700 pb-2 mb-4">
-        <div className="grid grid-cols-[50px_1fr] gap-4 text-gray-400 text-sm font-medium">
+        <div className="grid grid-cols-[50px_1fr_50px] gap-4 text-gray-400 text-sm font-medium">
           <div>#</div>
           <div>Title</div>
+          {!disabledDownloadAlways && <div>{remixWorkspaceView ? "Options" : "Download"}</div>}
         </div>
       </div>
 
@@ -174,23 +217,30 @@ export const TrackList: React.FC<TrackListProps> = ({
           return (
             <div
               key={`${track.albumTrackId || track.idx}-${index}`}
-              className={`group grid grid-cols-[50px_1fr] gap-4 py-3 px-2 rounded-md transition-colors ${
+              className={`group grid grid-cols-[50px_1fr_50px] gap-4 py-3 px-2 rounded-md transition-colors ${
                 isDisabled || isQueued || isCurrentlyPlaying ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800 cursor-pointer"
               }`}
               onMouseEnter={() => setHoveredTrackIndex(index)}
               onMouseLeave={() => setHoveredTrackIndex(null)}
               onClick={() => handleTrackClick(track, index)}>
               {/* Track Number / Play Button */}
-              <div className="flex items-center justify-center">
-                {isCurrentlyPlaying ? (
-                  <span className="text-yellow-300 text-sm font-medium">▶</span>
-                ) : isQueued && isHovered ? (
-                  <Loader className="w-4 h-4 animate-spin" />
-                ) : isHovered && !isDisabled && !isQueued && !isCurrentlyPlaying ? (
-                  <Play className="w-4 h-4 text-white" />
-                ) : (
-                  <span className="text-gray-400 text-sm">{index + 1}</span>
-                )}
+              <div className="flex items-center justify-start">
+                <>
+                  {isCurrentlyPlaying ? (
+                    <span className="text-yellow-300 text-sm font-medium">▶</span>
+                  ) : isQueued && isHovered ? (
+                    <Loader className="w-4 h-4 animate-spin" />
+                  ) : isHovered && !isDisabled && !isQueued && !isCurrentlyPlaying ? (
+                    <Play className="w-4 h-4 text-white" />
+                  ) : (
+                    <span className="text-gray-400 text-sm">{index + 1}</span>
+                  )}
+                  {track.isSigmaAiRemixUsingFreeLicense && (
+                    <span className="text-xs text-black px-2 py-1 rounded-full">
+                      <InfoTooltip content={`This was remixed with a CC BY-NC 4.0 license - ${LICENSE_BLURBS["CC BY-NC 4.0"].blurb}`} position="right" />
+                    </span>
+                  )}
+                </>
               </div>
 
               {/* Track Title and Artist */}
@@ -198,12 +248,81 @@ export const TrackList: React.FC<TrackListProps> = ({
                 <div className="flex items-center gap-2">
                   <span className={`text-sm ${isDisabled || isCurrentlyPlaying ? "text-gray-500" : "text-white"}`}>
                     {track.title}
+
                     {isCurrentlyPlaying && <span className="text-yellow-300 ml-2 text-xs">Playing...</span>}
                   </span>
                   {isBonusTrack && <span className="text-xs bg-orange-500 text-black px-2 py-1 rounded-full">Bonus</span>}
                 </div>
                 <span className="text-gray-400 text-xs">{artistName}</span>
               </div>
+
+              {/* Download Button */}
+              {!disabledDownloadAlways && !remixWorkspaceView && (
+                <div className="flex items-center justify-center">
+                  {userOwnsAlbum ? (
+                    <button
+                      className={`text-gray-400 hover:text-white transition-colors ${isHovered ? "opacity-100" : "opacity-0"}`}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent track click handler from firing
+                        downloadTrackViaClientSideWrapper(track);
+                      }}
+                      disabled={trackDownloadIsInProgress}
+                      title="Download track">
+                      {trackDownloadIsInProgress ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-5 h-5" />}
+                    </button>
+                  ) : (
+                    <div
+                      className={`text-gray-400 transition-opacity cursor-not-allowed ${isHovered ? "opacity-50" : "opacity-0"}`}
+                      title="Buy the digital version of this album to download this track">
+                      <Download className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!disabledDownloadAlways && remixWorkspaceView && (
+                <div className="flex items-center justify-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className={`text-gray-400 hover:text-white transition-colors p-1 rounded-sm hover:bg-gray-700 ${
+                          isHovered ? "opacity-100" : "opacity-0"
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                        title="Track options">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 bg-gray-800 border-gray-700 text-white" sideOffset={5}>
+                      <DropdownMenuItem
+                        className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadTrackViaClientSideWrapper(track);
+                        }}
+                        disabled={trackDownloadIsInProgress}>
+                        <Download className="w-4 h-4 mr-2" />
+                        {trackDownloadIsInProgress ? "Downloading..." : "Download Track"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (handleTrackSelection) {
+                            handleTrackSelection(track);
+                          }
+                        }}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Track to Album
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {track.bountyId && (
+                    <TrackRatingButtons bountyId={track.bountyId} userVotedOptions={userVotedOptions} setUserVotedOptions={setUserVotedOptions} />
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

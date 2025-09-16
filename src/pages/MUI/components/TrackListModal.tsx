@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Music, Play, Plus, X } from "lucide-react";
+import { Music, Play, Plus, X, Edit, Loader2 } from "lucide-react";
 import { ALL_MUSIC_GENRES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Badge } from "libComponents/Badge";
@@ -11,15 +11,23 @@ import { Switch } from "libComponents/Switch";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { useAccountStore } from "store/account";
 import { Modal } from "./Modal";
-import { adminApi, FastStreamTrack } from "../services";
+import { adminApi } from "../services";
+import { FastStreamTrack, MusicTrack } from "libs/types";
+import { MediaUpdate } from "libComponents/MediaUpdate";
+import { saveMediaToServerViaAPI } from "libs/utils/api";
+import { toastError } from "libs/utils/ui";
+import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 interface TrackListModalProps {
   isOpen: boolean;
+  isNonMUIMode?: boolean;
   onClose: () => void;
   tracks: FastStreamTrack[];
   albumTitle: string;
   artistId: string;
   albumId: string;
+  albumImg: string;
+  preloadExistingTrackToAlbum?: MusicTrack | null;
   onTracksUpdated: () => void;
 }
 
@@ -34,8 +42,27 @@ interface TrackFormData {
   title: string;
 }
 
-export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose, tracks, albumTitle, artistId, albumId, onTracksUpdated }) => {
+export const TrackListModal: React.FC<TrackListModalProps> = ({
+  isOpen,
+  isNonMUIMode,
+  onClose,
+  tracks,
+  albumTitle,
+  artistId,
+  albumId,
+  albumImg,
+  preloadExistingTrackToAlbum,
+  onTracksUpdated,
+}) => {
+  const { publicKey, walletType } = useSolanaWallet();
+  const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
+  const { signMessage } = useWallet();
+  const addressSol = publicKey?.toBase58();
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+
   const [isFormView, setIsFormView] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<TrackFormData>({
     idx: -1,
@@ -43,55 +70,113 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
     alId: `${albumId}-X`,
     bonus: 0,
     category: "",
-    cover_art_url: "",
+    cover_art_url: albumImg || "",
     file: "",
     title: "",
   });
-  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
-    useAccountStore();
-  const { signMessage } = useWallet();
-  const { publicKey } = useSolanaWallet();
+  const [errors, setErrors] = useState<Partial<TrackFormData>>({});
   const [trackIdxListSoFar, setTrackIdxListSoFar] = useState<string>("");
   const [trackIdxNextGuess, setTrackIdxNextGuess] = useState<number>(1);
+  const [newSelectedTrackCoverArtFile, setNewSelectedTrackCoverArtFile] = useState<File | null>(null);
+  const [newSelectedAudioFile, setNewSelectedAudioFile] = useState<File | null>(null);
+
+  // Add effect to prevent body scrolling when modal is open
+  useEffect(() => {
+    // Prevent scrolling on mount
+    document.body.style.overflow = "hidden";
+    // Re-enable scrolling on unmount
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   useEffect(() => {
+    let titleToUse = "";
+    let fileToUse = "";
+    let coverArtUrlToUse = albumImg || "";
+    let categoryToUse = "";
+
+    if (preloadExistingTrackToAlbum) {
+      titleToUse = preloadExistingTrackToAlbum.title || "";
+      fileToUse = preloadExistingTrackToAlbum.stream || "";
+      coverArtUrlToUse = preloadExistingTrackToAlbum.cover_art_url || "";
+      categoryToUse = preloadExistingTrackToAlbum.category || "";
+    }
+
     setFormData({
       idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
       arId: artistId,
       alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
       bonus: 0,
-      category: "",
-      cover_art_url: "",
-      file: "",
-      title: "",
+      category: categoryToUse,
+      cover_art_url: coverArtUrlToUse,
+      file: fileToUse,
+      title: titleToUse,
     });
 
-    setIsFormView(false);
-  }, [artistId, albumId, trackIdxNextGuess]);
+    setErrors({});
+    setIsEditing(false);
+    setNewSelectedTrackCoverArtFile(null);
+    setNewSelectedAudioFile(null);
+
+    if (preloadExistingTrackToAlbum) {
+      setIsFormView(true);
+    } else {
+      setIsFormView(false);
+    }
+  }, [artistId, albumId, trackIdxNextGuess, preloadExistingTrackToAlbum]);
 
   useEffect(() => {
     if (tracks.length > 0) {
-      setTrackIdxListSoFar(tracks.map((track) => track.idx).join(","));
-      setTrackIdxNextGuess(tracks.length + 1);
+      const trackListIdxList = tracks.map((track) => track.idx);
+      setTrackIdxListSoFar(trackListIdxList.join(","));
+
+      const nextHighestIdx = Math.max(...trackListIdxList);
+      setTrackIdxNextGuess(nextHighestIdx + 1);
+    } else {
+      setTrackIdxListSoFar("");
+      setTrackIdxNextGuess(1);
     }
   }, [tracks]);
 
   const handleAddTrackToFastStream = () => {
+    setIsEditing(false);
+    setIsFormView(true);
+  };
+
+  const handleEditTrack = (track: FastStreamTrack) => {
+    setIsEditing(true);
+    setFormData({
+      idx: track.idx,
+      arId: track.arId || artistId,
+      alId: track.alId || `${albumId}-${track.idx}`,
+      bonus: track.bonus || 0,
+      category: track.category || "",
+      cover_art_url: track.cover_art_url || "",
+      file: track.file || "",
+      title: track.title || "",
+    });
+    setErrors({});
     setIsFormView(true);
   };
 
   const handleCancelForm = () => {
     setIsFormView(false);
+    setIsEditing(false);
+    setIsSubmitting(false);
     setFormData({
       idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
       arId: artistId,
       alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
       bonus: 0,
       category: "",
-      cover_art_url: "",
+      cover_art_url: albumImg || "",
       file: "",
       title: "",
     });
+    setErrors({});
+    setNewSelectedTrackCoverArtFile(null);
+    setNewSelectedAudioFile(null);
   };
 
   const handleFormChange = (field: keyof TrackFormData, value: any) => {
@@ -105,54 +190,158 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
 
       return updated;
     });
+
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
-  const validateForm = (): string | null => {
-    if (!formData.title.trim()) return "Title is required";
-    if (!formData.category.trim()) return "At least one genre is required";
-    if (!formData.cover_art_url.trim()) return "Cover art URL is required";
-    if (!formData.file.trim()) return "File URL is required";
-    if (formData.idx <= 0) return "Track number must be positive";
+  const validateForm = (): boolean => {
+    const newErrors: Partial<TrackFormData> = {};
 
-    // Validate that we have at least one genre and no more than 5
-    const selectedGenres = formData.category
-      .split(",")
-      .map((g) => g.trim())
-      .filter((g) => g.length > 0);
-    if (selectedGenres.length === 0) return "At least one genre is required";
-    if (selectedGenres.length > 5) return "Maximum 5 genres allowed";
+    if (!formData.title.trim()) {
+      newErrors.title = "Title is required";
+    }
 
-    return null;
+    if (!formData.category.trim()) {
+      newErrors.category = "At least one genre is required";
+    } else {
+      // Validate that we have at least one genre and no more than 5
+      const selectedGenres = formData.category
+        .split(",")
+        .map((g) => g.trim())
+        .filter((g) => g.length > 0);
+      if (selectedGenres.length === 0) {
+        newErrors.category = "At least one genre is required";
+      } else if (selectedGenres.length > 5) {
+        newErrors.category = "Maximum 5 genres allowed";
+      }
+    }
+
+    if (!formData.cover_art_url.trim() && !newSelectedTrackCoverArtFile) {
+      newErrors.cover_art_url = "Cover art URL is required";
+    }
+
+    // check if the cover art image is less than 3MB
+    if (newSelectedTrackCoverArtFile) {
+      if (newSelectedTrackCoverArtFile.size > 3 * 1024 * 1024) {
+        newErrors.cover_art_url = "Cover art image must be less than 3MB";
+      }
+
+      // Validate file type
+      const fileName = newSelectedTrackCoverArtFile.name.toLowerCase();
+      const validExtensions = [".gif", ".png", ".jpg"];
+      const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
+
+      if (!hasValidExtension) {
+        newErrors.cover_art_url = "Cover art must be a GIF, PNG, or JPG file";
+      }
+
+      // Check for JPEG and ask to rename to JPG
+      if (fileName.endsWith(".jpeg")) {
+        newErrors.cover_art_url = "Please rename your JPEG file to JPG and try again";
+      }
+    }
+
+    if (!formData.file.trim() && !newSelectedAudioFile) {
+      newErrors.file = "Audio file URL is required";
+    }
+
+    // check if the audio file is less than 4.5MB
+    if (newSelectedAudioFile) {
+      if (newSelectedAudioFile.size > 4.5 * 1024 * 1024) {
+        newErrors.file = "Audio file must be less than 4.5MB";
+      }
+
+      // Validate file type for audio
+      const fileName = newSelectedAudioFile.name.toLowerCase();
+      if (!fileName.endsWith(".mp3")) {
+        newErrors.file = "Audio file must be an MP3 file";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = async () => {
-    const error = validateForm();
-    if (error) {
-      alert(error);
+    if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
+
     try {
       // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
       const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
         solPreaccessNonce,
         solPreaccessSignature,
         solPreaccessTimestamp,
-        signMessage,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
         publicKey,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
         updateSolPreaccessTimestamp,
       });
 
-      const payloadToSave = { ...formData, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce, adminWallet: publicKey?.toBase58() };
+      // S: if new img and  or mp3 files are selected we need to save that to the media server and get back a https url
+      if (!usedPreAccessNonce || !usedPreAccessSignature) {
+        throw new Error("Failed to valid signature to prove account ownership");
+      }
 
-      // log the track to the web2 API
-      const response = await adminApi.fastStream.addNewFastStreamTracksForAlbum(payloadToSave);
+      if (addressSol) {
+        if (newSelectedTrackCoverArtFile) {
+          try {
+            const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedTrackCoverArtFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+
+            if (fileUploadResponse) {
+              formData.cover_art_url = fileUploadResponse;
+            } else {
+              toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+              return;
+            }
+          } catch (error) {
+            toastError("Error uploading cover art image: " + (error as Error)?.message);
+            return;
+          }
+        }
+
+        if (newSelectedAudioFile) {
+          try {
+            const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedAudioFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+
+            if (fileUploadResponse) {
+              formData.file = fileUploadResponse;
+            } else {
+              toastError("Error uploading and updating profile image but other profile data was saved. Please reupload and try again later.");
+              return;
+            }
+          } catch (error) {
+            toastError("Error uploading audio file: " + (error as Error)?.message);
+            return;
+          }
+        }
+      }
+
+      const payloadToSave: any = { ...formData, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce };
+
+      if (!isNonMUIMode) {
+        payloadToSave.adminWallet = publicKey?.toBase58() || "";
+      }
+
+      let response;
+      if (isEditing) {
+        // Update existing track
+        response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
+      } else {
+        // Add new track
+        response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
+      }
 
       if (response.success) {
         setIsFormView(false);
+        setIsEditing(false);
         onTracksUpdated(); // Refresh the track list
         setFormData({
           idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
@@ -160,150 +349,240 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
           alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
           bonus: 0,
           category: "",
-          cover_art_url: "",
+          cover_art_url: albumImg || "",
           file: "",
           title: "",
         });
+        setErrors({});
       } else {
-        alert(`Error: ${response.error || "Failed to add track"}`);
+        alert(`Error: ${response.error || `Failed to ${isEditing ? "update" : "add"} track`}`);
       }
     } catch (err) {
-      console.error("Error adding track:", err);
-      alert("Failed to add track. Please try again.");
+      console.error(`Error ${isEditing ? "updating" : "adding"} track:`, err);
+      alert(`Failed to ${isEditing ? "update" : "add"} track. Please try again.`);
     } finally {
       setIsSubmitting(false);
+      setNewSelectedTrackCoverArtFile(null);
+      setNewSelectedAudioFile(null);
     }
   };
 
-  const renderNewTrackFormView = () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Add New Track</h3>
-          <p className="text-gray-600">Fill in the track details below</p>
+  const RenderNewTrackFormView = () => (
+    <div className="">
+      {isSubmitting && (
+        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+          <Loader2 className="w-16 h-16 text-yellow-500 animate-spin mx-auto mb-6" />
         </div>
-        <Button onClick={handleCancelForm} variant="outline" size="sm">
-          <X className="w-4 h-4 mr-2" />
-          Cancel
-        </Button>
-      </div>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Track Number */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Track Number *</label>
-          <Input type="number" min="1" value={formData.idx} onChange={(e) => handleFormChange("idx", parseInt(e.target.value) || 1)} placeholder="1" required />
-          <span className="text-xs text-gray-600">track numbers used so far (make sure it's in sequence with no duplicates): {trackIdxListSoFar}</span>
-        </div>
-
-        {/* Artist ID (Read-only) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Artist ID</label>
-          <Input value={formData.arId} disabled className="bg-gray-800" />
-        </div>
-
-        {/* Album Track ID (Read-only) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Album Track ID</label>
-          <Input value={formData.alId} disabled className="bg-gray-800" />
-        </div>
-
-        {/* Bonus Track Toggle */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Bonus Track</label>
-          <div className="flex items-center space-x-2">
-            <Switch checked={formData.bonus === 1} onCheckedChange={(checked) => handleFormChange("bonus", checked ? 1 : 0)} />
-            <span className="text-sm text-gray-600">{formData.bonus === 1 ? "Yes" : "No"}</span>
+      <div className={`${isSubmitting ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="!text-lg font-semibold text-gray-900">{isEditing ? "Edit Track" : "Add New Track"}</h3>
+            <p className="text-gray-600">{isEditing ? "Update the track details below" : "Fill in the track details below"}</p>
           </div>
+          <Button onClick={handleCancelForm} variant="outline" size="sm">
+            <X className="w-4 h-4 mr-2" />
+            Cancel
+          </Button>
         </div>
 
-        {/* Category Dropdown */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Genres * (Select up to 5)</label>
-          <div className="border border-gray-300 rounded-md p-3 bg-gray-800 max-h-48 overflow-y-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {ALL_MUSIC_GENRES.map((genre) => {
-                const selectedGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
-                const isSelected = selectedGenres.includes(genre.code);
-                const canSelect = isSelected || selectedGenres.length < 5;
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Track Number */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Track Number <span className="text-red-400">*</span>
+            </label>
+            <Input
+              type="number"
+              min="1"
+              value={formData.idx}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                handleFormChange("idx", isNaN(value) ? 1 : value);
+              }}
+              placeholder="1"
+              required
+              disabled={true}
+              className={errors.idx ? "border-red-500" : ""}
+            />
+            {errors.idx && <p className="text-red-400 text-sm mt-1">{errors.idx}</p>}
+            {!isEditing && (
+              <span className="text-xs text-gray-600">track numbers used so far (make sure it's in sequence with no duplicates): {trackIdxListSoFar}</span>
+            )}
+          </div>
 
-                return (
-                  <label
-                    key={genre.code}
-                    className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-                      isSelected ? "bg-blue-100 text-blue-900" : "hover:bg-gray-700"
-                    } ${!canSelect && !isSelected ? "opacity-50 cursor-not-allowed" : ""}`}>
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={(e) => {
-                        const currentGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
-                        let newGenres;
+          {/* Artist ID (Read-only) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Artist ID</label>
+            <Input value={formData.arId} disabled className="bg-gray-800" />
+          </div>
 
-                        if (e.target.checked) {
-                          newGenres = [...currentGenres, genre.code];
-                        } else {
-                          newGenres = currentGenres.filter((g) => g !== genre.code);
-                        }
+          {/* Album Track ID (Read-only) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Album Track ID</label>
+            <Input value={formData.alId} disabled className="bg-gray-800" />
+          </div>
 
-                        handleFormChange("category", newGenres.join(", "));
-                      }}
-                      disabled={!canSelect && !isSelected}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm">{genre.label}</span>
-                  </label>
-                );
-              })}
+          {/* Bonus Track Toggle */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Bonus Track</label>
+            <div className="flex items-center space-x-2">
+              <Switch checked={formData.bonus === 1} onCheckedChange={(checked) => handleFormChange("bonus", checked ? 1 : 0)} />
+              <span className="text-sm text-gray-600">{formData.bonus === 1 ? "Yes" : "No"}</span>
             </div>
           </div>
-          {formData.category && <div className="mt-2 text-sm text-gray-600">Selected: {formData.category}</div>}
-        </div>
 
-        {/* Title */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Track Title *</label>
-          <Input value={formData.title} onChange={(e) => handleFormChange("title", e.target.value)} placeholder="Enter track title" required />
-        </div>
+          {/* Category Dropdown */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Genres <span className="text-red-400">*</span> (Select up to 5)
+            </label>
+            {preloadExistingTrackToAlbum && (
+              <p className="text-xs text-gray-400 mb-2">
+                As this is a Sigma AI Remix, you cannot remove "AIM" or "Sigma AI Remix" as genres but you can add other genres.
+              </p>
+            )}
+            <div className={`border rounded-md p-3 bg-gray-800 max-h-48 overflow-y-auto ${errors.category ? "border-red-500" : "border-gray-300"}`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {ALL_MUSIC_GENRES.map((genre) => {
+                  const selectedGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
+                  const isSelected = selectedGenres.includes(genre.code);
+                  const canSelect = isSelected || selectedGenres.length < 5;
 
-        {/* Cover Art URL */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Cover Art URL *</label>
-          <Input
-            value={formData.cover_art_url}
-            onChange={(e) => handleFormChange("cover_art_url", e.target.value)}
-            placeholder="https://example.com/cover-art.jpg"
-            required
-          />
-        </div>
+                  return (
+                    <label
+                      key={genre.code}
+                      className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
+                        isSelected ? "text-yellow-300" : "hover:bg-gray-700"
+                      } ${!canSelect && !isSelected ? "opacity-50 cursor-not-allowed" : ""}`}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          // if preloadExistingTrackToAlbum is NOT null, then we should NOT allow them to remove either ai music or simremix
+                          if (preloadExistingTrackToAlbum) {
+                            if (genre.code === "ai music" || genre.code === "simremix") {
+                              return;
+                            }
+                          }
 
-        {/* File URL */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Audio File URL *</label>
-          <Input value={formData.file} onChange={(e) => handleFormChange("file", e.target.value)} placeholder="https://example.com/audio-file.mp3" required />
+                          const currentGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
+                          let newGenres;
+
+                          if (e.target.checked) {
+                            newGenres = [...currentGenres, genre.code];
+                          } else {
+                            newGenres = currentGenres.filter((g) => g !== genre.code);
+                          }
+
+                          handleFormChange("category", newGenres.join(", "));
+                        }}
+                        disabled={!canSelect && !isSelected}
+                        className="rounded border-gray-300 text-yellow-300 focus:ring-yellow-500"
+                      />
+                      <span className="text-sm">{genre.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+            {errors.category && <p className="text-red-400 text-sm mt-1">{errors.category}</p>}
+            {formData.category && <div className="mt-2 text-sm text-gray-600">Selected: {formData.category}</div>}
+          </div>
+
+          {/* Title */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Track Title <span className="text-red-400">*</span>
+            </label>
+            <Input
+              value={formData.title}
+              onChange={(e) => handleFormChange("title", e.target.value)}
+              placeholder="Enter track title"
+              required
+              className={errors.title ? "border-red-500" : ""}
+            />
+            {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title}</p>}
+          </div>
+
+          {/* Asset Uploads */}
+          <div className="flex flex-row gap-4 w-full md:col-span-2">
+            {/* Cover Art URL */}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Cover Art URL <span className="text-red-400">*</span>
+              </label>
+
+              <div className="mb-3">
+                <MediaUpdate
+                  imageUrl={formData.cover_art_url}
+                  size="md"
+                  onFileSelect={(file) => {
+                    console.log("Selected file:", file);
+                    setNewSelectedTrackCoverArtFile(file);
+                  }}
+                  onFileRevert={() => {
+                    console.log("File reverted");
+                    setNewSelectedTrackCoverArtFile(null);
+                  }}
+                  alt="Track Cover"
+                  imgPlaceholder="image"
+                />
+              </div>
+
+              {errors.cover_art_url && <p className="text-red-400 text-sm mt-1">{errors.cover_art_url}</p>}
+              <p className="text-gray-400 text-xs mt-1">Must be a GIF, JPG, or PNG (Max size: 3MB)</p>
+            </div>
+
+            {/* File URL */}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Audio File URL <span className="text-red-400">*</span>
+              </label>
+
+              <div className="mb-3">
+                <MediaUpdate
+                  mediaUrl={formData.file}
+                  size="md"
+                  onFileSelect={(file) => {
+                    console.log("Selected file:", file);
+                    setNewSelectedAudioFile(file);
+                  }}
+                  onFileRevert={() => {
+                    console.log("File reverted");
+                    setNewSelectedAudioFile(null);
+                  }}
+                  alt="Audio File"
+                  imgPlaceholder="audio"
+                  isAudio={true}
+                />
+              </div>
+
+              {errors.file && <p className="text-red-400 text-sm mt-1">{errors.file}</p>}
+              <p className="text-gray-400 text-xs mt-1">Must be a valid MP3 file (Max size: 4.5MB)</p>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="flex justify-end pt-4 border-t border-gray-200">
-        <Button onClick={handleSave} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
-          {isSubmitting ? "Saving..." : "Save Track"}
+        <Button onClick={handleSave} disabled={isSubmitting} className="bg-yellow-300 text-black hover:bg-yellow-400">
+          {isSubmitting ? (isEditing ? "Updating..." : "Saving...") : isEditing ? "Update Track" : "Save Track"}
         </Button>
       </div>
     </div>
   );
 
-  const renderTrackListView = () => (
+  const RenderTrackListView = () => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <p className="text-gray-600">Current fast stream tracks for this album</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            {tracks.length} Tracks
+      {tracks.length > 0 && (
+        <div className="flex items-end justify-end mb-6">
+          <Badge variant="secondary">
+            {tracks.length} {tracks.length === 1 ? "Track" : "Tracks"}
           </Badge>
         </div>
-      </div>
+      )}
 
       {tracks.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -317,8 +596,8 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-gray-900 truncate">{track.title}</h3>
+                    <div className="flex-1 max-w-[200px]">
+                      <h3 className="!text-sm font-semibold text-gray-900 truncate">{track.title}</h3>
                       <p className="text-xs text-gray-500 mt-1">Track #{track.idx}</p>
                       <div className="flex items-center space-x-2 mt-2">
                         <div className="flex items-center space-x-1">
@@ -332,7 +611,10 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
                         )}
                       </div>
                     </div>
-                    <div className="flex-shrink-0 ml-2">
+                    <div className="flex-shrink-0 ml-2 flex space-x-1">
+                      <Button onClick={() => handleEditTrack(track)} variant="outline" size="sm" className="h-8 w-8 p-0">
+                        <Edit className="w-3 h-3" />
+                      </Button>
                       <Button onClick={() => window.open(track.file, "_blank")} variant="outline" size="sm" className="h-8 w-8 p-0">
                         <Play className="w-3 h-3" />
                       </Button>
@@ -347,30 +629,38 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({ isOpen, onClose,
         <div className="text-center py-12">
           <Music className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Tracks Found</h3>
-          <p className="text-gray-600">No fast stream tracks are currently available for this album.</p>
+          <p className="text-gray-600">No tracks are currently available for this album.</p>
         </div>
       )}
 
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleAddTrackToFastStream} className="w-full bg-green-600 hover:bg-green-700 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Track to Fast Stream
+      <div className="flex justify-end space-x-3  p-6items-center border-t border-gray-700 pt-4">
+        <Button
+          onClick={onClose}
+          variant="outline"
+          className={`border-gray-600 text-white hover:bg-gray-800 ${isSubmitting ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
+          Cancel
         </Button>
-      </div>
 
-      <div className="flex justify-end pt-4 border-t border-gray-200">
-        <Button onClick={onClose} variant="outline">
-          Close
+        <Button
+          onClick={handleAddTrackToFastStream}
+          className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Track
         </Button>
       </div>
     </div>
   );
 
-  console.log("tracks", tracks);
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`${albumTitle} - Fast Stream Tracks`} size="lg">
-      {isFormView ? renderNewTrackFormView() : renderTrackListView()}
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {
+        handleCancelForm();
+        onClose();
+      }}
+      title={`${albumTitle} : Tracks`}
+      size="lg">
+      {isFormView ? RenderNewTrackFormView() : RenderTrackListView()}
     </Modal>
   );
 };

@@ -1,11 +1,19 @@
 import * as React from "react";
-import { RemixSection } from "pages/BodySections/RemixSection";
+import { RemixMusicSectionContent } from "pages/BodySections/RemixMusicSection";
+import { MusicTrack } from "libs/types";
 // import { routeNames } from "routes";
 
 // export function returnRoute(routeKey: string) {
 //   return (routeNames as any)[routeKey];
 // }
 
-export const Remix = () => {
-  return <RemixSection />;
+interface RemixContentProps {
+  navigateToDeepAppView: (e: any) => void;
+  onCloseMusicPlayer: () => void;
+  viewSolData: (e: number, f?: any, g?: boolean, h?: MusicTrack[]) => void;
+}
+
+export const Remix = (props: RemixContentProps) => {
+  const { navigateToDeepAppView, onCloseMusicPlayer, viewSolData } = props;
+  return <RemixMusicSectionContent navigateToDeepAppView={navigateToDeepAppView} onCloseMusicPlayer={onCloseMusicPlayer} viewSolData={viewSolData} />;
 };

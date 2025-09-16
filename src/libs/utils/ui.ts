@@ -1,25 +1,36 @@
 import { clsx, ClassValue } from "clsx";
 import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
+import { AiRemixRawTrack, AiRemixLaunch, MusicTrack, Album } from "libs/types";
+import { downloadMp3TrackViaAPI } from ".";
 
-/*
-    UI should import Toaster
-    /////////////////////////////////////////////
-    import { Toaster } from 'react-hot-toast';
-    <Toaster />
-    /////////////////////////////////////////////
-*/
-
-export const toastError = (message: string) => {
+export const toastError = (message: string, showTopRight?: boolean) => {
   toast.error(message, {
-    position: "top-right",
+    position: showTopRight ? "top-right" : "top-center",
+    duration: 6000,
+    style: {
+      background: "#1A1A1A",
+      color: "white",
+      border: "1px solid #eab308",
+      minWidth: "260px",
+      fontSize: "14px",
+      fontFamily: "var(--font-sans)",
+    },
   });
 };
 
-export const toastSuccess = (message: string, showTopCenter?: boolean) => {
+export const toastSuccess = (message: string, showTopRight?: boolean) => {
   toast.success(message, {
-    position: showTopCenter ? "top-center" : "top-right",
+    position: showTopRight ? "top-right" : "top-center",
     duration: 6000,
+    style: {
+      background: "#1A1A1A",
+      color: "white",
+      border: "1px solid #eab308",
+      minWidth: "260px",
+      fontSize: "14px",
+      fontFamily: "var(--font-sans)",
+    },
   });
 };
 
@@ -228,4 +239,131 @@ export const injectXUserNameIntoTweet = (tweet: string, xUserNameFullUrl?: strin
   const xUserName = xUserNameFullUrl.split("/").pop();
 
   return tweet.replace("_(xUsername)_", `(@${xUserName}) `);
+};
+
+export const removeAllDeepSectionParamsFromUrlExceptSection = (section: string, searchParams: URLSearchParams) => {
+  const currentParams = Object.fromEntries(searchParams.entries());
+  currentParams["section"] = section;
+  delete currentParams["campaign"];
+  delete currentParams["artist"];
+  delete currentParams["tab"];
+  // delete currentParams["action"];
+  delete currentParams["country"];
+  delete currentParams["team"];
+  return currentParams;
+};
+
+export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTracks: AiRemixLaunch[] = [], publishedTracks: AiRemixLaunch[] = []) => {
+  const allAiRemixRawTracks: AiRemixRawTrack[] = [...newTracks, ...graduatedTracks, ...publishedTracks].flatMap((track: any) =>
+    track.versions.map((version: any, index: number) => ({
+      createdOn: track.createdOn,
+      songTitle: track.promptParams.songTitle,
+      genre: track.promptParams.genre,
+      mood: track.promptParams.mood,
+      image: fixImgIconForRemixes(track.image),
+      streamUrl: version.streamUrl,
+      bountyId: version.bountyId,
+      status: track.status,
+      refTrack_alId: track.promptParams.refTrack_alId,
+      refTrackWasFreeLicense: track.promptParams.meta?.isFreeLicense ? "1" : undefined,
+    }))
+  );
+
+  // lets sort by createdOn descending  (latest on top)
+  allAiRemixRawTracks.sort((a, b) => b.createdOn - a.createdOn);
+
+  return allAiRemixRawTracks;
+};
+
+export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]) {
+  // lets create a "virtual album" for the user that contains all their remixes
+  const virtualAlbum: Album = {
+    albumId: "virtual-album-PF6xCtUzeCMqXVdvqLCkZGsajKoz2XZ5JJJjuMRcjxD",
+    title: "My AI Remixes",
+    desc: "My AI Remixes",
+    ctaPreviewStream: "",
+    ctaBuy: "",
+    dripSet: "",
+    bountyId: "",
+    img: "",
+    isExplicit: "",
+    isPodcast: "",
+    isFeatured: "",
+    isSigmaRemixAlbum: "",
+    solNftName: "",
+  };
+
+  console.log("allMyRemixes", allMyRemixes);
+
+  // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
+  const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
+    idx: index,
+    artist: "My AI Remixes",
+    category: "ai music, simremix",
+    album: "My AI Remixes",
+    cover_art_url: fixImgIconForRemixes(remix.image),
+    title: remix.songTitle,
+    stream: remix.streamUrl,
+    bountyId: remix.bountyId,
+    isSigmaAiRemixUsingFreeLicense: remix.refTrackWasFreeLicense ? "1" : undefined,
+  }));
+
+  return { virtualAlbum, allMyRemixesAsMusicTracks };
+}
+
+export function isUserArtistType(profileTypes: string[]): boolean {
+  if (profileTypes?.includes("remixer") || profileTypes?.includes("composer")) {
+    return true;
+  }
+
+  return false;
+}
+
+export const isValidUrl = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+export function fixImgIconForRemixes(dbImage: string) {
+  if (dbImage === "[blob_it]") {
+    return "https://placehold.co/300x300/ffc75f/black?font=Noto%20Sans&text=pending";
+  } else {
+    return dbImage;
+  }
+}
+
+export const downloadTrackViaClientSide = async ({
+  trackMediaUrl,
+  artistId,
+  albumId,
+  alId,
+  trackTitle,
+}: {
+  trackMediaUrl: string;
+  artistId: string;
+  albumId: string;
+  alId: string;
+  trackTitle: string;
+}) => {
+  let apiDownloadFailed = false;
+
+  try {
+    apiDownloadFailed = !(await downloadMp3TrackViaAPI(artistId, albumId, alId, trackTitle || ""));
+  } catch (error) {
+    console.error("Error downloading track:", error);
+    // Fallback to the original method if fetch fails
+    apiDownloadFailed = true;
+  }
+
+  if (apiDownloadFailed && trackMediaUrl) {
+    const link = document.createElement("a");
+    link.href = trackMediaUrl;
+    link.download = `${albumId}-${alId}-${trackTitle}.mp3`;
+    link.target = "_blank"; // Open in new tab as fallback
+    link.click();
+  }
 };

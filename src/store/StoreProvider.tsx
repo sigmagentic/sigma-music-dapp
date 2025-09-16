@@ -8,7 +8,13 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { viewDataWrapperSol, fetchSolNfts, getOrCacheAccessNonceAndSignature, sigmaWeb2XpSystem } from "libs/sol/SolViewData";
 import { AlbumTrackCatalog, MusicAssetOwned } from "libs/types";
-import { fetchMintsLeaderboardByMonthViaAPI, fetchMyAlbumsFromMintLogsViaAPI, getLoggedInUserProfileAPI, getPaymentLogsViaAPI } from "libs/utils/api";
+import {
+  fetchMintsLeaderboardByMonthViaAPI,
+  fetchMyAlbumsFromMintLogsViaAPI,
+  getArtistByCreatorWallet,
+  getLoggedInUserProfileAPI,
+  getPaymentLogsViaAPI,
+} from "libs/utils/api";
 import { computeRemainingCooldown } from "libs/utils/functions";
 import { getAlbumTrackCatalogData, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import useSolBitzStore from "store/solBitz";
@@ -46,6 +52,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     updateMyMusicAssetPurchases,
     updateMyRawPaymentLogs,
     updateUserWeb2AccountDetails,
+    updateUserArtistProfile,
     updateMyAlbumMintLogs,
   } = useAccountStore();
   const {
@@ -129,16 +136,12 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   // Logged in - bootstrap nft store and other account data
   useEffect(() => {
     async function getAllUsersSolNftsAndRefreshSignatureSession() {
-      updateIsSolCoreLoading(true);
-
       // the user might have just logged in or swapped wallets via phantom, so we force refresh the signature session so it's accurate
       // Note that this is the where the 1st time the signature session is cached (i.e. sign message after login)
       await cacheSolSignatureSession();
 
       const _allDataNfts = await fetchSolNfts(addressSol);
       updateSolNfts(_allDataNfts);
-
-      updateIsSolCoreLoading(false);
     }
 
     async function getAllPaymentLogs() {
@@ -162,6 +165,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     if (publicKeySol && publicKeySol !== null && solPreaccessNonce !== "" && solPreaccessSignature !== "" && Object.keys(userWeb2AccountDetails).length === 0) {
       (async () => {
+        // get user account data
         const _userProfileData = await getLoggedInUserProfileAPI({
           solSignature: solPreaccessSignature,
           signatureNonce: solPreaccessNonce,
@@ -174,13 +178,22 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
           console.error("StoreProvider: error getting user profile data");
           console.error(_userProfileData);
         }
+
+        // get user artist profile data (IF user ever created an artist profile in the past)
+        const _artist = await getArtistByCreatorWallet(publicKeySol.toBase58());
+        if (_artist) {
+          updateUserArtistProfile(_artist);
+        }
       })();
     }
   }, [publicKeySol, solPreaccessNonce, solPreaccessSignature, userWeb2AccountDetails]);
 
   // if someone updates data nfts (i.e. at the start when app loads and we get nfts OR they get a free mint during app session), we go over them and find bitz nfts etc
   useEffect(() => {
-    if (!publicKeySol) {
+    // if we have a public key AND a signatire session then we can proceed here to bootstream the updateIsSolCoreLoading flag
+    // ... which means the user has conneted and authenticated via a signature and we can look their NFTs and bootstrap the app
+    // ... isSolCoreLoading can be ised anywhere in the app to make sure we have obtained the public key and signature session and the nfts has been loaded
+    if (!publicKeySol || solPreaccessNonce === "" || solPreaccessSignature === "") {
       return;
     }
 
@@ -230,7 +243,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
       updateIsSolCoreLoading(false);
     })();
-  }, [publicKeySol, solNfts]);
+  }, [publicKeySol, solNfts, solPreaccessNonce, solPreaccessSignature]);
 
   // used raw payment logs to get music asset purchases
   useEffect(() => {
@@ -278,7 +291,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
         .map((log) => ({
           purchasedOn: log.createdOn,
           tx: log.tx,
-          albumSaleTypeOption: log.albumSaleTypeOption,
+          albumSaleTypeOption: log.albumSaleTypeOption || "",
           albumId: log.albumId,
           type: "sol",
           artistId: log.artistId,

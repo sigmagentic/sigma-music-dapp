@@ -1,8 +1,9 @@
 import React from "react";
 import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
+import { Button } from "libComponents/Button";
 import { APP_NETWORK } from "config";
 
-export function StoryIPLicenseDisplay({ license }: { license: any }) {
+export function StoryIPLicenseDisplay({ license, navigateToDeepAppView }: { license: any; navigateToDeepAppView: (e: any) => void }) {
   return (
     <div className="bg-black p-4 rounded-md mt-4 text-sm mx-auto">
       <div className="mb-3 text-center font-medium text-gray-100">You have also been allocated an on-chain legal license via Story Protocol.</div>
@@ -86,6 +87,18 @@ export function StoryIPLicenseDisplay({ license }: { license: any }) {
         {license.storyProtocolLicenseMintingSQSMessageId && !license.storyProtocolLicenseTokenId && (
           <div className="bg-yellow-900 rounded px-3 py-2 w-full text-center font-bold text-yellow-300 border border-yellow-600">On-Chain License: Pending</div>
         )}
+      </div>
+      <div className="flex flex-col gap-2 items-center">
+        <Button
+          variant="outline"
+          className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black hover:text-black py-2 px-4 rounded-lg hover:opacity-90 transition-opacity text-sm h-[40px] mt-5"
+          onClick={() => {
+            navigateToDeepAppView({
+              toSection: "ai-remix",
+            });
+          }}>
+          Remix Now!
+        </Button>
       </div>
     </div>
   );

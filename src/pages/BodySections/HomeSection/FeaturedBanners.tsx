@@ -392,7 +392,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-5
+              className="overflow-x-auto pb-4 mt-2
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">

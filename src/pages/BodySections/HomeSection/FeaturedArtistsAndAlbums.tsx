@@ -1,24 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram } from "lucide-react";
+import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram, ChevronDown } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import TikTokIcon from "assets/img/icons/tiktok-icon.png";
+import ArtistAiRemixes from "components/ArtistAiRemixes/ArtistAiRemixes";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
 import ArtistStats from "components/ArtistStats/ArtistStats";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
-import { GiftBitzToArtistMeta } from "libs/types";
-import { Artist, Album, AlbumWithArtist } from "libs/types";
-import { BountyBitzSumMapping } from "libs/types";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "libComponents/DropdownMenu";
+import { Artist, Album, AlbumWithArtist, GiftBitzToArtistMeta, BountyBitzSumMapping } from "libs/types";
 import { sleep, scrollToTopOnMainContentArea, isMostLikelyMobile, injectXUserNameIntoTweet } from "libs/utils";
 import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
+
+let originalSortedArtistAlbumDataset: Artist[] = []; // sorted by "Featured", this is the original "master" copy we always resort or filter from
+let originalSortedAlbumsDataset: AlbumWithArtist[] = []; // sorted by "Featured", this is the original "master" copy we always resort or filter from
+
+const filterNames = {
+  featured: "Featured",
+  recent_added: "Recent Added",
+  with_ai_remix_licenses: "With AI Remix Licenses",
+  alphabetical: "Alphabetical",
+};
 
 type FeaturedArtistsAndAlbumsProps = {
   stopPreviewPlayingNow?: boolean;
@@ -39,6 +49,7 @@ type FeaturedArtistsAndAlbumsProps = {
   onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => any;
   onCloseMusicPlayer: () => void;
   setLoadIntoTileView: (e: boolean) => void;
+  navigateToDeepAppView: (e: any) => any;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
@@ -61,6 +72,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     onFeaturedArtistDeepLinkSlug,
     onCloseMusicPlayer,
     setLoadIntoTileView,
+    navigateToDeepAppView,
   } = props;
   const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
@@ -83,9 +95,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState("discography");
   const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
-  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan"]);
+  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
+  const [selectedFilter, setSelectedFilter] = useState<string>("featured");
+  const prevIsAllAlbumsModeRef = useRef<boolean | undefined>(isAllAlbumsMode);
 
   function eventToAttachEnded() {
     previewTrackAudio.src = "";
@@ -175,7 +189,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         setArtistAlbumDataLoading(true);
         updateTileDataCollectionLoadingInProgress(true);
         setArtistAlbumDataset([]);
+        originalSortedArtistAlbumDataset = [];
         setAlbumsDataset([]);
+        originalSortedAlbumsDataset = [];
         setArtistAlbumDataLoading(false);
         updateTileDataCollectionLoadingInProgress(false);
       }
@@ -192,9 +208,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
         // for campiagns, we jump to the fan tab
         setActiveTab("fan");
-        setTabsOrdered(["fan", "leaderboard", "artistStats"]);
+        setTabsOrdered(["fan", "leaderboard", "artistStats", "aiRemixes"]);
       } else {
-        setTabsOrdered(["discography", "leaderboard", "artistStats", "fan"]);
+        setTabsOrdered(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
       }
 
       // on mobile, we scroll to the top of the page as the user navigates to the various artist profile pages
@@ -260,6 +276,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         currentParams["artist"] = selDataItem.slug;
       }
 
+      // if the section is "albums", we need to make it "artists" as user is going into a deep album link inside the artist profile view
+      if (searchParams.get("section") === "albums") {
+        currentParams["section"] = "artists";
+      }
+
       setSearchParams({ ...currentParams });
     }
 
@@ -291,6 +312,111 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     }
   }, [artistProfile]);
 
+  useEffect(() => {
+    if (artistAlbumDataLoading || originalSortedArtistAlbumDataset.length === 0 || originalSortedAlbumsDataset.length === 0) {
+      return;
+    }
+
+    if (!isAllAlbumsMode) {
+      let reSortedTileData = [...originalSortedArtistAlbumDataset];
+
+      switch (selectedFilter) {
+        case "featured":
+          reSortedTileData = originalSortedArtistAlbumDataset;
+          break;
+        case "recent_added":
+          // each items will have an albums array, and each Album inside that array will have a .timestampAlbumAdded property (or .updatedOn property).
+          // which can be "0" value (which means it's old) and a value like "1749620368" which is a unix epoch time in seconds (note that they are both in strings),
+          // we need to order the artists in reSortedTileData based on which artist launched the most recent album. for each artist, we get the timestamp of the most recent album and then we sort the artists by this value, most recent first
+          reSortedTileData = reSortedTileData.sort((a, b) => {
+            const aMostRecentAlbumTimestamp = a.albums.reduce((max, album) => {
+              const timestamp = parseInt(album.updatedOn?.toString() || album.timestampAlbumAdded || "0");
+              return Math.max(max, timestamp);
+            }, 0);
+            const bMostRecentAlbumTimestamp = b.albums.reduce((max, album) => {
+              const timestamp = parseInt(album.updatedOn?.toString() || album.timestampAlbumAdded || "0");
+              return Math.max(max, timestamp);
+            }, 0);
+            return bMostRecentAlbumTimestamp - aMostRecentAlbumTimestamp;
+          });
+          break;
+        case "with_ai_remix_licenses":
+          // each items will have an albums array, and each Album inside that array will have a .albumPriceOption3 property. if this property is not empty, then we add it to the reSortedTileData
+          reSortedTileData = reSortedTileData.filter((item) => item.albums.some((album) => album.albumPriceOption3 && album.albumPriceOption3 !== ""));
+          break;
+        case "alphabetical":
+          // each item in sortedTileData will have a .name property, lets sort them alphabetically using this. from A to Z
+          reSortedTileData = reSortedTileData.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+      }
+
+      setArtistAlbumDataset(reSortedTileData);
+    } else {
+      let reSortedTileData = [...originalSortedAlbumsDataset];
+
+      switch (selectedFilter) {
+        case "featured":
+          reSortedTileData = originalSortedAlbumsDataset;
+          break;
+        case "recent_added":
+          // each item will have a .timestampAlbumAdded which can be "0" value (which means it's old) and a value like "1749620368" which is a unix epoch time in seconds (note that they are both in strings), we need to sort them by this value. order by most recent first
+          reSortedTileData = reSortedTileData.sort((a, b) => {
+            const aTimestamp = parseInt(a.updatedOn?.toString() || a.timestampAlbumAdded || "0");
+            const bTimestamp = parseInt(b.updatedOn?.toString() || b.timestampAlbumAdded || "0");
+            return bTimestamp - aTimestamp;
+          });
+          break;
+        case "with_ai_remix_licenses":
+          // each item will have .albumPriceOption3 property, if this is not empty, then we add it to the reSortedTileData
+          reSortedTileData = reSortedTileData.filter((item) => item.albumPriceOption3 && item.albumPriceOption3 !== "");
+          break;
+        case "alphabetical":
+          // each item in sortedTileData will have a .title property, lets sort them alphabetically using this. from A to Z
+          reSortedTileData = reSortedTileData.sort((a, b) => a.title.localeCompare(b.title));
+          break;
+      }
+
+      setAlbumsDataset(reSortedTileData);
+    }
+  }, [selectedFilter, isAllAlbumsMode, artistAlbumDataLoading]);
+
+  useEffect(() => {
+    const prevValue = prevIsAllAlbumsModeRef.current;
+    const currentValue = isAllAlbumsMode;
+
+    // Only run custom logic if the value has changed
+    if (prevValue !== currentValue) {
+      setSelectedFilter("featured"); // revert to the default filter if user swapped between artist and album view
+    }
+
+    // Update the ref to the current value for the next effect run
+    prevIsAllAlbumsModeRef.current = currentValue;
+  }, [isAllAlbumsMode]);
+
+  useEffect(() => {
+    if (searchParams.get("view") && searchParams.get("view") !== "" && searchParams.get("view") !== "featured") {
+      setSelectedFilter(searchParams.get("view") as string);
+    }
+  }, [searchParams]);
+
+  function updateUrlWithSelectedFilter(newFilter: string) {
+    const currentParams = Object.fromEntries(searchParams.entries());
+
+    if (newFilter !== "featured") {
+      currentParams["view"] = newFilter;
+    } else {
+      delete currentParams["view"];
+    }
+
+    setSearchParams({ ...currentParams });
+
+    // search params change triggers the searchParams effect above to change the setSelectedFilter which then triggers the actual data change
+    // ... but for featured, we dont change the search params so we manaully change the filter here to sort the data
+    if (newFilter === "featured") {
+      setSelectedFilter("featured");
+    }
+  }
+
   async function fetchAndUpdateArtistAlbumDataIntoView() {
     setArtistAlbumDataLoading(true);
     updateTileDataCollectionLoadingInProgress(true);
@@ -300,12 +426,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     const { albumArtistLookupData, albumArtistLookupDataOrganizedBySections } = await getArtistsAlbumsData();
     let allAlbumsData: AlbumWithArtist[] = [];
 
-    const artistDataToUse =
+    const artistMasterCatalogueToUse =
       filterByArtistCampaignCode && filterByArtistCampaignCode !== -1
         ? albumArtistLookupDataOrganizedBySections[filterByArtistCampaignCode]?.filteredItems || []
         : albumArtistLookupData;
 
-    allAlbumsData = artistDataToUse.flatMap((artist: Artist) =>
+    allAlbumsData = artistMasterCatalogueToUse.flatMap((artist: Artist) =>
       artist.albums.map(
         (album: Album): AlbumWithArtist => ({
           ...album,
@@ -324,8 +450,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     // await sleep(2);
 
-    setArtistAlbumDataset(artistDataToUse);
+    setArtistAlbumDataset(artistMasterCatalogueToUse);
+    originalSortedArtistAlbumDataset = artistMasterCatalogueToUse;
     setAlbumsDataset(allAlbumsData);
+    originalSortedAlbumsDataset = allAlbumsData;
 
     // update the album master lookup
     updateAlbumMasterLookup(
@@ -438,6 +566,13 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     delete currentParams["artist"];
     delete currentParams["tab"];
     delete currentParams["action"];
+
+    // when we are coming into a album from the albums list view, we change the url section to "artists" so there is a link back to the artist deep link (in case they share the URL)
+    // .. when if they going back to the albums list view, we change the url section back to "albums"
+    if (isAllAlbumsMode) {
+      currentParams["section"] = "albums";
+    }
+
     setSearchParams(currentParams);
 
     // reset the featuredArtistDeepLinkSlug
@@ -453,17 +588,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   return (
     <div className="flex flex-col justify-center items-center w-full">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
-        <div className="text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] md:w-full">
-          <div className="flex flex-col md:flex-row justify-between w-full">
+        <div
+          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "md:h-[1px] md:relative md:z-[1] md:left-[-15px]" : ""}`}>
+          <div className={`flex flex-col md:flex-row justify-between ${inArtistProfileView ? "md:w-[fit-content]" : "w-full"}`}>
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
-              <div className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2`}>
+              <div
+                className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2 md:opacity-80 md:hover:opacity-100`}>
                 <Button
                   className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[46px] px-[10px]`}
                   variant="outline"
                   onClick={handleBackToArtistTileView}>
                   <>
                     <CircleArrowLeft />
-                    <span className="ml-2">Back to All {isAllAlbumsMode ? "Albums" : "Artists"}</span>
                   </>
                 </Button>
               </div>
@@ -471,16 +607,44 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
               <>
                 {!filterByArtistCampaignCode ||
                   (filterByArtistCampaignCode === -1 && (
-                    <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
-                      {isAllAlbumsMode ? "Albums" : "Artists"}
-                    </span>
+                    <div className="flex flex-row justify-between w-full">
+                      <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
+                        {isAllAlbumsMode ? "Albums" : "Artists"}
+                      </span>
+                      <div className="mr-3">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500">
+                              {filterNames[selectedFilter as keyof typeof filterNames]}
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("featured")} className="cursor-pointer">
+                              Featured
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("recent_added")} className="cursor-pointer">
+                              Recently Added
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("with_ai_remix_licenses")} className="cursor-pointer">
+                              With AI Remix Licenses
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("alphabetical")} className="cursor-pointer">
+                              Alphabetical
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
                   ))}
               </>
             )}
           </div>
         </div>
 
-        <div id="artist-profile" className="flex flex-col md:flex-row w-[100%] items-start">
+        <div className="flex flex-col md:flex-row w-[100%] items-start">
           {artistAlbumDataLoading || artistAlbumDataset.length === 0 ? (
             <div className="flex flex-col gap-4 p-2 items-start bg-background rounded-lg min-h-[250px] w-full">
               {artistAlbumDataLoading ? (
@@ -890,6 +1054,25 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                 Artist Insights
                               </button>
                             )}
+                            {tabsOrdered.includes("aiRemixes") && (
+                              <button
+                                onClick={() => {
+                                  setActiveTab("aiRemixes");
+                                  const currentParams = Object.fromEntries(searchParams.entries());
+                                  delete currentParams["tab"];
+                                  delete currentParams["action"];
+                                  setSearchParams(currentParams);
+                                }}
+                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "aiRemixes"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                                AI Remixes
+                              </button>
+                            )}
                           </div>
                         </div>
                         {/* Tabs Content */}
@@ -912,6 +1095,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               viewSolData={viewSolData}
                               openActionFireLogic={openActionFireLogic}
                               onCloseMusicPlayer={onCloseMusicPlayer}
+                              navigateToDeepAppView={navigateToDeepAppView}
                             />
                           </div>
                         )}
@@ -945,6 +1129,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistId={artistProfile.artistId}
                               filterByArtistCampaignCode={filterByArtistCampaignCode}
                               nftMarketplaceLink={artistProfile.fanTokenNftMarketplaceLink || ""}
+                              artistProfile={artistProfile}
+                            />
+                          </div>
+                        )}
+                        {tabsOrdered.includes("aiRemixes") && activeTab === "aiRemixes" && (
+                          <div className="artist-album-sales w-full">
+                            <ArtistAiRemixes
+                              artistId={artistProfile.artistId}
+                              setActiveTab={setActiveTab}
+                              onFeaturedArtistDeepLinkSlug={onFeaturedArtistDeepLinkSlug}
+                              onCloseMusicPlayer={onCloseMusicPlayer}
+                              viewSolData={viewSolData}
                             />
                           </div>
                         )}
@@ -959,7 +1155,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
         {/* Show larger profile or token image modal */}
         {selectedLargeSizeTokenImg && (
-          <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 p-4">
             <div className="relative max-w-4xl w-full">
               <img src={selectedLargeSizeTokenImg} alt="Membership Token" className="w-[75%] h-auto m-auto rounded-lg" />
               <div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import howToDownloadTracksDemo from "assets/img/how-to-download-tracks-demo.png";
 import { routeNames } from "routes";
 
 interface FAQSection {
@@ -39,7 +40,7 @@ const faqSections: FAQSection[] = [
                 participants through cryptoeconomics, and scales distribution exponentially through agentic AI.
               </p>
 
-              <p className="text-lg font-semibold mt-6">Sigma is the world's first fan-first music platform.</p>
+              <p className="text-lg font-semibold mt-6">Sigma is a is a next-gen music platform built on the intersection of music, fan engagement and AI.</p>
             </div>
           </div>
         ),
@@ -86,26 +87,7 @@ const faqSections: FAQSection[] = [
           </div>
         ),
       },
-      {
-        id: "how-to-get-started",
-        question: "I am a music artist, how can I get started with Sigma Music?",
-        answer: (
-          <div>
-            <p>
-              We provide a red-carpet experience for artists and give you all the support your need to launch your music and fan memberships on Sigma Music. If
-              you're interested in joining us, please reach out to us on the dedicated{" "}
-              <a
-                href="https://t.me/SigmaXMusicOfficial"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-yellow-300 hover:text-yellow-300 transition-colors">
-                Telegram channel for Musicans
-              </a>
-              .
-            </p>
-          </div>
-        ),
-      },
+
       {
         id: "traction",
         question: "What is the traction of Sigma Music?",
@@ -129,6 +111,68 @@ const faqSections: FAQSection[] = [
                 for the first IRL music competition in Dubai in April 2025
               </li>
             </ul>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    title: "Music Artists",
+    questions: [
+      {
+        id: "how-to-get-started",
+        question: "I am a music artist, how can I get started with Sigma Music?",
+        answer: (
+          <div>
+            <p>
+              Sigma Music is fully "self-serve" for Musicans. Musicans can join and publish their music on Sigma Music for free. Just click on "Login" on the
+              top menu and sign up as a Musican. If you need any help from our team, please reach out to us on the dedicated{" "}
+              <a
+                href="https://t.me/SigmaXMusicOfficial"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-yellow-300 hover:text-yellow-300 transition-colors">
+                Telegram channel for Musicans
+              </a>
+              .
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: "get-verified-artist-status",
+        question: "I want to get verified as an artist, how can I do that?",
+        answer: (
+          <div>
+            <p>
+              All artist profiles and content are fully public and visible but only Verified Artists will be able to monetize their content, sell on-chain Story
+              Protocol powered licenses and music and fan club collectibles.
+            </p>
+            <p className="text-lg font-semibold mb-4 mt-6"> How can you get verified as an artist?</p>
+            <ol className="list-decimal pl-6 space-y-2">
+              <li>Sign up as a Musican. (Just click on "Login" on the top menu and sign up as a Musican)</li>
+              <li>Make sure your Artist Profile has the following information (at the very least): </li>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Artist Name</li>
+                <li>Artist Bio</li>
+                <li>Artist Image</li>
+                <li>Alternate Portfolio Link (Soundcloud, Bandcamp, Spotify, Apple Music, YouTube, etc)</li>
+                <li>
+                  At least 2 social media links (X, TikTok, Instagram, etc) which have some content, followers and engagement on them (i.e. it's not a new
+                  account with no content)
+                </li>
+              </ul>
+              <li>
+                Once the above is done, fill this form to have our team verify your artist profile:{" "}
+                <a
+                  href="https://forms.gle/eXLcwbyRj7DwGoD4A"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-yellow-300 hover:text-yellow-300 transition-colors">
+                  https://forms.gle/eXLcwbyRj7DwGoD4A
+                </a>
+              </li>
+            </ol>
           </div>
         ),
       },
@@ -186,11 +230,11 @@ const faqSections: FAQSection[] = [
 
               <div>
                 <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <span>🤖</span> Sigma REMiX: Co-Create Music with AI
+                  <span>🤖</span> Sigma AI REMiX: Remix your favorite artist's tracks
                 </h4>
                 <p>
-                  With Sigma REMiX, fans can use AI to remix real music from artists. The remix gets minted into a Music NFT—and both the artist and the fan
-                  earn revenue from sales.
+                  With Sigma AI REMiX, fans can use AI to remix real music from their favorite artists. Allow artists to sell commercial IP licenses and
+                  allowing fans to use AI to legally remix and amplify the original tracks by creating new derivative works.
                 </p>
               </div>
 
@@ -201,16 +245,6 @@ const faqSections: FAQSection[] = [
                 <p>
                   Sigma isn't just an AI. She knows every track, album, and artist on the platform—and helps fans discover music or remix it. You can even chat
                   with her on X to make music.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <span>💰</span> Revenue Sharing
-                </h4>
-                <p>
-                  Starting with raffles for holders, and soon expanding to include reward systems based on your social reach and referrals. Promote your fav
-                  artists, grow the platform, and get rewarded.
                 </p>
               </div>
 
@@ -363,6 +397,25 @@ const faqSections: FAQSection[] = [
           </div>
         ),
       },
+      {
+        id: "how-to-download-tracks",
+        question: "How to Download Tracks",
+        answer: (
+          <div className="space-y-4">
+            <p className="mb-4">
+              To download tracks, you need to purchased the digital premium version of the album and have the entitlement to download and use the tracks.
+            </p>
+
+            <p>Once you have the entitlement, you can download individual tracks from the album from the "Track List" section of each album.</p>
+
+            <p>This is how you can download tracks:</p>
+
+            <p className="mb-4">
+              <img src={howToDownloadTracksDemo} alt="How to Download Tracks" className="rounded-lg" style={{ maxWidth: "60%" }} />
+            </p>
+          </div>
+        ),
+      },
     ],
   },
   {
@@ -384,7 +437,6 @@ const faqSections: FAQSection[] = [
                 <h4 className="text-lg font-semibold mb-2">1. Revenue Sharing for Fans</h4>
                 <p className="mb-2">Sigma shares up to 10% of all platform revenue back with die-hard fans through raffles. To enter, you need:</p>
                 <ul className="list-disc pl-6 space-y-1">
-                  <li>A "Inner Circle" fan membership or music NFT (your raffle ticket)</li>
                   <li>At least $9.99 worth of $FAN (each multiple gives you more chances)</li>
                 </ul>
                 <p className="mt-2">This creates a model where fans are incentivized to support artists—and win alongside them.</p>
@@ -392,8 +444,8 @@ const faqSections: FAQSection[] = [
 
               <div className="bg-gray-800 p-4 rounded-lg">
                 <p className="text-yellow-300">
-                  ⚠️ Note: The revenue share model is still being finalized. We intend to launch with the above structure and iterate based on community
-                  feedback and platform performance.
+                  ⚠️ Note: The revenue share model is yet to be launched and is subject to change if the economics deem it non-viable. So for now, assume this
+                  is not active.
                 </p>
               </div>
 
@@ -401,7 +453,7 @@ const faqSections: FAQSection[] = [
                 <h4 className="text-lg font-semibold mb-2">2. Token-Gated Features & Access</h4>
                 <p className="mb-2">Holding $FAN unlocks powerful perks and gated features:</p>
                 <ul className="list-disc pl-6 space-y-1">
-                  <li>Generation of longer tracks in Sigma REMiX, our AI-powered remixing tool</li>
+                  <li>Generation of longer tracks in Sigma AI REMiX, our AI-powered remixing tool</li>
                   <li>Exclusive discounts on platform-wide music subscriptions</li>
                   <li>Buy IP rights to music for remixing, social sharing, and influencer licensing</li>
                 </ul>
@@ -510,7 +562,7 @@ const faqSections: FAQSection[] = [
                   <ul className="list-disc pl-6 space-y-2">
                     <li>Airdrops based on XP, streams, purchases, and fan memberships</li>
                     <li>Airdrops to artists who launch music and engage fans</li>
-                    <li>Airdrops to fans who use Sigma REMiX to create standout remixes</li>
+                    <li>Airdrops to fans who use Sigma AI REMiX to create standout remixes</li>
                     <li>Airdrops to collaborators who co-create new music</li>
                   </ul>
                 </div>
