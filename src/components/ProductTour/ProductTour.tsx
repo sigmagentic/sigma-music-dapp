@@ -138,7 +138,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({ isOpen, onClose, handl
           <div className="flex flex-col items-center">
             {currentSlide === -1 ? (
               <div className="text-center py-8">
-                <h2 className="text-2xl font-bold mb-4">Welcome to Sigma Music!</h2>
+                <h2 className="text-2xl font-bold mb-4">Quick Tour of Sigma Music!</h2>
                 <p className="text-lg mb-8">Let's take a few seconds to see what you can do with this app. Click next to get started.</p>
                 <Button onClick={handleNext} className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-2 rounded-lg">
                   Next

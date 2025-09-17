@@ -90,7 +90,7 @@ export const Navbar = ({
       delete currentParams["action"];
       setSearchParams(currentParams);
 
-      const tweetMsg = `I just topped up my XP on @SigmaXMusic and can't wait to use it on sigmamusic.fm!`;
+      const tweetMsg = `I just topped up my XP on @SigmaXMusic and can't wait to use XP to support artists, curate the best music or publish my own AI Music remixes!`;
 
       setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm`)}&text=${encodeURIComponent(tweetMsg)}`);
 
