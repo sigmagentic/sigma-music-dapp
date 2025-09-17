@@ -352,7 +352,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
 
                       {log.task === "buyXP" && (
                         <>
-                          <div className="cursor-pointer hover:underline text-blue-400">XP Boost for {log?.XPBeingBought || "N/A"} XP</div>
+                          <div className="">XP Boost for {log?.XPBeingBought || "N/A"} XP</div>
                         </>
                       )}
                     </td>
@@ -372,10 +372,12 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                     <td className="py-3">{log.type === "cc" ? `$${log.amount}` : log.type === "xp" ? `${log.amount} XP` : `${log.amount} SOL`}</td>
                     <td className="py-3">{log.type === "sol" ? "SOL" : log.type === "xp" ? "XP" : "Credit Card"}</td>
                     <td className="py-3">
-                      {log.type === "sol" && log.tx && (
+                      {log.type === "sol" && log.tx ? (
                         <a href={`https://solscan.io/tx/${log.tx}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
                           View on Blockchain Explorer
                         </a>
+                      ) : (
+                        <div className="text-gray-400">N/A</div>
                       )}
                     </td>
                   </tr>
