@@ -7,7 +7,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { MusicTrack } from "libs/types";
-import { isUserArtistType, toastError, toastSuccess, updateUserProfileOnBackEndAPI } from "libs/utils";
+import { toastError, toastSuccess, updateUserProfileOnBackEndAPI } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { ArtistProfile } from "./ArtistProfile";
 import { EditUserProfileModal, ProfileFormData } from "./EditUserProfileModal";
@@ -20,20 +20,18 @@ type MyProfileProps = {
   setHomeMode: (homeMode: string) => void;
 };
 
-type ProfileTab = "artist" | "profile";
-
 export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlayer, setHomeMode }: MyProfileProps) => {
   const { userInfo, publicKey: web3AuthPublicKey, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
-  const { signMessage } = useWallet();
   const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
+  const { signMessage } = useWallet();
   const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases, updateUserWeb2AccountDetails } = useAccountStore();
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
 
   const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState<boolean>(false);
-  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["profile", "artist"]);
-  const [activeTab, setActiveTab] = useState<ProfileTab>("profile"); // Tab state - default to "artist" if user is an artist, otherwise "profile"
+  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["profile"]);
+  const [activeTab, setActiveTab] = useState<"artist" | "profile">("profile");
 
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey; // Use the appropriate public key based on wallet type
 
@@ -47,10 +45,10 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
 
     if (view === "artistProfile") {
       setActiveTab("artist");
+      setTabsOrdered(["profile", "artist"]);
     }
   }, [userWeb2AccountDetails.profileTypes]);
 
-  // Profile type mapping function
   const getProfileTypeLabel = (profileTypes: string[]): string => {
     if (profileTypes.length === 0) {
       return "Not Specified";
@@ -73,7 +71,6 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
     return allUserProfileTypes.join(", ");
   };
 
-  // Handle profile edit save
   const handleProfileSave = async (data: ProfileFormData) => {
     try {
       // Here you would typically make an API call to update the user's profile
@@ -146,7 +143,6 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
     }
   };
 
-  // Render the user profile content
   const renderAppProfile = () => (
     <>
       {/* User Details Section */}
