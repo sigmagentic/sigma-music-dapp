@@ -176,11 +176,11 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
               </div>
               <div>
                 <label className="text-gray-400 text-sm">Name</label>
-                <p className="text-lg">{userInfo.name || userWeb2AccountDetails.displayName || "Not provided"}</p>
+                <p className="text-lg">{userWeb2AccountDetails.displayName || userInfo.name || "Not provided"}</p>
               </div>
               <div>
                 <label className="text-gray-400 text-sm">Account Email</label>
-                <p className="text-lg">{userInfo.email || userWeb2AccountDetails.primaryAccountEmail || "Not provided"}</p>
+                <p className="text-lg">{userWeb2AccountDetails.primaryAccountEmail || userInfo.email || "Not provided"}</p>
               </div>
               <div>
                 <label className="text-gray-400 text-sm">Billing / Payouts Email</label>
@@ -457,10 +457,10 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         onSave={handleProfileSave}
         initialData={{
           profileTypes: userWeb2AccountDetails.profileTypes || [],
-          name: userInfo.name || userWeb2AccountDetails.displayName || "",
-          primaryAccountEmail: userInfo.email || userWeb2AccountDetails.primaryAccountEmail || "",
+          name: userWeb2AccountDetails.displayName || userInfo.name || "",
+          primaryAccountEmail: userWeb2AccountDetails.primaryAccountEmail || userInfo.email || "",
           billingEmail: userWeb2AccountDetails.billingEmail || "",
-          profileImage: userInfo.profileImage || userWeb2AccountDetails.profileImage || "",
+          profileImage: userWeb2AccountDetails.profileImage || userInfo.profileImage || "",
         }}
       />
     </div>
