@@ -25,11 +25,12 @@ const loggingInMsgs = ["Logging you in", "Taking you to Web3", "Plugging you in"
 const LoginPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [userAccountLoggingIn, setIsUserAccountLoggingIn] = useState<boolean>(false);
   const { publicKey, isConnected, connect, disconnect } = useSolanaWallet();
   const address = publicKey?.toBase58();
   const { updateUserWeb2AccountDetails, updateUserArtistProfile } = useAccountStore();
   const { userInfo } = useWeb3Auth();
+
+  const [userAccountLoggingIn, setIsUserAccountLoggingIn] = useState<boolean>(false);
 
   useEffect(() => {
     window.scrollTo({
@@ -65,6 +66,7 @@ const LoginPage = () => {
         chainId,
       };
 
+      // we send the displayName and primaryAccountEmail, but it onlt gets used if its a new user to create the base profile
       if (userInfo.name) {
         userLoggedInMetadata.displayName = userInfo.name;
       }
@@ -82,14 +84,11 @@ const LoginPage = () => {
       if (userLoggedInCallData?.error) {
         console.error("User account login call failed");
       } else {
-        // let isTriggerProductTour = ""; // should we trigger the "free gift" for new users?
         let triggerNewuserExtendedProfileSetupFlag = "";
-        const celebrateEmojis = ["🥳", "🎊", "🍾", "🥂", "🍻", "🍾"];
 
         if (userLoggedInCallData?.newUserAccountCreated) {
           updateUserWeb2AccountDetails(userLoggedInCallData);
 
-          // isTriggerProductTour = "g=1";
           triggerNewuserExtendedProfileSetupFlag = "e=1";
         } else {
           // if profileTypes is empty, we need to trigger the extended profile setup workflow
@@ -99,8 +98,7 @@ const LoginPage = () => {
 
           updateUserWeb2AccountDetails(userLoggedInCallData);
 
-          // get user artist profile data (IF user ever created an artist profile in the past)
-          // rawAddr is the creator wallet address
+          // get user artist profile data (IF user ever created an artist profile in the past), rawAddr is the creator wallet address
           if (userLoggedInCallData.rawAddr) {
             const _artist = await getArtistByCreatorWallet(userLoggedInCallData.rawAddr);
             if (_artist) {

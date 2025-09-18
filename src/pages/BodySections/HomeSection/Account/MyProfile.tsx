@@ -122,7 +122,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         profileDataToSave.profileTypes = data.profileTypes;
       }
 
-      // If the user is using a native wallet, we need to save the primary account email
+      // If the user is using a solana wallet, only then we allow primary account email to be manually overridden (web3auth users cant do this)
       if (walletType !== "web3auth" && data.primaryAccountEmail) {
         profileDataToSave.primaryAccountEmail = data.primaryAccountEmail.trim();
       }
