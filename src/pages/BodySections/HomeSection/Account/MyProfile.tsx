@@ -46,6 +46,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
     if (view === "artistProfile") {
       setActiveTab("artist");
       setTabsOrdered(["profile", "artist"]);
+    } else if (userWeb2AccountDetails.profileTypes?.includes("composer") || userWeb2AccountDetails.profileTypes?.includes("remixer")) {
+      setTabsOrdered(["profile", "artist"]);
     }
   }, [userWeb2AccountDetails.profileTypes]);
 

@@ -116,7 +116,7 @@ export const Navbar = ({
       navigate(newPath, { replace: true });
     }
 
-    localStorage.setItem("sig-ux-new-user-demo", Date.now().toString());
+    localStorage.setItem("sig-ux-new-user-tour", Date.now().toString());
   };
 
   const handleCloseNewUserExtendedProfileSetup = () => {
@@ -131,8 +131,8 @@ export const Navbar = ({
       navigate(newPath, { replace: true });
     }
 
-    // Show the demo workflow if the user has not seen it yet (or) it's been more than 48 hours since they last saw it
-    const lastClosedTimestamp = localStorage.getItem("sig-ux-new-user-demo");
+    // Show the tour workflow if the user has not seen it yet (or) it's been more than 48 hours since they last saw it
+    const lastClosedTimestamp = localStorage.getItem("sig-ux-new-user-tour");
 
     const ALERT_IGNORE_HOURS_MS = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
 
