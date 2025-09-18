@@ -260,12 +260,13 @@ export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTrack
       songTitle: track.promptParams.songTitle,
       genre: track.promptParams.genre,
       mood: track.promptParams.mood,
-      image: fixImgIconForRemixes(track.image),
+      image: fixImgIconForRemixes(track.image, track.promptParams.songTitle),
       streamUrl: version.streamUrl,
       bountyId: version.bountyId,
       status: track.status,
       refTrack_alId: track.promptParams.refTrack_alId,
       refTrackWasFreeLicense: track.promptParams.meta?.isFreeLicense ? "1" : undefined,
+      isNewlyCreated: track.isNewlyCreated || false,
     }))
   );
 
@@ -301,11 +302,12 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
     artist: "My AI Remixes",
     category: "ai music, simremix",
     album: "My AI Remixes",
-    cover_art_url: fixImgIconForRemixes(remix.image),
+    cover_art_url: fixImgIconForRemixes(remix.image, remix.songTitle),
     title: remix.songTitle,
     stream: remix.streamUrl,
     bountyId: remix.bountyId,
     isSigmaAiRemixUsingFreeLicense: remix.refTrackWasFreeLicense ? "1" : undefined,
+    isNewlyCreatedAiRemixDuringCurrentSession: remix.isNewlyCreated || false,
   }));
 
   return { virtualAlbum, allMyRemixesAsMusicTracks };
@@ -328,9 +330,10 @@ export const isValidUrl = (url: string): boolean => {
   }
 };
 
-export function fixImgIconForRemixes(dbImage: string) {
+export function fixImgIconForRemixes(dbImage: string, trackTitle: string) {
   if (dbImage === "[blob_it]") {
-    return "https://placehold.co/300x300/ffc75f/black?font=Noto%20Sans&text=pending";
+    const trackTitleForImg = trackTitle ? trackTitle : "pending";
+    return `https://placehold.co/300x300/ffc75f/black?font=Noto%20Sans&text=${trackTitleForImg}`;
   } else {
     return dbImage;
   }

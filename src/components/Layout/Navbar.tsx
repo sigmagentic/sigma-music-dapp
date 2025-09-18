@@ -27,10 +27,12 @@ export const Navbar = ({
   setHomeMode,
   homeMode,
   removeDeepSectionParamsFromUrl,
+  navigateToDeepAppView,
 }: {
   setHomeMode: (homeMode: string) => void;
   homeMode: string;
   removeDeepSectionParamsFromUrl: () => void;
+  navigateToDeepAppView: (e: any) => void;
 }) => {
   const { publicKey: publicKeySol, walletType, disconnect, isConnected } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
@@ -202,7 +204,7 @@ export const Navbar = ({
                   <Button
                     className="bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[48px] text-yellow-300"
                     onClick={() => {
-                      setHomeMode("profile");
+                      navigateToDeepAppView({ toSection: "profile", toView: "artistProfile" });
                     }}>
                     Artist Dashboard
                   </Button>
