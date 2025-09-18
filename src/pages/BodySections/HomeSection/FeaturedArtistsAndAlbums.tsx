@@ -325,9 +325,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
           reSortedTileData = originalSortedArtistAlbumDataset;
           break;
         case "recent_added":
-          // each items will have an albums array, and each Album inside that array will have a .timestampAlbumAdded property (or .updatedOn property).
-          // which can be "0" value (which means it's old) and a value like "1749620368" which is a unix epoch time in seconds (note that they are both in strings),
-          // we need to order the artists in reSortedTileData based on which artist launched the most recent album. for each artist, we get the timestamp of the most recent album and then we sort the artists by this value, most recent first
+          // ONLY some artists will have .createdOn property, if so, we use this to sort the artists.. we put them on top and sort them by latest createdOn first
+          reSortedTileData = reSortedTileData.sort((a, b) => {
+            const aCreatedOn = parseInt(a.createdOn?.toString() || "0");
+            const bCreatedOn = parseInt(b.createdOn?.toString() || "0");
+            return bCreatedOn - aCreatedOn;
+          });
+          break;
+        default:
           reSortedTileData = reSortedTileData.sort((a, b) => {
             const aMostRecentAlbumTimestamp = a.albums.reduce((max, album) => {
               const timestamp = parseInt(album.updatedOn?.toString() || album.timestampAlbumAdded || "0");
