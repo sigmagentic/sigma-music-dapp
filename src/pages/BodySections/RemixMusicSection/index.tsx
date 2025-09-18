@@ -18,11 +18,9 @@ import {
   getAlbumTracksFromDBViaAPI,
 } from "libs/utils";
 import { SendBitzPowerUp } from "pages/BodySections/HomeSection/SendBitzPowerUp";
-// import { fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { updateBountyBitzSumGlobalMappingWindow } from "pages/BodySections/HomeSection/shared/utils";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
-// import { useNftsStore } from "store/nfts";
 import { LaunchAiMusicTrack } from "./LaunchAiMusicTrack";
 import { routeNames } from "routes";
 import { fixImgIconForRemixes, toastError, toastSuccess } from "libs/utils/ui";
@@ -53,6 +51,7 @@ const customInfoToastStyle = {
 };
 
 let newJobsInterval: NodeJS.Timeout | null = null;
+let isFirstFetchOfJobsDone = false;
 
 interface RemixMusicSectionContentProps {
   navigateToDeepAppView: (e: any) => void;
@@ -66,7 +65,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const { publicKey: publicKeySol, walletType, isLoading: isLoadingSolanaWallet } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : publicKeySol; // Use the appropriate public key based on wallet type
-  // const { solBitzNfts } = useNftsStore();
   const { artistLookupEverything } = useAppStore();
   const { updateMyAiRemixRawTracks, userArtistProfile } = useAccountStore();
   const { updateAssetPlayIsQueued } = useAudioPlayerStore();
@@ -77,7 +75,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const [isLoading, setIsLoading] = useState(false);
   const [isSwimLaneDataLoading, setIsSwimLaneDataLoading] = useState(true);
   const [newLaunchesData, setNewLaunchesData] = useState<AiRemixLaunch[]>([]);
-  // const [graduatedLaunchesData, setGraduatedLaunchesData] = useState<AiRemixLaunch[]>([]);
   const [publishedLaunchesData, setPublishedLaunchesData] = useState<AiRemixLaunch[]>([]);
   const [virtualAiRemixAlbumTracks, setVirtualAiRemixAlbumTracks] = useState<MusicTrack[]>([]);
   const [virtualAiRemixAlbumTracksLoading, setVirtualAiRemixAlbumTracksLoading] = useState(false);
@@ -112,6 +109,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const [switchChangeThrottled, setSwitchChangeThrottled] = useState(false);
   const [shouldRefreshSwimlaneDataOnGraduation, setShouldRefreshSwimlaneDataOnGraduation] = useState(false);
   const [checkingIfNewJobsHaveCompleted, setCheckingIfNewJobsHaveCompleted] = useState(false);
+  const [weDetectedNewJobs, setWeDetectedNewJobs] = useState(false);
   const [appViewLoaded, setAppViewLoaded] = useState(false);
   const [isRemixAlertBannerVisible, setIsRemixAlertBannerVisible] = useState(true);
 
@@ -162,9 +160,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         setIsSwimLaneDataLoading(true);
 
         const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol || null });
-        // const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: addressSol || null });
         setNewLaunchesData(responseA);
-        // setGraduatedLaunchesData(responseB);
 
         // if ((responseA.length > 0 || responseB.length > 0) && addressSol) {
         if (responseA.length > 0 && addressSol) {
@@ -172,7 +168,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
           setVirtualAiRemixAlbumTracks([]); // only clear this if we got track (we should always do -- but just in case)
 
           // take the new launches, and prev fetched graduated and published launches, and merge them together
-          // const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, publishedLaunchesData);
           const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, [], publishedLaunchesData);
           const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
 
@@ -266,62 +261,10 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     }
   }, [showAllMusic]);
 
-  // Need to improve the performance of this @TODO
-  // useEffect(() => {
-  //   if (!showPublicVotingAreaUI || !showAllMusicUI) return;
-  //   if (newLaunchesData.length > 0 || graduatedLaunchesData.length > 0) {
-  //     queueBitzPowerUpsAndLikesForAllOwnedAlbums();
-  //   }
-  // }, [newLaunchesData, graduatedLaunchesData, showPublicVotingAreaUI, showAllMusicUI]);
-
-  // Use a interval to monitor the status of new jobs and refresh data if needed
-  useEffect(() => {
-    if (!addressSol) return;
-
-    if (myJobsPayments.length > 0) {
-      console.log("Pending jobs monitor --- Start");
-      // if there are some jobs that are "new", then every 60 seconds, we need to recheck if they are "completed"
-      newJobsInterval = setInterval(async () => {
-        console.log("Pending jobs monitor --- Interval A");
-
-        setCheckingIfNewJobsHaveCompleted(true);
-
-        if (myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0) {
-          console.log("Pending jobs monitor --- Interval B -- Pending jobs found!");
-
-          // dont clear and reload here as it break app bootup logic
-          // ... there are some pending jobs, so lets get them again to cechk if their are completed
-          handleRefreshJobs();
-        } else {
-          console.log("Pending jobs monitor --- Interval C -- No pending jobs found!");
-
-          if (newJobsInterval) {
-            console.log("Pending jobs monitor --- Interval D -- Clearing interval!");
-            clearInterval(newJobsInterval);
-            await refreshOnlyNewLaunchesData();
-          }
-        }
-
-        await sleep(3);
-        setCheckingIfNewJobsHaveCompleted(false);
-      }, 15000);
-
-      return () => {
-        console.log("Pending jobs monitor --- End A");
-        if (newJobsInterval) {
-          console.log("Pending jobs monitor --- End B");
-
-          clearInterval(newJobsInterval);
-        }
-      };
-    }
-  }, [myJobsPayments, addressSol]);
-
   useEffect(() => {
     if (isLoadingSolanaWallet) return;
 
     if (addressSol) {
-      // if (!addressSol) {
       setShowPublicVotingArea(false);
       setShowPublicVotingAreaUI(false);
 
@@ -339,35 +282,92 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     }
   }, [addressSol, isLoadingSolanaWallet]);
 
+  // Use a interval to monitor the status of new jobs and refresh data if needed
   useEffect(() => {
+    if (myJobsPayments.length > 0) {
+      if (!isFirstFetchOfJobsDone) {
+        isFirstFetchOfJobsDone = true;
+        return;
+      }
+
+      console.log("Pending jobs monitor ____ Start");
+      // if there are some jobs that are "new", then every 60 seconds, we need to recheck if they are "completed"
+      newJobsInterval = setInterval(async () => {
+        console.log("Pending jobs monitor ____ Interval A");
+
+        setCheckingIfNewJobsHaveCompleted(true);
+
+        if (myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0) {
+          console.log("Pending jobs monitor ____ Interval B -- Pending jobs found!");
+
+          // dont clear and reload here as it break app bootup logic
+          // ... there are some pending jobs, so lets get them again to cechk if their are completed
+          handleRefreshJobs();
+          setWeDetectedNewJobs(true); // this is so we can show in UI that there is some new jobs fetched (or else in the UI we have a winder where there is no UI label)
+        } else {
+          console.log("Pending jobs monitor ____ Interval C -- No pending jobs found!");
+
+          if (newJobsInterval) {
+            console.log("Pending jobs monitor ____ Interval D -- Clearing interval!");
+            clearInterval(newJobsInterval);
+            setWeDetectedNewJobs(false);
+            await refreshOnlyNewLaunchesData();
+          }
+        }
+
+        await sleep(3);
+        setCheckingIfNewJobsHaveCompleted(false);
+      }, 15000);
+
+      return () => {
+        console.log("Pending jobs monitor ____ End A");
+        if (newJobsInterval) {
+          console.log("Pending jobs monitor ____ End B");
+
+          clearInterval(newJobsInterval);
+        }
+      };
+    }
+  }, [myJobsPayments]);
+
+  useEffect(() => {
+    if (!addressSol || isLoadingSolanaWallet || isFirstFetchOfJobsDone) return;
+
     const handleRefreshJobsAndLaunchData = async () => {
       setVirtualAiRemixAlbumTracksLoading(true);
 
       // the app loaded up into my workspace, lets get any jobs the user had.
       if (appViewLoaded && myJobsPayments.length === 0) {
         await handleRefreshJobs();
-      }
-
-      // ... the jobs have loaded, lets refresh the launch data so we can show it in the track list
-      if (appViewLoaded && myJobsPayments.length > 0) {
         await refreshOnlyNewLaunchesData();
       }
 
       setVirtualAiRemixAlbumTracksLoading(false);
     };
 
-    handleRefreshJobsAndLaunchData();
-  }, [appViewLoaded, myJobsPayments]);
+    if (appViewLoaded) {
+      handleRefreshJobsAndLaunchData();
+    }
+  }, [appViewLoaded, addressSol, isLoadingSolanaWallet]);
 
   const refreshOnlyNewLaunchesData = async () => {
     if (!addressSol) return;
-    console.log("Pending jobs monitor --- refreshOnlyNewLaunchesData called");
+    console.log("Pending jobs monitor ____ refreshOnlyNewLaunchesData called");
 
     setIsSwimLaneDataLoading(true);
     setNewLaunchesData([]);
 
     // looks like some jobs that were pending, have completed --- so lets get the new track
     const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol });
+
+    // if a new item is added, can we compare responseA items to newLaunches items and mark the new item with a flag called isNewlyCreated
+    const isNewlyCreated = responseA.filter((item: AiRemixLaunch) => !newLaunchesData.some((newItem) => newItem.launchId === item.launchId));
+    responseA.forEach((item: AiRemixLaunch) => {
+      if (isNewlyCreated.some((newItem: AiRemixLaunch) => newItem.launchId === item.launchId)) {
+        item.isNewlyCreated = true;
+      }
+    });
+
     setNewLaunchesData(responseA);
 
     if (responseA.length > 0) {
@@ -375,7 +375,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       setVirtualAiRemixAlbumTracks([]); // only clear this if we got track (we should always do -- but just in case)
 
       // take the new launches, and prev fetched graduated and published launches, and merge them together
-      // const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, graduatedLaunchesData, publishedLaunchesData);
       const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, [], publishedLaunchesData);
       const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
 
@@ -396,16 +395,11 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     try {
       setIsSwimLaneDataLoading(true);
       setNewLaunchesData([]);
-      // setGraduatedLaunchesData([]);
       setPublishedLaunchesData([]);
-      // setVirtualAiRemixAlbumTracks([]);
-      // setVirtualAiRemixAlbum(null);
       setVirtualAiRemixAlbumTracksLoading(true);
 
       const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setNewLaunchesData(responseA);
-      // const responseB = await getRemixLaunchesViaAPI({ launchStatus: "graduated", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
-      // setGraduatedLaunchesData(responseB);
       const responseC = await getRemixLaunchesViaAPI({ launchStatus: "published", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setPublishedLaunchesData(responseC);
 
@@ -414,9 +408,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         const responseD = await getPaymentLogsViaAPI({ addressSol, byTaskFilter: "remix" });
         setMyJobsPayments(responseD);
 
-        // if (responseA.length > 0 || responseB.length > 0 || responseC.length > 0) {
         if (responseA.length > 0 || responseC.length > 0) {
-          // const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, responseB, responseC);
           const allMyRemixes: AiRemixRawTrack[] = mergeRawAiRemixTracks(responseA, [], responseC);
 
           const { virtualAlbum, allMyRemixesAsMusicTracks } = mapRawAiRemixTracksToMusicTracks(allMyRemixes);
@@ -447,7 +439,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       await sleep(1);
       const responseD = await getPaymentLogsViaAPI({ addressSol, byTaskFilter: "remix" });
 
-      console.log("Pending jobs monitor --- handleRefreshJobs called and data reloaded...");
+      console.log("Pending jobs monitor ____ handleRefreshJobs called and data reloaded...");
       setMyJobsPayments(responseD);
     }
   };
@@ -457,30 +449,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     // Store current timestamp in session storage
     // localStorage.setItem("sig-ux-remix-alert", Date.now().toString());
   };
-
-  // async function queueBitzPowerUpsAndLikesForAllOwnedAlbums() {
-  //   // const initialMappingOfVotesForAllTrackBountyIds = [...newLaunchesData, ...graduatedLaunchesData].flatMap((launch: any) =>
-  //   const initialMappingOfVotesForAllTrackBountyIds = [...newLaunchesData].flatMap((launch: any) =>
-  //     launch.versions.map((version: any) => ({
-  //       bountyId: version.bountyId,
-  //       creatorWallet: launch.remixedBy,
-  //     }))
-  //   );
-
-  //   // we throttle this so that we don't overwhelm the server and also, the local state updates don't fire if they are all too close together
-  //   for (let i = 0; i < initialMappingOfVotesForAllTrackBountyIds.length; i++) {
-  //     const trackBounty = initialMappingOfVotesForAllTrackBountyIds[i];
-  //     fetchBitzPowerUpsAndLikesForSelectedArtist({
-  //       giftBitzToArtistMeta: { bountyId: trackBounty.bountyId, creatorWallet: trackBounty.creatorWallet },
-  //       userHasNoBitzDataNftYet: solBitzNfts.length === 0,
-  //       solBitzNfts,
-  //       setMusicBountyBitzSumGlobalMapping: setBountyBitzSumGlobalMapping,
-  //       isSingleAlbumBounty: true,
-  //     });
-
-  //     await sleep(2);
-  //   }
-  // }
 
   const handlePlay = async (streamUrl: string, versionId: string) => {
     if (!audioRef.current) {
@@ -547,61 +515,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const getVotesNeededText = (votesNeeded: number) => {
     return `${votesNeeded} more XP needed`;
   };
-
-  // const saveVotedOptionToSessionStorage = (bountyId: string, votedOptions: Set<"up" | "down">) => {
-  //   try {
-  //     sessionStorage.setItem(`sig-ux-track-voted-${bountyId}`, JSON.stringify(Array.from(votedOptions)));
-  //   } catch (error) {
-  //     console.error("Error saving to session storage:", error);
-  //   }
-  // };
-
-  // const handleTrackRating = async (bountyId: string, rating: "up" | "down") => {
-  //   if (!addressSol) {
-  //     toastError("You must be logged in to vote on a track!");
-  //     return;
-  //   }
-
-  //   // Check if user has already voted this specific option
-  //   if (hasUserVotedOption(bountyId, rating)) {
-  //     toastError(`You have already ${rating === "up" ? "liked" : "disliked"} this track!`);
-  //     return;
-  //   }
-
-  //   try {
-  //     // TODO: Replace with actual API call
-  //     // await sendVoteToAPI(bountyId, rating);
-  //     console.log(`Sending vote to API: ${bountyId} - ${rating}`);
-
-  //     await logAssetRatingToAPI({ assetId: bountyId, rating, address: addressSol });
-
-  //     // Update local state to prevent spam
-  //     setUserVotedOptions((prev) => {
-  //       const newVotedOptions = new Set(prev[bountyId] || []);
-  //       newVotedOptions.add(rating);
-  //       const updated = { ...prev, [bountyId]: newVotedOptions };
-
-  //       // Save to session storage
-  //       saveVotedOptionToSessionStorage(bountyId, newVotedOptions);
-
-  //       return updated;
-  //     });
-
-  //     // Show feedback to user
-  //     toastSuccess(`Track ${rating === "up" ? "liked" : "disliked"}!`);
-  //   } catch (error) {
-  //     console.error("Error sending vote:", error);
-  //     toastError("Failed to submit vote. Most likely you have already voted on this track. Please try again later.");
-  //   }
-  // };
-
-  // const hasUserVotedOption = (bountyId: string, rating: "up" | "down"): boolean => {
-  //   return userVotedOptions[bountyId]?.has(rating) || false;
-  // };
-
-  // const getUserVotedOptions = (bountyId: string): Set<"up" | "down"> => {
-  //   return userVotedOptions[bountyId] || new Set();
-  // };
 
   const toggleExpandedVersions = (launchId: string) => {
     // Helper function to toggle expanded state for showing other versions
@@ -821,7 +734,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
           <div className="flex flex-col md:flex-row gap-4 bgx-green-300">
             <div className="relative w-[100px] h-[100px]">
               <img
-                src={fixImgIconForRemixes(item.image)}
+                src={fixImgIconForRemixes(item.image, item?.promptParams?.songTitle)}
                 alt={item?.promptParams?.songTitle || "LEGACY"}
                 className="w-[70px] h-[70px] m-auto md:m-0 rounded-lg object-cover"
               />
@@ -862,23 +775,8 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
             {type === "new" && (
               <>
                 <div className="flex flex-col mt-2">
-                  {/* <div className="hidden text-[10px] text-gray-400">Vote with XP to get this remix published</div> */}
                   {item.versions.map((version, index) => (
                     <div key={index} className="flex flex-col gap-2">
-                      {/* <div className="hidden votes-progress flex items-center gap-2 text-xs text-gray-400">
-                        <div className="w-full bg-gray-700 h-1 rounded-full">
-                          <div
-                            className="bg-green-500 h-1 rounded-full transition-all duration-1000"
-                            style={{
-                              width: `${Math.min(100, ((bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0) / VOTES_TO_GRADUATE) * 100)}%`,
-                            }}></div>
-                        </div>
-                        <span>
-                          {hasGraduated({ launchId: item.launchId, createdOn: item.createdOn, bountyId: version.bountyId })
-                            ? "Graduated!"
-                            : getVotesNeededText(VOTES_TO_GRADUATE - (bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum || 0))}
-                        </span>
-                      </div> */}
                       <div className="flex flex-col md:flex-row items-center justify-between gap-2">
                         <div className="relative">
                           <button
@@ -908,49 +806,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                         <div className="flex items-center gap-2">
                           <TrackRatingButtons bountyId={version.bountyId} userVotedOptions={userVotedOptions} setUserVotedOptions={setUserVotedOptions} />
                         </div>
-                        {/* <div className="hidden flex flex-col gap-2 flex-grow ml-4">
-                          <div className="flex items-center gap-2">
-                            {!DISABLE_BITZ_FEATURES && (
-                              <div className="albumLikes md:w-[135px] flex flex-col items-center">
-                                <div
-                                  className={`${addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined" ? " hover:bg-orange-100 cursor-pointer dark:hover:text-orange-500" : ""} text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center`}
-                                  onClick={() => {
-                                    if (addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined") {
-                                      handleSendBitzForMusicBounty({
-                                        creatorIcon: fixImgIconForRemixes(item.image),
-                                        creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
-                                        giveBitzToWho: item.remixedBy,
-                                        giveBitzToCampaignId: version.bountyId,
-                                        isRemixVoteMode: true,
-                                      });
-                                    }
-                                  }}>
-                                  {typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum === "undefined" ? (
-                                    <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
-                                  ) : (
-                                    <div
-                                      className="p-5 md:p-0 flex items-center gap-2"
-                                      title={addressSol ? "Boost This Album With 5 XP" : "Login to Boost This Album"}
-                                      onClick={() => {
-                                        if (addressSol) {
-                                          handleSendBitzForMusicBounty({
-                                            creatorIcon: fixImgIconForRemixes(item.image),
-                                            creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
-                                            giveBitzToWho: item.remixedBy,
-                                            giveBitzToCampaignId: version.bountyId,
-                                            isRemixVoteMode: true,
-                                          });
-                                        }
-                                      }}>
-                                      {bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum}
-                                      <Rocket className="w-4 h-4" />
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div> */}
                       </div>
                     </div>
                   ))}
@@ -1028,7 +883,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                         onClick={() => {
                                           if (addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined") {
                                             handleSendBitzForMusicBounty({
-                                              creatorIcon: fixImgIconForRemixes(item.image),
+                                              creatorIcon: fixImgIconForRemixes(item.image, item?.promptParams?.songTitle),
                                               creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                               giveBitzToWho: item.remixedBy,
                                               giveBitzToCampaignId: version.bountyId,
@@ -1045,7 +900,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                             onClick={() => {
                                               if (addressSol) {
                                                 handleSendBitzForMusicBounty({
-                                                  creatorIcon: fixImgIconForRemixes(item.image),
+                                                  creatorIcon: fixImgIconForRemixes(item.image, item?.promptParams?.songTitle),
                                                   creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                                   giveBitzToWho: item.remixedBy,
                                                   giveBitzToCampaignId: version.bountyId,
@@ -1140,7 +995,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                                 onClick={() => {
                                                   if (addressSol && typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum !== "undefined") {
                                                     handleSendBitzForMusicBounty({
-                                                      creatorIcon: fixImgIconForRemixes(item.image),
+                                                      creatorIcon: fixImgIconForRemixes(item.image, item?.promptParams?.songTitle),
                                                       creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                                       giveBitzToWho: item.remixedBy,
                                                       giveBitzToCampaignId: version.bountyId,
@@ -1157,7 +1012,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                                     onClick={() => {
                                                       if (addressSol) {
                                                         handleSendBitzForMusicBounty({
-                                                          creatorIcon: fixImgIconForRemixes(item.image),
+                                                          creatorIcon: fixImgIconForRemixes(item.image, item?.promptParams?.songTitle),
                                                           creatorName: `${item.promptParams.songTitle} AI Remix Version ${index + 1}`,
                                                           giveBitzToWho: item.remixedBy,
                                                           giveBitzToCampaignId: version.bountyId,
@@ -1308,7 +1163,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                         }}
                         navigateToDeepAppView={(e: any) => {
                           // Handle navigation if needed
-                          console.log("Navigate to deep app view:", e);
                           navigateToDeepAppView(e);
                         }}
                       />
@@ -1324,14 +1178,15 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                             fetchDataAllSwimLaneData({ showMyMusicOnly: true });
                           }}>
                           <>
-                            <RefreshCcw className="w-5 h-5" />
-                            Refresh
+                            <RefreshCcw className="w-3 h-3" />
+                            <span className="text-xs">Refresh</span>
                           </>
                         </div>
                       </div>
 
                       {/* We have a remix job pending */}
-                      {myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0 && (
+                      {(myJobsPayments.filter((job) => job.paymentStatus === "new" || job.paymentStatus === "async_processing").length > 0 ||
+                        weDetectedNewJobs) && (
                         <div className="flex flex-col items-center py-2 bg-yellow-900 text-yellow-300 rounded-md mt-2">
                           <p className="text-sm text-center m-auto">
                             <span className="mr-1">
@@ -1345,7 +1200,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                       {checkingIfNewJobsHaveCompleted && (
                         <div className="flex flex-col items-center py-2 bg-yellow-900/50 text-yellow-300 rounded-md mt-1">
                           <span className="text-yellow-300 flex items-center justify-center text-sm">
-                            <Loader className="w-4 h-4 animate-spin mr-2" />
+                            <Loader className="w-4 h-4 animate-spin text-yellow-300 mr-2" />
                             finding your new tracks...
                           </span>
                         </div>
@@ -1354,7 +1209,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                       {/* My list of tracks */}
                       {virtualAiRemixAlbumTracksLoading ? (
                         <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                          <Loader className="w-5 h-5 animate-spin text-yellow-500" />
+                          <Loader className="w-4 h-4 animate-spin text-yellow-500" />
                         </div>
                       ) : (
                         <>
@@ -1409,7 +1264,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                 ) : (
                   <>
                     <div className="flex flex-col items-center justify-center py-8 text-gray-400 h-[60vh]">
-                      <Loader className="w-5 h-5 animate-spin text-yellow-500" />
+                      <Loader className="w-4 h-4 animate-spin text-yellow-500" />
                     </div>
                   </>
                 )}
@@ -1474,7 +1329,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                   </div>
                 )}
 
-                {/* // <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full"> */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                   {/* New */}
                   <div className="flex flex-col bg-white/5 rounded-b-lg p-4">
@@ -1495,7 +1349,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                       {checkingIfNewJobsHaveCompleted && (
                         <div className="flex flex-col items-center py-2 bg-yellow-900/50 text-yellow-300 rounded-md mt-1">
                           <span className="text-yellow-300 flex items-center justify-center text-sm">
-                            <Loader className="w-4 h-4 animate-spin mr-2" />
+                            <Loader className="w-4 h-4 animate-spin mr-2 text-yellow-300" />
                             finding your new tracks...
                           </span>
                         </div>
@@ -1514,56 +1368,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                       )}
                     </div>
                   </div>
-
-                  {/* Graduated */}
-                  {/* <div className="flex flex-col bg-white/5 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <h2 className="!text-lg font-semibold">{!showAllMusicUI ? "My Remixes Waiting to be Published" : "Remixes Waiting to be Published"}</h2>
-                    <button
-                      onClick={() =>
-                        toast(
-                          (t) => (
-                            <div className="flex items-start gap-4">
-                              <div className="flex-1 space-y-2">
-                                <p className="mb-4">
-                                  <strong className="text-yellow-300">The Best Remixes!</strong> New music tracks that have received enough votes to be
-                                  published will appear here.
-                                </p>
-                                <p className="mb-4">
-                                  The most voted tracks will be featured in this list and the best tracks will be selected and added to the official Sigma Music
-                                  catalog.
-                                </p>
-                                <p>
-                                  Once included in the official catalog, the track will be available for purchase (as part of a remix album) by users or be
-                                  available as part of the subscription service.
-                                </p>
-                                <p>As you are the Remix Artist who created the track, you will get a share of the revenue from the track!</p>
-                                <p>The original artist will also get a share of the revenue from the new remixed track!</p>
-                              </div>
-                              <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white p-1">
-                                ✕
-                              </button>
-                            </div>
-                          ),
-                          customInfoToastStyle
-                        )
-                      }
-                      className="p-1 rounded-full hover:bg-white/10">
-                      <Info className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    {isSwimLaneDataLoading || switchChangeThrottled ? (
-                      <LoadingSkeleton />
-                    ) : graduatedLaunchesData.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                        <p className="text-center">{!showAllMusicUI ? "No remixes created by you have been voted in yet!" : "No remixes voted in yet!"}</p>
-                      </div>
-                    ) : (
-                      graduatedLaunchesData.map((item: AiRemixLaunch, idx: number) => <LaunchCard key={idx} idx={idx} item={item} type="graduated" />)
-                    )}
-                  </div>
-                </div> */}
 
                   {/* Published Remixes */}
                   <div className="flex flex-col bg-white/5 rounded-b-lg p-4">
@@ -1589,7 +1393,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         ) : (
           <>
             <div className="flex flex-col items-center justify-center py-8 text-gray-400 h-[60vh]">
-              <Loader className="w-5 h-5 animate-spin text-yellow-500" />
+              <Loader className="w-4 h-4 animate-spin text-yellow-500" />
             </div>
           </>
         )}

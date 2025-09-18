@@ -615,9 +615,6 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                       <Button onClick={() => handleEditTrack(track)} variant="outline" size="sm" className="h-8 w-8 p-0">
                         <Edit className="w-3 h-3" />
                       </Button>
-                      <Button onClick={() => window.open(track.file, "_blank")} variant="outline" size="sm" className="h-8 w-8 p-0">
-                        <Play className="w-3 h-3" />
-                      </Button>
                     </div>
                   </div>
                 </div>

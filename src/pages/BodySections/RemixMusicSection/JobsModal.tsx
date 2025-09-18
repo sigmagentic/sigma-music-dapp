@@ -56,7 +56,7 @@ export const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolea
                         onClick={async () => {
                           try {
                             await navigator.clipboard.writeText(job.tx);
-                            toastSuccess("Transaction hash copied to clipboard!");
+                            toastSuccess("Receipt copied to clipboard!");
                           } catch (err) {
                             console.error("Failed to copy: ", err);
                             toastError("Failed to copy to clipboard");

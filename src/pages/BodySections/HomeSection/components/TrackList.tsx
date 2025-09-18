@@ -213,6 +213,7 @@ export const TrackList: React.FC<TrackListProps> = ({
           const isQueued = assetPlayIsQueued || trackPlayIsQueued;
           const isCurrentlyPlaying = albumIdBeingPlayed === album.albumId && playlistTrackIndexBeingPlayed === index;
           const isHovered = hoveredTrackIndex === index;
+          const isNewlyCreatedAiRemixDuringCurrentSession = track.isNewlyCreatedAiRemixDuringCurrentSession || false;
 
           return (
             <div
@@ -246,12 +247,13 @@ export const TrackList: React.FC<TrackListProps> = ({
               {/* Track Title and Artist */}
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
+                  {isNewlyCreatedAiRemixDuringCurrentSession && <span className="text-[9px] bg-yellow-400 text-black px-2 py-1 rounded-full">New</span>}
                   <span className={`text-sm ${isDisabled || isCurrentlyPlaying ? "text-gray-500" : "text-white"}`}>
                     {track.title}
 
                     {isCurrentlyPlaying && <span className="text-yellow-300 ml-2 text-xs">Playing...</span>}
                   </span>
-                  {isBonusTrack && <span className="text-xs bg-orange-500 text-black px-2 py-1 rounded-full">Bonus</span>}
+                  {isBonusTrack && <span className="text-[9px] bg-yellow-400 text-black px-2 py-1 rounded-full">Bonus</span>}
                 </div>
                 <span className="text-gray-400 text-xs">{artistName}</span>
               </div>

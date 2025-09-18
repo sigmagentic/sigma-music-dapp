@@ -32,13 +32,22 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
 
   const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState<boolean>(false);
-  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["artist", "profile"]);
-  const [activeTab, setActiveTab] = useState<ProfileTab>(isUserArtistType(userWeb2AccountDetails.profileTypes) ? "artist" : "profile"); // Tab state - default to "artist" if user is an artist, otherwise "profile"
+  const [tabsOrdered, setTabsOrdered] = useState<string[]>(["profile", "artist"]);
+  const [activeTab, setActiveTab] = useState<ProfileTab>("profile"); // Tab state - default to "artist" if user is an artist, otherwise "profile"
 
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey; // Use the appropriate public key based on wallet type
 
   useEffect(() => {
-    setTabsOrdered(isUserArtistType(userWeb2AccountDetails.profileTypes) ? ["artist", "profile"] : ["profile"]);
+    console.log("userWeb2AccountDetails.profileTypes", userWeb2AccountDetails.profileTypes);
+
+    // from the URL we can get these optional params: view=artistProfile&action=createAlbum
+    const urlParams = new URLSearchParams(window.location.search);
+    const view = urlParams.get("view");
+    const action = urlParams.get("action");
+
+    if (view === "artistProfile") {
+      setActiveTab("artist");
+    }
   }, [userWeb2AccountDetails.profileTypes]);
 
   // Profile type mapping function
@@ -396,21 +405,6 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         {/* Tabs Navigation */}
         <div className="tabs-menu w-full overflow-x-auto pb-5 md:pb-0 mb-3 border-b border-gray-800">
           <div className="flex space-x-8 whitespace-nowrap min-w-max">
-            {tabsOrdered.includes("artist") && (
-              <button
-                onClick={() => {
-                  setActiveTab("artist");
-                }}
-                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
-                                  ${
-                                    activeTab === "artist"
-                                      ? "border-orange-500 text-orange-500"
-                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
-                                  }
-                                `}>
-                Artist Profile
-              </button>
-            )}
             {tabsOrdered.includes("profile") && (
               <button
                 onClick={() => {
@@ -424,6 +418,21 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                                   }
                                 `}>
                 Account Details
+              </button>
+            )}
+            {tabsOrdered.includes("artist") && (
+              <button
+                onClick={() => {
+                  setActiveTab("artist");
+                }}
+                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                  ${
+                                    activeTab === "artist"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-gray-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                Artist Profile
               </button>
             )}
           </div>

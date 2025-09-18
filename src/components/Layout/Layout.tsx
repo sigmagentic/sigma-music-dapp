@@ -42,11 +42,13 @@ export const Layout = ({
   homeMode,
   setHomeMode,
   removeDeepSectionParamsFromUrl,
+  navigateToDeepAppView,
 }: {
   children: React.ReactNode;
   homeMode: string;
   setHomeMode: (homeMode: string) => void;
   removeDeepSectionParamsFromUrl: () => void;
+  navigateToDeepAppView: (e: any) => void;
 }) => {
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(true);
   const { publicKey: publicKeySol } = useSolanaWallet();
@@ -70,7 +72,12 @@ export const Layout = ({
         </div>
       )}
       <div className={`header ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""} md:fixed md:top-0 md:left-0 md:right-0 md:z-10`}>
-        <Navbar setHomeMode={setHomeMode} homeMode={homeMode} removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl} />
+        <Navbar
+          setHomeMode={setHomeMode}
+          homeMode={homeMode}
+          removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl}
+          navigateToDeepAppView={navigateToDeepAppView}
+        />
       </div>
 
       <div className="body flex-1 md:mt-[72px] md:mb-[30px]">

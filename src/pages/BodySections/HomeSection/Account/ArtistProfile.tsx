@@ -30,8 +30,8 @@ type ArtistProfileProps = {
 export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, navigateToDeepAppView }: ArtistProfileProps) => {
   const { publicKey: web3AuthPublicKey, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { userWeb2AccountDetails, userArtistProfile, updateUserArtistProfile } = useAccountStore();
-  const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
-  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey; // Use the appropriate public key based on wallet type
+  const { publicKey: publicKeySol, walletType, isLoading: isLoadingSolanaWallet } = useSolanaWallet();
+  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : publicKeySol; // Use the appropriate public key based on wallet type
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
   const { signMessage } = useWallet();
@@ -79,6 +79,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   }, [userWeb2AccountDetails]);
 
   useEffect(() => {
+    if (isLoadingSolanaWallet || !publicKeySol) return;
     if (userArtistProfile && userArtistProfile.artistId) {
       setAlbumsLoading(true);
       getAlbumFromDBViaAPI(userArtistProfile.artistId).then((albums) => {
@@ -88,7 +89,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
     } else {
       setNoArtistIdError(true);
     }
-  }, [userArtistProfile]);
+  }, [userArtistProfile, isLoadingSolanaWallet, publicKeySol]);
 
   const parseTypeCodeToLabel = (typeCode: string) => {
     switch (typeCode) {
@@ -146,7 +147,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         solPreaccessSignature,
         solPreaccessTimestamp,
         signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
-        publicKey: solanaPublicKey,
+        publicKey: publicKeySol,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
         updateSolPreaccessTimestamp,
@@ -213,7 +214,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         solPreaccessSignature,
         solPreaccessTimestamp,
         signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
-        publicKey: solanaPublicKey,
+        publicKey: publicKeySol,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
         updateSolPreaccessTimestamp,

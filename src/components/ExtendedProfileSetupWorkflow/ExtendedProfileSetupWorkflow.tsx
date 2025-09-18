@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { X, ChevronLeft, ChevronRight, Music2, Mic2, Headphones, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
 import { SOL_ENV_ENUM } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
@@ -470,8 +469,12 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
 
       updateUserWeb2AccountDetails(updatedUserWeb2AccountDetails);
 
-      // If user is an artist, also save artist profile
-      if (userProfileData.profileTypes.includes("remixer") || userProfileData.profileTypes.includes("composer")) {
+      // If user is an artist, also save artist profile (only if the artist did not select to skip the artist profile)
+      if (
+        userProfileData.profileTypes.includes("remixer") ||
+        (userProfileData.profileTypes.includes("composer") &&
+          (artistProfileData.name !== "" || artistProfileData.bio !== "" || artistProfileData.img !== "" || artistProfileData.slug !== ""))
+      ) {
         try {
           if (newSelectedArtistProfileImageFile) {
             const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedArtistProfileImageFile, usedPreAccessSignature, usedPreAccessNonce, addressSol);
@@ -540,6 +543,11 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       setCurrentStep("saving");
       handleProfileSave();
     }
+  };
+
+  const handleSkipArtistProfile = () => {
+    setCurrentStep("saving");
+    handleProfileSave();
   };
 
   const renderWelcomeStep = () => (
@@ -704,13 +712,6 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
               alt="Profile"
             />
           </div>
-          {/* <Input
-            type="url"
-            value={userProfileData.profileImage}
-            onChange={(e) => handleFormChange("profileImage", e.target.value)}
-            placeholder="https://example.com/image.jpg"
-            className={errors.profileImage ? "border-red-500" : ""}
-          /> */}
           {errors.profileImage && <p className="text-red-400 text-xs mt-1">{errors.profileImage}</p>}
         </div>
       </div>
@@ -997,12 +998,17 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
           <ChevronLeft size={20} className="mr-2" />
           Back
         </Button>
-        <Button
-          onClick={handleNext}
-          disabled={isCheckingSlug || slugAvailability !== "available"}
-          className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-6 py-2 rounded-lg hover:from-yellow-400 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed">
-          Continue
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={handleSkipArtistProfile} variant="outline" className="border-gray-600 text-gray-300 hover:border-gray-500 hover:text-whit md:ml-2 ">
+            Skip for now
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={isCheckingSlug || slugAvailability !== "available"}
+            className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-6 py-2 rounded-lg hover:from-yellow-400 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed">
+            Continue
+          </Button>
+        </div>
       </div>
     </div>
   );
