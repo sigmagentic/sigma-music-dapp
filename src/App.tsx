@@ -196,7 +196,11 @@ export const App = () => {
       <SolContextProvider>
         <StoreProvider>
           <ThemeProvider defaultTheme="dark" storageKey="explorer-ui-theme">
-            <Layout homeMode={homeMode} setHomeMode={(newHomeMode) => setHomeMode(newHomeMode)} removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl}>
+            <Layout
+              homeMode={homeMode}
+              setHomeMode={(newHomeMode) => setHomeMode(newHomeMode)}
+              removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl}
+              navigateToDeepAppView={navigateToDeepAppView}>
               <Routes>
                 <Route path={routeNames.login} element={<Login />} />
                 <Route

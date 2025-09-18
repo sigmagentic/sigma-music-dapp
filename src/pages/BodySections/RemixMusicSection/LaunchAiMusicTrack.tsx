@@ -81,12 +81,10 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   const [trackDownloadIsInProgress, setTrackDownloadIsInProgress] = useState<boolean>(false);
   const [selectedAiPlatform, setSelectedAiPlatform] = useState<string>("suno");
   const [customAiPlatform, setCustomAiPlatform] = useState<string>("");
-
-  // Form data and validation for "other" AI model
   const [formData, setFormData] = useState({
     cover_art_url: "",
     file: "",
-  });
+  }); // Form data and validation for "other" AI model
   const [errors, setErrors] = useState<{ cover_art_url?: string; file?: string }>({});
   const [newSelectedTrackCoverArtFile, setNewSelectedTrackCoverArtFile] = useState<File | null>(null);
   const [newSelectedAudioFile, setNewSelectedAudioFile] = useState<File | null>(null);
@@ -220,8 +218,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
       .flat()
       .find((_album: any) => _album.albumId === license.albumId);
 
-    console.log("album", album);
-
     if (album) {
       setSelectedAlbumForTrackList(album);
     }
@@ -349,32 +345,31 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     }
   };
 
-  function resetStateToPristine() {
+  function resetStateToPristine(preserverUserInput: boolean = false) {
     setShowPaymentConfirmation(false);
     setPaymentStatus("idle");
     setRemixingStatus("idle");
     setTweetText("");
-    setSelectedReferenceTrack(null);
-    setSelectedGenre("");
-    setSelectedMood("");
-    setSongTitle("");
-    setTrackStyle("instrumental");
     setBackendErrorMessage(null);
-
-    // Reset form data for "other" AI model
-    setFormData({
-      cover_art_url: "",
-      file: "",
-    });
-    setErrors({});
-    setNewSelectedTrackCoverArtFile(null);
-    setNewSelectedAudioFile(null);
-
-    // Reset AI platform selection
-    setSelectedAiPlatform("suno");
-    setCustomAiPlatform("");
-
     handleBackToAlbums(); // if the user is in a nested reference track list, we need to go back to the albums list
+
+    if (!preserverUserInput) {
+      // user selection + form items
+      setSelectedReferenceTrack(null);
+      setSelectedGenre("original");
+      setSelectedMood("original");
+      setSongTitle("");
+      setTrackStyle("instrumental");
+      setFormData({
+        cover_art_url: "",
+        file: "",
+      });
+      setErrors({});
+      setNewSelectedTrackCoverArtFile(null);
+      setNewSelectedAudioFile(null);
+      setSelectedAiPlatform("suno");
+      setCustomAiPlatform("");
+    }
 
     onCloseModal(true);
   }
@@ -834,12 +829,20 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         {remixingStatus === "failed" && (
           <>
             <h3 className="!text-xl font-bold">Error! sending remix job failed.</h3>
-            <div>
+            <div className="space-y-4 flex flex-col mt-4">
               {backendErrorMessage && (
                 <div className="flex flex-col gap-4 w-full">
                   <p className="bg-red-500 p-4 rounded-lg text-sm overflow-x-auto">⚠️ {backendErrorMessage}</p>
                 </div>
               )}
+
+              <Button
+                onClick={() => {
+                  resetStateToPristine(true);
+                }}
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                Back to App
+              </Button>
             </div>
           </>
         )}
@@ -854,7 +857,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                   resetStateToPristine();
                 }}
                 className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
-                Back to Sigma AI REMiX Home
+                Back to App
               </Button>
 
               <div className="bg-yellow-300 rounded-full p-[10px] -z-1 ">
@@ -908,7 +911,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     if (loading) {
       return (
         <div className="flex items-center justify-center h-64">
-          <Loader className="animate-spin w-8 h-8 text-yellow-300" />
+          <Loader className="animate-spin w-4 h-4 text-yellow-300" />
         </div>
       );
     }
@@ -986,6 +989,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   const ReferenceTrackSelector = () => (
     <div className="space-y-3">
       <label className="block text-sm font-medium mb-2">Selected Reference Track to Remix</label>
+
       {selectedReferenceTrack ? (
         <div className="p-4 rounded-lg border border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 text-white">
           <div className="flex items-center gap-4">
@@ -1346,7 +1350,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                             imageUrl={formData.cover_art_url}
                             size="md"
                             onFileSelect={(file) => {
-                              console.log("Selected file:", file);
                               setNewSelectedTrackCoverArtFile(file);
                               // Clear error when file is selected
                               if (errors.cover_art_url) {
@@ -1354,7 +1357,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                               }
                             }}
                             onFileRevert={() => {
-                              console.log("File reverted");
                               setNewSelectedTrackCoverArtFile(null);
                             }}
                             alt="Track Cover"
@@ -1379,7 +1381,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                             mediaUrl={formData.file}
                             size="md"
                             onFileSelect={(file) => {
-                              console.log("Selected file:", file);
                               setNewSelectedAudioFile(file);
                               // Clear error when file is selected
                               if (errors.file) {
@@ -1387,7 +1388,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                               }
                             }}
                             onFileRevert={() => {
-                              console.log("File reverted");
                               setNewSelectedAudioFile(null);
                             }}
                             alt="Audio File"
@@ -1426,7 +1426,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
           ) : (
             <>
               <div className="mb-2">
-                <h3 className="!text-xl font-bold mb-2">Reference Track Navigator</h3>
+                <h3 className="!text-lg font-bold mb-1">Reference Track Navigator</h3>
                 <p className="text-sm text-gray-300">Browse and select reference tracks for your AI remixes</p>
               </div>
 

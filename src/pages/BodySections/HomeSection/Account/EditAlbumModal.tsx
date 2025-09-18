@@ -321,7 +321,20 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                   className="ml-2"
                 />
               </div>
-              <Switch checked={formData.isPublished === "1"} onCheckedChange={(checked) => handleToggleChange("isPublished", checked)} />
+              <Switch
+                checked={formData.isPublished === "1"}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    const confirmed = confirm(
+                      "You are about to publish this album. Once you publish it, your album goes live and you wont be able to delete tracks from it anymore. Only publish albums that are ready to be streamed by the public."
+                    );
+                    if (!confirmed) {
+                      return;
+                    }
+                  }
+                  handleToggleChange("isPublished", checked);
+                }}
+              />
             </div>
           </div>
 

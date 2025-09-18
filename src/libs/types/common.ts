@@ -36,6 +36,7 @@ export interface MusicTrack {
   artistSlug?: string;
   isSigmaAiRemix?: string; // 0 or 1 indicated if the track was published via Sigma AI Remix
   isSigmaAiRemixUsingFreeLicense?: string; // 0 or 1 indicated if the track was published via Sigma AI Remix using a free license track
+  isNewlyCreatedAiRemixDuringCurrentSession?: boolean; // was the track just created during the current browser sessio (so we can mark it as newly created)
 }
 
 export interface Album {
@@ -292,6 +293,7 @@ export interface AiRemixLaunch {
   graduatedStreamUrl?: string;
   votes?: number; // Optional as it might not be present in all responses
   votesNeeded?: number; // Optional as it might not be present in all responses
+  isNewlyCreated?: boolean; // was the track just created during the current browser sessio (so we can mark it as newly created)
 }
 
 export interface AiRemixRawTrack {
@@ -306,6 +308,7 @@ export interface AiRemixRawTrack {
   refTrack_alId?: string;
   textPrompt?: string;
   refTrackWasFreeLicense?: string; // 0 or 1 indicated if the reference track was a free license track (i.e. sigma platform owns the rights to the remix)
+  isNewlyCreated?: boolean; // was the track just created during the current browser sessio (so we can mark it as newly created)
 }
 
 export interface FastStreamTrack {
