@@ -892,7 +892,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                           }
                                         }}>
                                         {typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum === "undefined" ? (
-                                          <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
+                                          <Loader className="w-full text-center animate-spin m-2" size={20} />
                                         ) : (
                                           <div
                                             className="p-5 md:p-0 flex items-center gap-2"
@@ -1004,7 +1004,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                                                   }
                                                 }}>
                                                 {typeof bountyBitzSumGlobalMapping[version.bountyId]?.bitsSum === "undefined" ? (
-                                                  <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
+                                                  <Loader className="w-full text-center animate-spin m-2" size={20} />
                                                 ) : (
                                                   <div
                                                     className="p-5 md:p-0 flex items-center gap-2"
@@ -1200,7 +1200,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                       {checkingIfNewJobsHaveCompleted && (
                         <div className="flex flex-col items-center py-2 bg-yellow-900/50 text-yellow-300 rounded-md mt-1">
                           <span className="text-yellow-300 flex items-center justify-center text-sm">
-                            <Loader className="w-4 h-4 animate-spin text-yellow-300 mr-2" />
+                            <Loader className="animate-spin text-yellow-300 mr-2" size={20} />
                             finding your new tracks...
                           </span>
                         </div>
@@ -1393,7 +1393,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         ) : (
           <>
             <div className="flex flex-col items-center justify-center py-8 text-gray-400 h-[60vh]">
-              <Loader className="w-4 h-4 animate-spin text-yellow-500" />
+              <Loader className="animate-spin text-yellow-300" size={20} />
             </div>
           </>
         )}

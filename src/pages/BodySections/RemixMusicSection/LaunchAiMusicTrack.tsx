@@ -728,7 +728,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
             {paymentStatus === "processing" ? (
               <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg mt-2">
-                <Loader className="w-full text-center animate-spin hover:scale-105" />
+                <Loader className="w-full text-center animate-spin text-yellow-300" size={20} />
                 <p className="text-yellow-300">Payment in process... do not close this page</p>
               </div>
             ) : (
@@ -820,7 +820,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
           <div className="space-y-4">
             <h3 className="!text-xl font-bold">Sending Remix Job...</h3>
             <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
-              <Loader className="w-full text-center animate-spin hover:scale-105" />
+              <Loader className="w-full text-center animate-spin text-yellow-300" size={20} />
               <p className="text-yellow-300">Job is being sent... do not close this page</p>
             </div>
           </div>
@@ -911,7 +911,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     if (loading) {
       return (
         <div className="flex items-center justify-center h-64">
-          <Loader className="animate-spin w-4 h-4 text-yellow-300" />
+          <Loader className="animate-spin text-yellow-300" size={20} />
         </div>
       );
     }
@@ -1033,7 +1033,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
               }}
               disabled={trackDownloadIsInProgress}
               title="Download track">
-              {trackDownloadIsInProgress ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-5 h-5" />}
+              {trackDownloadIsInProgress ? <Loader className="w-4 h-4 animate-spin text-yellow-300" /> : <Download className="w-5 h-5" />}
             </button>
             <button
               onClick={() => {
@@ -1437,7 +1437,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                   <p className="text-xs text-gray-300 mb-3">Own full rights to remixes made using music from these albums</p>
                   {isLoadingStoryLicenses ? (
                     <div className="flex items-center justify-center py-6">
-                      <Loader className="w-5 h-5 animate-spin mr-2" />
+                      <Loader className="animate-spin text-yellow-300 mr-2" size={20} />
                       <span className="text-sm text-gray-400">Loading licenses...</span>
                     </div>
                   ) : myStoryProtocolLicenses.length > 0 ? (

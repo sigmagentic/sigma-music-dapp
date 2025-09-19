@@ -76,6 +76,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   } = props;
   const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { solBitzNfts } = useNftsStore();
+  const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
+
   const [previewTrackAudio] = useState(new Audio());
   const [isPreviewPlaying, setIsPreviewPlaying] = useState<boolean>(false);
   const [previewPlayingForAlbumId, setPreviewPlayingForAlbumId] = useState<string | undefined>();
@@ -88,17 +92,15 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [currentTime, setCurrentTime] = useState("00:00");
   const [duration, setDuration] = useState("00:00");
   const [progress, setProgress] = useState(0);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { solBitzNfts } = useNftsStore();
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<Artist[]>([]);
   const [albumsDataset, setAlbumsDataset] = useState<AlbumWithArtist[]>([]);
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState("discography");
-  const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("featured");
+
   const prevIsAllAlbumsModeRef = useRef<boolean | undefined>(isAllAlbumsMode);
 
   function eventToAttachEnded() {
@@ -854,7 +856,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               <div
                                 className={`${publicKeySol && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "-ml-[12px]"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-0 rounded-r md:min-w-[100px] flex items-center justify-center `}>
                                 {typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum === "undefined" ? (
-                                  <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
+                                  <Loader className="w-full text-center animate-spin m-2" size={20} />
                                 ) : (
                                   <div
                                     className="p-10 md:p-10"

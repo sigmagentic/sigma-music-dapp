@@ -438,7 +438,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       {albums.length > 0 && albumsWithCanBeMintedFlags.length === 0 && (
         <div className="h-[100px] flex items-center justify-center">
           <>
-            <Loader className="animate-spin text-yellow-300" size={30} />
+            <Loader className="animate-spin text-yellow-300" size={20} />
           </>
         </div>
       )}
@@ -658,7 +658,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                         }
                       }}>
                       {typeof bountyBitzSumGlobalMapping[album.bountyId]?.bitsSum === "undefined" ? (
-                        <Loader className="w-full text-center animate-spin hover:scale-105 m-2" />
+                        <Loader className="w-full text-center animate-spin m-2" size={20} />
                       ) : (
                         <div
                           className="p-5 md:p-0 flex items-center gap-2"

@@ -262,7 +262,7 @@ export const Leaderboards = ({ navigateToDeepAppView }: { navigateToDeepAppView:
 
           {isFanXPDataLoading ? (
             <div className="h-[100px] flex items-center justify-center">
-              <Loader className="animate-spin text-yellow-300" size={30} />
+              <Loader className="animate-spin text-yellow-300" size={20} />
             </div>
           ) : (
             <>

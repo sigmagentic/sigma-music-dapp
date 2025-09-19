@@ -202,7 +202,7 @@ export const JoinInnerCircleCC = ({
         ) : (
           <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
             <div className="flex flex-col items-center gap-4">
-              <Loader className="animate-spin" />
+              <Loader className="animate-spin text-yellow-300" size={20} />
               <p className="text-white text-sm font-bold">Loading payment gateway...</p>
             </div>
           </div>

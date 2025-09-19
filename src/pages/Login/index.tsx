@@ -148,7 +148,7 @@ const LoginPage = () => {
         <div className="rounded-2xl my-4 text-center dark:bg-[#0a0a0a] bg-slate-100 drop-shadow-2xl w-[300px] md:w-[390px]">
           {userAccountLoggingIn ? (
             <div className="p-20 flex flex-col items-center mb-[300px] mt-[200px]">
-              <Loader className="animate-spin" />
+              <Loader className="animate-spin text-yellow-300" size={20} />
               <p className="mt-2">{loggingInMsg}</p>
             </div>
           ) : (

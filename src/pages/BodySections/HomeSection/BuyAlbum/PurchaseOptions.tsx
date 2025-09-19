@@ -161,7 +161,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-row gap-2 justify-between">
-        <h3 className="!text-2xl font-bold mb-4 hidden md:block">Purchase Options</h3>
+        <h3 className="!text-xl font-bold hidden md:block">Purchase Options</h3>
 
         <div className="flex flex-col gap-2 mr-10">
           <div className="flex items-center space-x-2">
