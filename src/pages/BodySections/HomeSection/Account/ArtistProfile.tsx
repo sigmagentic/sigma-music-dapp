@@ -295,8 +295,8 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 
       if (albumTracksFromDb.length > 0) {
         // let's hide any tracks that are marked for deletion
-        const albumTracksFromDbFiltered = albumTracksFromDb.filter((track) => track.hideOrDelete !== "2");
-        setSelectedAlbumTracks(albumTracksFromDbFiltered);
+        // const albumTracksFromDbFiltered = albumTracksFromDb.filter((track) => track.hideOrDelete !== "2");
+        setSelectedAlbumTracks(albumTracksFromDb);
       } else {
         setSelectedAlbumTracks([]);
       }

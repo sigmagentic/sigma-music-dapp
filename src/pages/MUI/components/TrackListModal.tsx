@@ -650,54 +650,59 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       {tracks.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {tracks.map((track, index) => (
-            <Card key={`${track.alId}-${index}`} className="p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start space-x-3">
-                {track.cover_art_url && (
-                  <div className="flex-shrink-0">
-                    <img src={track.cover_art_url} alt={track.title} className="w-12 h-12 rounded-lg object-cover" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 max-w-[200px]">
-                      <h3 className="!text-sm font-semibold text-gray-900 truncate">{track.title}</h3>
-                      <p className="text-xs text-gray-500 mt-1">Track #{track.idx}</p>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <div className="flex items-center space-x-1">
-                          <Music className="w-3 h-3 text-gray-400" />
-                          <span className="text-xs text-gray-600 truncate">{track.category}</span>
-                        </div>
-                        {track.bonus > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            Bonus
-                          </Badge>
-                        )}
-                      </div>
+            <>
+              <Card
+                key={`${track.alId}-${index}`}
+                className={`p-4 hover:shadow-md transition-shadow ${track.hideOrDelete === "2" ? "opacity-50 cursor-not-allowed" : ""}`}>
+                <div className="flex items-start space-x-3">
+                  {track.cover_art_url && (
+                    <div className="flex-shrink-0">
+                      <img src={track.cover_art_url} alt={track.title} className="w-12 h-12 rounded-lg object-cover" />
                     </div>
-                    <div className="flex-shrink-0 ml-2 flex space-x-1">
-                      <Button
-                        disabled={isDeletingTrackId !== ""}
-                        onClick={() => {
-                          const confirmed = confirm("You are sure you want to delete this track?");
-                          if (!confirmed) {
-                            return;
-                          }
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 max-w-[200px]">
+                        <h3 className="!text-sm font-semibold text-gray-900 truncate">{track.title}</h3>
+                        <p className="text-xs text-gray-500 mt-1">Track #{track.idx}</p>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <div className="flex items-center space-x-1">
+                            <Music className="w-3 h-3 text-gray-400" />
+                            <span className="text-xs text-gray-600 truncate">{track.category}</span>
+                          </div>
+                          {track.bonus > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              Bonus
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0 ml-2 flex space-x-1">
+                        <Button
+                          disabled={isDeletingTrackId !== ""}
+                          onClick={() => {
+                            const confirmed = confirm("You are sure you want to delete this track?");
+                            if (!confirmed) {
+                              return;
+                            }
 
-                          handleDeleteTrack(track.arId, track.alId);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0">
-                        {isDeletingTrackId === track.alId ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash className="w-3 h-3" />}
-                      </Button>
-                      <Button disabled={isDeletingTrackId !== ""} onClick={() => handleEditTrack(track)} variant="outline" size="sm" className="h-8 w-8 p-0">
-                        <Edit className="w-3 h-3" />
-                      </Button>
+                            handleDeleteTrack(track.arId, track.alId);
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0">
+                          {isDeletingTrackId === track.alId ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash className="w-3 h-3" />}
+                        </Button>
+                        <Button disabled={isDeletingTrackId !== ""} onClick={() => handleEditTrack(track)} variant="outline" size="sm" className="h-8 w-8 p-0">
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
+                {track.hideOrDelete === "2" && <div className="text-red-500 text-xs">Deleted</div>}
+              </Card>
+            </>
           ))}
         </div>
       ) : (
