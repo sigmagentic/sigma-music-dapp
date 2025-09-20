@@ -18,6 +18,7 @@ import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
 import { TrackListModal } from "pages/MUI/components/TrackListModal";
 import { useAppStore } from "store/app";
+import ratingE from "assets/img/icons/rating-E.png";
 
 type ArtistProfileProps = {
   onCloseMusicPlayer: () => void;
@@ -47,9 +48,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   const [selectedAlbumForEdit, setSelectedAlbumForEdit] = useState<Album | null>(null);
   const [showEditTrackModal, setShowEditTrackModal] = useState<boolean>(false);
   const [selectedAlbumTracks, setSelectedAlbumTracks] = useState<MusicTrack[]>([]);
-  const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string>("");
-  const [selectedAlbumImg, setSelectedAlbumImg] = useState<string>("");
-  const [selectedAlbumId, setSelectedAlbumId] = useState<string>("");
+  const [selectedAlbumMeta, setSelectedAlbumMeta] = useState<any>({});
   const [isLoadingTracks, setIsLoadingTracks] = useState<boolean>(false);
   const [isLoadingTracksForAlbumId, setIsLoadingTracksForAlbumId] = useState<string>("");
   const [showVerificationInfoModal, setShowVerificationInfoModal] = useState<boolean>(false);
@@ -103,7 +102,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
     }
   };
 
-  // Handle profile edit save
   const handleEditAlbum = (album: Album) => {
     setSelectedAlbumForEdit(album);
     setShowEditAlbumModal(true);
@@ -286,7 +284,19 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
     }
   };
 
-  const handleViewCurrentTracks = async (albumId: string, albumTitle: string, albumImg: string, onlyRefresh: boolean = false) => {
+  const handleViewCurrentTracks = async ({
+    albumId,
+    albumTitle,
+    albumImg,
+    albumIsPublished,
+    onlyRefresh = false,
+  }: {
+    albumId: string;
+    albumTitle: string;
+    albumImg: string;
+    albumIsPublished?: string;
+    onlyRefresh?: boolean;
+  }) => {
     setIsLoadingTracks(true);
     setIsLoadingTracksForAlbumId(albumId);
 
@@ -294,8 +304,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
       const albumTracksFromDb: MusicTrack[] = await getAlbumTracksFromDBViaAPI(userArtistProfile.artistId, albumId, true, true);
 
       if (albumTracksFromDb.length > 0) {
-        // let's hide any tracks that are marked for deletion
-        // const albumTracksFromDbFiltered = albumTracksFromDb.filter((track) => track.hideOrDelete !== "2");
         setSelectedAlbumTracks(albumTracksFromDb);
       } else {
         setSelectedAlbumTracks([]);
@@ -306,9 +314,13 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         return;
       }
 
-      setSelectedAlbumTitle(albumTitle);
-      setSelectedAlbumId(albumId);
-      setSelectedAlbumImg(albumImg);
+      setSelectedAlbumMeta({
+        albumId: albumId,
+        albumTitle: albumTitle,
+        albumImg: albumImg,
+        albumIsPublished: albumIsPublished,
+      });
+
       setShowEditTrackModal(true);
     } catch (error) {
       console.error("Error fetching tracks:", error);
@@ -668,13 +680,14 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         isOpen={showEditTrackModal}
         isNonMUIMode={true}
         tracks={selectedAlbumTracks as any}
-        albumTitle={selectedAlbumTitle}
+        albumTitle={selectedAlbumMeta.albumTitle}
         artistId={userArtistProfile.artistId}
-        albumId={selectedAlbumId}
-        albumImg={selectedAlbumImg}
+        albumId={selectedAlbumMeta.albumId}
+        albumImg={selectedAlbumMeta.albumImg}
+        albumIsPublished={selectedAlbumMeta.albumIsPublished}
         onClose={() => setShowEditTrackModal(false)}
         onTracksUpdated={() => {
-          handleViewCurrentTracks(selectedAlbumId, selectedAlbumTitle, selectedAlbumImg);
+          handleViewCurrentTracks({ albumId: selectedAlbumMeta.albumId, albumTitle: selectedAlbumMeta.albumTitle, albumImg: selectedAlbumMeta.albumImg });
           toastSuccess("Tracks updated successfully");
         }}
       />
@@ -728,7 +741,17 @@ const ArtistAlbumList: React.FC<{
   isLoadingTracksForAlbumId: string;
   onEditAlbum: (album: Album) => void;
   onAddNewAlbum: () => void;
-  onViewCurrentTracks: (albumId: string, albumTitle: string, albumImg: string) => void;
+  onViewCurrentTracks: ({
+    albumId,
+    albumTitle,
+    albumImg,
+    albumIsPublished,
+  }: {
+    albumId: string;
+    albumTitle: string;
+    albumImg: string;
+    albumIsPublished?: string;
+  }) => void;
   navigateToDeepAppView: (logicParams: any) => void;
 }> = ({ albums, isLoadingTracks, isLoadingTracksForAlbumId, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, navigateToDeepAppView }) => {
   const { artistLookupEverything } = useAppStore();
@@ -752,11 +775,7 @@ const ArtistAlbumList: React.FC<{
                     )}
                   </p>
                   <div className="flex items-center space-x-4 text-sm text-gray-400">
-                    {album?.isExplicit === "1" && (
-                      <Badge variant="destructive" className="text-xs">
-                        Explicit
-                      </Badge>
-                    )}
+                    {album?.isExplicit === "1" && <img src={ratingE} alt="Explicit" title="Explicit" className="w-3 h-3 text-gray-400" />}
                   </div>
                 </div>
                 {album.img && (
@@ -791,7 +810,9 @@ const ArtistAlbumList: React.FC<{
 
                 <Button
                   className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
-                  onClick={() => onViewCurrentTracks(album.albumId, album.title, album.img)}
+                  onClick={() =>
+                    onViewCurrentTracks({ albumId: album.albumId, albumTitle: album.title, albumImg: album.img, albumIsPublished: album.isPublished })
+                  }
                   disabled={isLoadingTracks}>
                   Edit Tracks {isLoadingTracks && isLoadingTracksForAlbumId === album.albumId ? <Loader className="animate-spin ml-2" size={16} /> : null}
                 </Button>

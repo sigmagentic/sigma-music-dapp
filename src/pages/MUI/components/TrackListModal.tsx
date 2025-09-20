@@ -17,6 +17,7 @@ import { MediaUpdate } from "libComponents/MediaUpdate";
 import { saveMediaToServerViaAPI } from "libs/utils/api";
 import { toastError, toastSuccess } from "libs/utils/ui";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import ratingE from "assets/img/icons/rating-E.png";
 
 interface TrackListModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ interface TrackListModalProps {
   artistId: string;
   albumId: string;
   albumImg: string;
+  albumIsPublished?: string;
   preloadExistingTrackToAlbum?: MusicTrack | null;
   onClose: () => void;
   onTracksUpdated: () => void;
@@ -51,6 +53,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
   artistId,
   albumId,
   albumImg,
+  albumIsPublished,
   preloadExistingTrackToAlbum,
   onClose,
   onTracksUpdated,
@@ -187,7 +190,14 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         throw new Error("Failed to valid signature to prove account ownership");
       }
 
-      const payloadToSave: any = { arId, alId, hideOrDelete: "2", solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce };
+      // "1" for hide, "2" for delete (you an only for 2 if the album has never been published before)
+      const payloadToSave: any = {
+        arId,
+        alId,
+        hideOrDelete: albumIsPublished === "1" ? "1" : "2",
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
+      };
 
       if (!isNonMUIMode) {
         payloadToSave.adminWallet = publicKey?.toBase58() || "";
@@ -198,7 +208,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
       if (response.success) {
         onTracksUpdated();
-        toastSuccess("Track deleted successfully");
+        toastSuccess(`Track ${albumIsPublished === "1" ? "hidden" : "deleted"} successfully`);
       } else {
         toastError("Error deleting track: " + response.error);
       }
@@ -653,7 +663,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
             <>
               <Card
                 key={`${track.alId}-${index}`}
-                className={`p-4 hover:shadow-md transition-shadow ${track.hideOrDelete === "2" ? "opacity-50 cursor-not-allowed" : ""}`}>
+                className={`p-4 hover:shadow-md transition-shadow ${track.hideOrDelete === "2" || track.hideOrDelete === "1" ? "opacity-50 cursor-not-allowed" : ""}`}>
                 <div className="flex items-start space-x-3">
                   {track.cover_art_url && (
                     <div className="flex-shrink-0">
@@ -675,13 +685,18 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                               Bonus
                             </Badge>
                           )}
+                          {track.isExplicit === "1" && <img src={ratingE} alt="Explicit" title="Explicit" className="w-3 h-3 text-gray-400" />}
                         </div>
                       </div>
                       <div className="flex-shrink-0 ml-2 flex space-x-1">
                         <Button
                           disabled={isDeletingTrackId !== ""}
                           onClick={() => {
-                            const confirmed = confirm("You are sure you want to delete this track?");
+                            const alertMsg =
+                              albumIsPublished === "1"
+                                ? "You are sure you want to delete this track? Note that as your album is published and some people may have already bought it, the track just gets hidden from the public in future."
+                                : "You are sure you want to delete this track?";
+                            const confirmed = confirm(alertMsg);
                             if (!confirmed) {
                               return;
                             }
@@ -700,7 +715,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                     </div>
                   </div>
                 </div>
-                {track.hideOrDelete === "2" && <div className="text-red-500 text-xs">Deleted</div>}
+                {(track.hideOrDelete === "2" || track.hideOrDelete === "1") && (
+                  <div className="text-red-500 text-xs">{track.hideOrDelete === "2" ? "Deleted" : "Hidden"}</div>
+                )}
               </Card>
             </>
           ))}

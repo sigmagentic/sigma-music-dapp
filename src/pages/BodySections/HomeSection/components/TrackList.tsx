@@ -62,9 +62,7 @@ export const TrackList: React.FC<TrackListProps> = ({
       try {
         const userOwnsAlbum = checkOwnershipOfMusicAsset(album) > -1;
         const tracksData = await getAlbumTracksFromDBViaAPI(artistId, album.albumId, userOwnsAlbum);
-        // let's hide any tracks that are marked for deletion
-        const tracksDataFiltered = tracksData.filter((track: any) => track.hideOrDelete !== "2");
-        setTracks(tracksDataFiltered || []);
+        setTracks(tracksData);
       } catch (error) {
         console.error("Error fetching tracks:", error);
         setTracks([]);

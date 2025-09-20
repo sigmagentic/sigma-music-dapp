@@ -3,10 +3,10 @@ import { Plus, Music, Tag, Eye, Edit } from "lucide-react";
 import { Badge } from "libComponents/Badge";
 import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
-import { Artist, MusicTrack } from "libs/types/common";
+import { Artist } from "libs/types/common";
 import { Album } from "libs/types/common";
+import ratingE from "assets/img/icons/rating-E.png";
 
-// Extended Album type with source tracking
 interface AlbumWithSource extends Album {
   source: "db" | "indexed";
 }
@@ -35,6 +35,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
   const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string>("");
   const [selectedAlbumImg, setSelectedAlbumImg] = useState<string>("");
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>("");
+  const [selectedAlbumIsPublished, setSelectedAlbumIsPublished] = useState<string>("");
   const [isTrackListModalOpen, setIsTrackListModalOpen] = useState(false);
   const [isLoadingTracks, setIsLoadingTracks] = useState(false);
 
@@ -81,7 +82,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
     setIsCollectibleModalOpen(true);
   };
 
-  const handleViewCurrentTracks = async (albumId: string, albumTitle: string, albumImg: string) => {
+  const handleViewCurrentTracks = async (albumId: string, albumTitle: string, albumImg: string, albumIsPublished?: string) => {
     setIsLoadingTracks(true);
     try {
       const albumTracksFromDb: FastStreamTrack[] = await getAlbumTracksFromDBViaAPI(artistId, albumId, true, true);
@@ -95,6 +96,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
       setSelectedAlbumTitle(albumTitle);
       setSelectedAlbumId(albumId);
       setSelectedAlbumImg(albumImg);
+      setSelectedAlbumIsPublished(albumIsPublished || "");
       setIsTrackListModalOpen(true);
     } catch (error) {
       console.error("Error fetching tracks:", error);
@@ -262,14 +264,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">{album.title}</h3>
                     <p className="text-sm text-gray-500 mb-2">{album.albumId}</p>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      {album?.isExplicit === "1" && (
-                        <Badge variant="destructive" className="text-xs">
-                          Explicit
-                        </Badge>
-                      )}
-                      {/* <Badge variant={album?.isPublished === "1" ? "default" : "secondary"} className="text-xs">
-                        {album?.isPublished === "1" ? "Published" : "Draft"}
-                      </Badge> */}
+                      {album?.isExplicit === "1" && <img src={ratingE} alt="Explicit" title="Explicit" className="w-3 h-3 text-gray-400" />}
                     </div>
                   </div>
                   {album.img && (
@@ -289,7 +284,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
 
                 <div className="space-y-2">
                   <Button
-                    onClick={() => handleViewCurrentTracks(album.albumId, album.title, album.img)}
+                    onClick={() => handleViewCurrentTracks(album.albumId, album.title, album.img, album.isPublished)}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={isLoadingTracks}>
                     <Eye className="w-4 h-4 mr-2" />
@@ -352,6 +347,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
         artistId={artistId}
         albumId={selectedAlbumId}
         albumImg={selectedAlbumImg}
+        albumIsPublished={selectedAlbumIsPublished}
         onTracksUpdated={handleTracksUpdated}
       />
 

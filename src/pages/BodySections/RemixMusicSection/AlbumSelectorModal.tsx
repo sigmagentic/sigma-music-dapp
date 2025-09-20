@@ -1,11 +1,11 @@
 import React from "react";
 import { Loader, Plus } from "lucide-react";
 import { Button } from "libComponents/Button";
-import { Badge } from "libComponents/Badge";
 import { useAccountStore } from "store/account";
 import { Album, MusicTrack } from "libs/types/common";
 import { getAlbumFromDBViaAPI } from "libs/utils/api";
 import { useState, useEffect } from "react";
+import ratingE from "assets/img/icons/rating-E.png";
 
 export const AlbumSelectorModal = ({
   isOpen,
@@ -92,11 +92,7 @@ export const AlbumSelectorModal = ({
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">{album.title}</h3>
                     <p className="text-sm text-gray-500 mb-2">{album.albumId}</p>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      {album?.isExplicit === "1" && (
-                        <Badge variant="destructive" className="text-xs">
-                          Explicit
-                        </Badge>
-                      )}
+                      {album?.isExplicit === "1" && <img src={ratingE} alt="Explicit" title="Explicit" className="w-3 h-3 text-gray-400" />}
                       <p className="text-sm text-gray-400 mb-2">
                         Status:{" "}
                         {album?.isPublished === "1" ? (

@@ -617,9 +617,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       const albumTracksFromDb: MusicTrack[] = await getAlbumTracksFromDBViaAPI(userArtistProfile.artistId, albumId, true, true);
 
       if (albumTracksFromDb.length > 0) {
-        // let's hide any tracks that are marked for deletion
-        const albumTracksFromDbFiltered = albumTracksFromDb.filter((track: any) => track.hideOrDelete !== "2");
-        setSelectedAlbumTracks(albumTracksFromDbFiltered);
+        setSelectedAlbumTracks(albumTracksFromDb);
       } else {
         setSelectedAlbumTracks([]);
       }
