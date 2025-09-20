@@ -288,11 +288,9 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                   imageUrl={formData.img}
                   size="md"
                   onFileSelect={(file) => {
-                    console.log("Selected file:", file);
                     setNewSelectedAlbumImageFile(file);
                   }}
                   onFileRevert={() => {
-                    console.log("File reverted");
                     setNewSelectedAlbumImageFile(null);
                   }}
                   alt="Album Cover"

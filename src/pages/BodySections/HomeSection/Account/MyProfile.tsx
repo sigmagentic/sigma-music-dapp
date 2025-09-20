@@ -36,8 +36,6 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
   const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey; // Use the appropriate public key based on wallet type
 
   useEffect(() => {
-    console.log("userWeb2AccountDetails.profileTypes", userWeb2AccountDetails.profileTypes);
-
     // from the URL we can get these optional params: view=artistProfile&action=createAlbum
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get("view");

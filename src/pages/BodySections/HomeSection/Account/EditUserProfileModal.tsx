@@ -399,11 +399,9 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
                   imageUrl={formData.profileImage}
                   size="md"
                   onFileSelect={(file) => {
-                    console.log("Selected file:", file);
                     setNewSelectedProfileImageFile(file);
                   }}
                   onFileRevert={() => {
-                    console.log("File reverted");
                     setNewSelectedProfileImageFile(null);
                   }}
                   alt="Profile"

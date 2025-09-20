@@ -51,6 +51,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   const [selectedAlbumImg, setSelectedAlbumImg] = useState<string>("");
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>("");
   const [isLoadingTracks, setIsLoadingTracks] = useState<boolean>(false);
+  const [isLoadingTracksForAlbumId, setIsLoadingTracksForAlbumId] = useState<string>("");
   const [showVerificationInfoModal, setShowVerificationInfoModal] = useState<boolean>(false);
 
   const showVerificationInfo = () => {
@@ -287,12 +288,15 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 
   const handleViewCurrentTracks = async (albumId: string, albumTitle: string, albumImg: string, onlyRefresh: boolean = false) => {
     setIsLoadingTracks(true);
+    setIsLoadingTracksForAlbumId(albumId);
 
     try {
       const albumTracksFromDb: MusicTrack[] = await getAlbumTracksFromDBViaAPI(userArtistProfile.artistId, albumId, true, true);
 
       if (albumTracksFromDb.length > 0) {
-        setSelectedAlbumTracks(albumTracksFromDb);
+        // let's hide any tracks that are marked for deletion
+        const albumTracksFromDbFiltered = albumTracksFromDb.filter((track) => track.hideOrDelete !== "2");
+        setSelectedAlbumTracks(albumTracksFromDbFiltered);
       } else {
         setSelectedAlbumTracks([]);
       }
@@ -310,6 +314,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
       console.error("Error fetching tracks:", error);
     } finally {
       setIsLoadingTracks(false);
+      setIsLoadingTracksForAlbumId("");
     }
   };
 
@@ -348,10 +353,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
           userArtistProfile && (
             <ArtistAlbumList
               albums={myAlbums || []}
+              isLoadingTracks={isLoadingTracks}
+              isLoadingTracksForAlbumId={isLoadingTracksForAlbumId}
               onEditAlbum={handleEditAlbum}
               onAddNewAlbum={handleAddNewAlbum}
               onViewCurrentTracks={handleViewCurrentTracks}
-              isLoadingTracks={isLoadingTracks}
               navigateToDeepAppView={navigateToDeepAppView}
             />
           )
@@ -661,12 +667,12 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
       <TrackListModal
         isOpen={showEditTrackModal}
         isNonMUIMode={true}
-        onClose={() => setShowEditTrackModal(false)}
         tracks={selectedAlbumTracks as any}
         albumTitle={selectedAlbumTitle}
         artistId={userArtistProfile.artistId}
         albumId={selectedAlbumId}
         albumImg={selectedAlbumImg}
+        onClose={() => setShowEditTrackModal(false)}
         onTracksUpdated={() => {
           handleViewCurrentTracks(selectedAlbumId, selectedAlbumTitle, selectedAlbumImg);
           toastSuccess("Tracks updated successfully");
@@ -719,18 +725,19 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 const ArtistAlbumList: React.FC<{
   albums: Album[];
   isLoadingTracks: boolean;
+  isLoadingTracksForAlbumId: string;
   onEditAlbum: (album: Album) => void;
   onAddNewAlbum: () => void;
   onViewCurrentTracks: (albumId: string, albumTitle: string, albumImg: string) => void;
   navigateToDeepAppView: (logicParams: any) => void;
-}> = ({ albums, isLoadingTracks, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, navigateToDeepAppView }) => {
+}> = ({ albums, isLoadingTracks, isLoadingTracksForAlbumId, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, navigateToDeepAppView }) => {
   const { artistLookupEverything } = useAppStore();
 
   return (
     <div className="space-y-6">
       {albums.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {albums.map((album) => (
+          {albums.map((album: Album) => (
             <Card key={album.albumId} className="p-6 hover:shadow-lg bg-gradient-to-br from-yellow-500/10 to-orange-500/10 flex flex-col">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -750,11 +757,6 @@ const ArtistAlbumList: React.FC<{
                         Explicit
                       </Badge>
                     )}
-                    {/* {album?.isPublished === "1" && (
-                      <Badge variant="secondary" className="text-xs bg-yellow-400 text-black">
-                        Published
-                      </Badge>
-                    )} */}
                   </div>
                 </div>
                 {album.img && (
@@ -791,7 +793,7 @@ const ArtistAlbumList: React.FC<{
                   className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
                   onClick={() => onViewCurrentTracks(album.albumId, album.title, album.img)}
                   disabled={isLoadingTracks}>
-                  Edit Tracks {isLoadingTracks ? <Loader className="animate-spin ml-2" size={16} /> : null}
+                  Edit Tracks {isLoadingTracks && isLoadingTracksForAlbumId === album.albumId ? <Loader className="animate-spin ml-2" size={16} /> : null}
                 </Button>
               </div>
             </Card>

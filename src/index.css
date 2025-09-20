@@ -125,25 +125,6 @@ h6 {
   @apply bg-black dark:bg-white !important;
 }
 
-.dapp-core-component__transactionToast-styles__content,
-.dapp-core-component__customToast-styles__close {
-  @apply text-foreground bg-background fill-black !important;
-}
-
-.dapp-core-component__transactionsToastList-styles__toasts,
-.dapp-custom-toast,
-.dapp-core-component__transactionsToastList-styles__toastWrapper {
-  @apply fixed bottom-14 right-10 bg-background/60 text-foreground !important;
-}
-
-.dapp-core-component__transactionsToastList-styles__toasts,
-.dapp-custom-toast,
-.dapp-core-component__transactionsToastList-styles__toastWrapper {
-  @apply bg-background/60 !important;
-}
-
-/*.dapp-core-component__transactionToast-styles__content*/
-
 @layer base {
   * {
     @apply border-border;
@@ -159,28 +140,6 @@ h6 {
 
 .go2072408551 {
   max-width: 40%;
-}
-
-.dapp-core-component__scamPhishingStyles__scam-phishing-alert .dapp-core-component__scamPhishingStyles__scam-phishing-alert-text,
-.dapp-core-component__walletConnectLoginContainerStyles__xPortal-content,
-.dapp-core-component__ledgerConnectStyles__login-connect-container .dapp-core-component__ledgerConnectStyles__login-connect-container-content {
-  @apply text-foreground !important;
-}
-
-.dapp-core-component__addressTableStyles__ledger-address-table-wrapper {
-  @apply text-foreground !important;
-}
-
-.dapp-core-component__ledgerLoadingStyles__ledger-loading-wrapper {
-  @apply text-foreground !important;
-}
-
-.dapp-core-component__scamPhishingStyles__scam-phishing-alert.dapp-core-component__scamPhishingStyles__scam-phishing-alert-authorization {
-  @apply text-foreground !important;
-}
-
-.dapp-core-component__confirmAddressStyles__ledger-confirm-address-heading {
-  @apply text-foreground !important;
 }
 
 @keyframes ping {
@@ -333,4 +292,9 @@ h6 {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* web3 auth overrides */
+.w3a-parent-container #w3a-modal .w3a-modal__loader {
+  background-color: black;
 }

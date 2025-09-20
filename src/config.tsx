@@ -380,7 +380,7 @@ export const LICENSE_BLURBS: any = {
     link: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
   },
   "CC BY 4.0": {
-    blurb: "Attribution Only. Commercial Use, Derivatives and Distribution allowed.",
+    blurb: "Attribution Only. Commercial Use, Derivatives and Distribution allowed",
     link: "https://creativecommons.org/licenses/by/4.0/",
   },
 };

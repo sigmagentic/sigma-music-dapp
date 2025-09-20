@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Music, Play, Plus, X, Edit, Loader2 } from "lucide-react";
+import { Music, Plus, X, Edit, Loader2, Trash } from "lucide-react";
 import { ALL_MUSIC_GENRES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Badge } from "libComponents/Badge";
@@ -15,19 +15,19 @@ import { adminApi } from "../services";
 import { FastStreamTrack, MusicTrack } from "libs/types";
 import { MediaUpdate } from "libComponents/MediaUpdate";
 import { saveMediaToServerViaAPI } from "libs/utils/api";
-import { toastError } from "libs/utils/ui";
+import { toastError, toastSuccess } from "libs/utils/ui";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 
 interface TrackListModalProps {
   isOpen: boolean;
   isNonMUIMode?: boolean;
-  onClose: () => void;
   tracks: FastStreamTrack[];
   albumTitle: string;
   artistId: string;
   albumId: string;
   albumImg: string;
   preloadExistingTrackToAlbum?: MusicTrack | null;
+  onClose: () => void;
   onTracksUpdated: () => void;
 }
 
@@ -40,18 +40,19 @@ interface TrackFormData {
   cover_art_url: string;
   file: string;
   title: string;
+  isExplicit: string;
 }
 
 export const TrackListModal: React.FC<TrackListModalProps> = ({
   isOpen,
   isNonMUIMode,
-  onClose,
   tracks,
   albumTitle,
   artistId,
   albumId,
   albumImg,
   preloadExistingTrackToAlbum,
+  onClose,
   onTracksUpdated,
 }) => {
   const { publicKey, walletType } = useSolanaWallet();
@@ -73,14 +74,15 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     cover_art_url: albumImg || "",
     file: "",
     title: "",
+    isExplicit: "",
   });
   const [errors, setErrors] = useState<Partial<TrackFormData>>({});
   const [trackIdxListSoFar, setTrackIdxListSoFar] = useState<string>("");
   const [trackIdxNextGuess, setTrackIdxNextGuess] = useState<number>(1);
   const [newSelectedTrackCoverArtFile, setNewSelectedTrackCoverArtFile] = useState<File | null>(null);
   const [newSelectedAudioFile, setNewSelectedAudioFile] = useState<File | null>(null);
+  const [isDeletingTrackId, setIsDeletingTrackId] = useState<string>("");
 
-  // Add effect to prevent body scrolling when modal is open
   useEffect(() => {
     // Prevent scrolling on mount
     document.body.style.overflow = "hidden";
@@ -95,12 +97,14 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     let fileToUse = "";
     let coverArtUrlToUse = albumImg || "";
     let categoryToUse = "";
+    let isExplicitToUse = "";
 
     if (preloadExistingTrackToAlbum) {
       titleToUse = preloadExistingTrackToAlbum.title || "";
       fileToUse = preloadExistingTrackToAlbum.stream || "";
       coverArtUrlToUse = preloadExistingTrackToAlbum.cover_art_url || "";
       categoryToUse = preloadExistingTrackToAlbum.category || "";
+      isExplicitToUse = preloadExistingTrackToAlbum.isExplicit || "";
     }
 
     setFormData({
@@ -112,6 +116,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       cover_art_url: coverArtUrlToUse,
       file: fileToUse,
       title: titleToUse,
+      isExplicit: isExplicitToUse,
     });
 
     setErrors({});
@@ -155,9 +160,53 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       cover_art_url: track.cover_art_url || "",
       file: track.file || "",
       title: track.title || "",
+      isExplicit: track.isExplicit || "",
     });
     setErrors({});
     setIsFormView(true);
+  };
+
+  const handleDeleteTrack = async (arId: string, alId: string) => {
+    setIsDeletingTrackId(alId);
+
+    try {
+      // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
+        publicKey,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
+      // S: if new img and  or mp3 files are selected we need to save that to the media server and get back a https url
+      if (!usedPreAccessNonce || !usedPreAccessSignature) {
+        throw new Error("Failed to valid signature to prove account ownership");
+      }
+
+      const payloadToSave: any = { arId, alId, hideOrDelete: "2", solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce };
+
+      if (!isNonMUIMode) {
+        payloadToSave.adminWallet = publicKey?.toBase58() || "";
+      }
+
+      // "1" for hide, "2" for delete (you an only for 2 if the album has never been published before)
+      const response = await adminApi.fastStream.deleteOrHideTrack(payloadToSave);
+
+      if (response.success) {
+        onTracksUpdated();
+        toastSuccess("Track deleted successfully");
+      } else {
+        toastError("Error deleting track: " + response.error);
+      }
+    } catch (error) {
+      toastError("Error deleting track: " + (error as Error)?.message);
+    } finally {
+      setIsDeletingTrackId("");
+    }
   };
 
   const handleCancelForm = () => {
@@ -173,6 +222,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       cover_art_url: albumImg || "",
       file: "",
       title: "",
+      isExplicit: "",
     });
     setErrors({});
     setNewSelectedTrackCoverArtFile(null);
@@ -324,20 +374,28 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         }
       }
 
-      const payloadToSave: any = { ...formData, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce };
+      const formDataToSave: Partial<TrackFormData> = { ...formData };
+
+      // if isExplicit is "" (i.e its not an explicit track) then we remove it before saving as we dont need to save in db
+      if (formData.isExplicit === "") {
+        delete formDataToSave.isExplicit;
+      }
+
+      const payloadToSave: any = { ...formDataToSave, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce };
 
       if (!isNonMUIMode) {
         payloadToSave.adminWallet = publicKey?.toBase58() || "";
       }
 
-      let response;
-      if (isEditing) {
-        // Update existing track
-        response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
-      } else {
-        // Add new track
-        response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
-      }
+      let response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
+
+      // if (isEditing) {
+      //   // Update existing track
+      //   response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
+      // } else {
+      //   // Add new track
+      //   response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
+      // }
 
       if (response.success) {
         setIsFormView(false);
@@ -352,14 +410,15 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
           cover_art_url: albumImg || "",
           file: "",
           title: "",
+          isExplicit: "",
         });
         setErrors({});
       } else {
-        alert(`Error: ${response.error || `Failed to ${isEditing ? "update" : "add"} track`}`);
+        toastError(`Error: ${response.error || `Failed to ${isEditing ? "update" : "add"} track`}`);
       }
     } catch (err) {
       console.error(`Error ${isEditing ? "updating" : "adding"} track:`, err);
-      alert(`Failed to ${isEditing ? "update" : "add"} track. Please try again.`);
+      toastError(`Failed to ${isEditing ? "update" : "add"} track. Please try again.`);
     } finally {
       setIsSubmitting(false);
       setNewSelectedTrackCoverArtFile(null);
@@ -491,6 +550,14 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
             {formData.category && <div className="mt-2 text-sm text-gray-600">Selected: {formData.category}</div>}
           </div>
 
+          {/* Is this Track Explicit? */}
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-gray-300">Is this Track Explicit?</label>
+            </div>
+            <Switch checked={formData.isExplicit === "1"} onCheckedChange={(checked) => handleFormChange("isExplicit", checked ? "1" : "")} />
+          </div>
+
           {/* Title */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -519,11 +586,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                   imageUrl={formData.cover_art_url}
                   size="md"
                   onFileSelect={(file) => {
-                    console.log("Selected file:", file);
                     setNewSelectedTrackCoverArtFile(file);
                   }}
                   onFileRevert={() => {
-                    console.log("File reverted");
                     setNewSelectedTrackCoverArtFile(null);
                   }}
                   alt="Track Cover"
@@ -546,11 +611,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                   mediaUrl={formData.file}
                   size="md"
                   onFileSelect={(file) => {
-                    console.log("Selected file:", file);
                     setNewSelectedAudioFile(file);
                   }}
                   onFileRevert={() => {
-                    console.log("File reverted");
                     setNewSelectedAudioFile(null);
                   }}
                   alt="Audio File"
@@ -612,7 +675,22 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                       </div>
                     </div>
                     <div className="flex-shrink-0 ml-2 flex space-x-1">
-                      <Button onClick={() => handleEditTrack(track)} variant="outline" size="sm" className="h-8 w-8 p-0">
+                      <Button
+                        disabled={isDeletingTrackId !== ""}
+                        onClick={() => {
+                          const confirmed = confirm("You are sure you want to delete this track?");
+                          if (!confirmed) {
+                            return;
+                          }
+
+                          handleDeleteTrack(track.arId, track.alId);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0">
+                        {isDeletingTrackId === track.alId ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash className="w-3 h-3" />}
+                      </Button>
+                      <Button disabled={isDeletingTrackId !== ""} onClick={() => handleEditTrack(track)} variant="outline" size="sm" className="h-8 w-8 p-0">
                         <Edit className="w-3 h-3" />
                       </Button>
                     </div>

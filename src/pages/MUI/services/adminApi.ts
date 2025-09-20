@@ -83,6 +83,42 @@ export const fastStreamApi = {
     }
   },
 
+  deleteOrHideTrack: async (payload: { arId: string; alId: string; hideOrDelete: string }): Promise<AdminApiResponse<null>> => {
+    try {
+      const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/management/deleteOrHideTrack`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        return {
+          success: false,
+          data: null,
+          error: data?.errorMessage || "Unknown error",
+        };
+      } else if (data?.created || data?.updated) {
+        return {
+          success: true,
+          data: null,
+        };
+      } else {
+        return {
+          success: false,
+          data: null,
+          error: "Unknown error",
+        };
+      }
+    } catch (error) {
+      console.error("Error deleting or hiding fast stream track:", error);
+      throw error;
+    }
+  },
+
   // Edit fast stream tracks for an album
   editFastStreamTracksForAlbum: async (albumId: string, trackId: string, trackData: Partial<FastStreamTrack>): Promise<AdminApiResponse<FastStreamTrack>> => {
     try {

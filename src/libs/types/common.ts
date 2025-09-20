@@ -37,6 +37,7 @@ export interface MusicTrack {
   isSigmaAiRemix?: string; // 0 or 1 indicated if the track was published via Sigma AI Remix
   isSigmaAiRemixUsingFreeLicense?: string; // 0 or 1 indicated if the track was published via Sigma AI Remix using a free license track
   isNewlyCreatedAiRemixDuringCurrentSession?: boolean; // was the track just created during the current browser sessio (so we can mark it as newly created)
+  hideOrDelete?: string; // // "1" for hide, "2" for delete (optional)
 }
 
 export interface Album {
@@ -320,4 +321,6 @@ export interface FastStreamTrack {
   alId: string;
   idx: number;
   title: string;
+  isExplicit?: string;
+  hideOrDelete?: string; // // "1" for hide, "2" for delete (optional)
 }

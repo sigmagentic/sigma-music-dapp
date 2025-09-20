@@ -53,7 +53,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="!text-2xl font-semibold !text-yellow-400">{title}</h2>
           {showCloseButton && (
-            <Button onClick={onClose} variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-gray-100">
+            <Button onClick={onClose} variant="ghost" size="icon" className="h-8 w-8 p-0">
               <X className="h-4 w-4" />
             </Button>
           )}

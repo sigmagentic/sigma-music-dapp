@@ -702,7 +702,6 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
               imageUrl={userProfileData.profileImage}
               size="md"
               onFileSelect={(file) => {
-                console.log("Selected file:", file);
                 setNewSelectedProfileImageFile(file);
               }}
               onFileRevert={() => {
@@ -797,11 +796,9 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
                   imageUrl={artistProfileData.img}
                   size="md"
                   onFileSelect={(file) => {
-                    console.log("Selected file:", file);
                     setNewSelectedArtistProfileImageFile(file);
                   }}
                   onFileRevert={() => {
-                    console.log("File reverted");
                     setNewSelectedArtistProfileImageFile(null);
                   }}
                   alt="Profile"

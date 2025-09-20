@@ -408,11 +408,9 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
                     imageUrl={formData.img}
                     size="md"
                     onFileSelect={(file) => {
-                      console.log("Selected file:", file);
                       setNewSelectedArtistProfileImageFile(file);
                     }}
                     onFileRevert={() => {
-                      console.log("File reverted");
                       setNewSelectedArtistProfileImageFile(null);
                     }}
                     alt="Profile"

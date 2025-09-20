@@ -892,7 +892,10 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         setLoading(true);
         try {
           const tracksData = await getAlbumTracksFromDBViaAPI(artistId, album.albumId, true);
-          setTracks(tracksData || []);
+
+          // let's hide any tracks that are marked for deletion
+          const tracksDataFiltered = tracksData.filter((track: any) => track.hideOrDelete !== "2");
+          setTracks(tracksDataFiltered || []);
         } catch (error) {
           console.error("Error fetching tracks:", error);
           setTracks([]);
