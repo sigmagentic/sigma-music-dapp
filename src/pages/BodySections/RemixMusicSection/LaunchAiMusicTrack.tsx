@@ -16,7 +16,7 @@ import {
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { FastStreamTrack, Artist } from "libs/types/common";
+import { FastStreamTrack, Artist, MusicTrack } from "libs/types/common";
 import { injectXUserNameIntoTweet, toastSuccess, fetchMyAlbumsFromMintLogsViaAPI, downloadTrackViaClientSide, toastError } from "libs/utils";
 import { logPaymentToAPI, saveMediaToServerViaAPI, sendRemixJobAfterPaymentViaAPI } from "libs/utils/api";
 import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
@@ -871,7 +871,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   );
 
   const ReferenceTrackList = ({ album, artistId, artistName, onBack }: { album: any; artistId: string; artistName: string; onBack: () => void }) => {
-    const [tracks, setTracks] = useState<any[]>([]);
+    const [tracks, setTracks] = useState<MusicTrack[]>([]);
     const [loading, setLoading] = useState(true);
     const [hoveredTrackIndex, setHoveredTrackIndex] = useState<number | null>(null);
 
@@ -879,7 +879,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
       const fetchTracks = async () => {
         setLoading(true);
         try {
-          const tracksData = await getAlbumTracksFromDBViaAPI(artistId, album.albumId, true);
+          const tracksData: MusicTrack[] = await getAlbumTracksFromDBViaAPI(artistId, album.albumId, true);
           setTracks(tracksData);
         } catch (error) {
           console.error("Error fetching tracks:", error);
@@ -915,7 +915,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
           <div className="flex items-center justify-between mb-6 mt-3">
             <div className="flex items-center gap-6">
               <div>
-                <h2 className="!text-2xl font-bold text-white flex items-center">{album.title}</h2>
+                <h2 className="!text-xl font-bold text-white flex items-center">{album.title}</h2>
                 <p className="text-gray-400">{artistName}</p>
                 <div className="text-gray-400 text-xs mt-1">Select a track to use as reference for AI remix</div>
               </div>
@@ -947,13 +947,14 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
         {/* Track List */}
         <div className="space-y-1">
-          {tracks.map((track, index) => {
+          {tracks.map((track: MusicTrack, index) => {
             const isHovered = hoveredTrackIndex === index;
+            const isNotAvailable = track?.hideOrDelete === "2" || track?.hideOrDelete === "1";
 
             return (
               <div
                 key={`${track.albumTrackId || track.idx}-${index}`}
-                className="group grid grid-cols-[50px_1fr] gap-4 py-3 px-2 rounded-md transition-colors hover:bg-gray-800 cursor-pointer"
+                className={`${isNotAvailable ? "hidden" : ""} group grid grid-cols-[50px_1fr] gap-4 py-3 px-2 rounded-md transition-colors hover:bg-gray-800 cursor-pointer`}
                 onMouseEnter={() => setHoveredTrackIndex(index)}
                 onMouseLeave={() => setHoveredTrackIndex(null)}
                 onClick={() => handleTrackClick(track, index)}>
