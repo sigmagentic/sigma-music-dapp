@@ -568,13 +568,16 @@ export const HomeSection = (props: HomeSectionProps) => {
         throw new Error("No artist data found for artist. Please refresh the page and try again.");
       }
 
-      albumTracksFromDb = albumTracksFromDb.map((track: MusicTrack) => ({
-        ...track,
-        artist: playAlbumNowParams.artistName,
-        album: playAlbumNowParams.albumName,
-        albumTrackId: track.alId, // the DB calls it alId, but in the app we normalize it to albumTrackId
-        artistSlug: artistData.slug,
-      }));
+      // filter out any hidden or deleted tracks first...
+      albumTracksFromDb = albumTracksFromDb
+        .filter((track: MusicTrack) => track.hideOrDelete !== "2" && track.hideOrDelete !== "1")
+        .map((track: MusicTrack) => ({
+          ...track,
+          artist: playAlbumNowParams.artistName,
+          album: playAlbumNowParams.albumName,
+          albumTrackId: track.alId, // the DB calls it alId, but in the app we normalize it to albumTrackId
+          artistSlug: artistData.slug,
+        }));
 
       // load the track list via the DB (@TODO: if the userOwnsAlbum, then we should have someway in the music player to capture the play stats as the marshal wont do be doing it)
       if (albumTracksFromDb.length > 0) {

@@ -953,7 +953,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
             return (
               <div
                 key={`${track.albumTrackId || track.idx}-${index}`}
-                className={`${isNotAvailable ? "hidden" : ""} group grid grid-cols-[50px_1fr] gap-4 py-3 px-2 rounded-md transition-colors hover:bg-gray-800 cursor-pointer`}
+                className={`${isNotAvailable ? "hidden" : ""} group py-3 px-2 rounded-md transition-colors hover:bg-orange-500/10 cursor-pointer`}
                 onMouseEnter={() => setHoveredTrackIndex(index)}
                 onMouseLeave={() => setHoveredTrackIndex(null)}
                 onClick={() => handleTrackClick(track, index)}>

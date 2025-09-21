@@ -61,8 +61,12 @@ export const TrackList: React.FC<TrackListProps> = ({
       setLoading(true);
       try {
         const userOwnsAlbum = checkOwnershipOfMusicAsset(album) > -1;
-        const tracksData = await getAlbumTracksFromDBViaAPI(artistId, album.albumId, userOwnsAlbum);
-        setTracks(tracksData);
+        const tracksData: MusicTrack[] = await getAlbumTracksFromDBViaAPI(artistId, album.albumId, userOwnsAlbum);
+
+        // filter out any hidden or deleted tracks first...
+        const tracksDataWithoutHiddenOrDeleted = tracksData.filter((track: MusicTrack) => track.hideOrDelete !== "2" && track.hideOrDelete !== "1");
+
+        setTracks(tracksDataWithoutHiddenOrDeleted);
       } catch (error) {
         console.error("Error fetching tracks:", error);
         setTracks([]);
@@ -207,7 +211,7 @@ export const TrackList: React.FC<TrackListProps> = ({
 
       {/* Track List */}
       <div className="space-y-1">
-        {tracks.map((track, index) => {
+        {tracks.map((track: MusicTrack, index) => {
           const isBonusTrack = track.bonus === 1;
           const isDisabled = !userOwnsAlbum && isBonusTrack;
           const isQueued = assetPlayIsQueued || trackPlayIsQueued;
