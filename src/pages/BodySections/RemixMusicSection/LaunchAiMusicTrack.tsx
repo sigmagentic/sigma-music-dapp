@@ -940,7 +940,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         {/* Track List Header */}
         <div className="border-b border-gray-700 pb-2 mb-4">
           <div className="grid grid-cols-[50px_1fr] gap-4 text-gray-400 text-sm font-medium">
-            <div>#</div>
             <div>Title</div>
           </div>
         </div>
@@ -958,11 +957,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                 onMouseEnter={() => setHoveredTrackIndex(index)}
                 onMouseLeave={() => setHoveredTrackIndex(null)}
                 onClick={() => handleTrackClick(track, index)}>
-                {/* Track Number / Select Icon */}
-                <div className="flex items-center justify-center">
-                  {isHovered ? <span className="text-purple-400 text-sm">✓</span> : <span className="text-gray-400 text-sm">{index + 1}</span>}
-                </div>
-
                 {/* Track Title */}
                 <div className="flex flex-col">
                   <span className="text-sm text-white">{track.title}</span>
