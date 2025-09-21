@@ -10,6 +10,7 @@ import {
   MUSIC_GEN_PROMPT_FALLBACK_LIBRARY,
   DISABLE_AI_REMIX_LIVE_MODEL_USAGE,
   FREE_LICENSED_ALBUM_ID,
+  FREE_LICENSED_ALBUM_DATA,
   LICENSE_BLURBS,
 } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
@@ -161,20 +162,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
     // load a free album if no free albums are loaded
     if (freeLincensedAlbums.length === 0) {
-      const freeRemixAlbum1 = {
-        albumId: FREE_LICENSED_ALBUM_ID,
-        albumImage: "https://api.itheumcloud-stg.com/app_sigmamusic/HYzBq-TYmRa/img/dj-sigma-mix-tape-1-1756778980811.png",
-        albumName: "Sigma Mix Tape Vol. 1",
-        createdOnTS: 1756779201513,
-        ipTokenId: "",
-        mintTemplate: "",
-        storyProtocolLicenseMintingSQSMessageId: "",
-        storyProtocolLicenseMintingTxHash: "",
-        storyProtocolLicenseTokenId: "",
-        updatedOnTS: 1756779215006,
-      };
-
-      setFreeLincensedAlbums([freeRemixAlbum1]);
+      setFreeLincensedAlbums([FREE_LICENSED_ALBUM_DATA]);
     }
   }, [myAlbumMintLogs, artistAlbumDataset]);
 

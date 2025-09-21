@@ -7,7 +7,33 @@ export const apiTimeout = 10_000; // 10s
 
 export const DEFAULT_BITZ_COLLECTION_SOL = IS_DEVNET ? "AXvaYiSwE7XKdiM4eSWTfagkswmWKVF7KzwW5EpjCDGk" : "JAWEFUJSWErkDj8RefehQXGp1nUhCoWbtZnpeo8Db8KN";
 
-export const FREE_LICENSED_ALBUM_ID = IS_DEVNET ? "ar142_a1" : "ar142_a1";
+export const FREE_LICENSED_ALBUM_ID = IS_DEVNET ? "ar142_a1" : "ar137_a1";
+
+export const FREE_LICENSED_ALBUM_DATA = IS_DEVNET
+  ? {
+      albumId: FREE_LICENSED_ALBUM_ID,
+      albumImage: "https://api.itheumcloud-stg.com/app_sigmamusic/HYzBq-TYmRa/img/dj-sigma-mix-tape-1-1756778980811.png",
+      albumName: "Sigma Mix Tape Vol. 1",
+      createdOnTS: 1756779201513,
+      ipTokenId: "",
+      mintTemplate: "",
+      storyProtocolLicenseMintingSQSMessageId: "",
+      storyProtocolLicenseMintingTxHash: "",
+      storyProtocolLicenseTokenId: "",
+      updatedOnTS: 1756779215006,
+    }
+  : {
+      albumId: FREE_LICENSED_ALBUM_ID,
+      albumImage: "https://api.itheumcloud.com/app_sigmamusic/HH3F8-SborL/img/ai-remix-vol-1-1758332627595.png",
+      albumName: "Sigma IP Safe Mix Tape Vol. 1",
+      createdOnTS: 1758414018590,
+      ipTokenId: "",
+      mintTemplate: "",
+      storyProtocolLicenseMintingSQSMessageId: "",
+      storyProtocolLicenseMintingTxHash: "",
+      storyProtocolLicenseTokenId: "",
+      updatedOnTS: 1758414018590,
+    };
 
 export const MARSHAL_CACHE_DURATION_SECONDS = import.meta.env.VITE_ENV_MARSHAL_CACHE_DURATION_SECONDS
   ? parseInt(import.meta.env.VITE_ENV_MARSHAL_CACHE_DURATION_SECONDS, 10)
