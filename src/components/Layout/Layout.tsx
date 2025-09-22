@@ -186,7 +186,7 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI Agent</span>}
                     </button>
                   </Tooltip> */}
-                  {DISABLE_AI_REMIX_FEATURES === "0" && (
+                  {/* {DISABLE_AI_REMIX_FEATURES === "0" && (
                     <Tooltip text="Sigma AI REMiX">
                       <button
                         onClick={() => {
@@ -207,7 +207,7 @@ export const Layout = ({
                         {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI REMiX</span>}
                       </button>
                     </Tooltip>
-                  )}
+                  )} */}
                   {/* <Tooltip text="Play Music Mini-Games">
                     <button
                       onClick={() => {

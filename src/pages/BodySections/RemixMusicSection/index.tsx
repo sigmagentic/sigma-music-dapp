@@ -740,7 +740,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         }`}>
         <div className="flex flex-col bgx-green-500">
           <div className="flex flex-col md:flex-row gap-4 bgx-green-300">
-            <div className="relative w-[100px] h-[100px]">
+            <div className="relative w-[80px] h-[80px]">
               <img
                 src={fixImgIconForRemixes(item.image, item?.promptParams?.songTitle)}
                 alt={item?.promptParams?.songTitle || "LEGACY"}
@@ -750,7 +750,9 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
             <div className="flex flex-col flex-grow">
               <div className="flex items-center gap-2">
                 <span className="text-gray-400">{idx + 1}.</span>
-                <h3 className="!text-lg font-semibold">{item?.promptParams?.songTitle || "LEGACY"}</h3>
+                <h3 className="!text-lg font-semibold max-w-[200px] truncate text-ellipsis" title={item?.promptParams?.songTitle}>
+                  {item?.promptParams?.songTitle || "LEGACY"}
+                </h3>
               </div>
               <p className="text-xs text-gray-400">
                 Based on music by{" "}
@@ -1143,7 +1145,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
               </div>
             )}
 
-            <GenerateMusicMemeButton />
+            {newLaunchesData.length > 0 && <GenerateMusicMemeButton />}
           </div>
         </div>
 
@@ -1294,7 +1296,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <span className="text-yellow-300 text-lg">🚨 </span>
-                          <p className="text-md font-medium text-gray-100 text-sm">
+                          <p className="text-md font-medium text-gray-100 text-sm flex items-center">
                             USD rewards for the best AI remixes based on real world artist tracks!
                             <button
                               onClick={() =>
