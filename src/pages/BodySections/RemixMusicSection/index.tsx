@@ -105,7 +105,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const [showPublicVotingAreaUI, setShowPublicVotingAreaUI] = useState(false); // false my workspace vs public voting area view (UI throttled)
   const [showPublicVotingArea, setShowPublicVotingArea] = useState(false); // false my workspace vs public voting area view
   const [showAllMusicUI, setShowAllMusicUI] = useState(false); // false if it's public voting, show my music only vs all music view (UI throttled)
-  const [showAllMusic, setShowAllMusic] = useState<boolean | null>(false); //null if it's public voting, show my music only vs all music view
+  const [showAllMusic, setShowAllMusic] = useState<boolean | null>(null); //null if it's public voting, show my music only vs all music view
   const [switchChangeThrottled, setSwitchChangeThrottled] = useState(false);
   const [shouldRefreshSwimlaneDataOnGraduation, setShouldRefreshSwimlaneDataOnGraduation] = useState(false);
   const [checkingIfNewJobsHaveCompleted, setCheckingIfNewJobsHaveCompleted] = useState(false);
@@ -159,6 +159,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       try {
         setIsSwimLaneDataLoading(true);
 
+        console.log("___ calgetRemixLaunchesViaAPI A");
         const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol || null });
         setNewLaunchesData(responseA);
 
@@ -254,6 +255,8 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   useEffect(() => {
     if (showAllMusic === null) return;
 
+    console.log("___ fetchDataAllSwimLaneData showAllMusic", showAllMusic);
+
     if (showAllMusic) {
       fetchDataAllSwimLaneData({ showMyMusicOnly: false });
     } else {
@@ -268,6 +271,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       setShowPublicVotingArea(false);
       setShowPublicVotingAreaUI(false);
 
+      console.log("___ setShowAllMusic(false) call");
       setShowAllMusic(false);
       setShowAllMusicUI(false);
 
@@ -275,6 +279,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     } else {
       setShowPublicVotingArea(true);
       setShowPublicVotingAreaUI(true);
+      console.log("___ setShowAllMusic(true) call");
       setShowAllMusic(true);
       setShowAllMusicUI(true);
 
@@ -358,6 +363,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     setNewLaunchesData([]);
 
     // looks like some jobs that were pending, have completed --- so lets get the new track
+    console.log("___ calgetRemixLaunchesViaAPI B");
     const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol });
 
     // if a new item is added, can we compare responseA items to newLaunches items and mark the new item with a flag called isNewlyCreated
@@ -398,8 +404,10 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       setPublishedLaunchesData([]);
       setVirtualAiRemixAlbumTracksLoading(true);
 
+      console.log("___ calgetRemixLaunchesViaAPI C");
       const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setNewLaunchesData(responseA);
+      console.log("___ calgetRemixLaunchesViaAPI D");
       const responseC = await getRemixLaunchesViaAPI({ launchStatus: "published", addressSol: addressSol && showMyMusicOnly ? addressSol : null });
       setPublishedLaunchesData(responseC);
 

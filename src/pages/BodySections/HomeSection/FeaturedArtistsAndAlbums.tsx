@@ -593,10 +593,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const xpCollectionIdToUse = !addressSol || solBitzNfts.length === 0 ? DEFAULT_BITZ_COLLECTION_SOL : solBitzNfts[0].grouping[0].group_value;
 
   return (
-    <div className="flex flex-col justify-center items-center w-full">
+    <div className="flex flex-col justify-center items-center">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
-        <div
-          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "md:h-[1px] md:relative md:z-[1] md:left-[-15px]" : ""}`}>
+        <div className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] ${inArtistProfileView ? "md:h-[1px] md:relative md:z-[1] md:left-[-15px]" : ""}`}>
           <div className={`flex flex-col md:flex-row justify-between ${inArtistProfileView ? "md:w-[fit-content]" : "w-full"}`}>
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
               <div

@@ -294,8 +294,6 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
     solNftName: "",
   };
 
-  console.log("allMyRemixes", allMyRemixes);
-
   // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
   const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
     idx: index,
