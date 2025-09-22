@@ -1,8 +1,20 @@
 import React from "react";
 import { RefreshCcw } from "lucide-react";
-import { toastError, toastSuccess } from "libs/utils/ui";
+import { toastError, toastSuccess, showArtistNameUsingAlId } from "libs/utils/ui";
 
-export const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolean; onClose: () => void; jobs: Array<any>; onRefresh: () => void }) => {
+export const JobsModal = ({
+  isOpen,
+  onClose,
+  jobs,
+  onRefresh,
+  artistLookupEverything,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  jobs: Array<any>;
+  onRefresh: () => void;
+  artistLookupEverything: any;
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -31,19 +43,19 @@ export const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolea
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-700">
-                <th className="text-left p-2">Date</th>
-                <th className="text-left p-2">Amount</th>
-                <th className="text-left p-2">Status</th>
-                <th className="text-left p-2">Receipt</th>
-                <th className="text-left p-2">Job</th>
+                <th className="text-left p-2 text-xs">Date</th>
+                <th className="text-left p-2 text-xs">Amount</th>
+                <th className="text-left p-2 text-xs">Status</th>
+                <th className="text-left p-2 text-xs">Receipt</th>
+                <th className="text-left p-2 text-xs">Job</th>
               </tr>
             </thead>
             <tbody>
               {jobs.map((job, index) => (
                 <tr key={index} className="border-b border-gray-700/50 hover:bg-white/5">
-                  <td className="p-2">{new Date(job.createdOn).toLocaleDateString()}</td>
-                  <td className="p-2">{job.amount} XP</td>
-                  <td className="p-2">
+                  <td className="p-2 text-xs">{new Date(job.createdOn).toLocaleDateString()}</td>
+                  <td className="p-2 text-xs">{job.amount} XP</td>
+                  <td className="p-2 text-xs">
                     {job.paymentStatus === "new" || job.paymentStatus === "async_processing" ? (
                       <span className="bg-yellow-900 text-yellow-300 px-2 py-1 rounded-md">Pending AI Remix...</span>
                     ) : (
@@ -71,7 +83,7 @@ export const JobsModal = ({ isOpen, onClose, jobs, onRefresh }: { isOpen: boolea
                     </div>
                   </td>
 
-                  <td className="p-2">Remix Track: {job.promptParams?.refTrack_alId}</td>
+                  <td className="p-2 text-xs">{showArtistNameUsingAlId(job.promptParams?.refTrack_alId, artistLookupEverything)}</td>
                 </tr>
               ))}
             </tbody>

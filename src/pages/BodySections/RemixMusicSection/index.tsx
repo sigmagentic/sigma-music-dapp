@@ -1465,7 +1465,13 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         </>
 
         {/* Jobs Modal */}
-        <JobsModal isOpen={isJobsModalOpen} onClose={() => setIsJobsModalOpen(false)} jobs={myJobsPayments} onRefresh={() => handleRefreshJobs(true)} />
+        <JobsModal
+          isOpen={isJobsModalOpen}
+          onClose={() => setIsJobsModalOpen(false)}
+          jobs={myJobsPayments}
+          onRefresh={() => handleRefreshJobs(true)}
+          artistLookupEverything={artistLookupEverything}
+        />
 
         {/* Album Selector Modal for adding tracks */}
         <AlbumSelectorModal

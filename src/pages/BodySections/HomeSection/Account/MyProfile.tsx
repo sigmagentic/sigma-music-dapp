@@ -7,11 +7,12 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { MusicTrack } from "libs/types";
-import { toastError, toastSuccess, updateUserProfileOnBackEndAPI } from "libs/utils";
+import { toastError, toastSuccess, updateUserProfileOnBackEndAPI, showArtistNameUsingAlId } from "libs/utils";
 import { useAccountStore } from "store/account";
 import { ArtistProfile } from "./ArtistProfile";
 import { EditUserProfileModal, ProfileFormData } from "./EditUserProfileModal";
 import { Button } from "libComponents/Button";
+import { useAppStore } from "store/app";
 
 type MyProfileProps = {
   navigateToDeepAppView: (e: any) => any;
@@ -27,6 +28,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
   const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases, updateUserWeb2AccountDetails } = useAccountStore();
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
+  const { artistLookupEverything } = useAppStore();
 
   const [showNfMePreferencesModal, setShowNfMePreferencesModal] = useState<boolean>(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState<boolean>(false);
@@ -243,16 +245,16 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
             <table className="w-full">
               <thead>
                 <tr className="text-left border-b border-gray-700">
-                  <th className="pb-3">Date</th>
-                  <th className="pb-3">What You Bought</th>
-                  <th className="pb-3">Sale Type</th>
+                  <th className="pb-3 text-xs">Date</th>
+                  <th className="pb-3 text-xs">What You Bought</th>
+                  <th className="pb-3 text-xs">Sale Type</th>
                 </tr>
               </thead>
               <tbody>
                 {myMusicAssetPurchases.map((log, index) => (
                   <tr key={index} className="border-b border-gray-700">
-                    <td className="py-3">{new Date(log.purchasedOn).toLocaleString()}</td>
-                    <td className="py-3">
+                    <td className="text-xs py-3">{new Date(log.purchasedOn).toLocaleString()}</td>
+                    <td className="text-xs py-3">
                       <>
                         <div
                           className="cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline"
@@ -261,8 +263,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                         </div>
                       </>
                     </td>
-                    <td className="py-3">
-                      <div className="text-sm text-gray-400">
+                    <td className="text-xs py-3">
+                      <div className="text-gray-400 text-xs">
                         {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
                         {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
                         {log.albumSaleTypeOption === "3" && "Digital Album + Commercial License + Download + Collectible (NFT)"}
@@ -289,19 +291,19 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
             <table className="w-full">
               <thead>
                 <tr className="text-left border-b border-gray-700">
-                  <th className="pb-3">Date</th>
-                  <th className="pb-3">What You Bought</th>
-                  <th className="pb-3">Status</th>
-                  <th className="pb-3">Amount</th>
-                  <th className="pb-3">Payment Method</th>
-                  <th className="pb-3">Transaction</th>
+                  <th className="pb-3 text-xs">Date</th>
+                  <th className="pb-3 text-xs">What You Bought</th>
+                  <th className="pb-3 text-xs">Status</th>
+                  <th className="pb-3 text-xs">Amount</th>
+                  <th className="pb-3 text-xs">Payment Method</th>
+                  <th className="pb-3 text-xs">Transaction</th>
                 </tr>
               </thead>
               <tbody>
                 {myPaymentLogs.map((log, index) => (
                   <tr key={index} className="border-b border-gray-700">
-                    <td className="py-3">{new Date(log.createdOn).toLocaleString()}</td>
-                    <td className="py-3">
+                    <td className="text-xs py-3">{new Date(log.createdOn).toLocaleString()}</td>
+                    <td className="text-xs py-3">
                       {log.task === "buyAlbum" && (
                         <>
                           <div
@@ -350,7 +352,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                           <div
                             className="cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline"
                             onClick={() => navigateToDeepAppView({ toSection: "ai-remix" })}>
-                            Remix Track: {log.promptParams?.songTitle} based on {log.promptParams?.refTrack_alId}
+                            {showArtistNameUsingAlId(log.promptParams?.refTrack_alId || "", artistLookupEverything)} ({log.promptParams?.songTitle})
                           </div>
                         </>
                       )}
@@ -361,7 +363,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                         </>
                       )}
                     </td>
-                    <td className="py-3">
+                    <td className="text-xs py-3">
                       <span
                         className={`px-2 py-1 rounded ${
                           log.paymentStatus === "success"
@@ -374,9 +376,9 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                         {!(log.task === "remix" && log.paymentStatus === "new") && log.paymentStatus.charAt(0).toUpperCase() + log.paymentStatus.slice(1)}
                       </span>
                     </td>
-                    <td className="py-3">{log.type === "cc" ? `$${log.amount}` : log.type === "xp" ? `${log.amount} XP` : `${log.amount} SOL`}</td>
-                    <td className="py-3">{log.type === "sol" ? "SOL" : log.type === "xp" ? "XP" : "Credit Card"}</td>
-                    <td className="py-3">
+                    <td className="text-xs py-3">{log.type === "cc" ? `$${log.amount}` : log.type === "xp" ? `${log.amount} XP` : `${log.amount} SOL`}</td>
+                    <td className="text-xs py-3">{log.type === "sol" ? "SOL" : log.type === "xp" ? "XP" : "Credit Card"}</td>
+                    <td className="text-xs py-3">
                       {log.type === "sol" && log.tx ? (
                         <a
                           href={`https://solscan.io/tx/${log.tx}`}

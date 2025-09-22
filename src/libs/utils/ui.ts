@@ -368,3 +368,17 @@ export const downloadTrackViaClientSide = async ({
     link.click();
   }
 };
+
+export function showArtistNameUsingAlId(alId: string, artistLookupEverything: any) {
+  if (!artistLookupEverything || Object.keys(artistLookupEverything).length === 0) {
+    return `Remix track: ${alId}`;
+  } else {
+    const artistName = artistLookupEverything[alId.split("_")[0]]?.name;
+
+    if (!artistName) {
+      return `Remix track: ${alId}`;
+    } else {
+      return `Remix influenced by: ${artistName}`;
+    }
+  }
+}
