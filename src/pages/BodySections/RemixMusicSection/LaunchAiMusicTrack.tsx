@@ -104,8 +104,9 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
     // Prevent scrolling on mount
     document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
+
     return () => {
+      // Re-enable scrolling on unmount
       document.body.style.overflow = "unset";
 
       stopPlayingAudio();

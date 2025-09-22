@@ -551,7 +551,7 @@ export const JoinInnerCircleSOL = ({
                           href={`https://solscan.io/account/${publicKey?.toBase58()}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 underline">
+                          className="cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
                           {publicKey?.toBase58() || "..."}
                         </a>
                       </p>

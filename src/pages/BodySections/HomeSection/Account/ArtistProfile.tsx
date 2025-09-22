@@ -467,7 +467,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                       href={userArtistProfile.xLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-sm font-mono text-blue-400 hover:text-blue-300">
+                      className="block text-sm font-mono cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
                       {userArtistProfile.xLink}
                     </a>
                   ) : (
@@ -481,7 +481,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                       href={userArtistProfile.ytLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-sm font-mono text-blue-400 hover:text-blue-300">
+                      className="block text-sm font-mono cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
                       {userArtistProfile.ytLink}
                     </a>
                   ) : (
@@ -495,7 +495,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                       href={userArtistProfile.tikTokLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-sm font-mono text-blue-400 hover:text-blue-300">
+                      className="block text-sm font-mono cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
                       {userArtistProfile.tikTokLink}
                     </a>
                   ) : (
@@ -509,7 +509,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                       href={userArtistProfile.instaLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-sm font-mono text-blue-400 hover:text-blue-300">
+                      className="block text-sm font-mono cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
                       {userArtistProfile.instaLink}
                     </a>
                   ) : (
@@ -523,7 +523,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                       href={userArtistProfile.webLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-sm font-mono text-blue-400 hover:text-blue-300">
+                      className="block text-sm font-mono cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
                       {userArtistProfile.webLink}
                     </a>
                   ) : (
@@ -537,7 +537,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                       href={userArtistProfile.altMainPortfolioLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-sm font-mono text-blue-400 hover:text-blue-300">
+                      className="block text-sm font-mono cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
                       {userArtistProfile.altMainPortfolioLink}
                     </a>
                   ) : (
@@ -616,7 +616,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                     <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">{log.info}</td>
                     <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">
                       {log.tx && (
-                        <a href={`https://solscan.io/tx/${log.tx}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                        <a
+                          href={`https://solscan.io/tx/${log.tx}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
                           View on Solscan
                         </a>
                       )}

@@ -240,16 +240,6 @@ h6 {
   color: #ebb305 !important;
 }
 
-/* S: Web3 Auth Overrides */
-/* .w3a-modal__inner,
-.w3a-modal__inner--active,
-.w3a--p-6,
-.w3a--pt-7 {
-  background-color: #0a0a0a !important;
-} */
-
-/* E: Web3 Auth Overrides */
-
 @keyframes gradient {
   0% {
     background-position: 0% 50%;
@@ -294,7 +284,8 @@ h6 {
   }
 }
 
-/* web3 auth overrides */
-.w3a-parent-container #w3a-modal .w3a-modal__loader {
-  background-color: black;
+/* S: Web3 Auth Overrides */
+body .w3a-parent-container #w3a-modal .w3a-modal__loader {
+  background-color: #0a0a0a !important;
 }
+/* E: Web3 Auth Overrides */

@@ -255,7 +255,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                     <td className="py-3">
                       <>
                         <div
-                          className="cursor-pointer hover:underline text-blue-400"
+                          className="cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline"
                           onClick={() => navigateToDeepAppView({ artistSlug: log._artistSlug, albumId: log.albumId })}>
                           Album: {log._albumName} by {log._artistName}
                         </div>
@@ -305,7 +305,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                       {log.task === "buyAlbum" && (
                         <>
                           <div
-                            className="cursor-pointer hover:underline text-blue-400"
+                            className="cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline"
                             onClick={() => navigateToDeepAppView({ artistSlug: log._artistSlug, albumId: log.albumId })}>
                             Album: {log._albumName} by {log._artistName}
                           </div>
@@ -321,7 +321,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                       {log.task === "joinFanClub" && (
                         <>
                           <div
-                            className="cursor-pointer hover:underline text-blue-400"
+                            className="cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline"
                             onClick={() => {
                               const campaign = log._artistCampaignCode;
                               const country = log._artistSubGroup1Code;
@@ -348,8 +348,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                       {log.task === "remix" && (
                         <>
                           <div
-                            className="cursor-pointer hover:underline text-blue-400"
-                            onClick={() => navigateToDeepAppView({ appSection: "remix", sectionView: "myRemixJobs" })}>
+                            className="cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline"
+                            onClick={() => navigateToDeepAppView({ toSection: "ai-remix" })}>
                             Remix Track: {log.promptParams?.songTitle} based on {log.promptParams?.refTrack_alId}
                           </div>
                         </>
@@ -378,7 +378,11 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                     <td className="py-3">{log.type === "sol" ? "SOL" : log.type === "xp" ? "XP" : "Credit Card"}</td>
                     <td className="py-3">
                       {log.type === "sol" && log.tx ? (
-                        <a href={`https://solscan.io/tx/${log.tx}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                        <a
+                          href={`https://solscan.io/tx/${log.tx}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-yellow-300 hover:text-yellow-200 hover:underline">
                           View on Blockchain Explorer
                         </a>
                       ) : (
