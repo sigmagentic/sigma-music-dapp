@@ -162,7 +162,6 @@ export const App = () => {
           setHomeMode(`artists-${new Date().getTime()}`);
           setSearchParams(currentParams);
         } else if (toSection) {
-          debugger;
           const currentParams = Object.fromEntries(searchParams.entries());
           currentParams["section"] = toSection;
 
