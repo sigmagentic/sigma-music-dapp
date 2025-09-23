@@ -755,8 +755,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
   return (
     <div
-      className={`relative w-full border-[1px] border-foreground/20 rounded-lg rounded-b-none border-b-0 bg-black transition-all duration-300 ${
-        isFullScreen ? "fixed inset-0 z-[9999] rounded-none h-screen w-screen overflow-hidden" : ""
+      className={`relative w-full md:w-auto border-[1px] border-foreground/20 rounded-lg bg-[#2d2719] transition-all duration-300 md:m-[10px] ${
+        isFullScreen ? "fixed inset-0 z-[9999] rounded-none h-screen w-screen overflow-hidden !bg-black !m-0 !border-none !rounded-none" : ""
       }`}>
       <div className="debug hidden bg-yellow-900 p-2 w-full text-xs">
         {/* <p className="mb-2">isFullScreen = {isFullScreen.toString()}</p> */}

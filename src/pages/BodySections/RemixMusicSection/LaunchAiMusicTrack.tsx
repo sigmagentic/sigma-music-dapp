@@ -552,7 +552,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     // setRemixingStatus("confirmed");
 
     // const tweetMsg = injectXUserNameIntoTweet(
-    //   `I am AI remixing a song by the artist _(xUsername)_ on @SigmaXMusic! Check it out and vote it up so it gets published as an official derivative work!`,
+    //   `I am AI remixing a song by the artist _(xUsername)_ on @SigmaXMusic! Check it out and vote it up so it gets published as an official remix!`,
     //   "https://x.com/sigmaxmusic"
     // );
 
@@ -604,7 +604,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
       const artistMeta = artistLookupEverything[selectedReferenceTrack.arId];
 
       const tweetMsg = injectXUserNameIntoTweet(
-        `I am AI remixing a song by the artist _(xUsername)_ on @SigmaXMusic! Check it out and vote it up so it gets published as an official derivative work!`,
+        `I am AI remixing a song by the artist _(xUsername)_ on @SigmaXMusic! Check it out and vote it up so it gets published as an official remix!`,
         artistMeta.xLink
       );
 
