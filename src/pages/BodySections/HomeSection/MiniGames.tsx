@@ -7,6 +7,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { MusicTrack } from "libs/types";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
+import { usePreventScroll } from "hooks";
 
 // Type definitions for mini games
 interface MiniGame {
@@ -183,15 +184,7 @@ const MemoryGame: React.FC<{ onClose: () => void; tracks: MusicTrack[]; isMusicP
     return parseInt(localStorage.getItem("memory-game-high-score") || "0");
   });
 
-  // Add effect to prevent body scrolling when modal is open
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   // Initialize game and select background music
   useEffect(() => {

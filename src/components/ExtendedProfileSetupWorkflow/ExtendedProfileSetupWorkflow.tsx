@@ -19,6 +19,7 @@ import {
 import { isValidUrl, toastError } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
 import { MediaUpdate } from "libComponents/MediaUpdate";
+import { usePreventScroll } from "hooks";
 
 interface ExtendedProfileSetupWorkflowProps {
   isOpen: boolean;
@@ -113,15 +114,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   const [newSelectedProfileImageFile, setNewSelectedProfileImageFile] = useState<File | null>(null); // keeps track if a new file is selected for edit so we can save it to the server to get back a https url for profileImage
   const [newSelectedArtistProfileImageFile, setNewSelectedArtistProfileImageFile] = useState<File | null>(null);
 
-  // Add effect to prevent body scrolling when modal is open
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
     if (isOpen) {

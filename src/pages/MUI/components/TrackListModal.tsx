@@ -17,6 +17,7 @@ import { MediaUpdate } from "libComponents/MediaUpdate";
 import { saveMediaToServerViaAPI } from "libs/utils/api";
 import { toastError, toastSuccess } from "libs/utils/ui";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import { usePreventScroll } from "hooks";
 import ratingE from "assets/img/icons/rating-E.png";
 
 interface TrackListModalProps {
@@ -86,14 +87,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
   const [newSelectedAudioFile, setNewSelectedAudioFile] = useState<File | null>(null);
   const [isDeletingTrackId, setIsDeletingTrackId] = useState<string>("");
 
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
     let titleToUse = "";

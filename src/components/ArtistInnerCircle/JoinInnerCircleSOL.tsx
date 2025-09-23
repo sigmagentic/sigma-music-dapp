@@ -16,6 +16,7 @@ import useSolBitzStore from "store/solBitz";
 import { sendPowerUpSol, SendPowerUpSolResult } from "../../pages/BodySections/HomeSection/SendBitzPowerUp";
 import { useNftsStore } from "store/nfts";
 import { Artist } from "libs/types/common";
+import { usePreventScroll } from "hooks";
 
 export const JoinInnerCircleSOL = ({
   onCloseModal,
@@ -55,15 +56,7 @@ export const JoinInnerCircleSOL = ({
   const [tweetText, setTweetText] = useState<string>("");
   const [notEnoughBalance, setNotEnoughBalance] = useState(true);
 
-  // Add effect to prevent body scrolling when modal is open
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
     const fetchPrice = async () => {

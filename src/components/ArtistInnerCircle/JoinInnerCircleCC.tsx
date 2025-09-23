@@ -20,6 +20,7 @@ import { sendPowerUpSol, SendPowerUpSolResult } from "pages/BodySections/HomeSec
 import { logPaymentToAPI, sleep } from "libs/utils";
 import { toastSuccess } from "libs/utils";
 import { showSuccessConfetti } from "libs/utils/uiShared";
+import { usePreventScroll } from "hooks";
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
@@ -78,15 +79,7 @@ export const JoinInnerCircleCC = ({
     }
   };
 
-  // Add effect to prevent body scrolling when modal is open
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
     if (paymentIntentReceived && clientSecret && clientSecret !== "" && !fetchingPaymentIntent) {

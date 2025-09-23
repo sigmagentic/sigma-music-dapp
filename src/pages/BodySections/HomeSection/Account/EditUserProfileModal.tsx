@@ -11,6 +11,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import { usePreventScroll } from "hooks";
 
 interface EditUserProfileModalProps {
   isOpen: boolean;
@@ -50,15 +51,7 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
 
-  // Add effect to prevent body scrolling when modal is open
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
     setFormData({ ...initialData });

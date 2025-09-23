@@ -12,6 +12,7 @@ import { useAccountStore } from "store/account";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import { usePreventScroll } from "hooks";
 
 interface EditArtistProfileModalProps {
   isOpen: boolean;
@@ -61,15 +62,7 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
   const [slugAvailability, setSlugAvailability] = useState<"available" | "unavailable" | "unchecked" | "checking">("unchecked");
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
 
-  // Add effect to prevent body scrolling when modal is open
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
     setFormData({ ...initialData });

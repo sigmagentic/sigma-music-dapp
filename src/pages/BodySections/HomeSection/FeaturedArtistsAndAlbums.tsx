@@ -146,6 +146,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setActiveTab("fan");
     }
 
+    if (jumpToTab && jumpToTab === "ai-remixes") {
+      setActiveTab("aiRemixes");
+    }
+
     previewTrackAudio.addEventListener("ended", eventToAttachEnded);
     previewTrackAudio.addEventListener("timeupdate", eventToAttachTimeUpdate);
     previewTrackAudio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
@@ -596,7 +600,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     <div className="flex flex-col justify-center items-center">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
         <div
-          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] md:w-full ${inArtistProfileView ? "md:h-[1px] md:relative md:z-[1] md:left-[-15px]" : ""}`}>
+          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "md:h-[1px] md:relative md:z-[1] md:left-[-15px] w-[auto]" : ""}`}>
           <div className={`flex flex-col md:flex-row justify-between ${inArtistProfileView ? "md:w-[fit-content]" : "w-full"}`}>
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
               <div
@@ -1066,7 +1070,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                 onClick={() => {
                                   setActiveTab("aiRemixes");
                                   const currentParams = Object.fromEntries(searchParams.entries());
-                                  delete currentParams["tab"];
+                                  currentParams["tab"] = "ai-remixes";
                                   delete currentParams["action"];
                                   setSearchParams(currentParams);
                                 }}

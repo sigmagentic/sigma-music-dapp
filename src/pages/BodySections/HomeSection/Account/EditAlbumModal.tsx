@@ -12,6 +12,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useAccountStore } from "store/account";
 import { InfoTooltip } from "libComponents/Tooltip";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import { usePreventScroll } from "hooks";
 
 export interface AlbumFormData {
   albumId: string;
@@ -59,15 +60,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
   const [showPricingInfoModal, setShowPricingInfoModal] = useState(false);
   const [currentPricingInfo, setCurrentPricingInfo] = useState<{ title: string; content: string }>({ title: "", content: "" });
 
-  // Add effect to prevent body scrolling when modal is open
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
     if (isOpen) {

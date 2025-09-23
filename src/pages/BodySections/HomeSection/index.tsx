@@ -817,7 +817,7 @@ export const HomeSection = (props: HomeSectionProps) => {
 
   return (
     <>
-      <div className="flex flex-col justify-center items-center w-full overflow-hidden md:overflow-visible">
+      <div className="flex flex-col justify-center items-center w-full">
         <div className="flex flex-col justify-center items-center font-[Clash-Regular] w-full pb-6">
           <div className={`debug flex flex-row w-full pb-6 text-xs mt-2 bg-yellow-900 p-3 space-x-2 ${isUIDebugMode() ? "block" : "hidden"}`}>
             <p>
@@ -903,7 +903,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                       ]}
                     />
                     <div className="flex flex-col flex-1 text-left align-center justify-center p-2 md:p-5">
-                      <span className="text-right font-[Clash-Medium] text-3xl md:text-5xl xl:text-5xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
+                      <span className="md:text-right font-[Clash-Medium] text-3xl md:text-5xl xl:text-5xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
                         <p className="mb-2">Monetize Your Music in</p>
                         <p
                           style={{

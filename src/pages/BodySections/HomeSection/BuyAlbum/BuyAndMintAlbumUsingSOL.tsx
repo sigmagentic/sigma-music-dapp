@@ -17,6 +17,7 @@ import useSolBitzStore from "store/solBitz";
 import { sendPowerUpSol, SendPowerUpSolResult } from "../SendBitzPowerUp";
 import { useNftsStore } from "store/nfts";
 import { showSuccessConfetti } from "libs/utils/uiShared";
+import { usePreventScroll } from "hooks";
 
 export const BuyAndMintAlbumUsingSOL = ({
   onCloseModal,
@@ -50,15 +51,7 @@ export const BuyAndMintAlbumUsingSOL = ({
   const [notEnoughBalance, setNotEnoughBalance] = useState(true);
   const [payWithXP, setPayWithXP] = useState(false);
 
-  // Add effect to prevent body scrolling when modal is open
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
     if (!albumToBuyAndMint || !albumToBuyAndMint._buyNowMeta || !albumSaleTypeOption) {

@@ -30,6 +30,7 @@ import { sendPowerUpSol, SendPowerUpSolResult } from "pages/BodySections/HomeSec
 import { useNftsStore } from "store/nfts";
 import { MediaUpdate } from "libComponents/MediaUpdate";
 import { InfoTooltip } from "libComponents/Tooltip";
+import { usePreventScroll } from "hooks";
 
 const MAX_TITLE_LENGTH = 50;
 
@@ -94,6 +95,8 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   const genreScrollRef = useRef<HTMLDivElement>(null);
   const moodScrollRef = useRef<HTMLDivElement>(null);
 
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
+
   // Add effect to prevent body scrolling when modal is open and cleanup audio on unmount
   useEffect(() => {
     // if a query string param called simulateAIGenerations=1 is present, then we will simulate the AI generations
@@ -101,16 +104,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
       alert("Please note: We are simulating AI generations in this demo mode. This is for testing purposes only.");
       SIMULATE_AI_GENERATION_FLAG = true;
     }
-
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      // Re-enable scrolling on unmount
-      document.body.style.overflow = "unset";
-
-      stopPlayingAudio();
-    };
   }, []);
 
   // Load artist album dataset

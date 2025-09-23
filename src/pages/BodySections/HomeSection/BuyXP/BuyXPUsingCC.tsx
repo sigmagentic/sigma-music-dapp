@@ -10,6 +10,7 @@ import StripeCheckoutFormXP from "libs/stripe/StripeCheckoutFormXP";
 import { getApiWeb2Apps } from "libs/utils";
 import { useNftsStore } from "store/nfts";
 import useSolBitzStore from "store/solBitz";
+import { usePreventScroll } from "hooks";
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
@@ -39,15 +40,7 @@ export const BuyXPUsingCC = ({ onCloseModal }: { onCloseModal: () => void }) => 
   // Get the selected option details
   const selectedOption = XP_PURCHASE_OPTIONS.find((option) => option.id === selectedXPOption);
 
-  // Add effect to prevent body scrolling when modal is open
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = "hidden";
-    // Re-enable scrolling on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
     if (commitedXPOption) {
