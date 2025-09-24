@@ -180,6 +180,15 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   }, [artistProfile, albums]);
 
   useEffect(() => {
+    if (artistProfile && albumsWithCanBeMintedFlags.length > 0 && searchParams && highlightAlbumId) {
+      // is there action=tracklist in the url? if so, we dive into the track list view
+      if (searchParams.get("action") === "tracklist") {
+        setSelectedAlbumForTrackList(albumsWithCanBeMintedFlags.find((album) => album.albumId === highlightAlbumId) || null);
+      }
+    }
+  }, [artistProfile, albumsWithCanBeMintedFlags, highlightAlbumId, searchParams]);
+
+  useEffect(() => {
     // this effect gets called 1st when user clicks on the show entitlements button
     if (selectedAlbumToShowEntitlements && (myMusicAssetPurchases.length > 0 || solMusicAssetNfts.length > 0)) {
       const entitlementsMap: EntitlementForMusicAsset = {
@@ -425,6 +434,19 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     setIsArtistFeatureLoading(false);
   }
 
+  function appendAlbumIdToArtistSlug(artistSlug: string, albumId: string, revertToArtistSlug: boolean = false) {
+    // at this stage, we should update the artist param to have the artisitSlug~albumId compound param
+    const currentParams = Object.fromEntries(searchParams.entries());
+    if (revertToArtistSlug) {
+      currentParams["artist"] = artistSlug;
+      delete currentParams["action"];
+    } else {
+      currentParams["artist"] = `${artistSlug}~${albumId}`;
+      currentParams["action"] = "tracklist";
+    }
+    setSearchParams(currentParams);
+  }
+
   return (
     <>
       {albums.length === 0 && (
@@ -449,7 +471,12 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             album={selectedAlbumForTrackList}
             artistId={artistProfile.artistId}
             artistName={artistProfile.name}
-            onBack={() => setSelectedAlbumForTrackList(null)}
+            onBack={() => {
+              setSelectedAlbumForTrackList(null);
+
+              // revert back only to the artist slug
+              appendAlbumIdToArtistSlug(artistProfile.slug, "", true);
+            }}
             onPlayTrack={handlePlayAlbumNow}
             checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
             trackPlayIsQueued={trackPlayIsQueued}
@@ -574,6 +601,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     } else if (album._albumCanBeFastStreamed && !inCollectedAlbumsView) {
                       // load the track list for the album if we dont have a collectible img to show
                       setSelectedAlbumForTrackList(album);
+
+                      appendAlbumIdToArtistSlug(artistProfile.slug, album.albumId);
                     }
                   }}>
                   {album._buyNowMeta?.priceOption2?.tokenImg && (
@@ -691,7 +720,11 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   <Button
                     variant="outline"
                     className="text-sm px-3 py-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
-                    onClick={() => setSelectedAlbumForTrackList(album)}>
+                    onClick={() => {
+                      setSelectedAlbumForTrackList(album);
+
+                      appendAlbumIdToArtistSlug(artistProfile.slug, album.albumId);
+                    }}>
                     <List className="w-4 h-4 mr-2" />
                     Track List
                   </Button>
@@ -902,7 +935,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                 id: {album.albumId} <span className="text-orange-500 ml-1">{album.isPublished === "0" ? "Draft" : ""}</span>
               </span>
               <button
-                className="inline-flex items-center gap-1 text-xs text-gray-600 px-2 py-1 rounded transition-colors duration-200 mt-2 mb-[15px] hover:text-white"
+                className="inline-flex items-center gap-1 text-xs text-gray-700 px-2 py-1 rounded transition-colors duration-200 mt-2 mb-[15px] hover:text-white"
                 title="Copy Direct Link to Album to Share"
                 onClick={async () => {
                   try {
@@ -912,8 +945,10 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     console.error("Failed to copy link:", err);
                   }
                 }}>
-                <Copy className="w-3 h-3" />
-                Copy Link
+                <div className="flex items-center gap-1 relative top-[1px]">
+                  <Copy className="w-3 h-3" />
+                  Copy Link
+                </div>
               </button>
             </div>
           </div>

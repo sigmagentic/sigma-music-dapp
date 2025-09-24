@@ -600,11 +600,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     <div className="flex flex-col justify-center items-center">
       <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
         <div
-          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "md:h-[1px] md:relative md:z-[1] md:left-[-15px] w-[auto]" : ""}`}>
+          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "md:h-[1px] relative md:z-[1] md:left-[-15px] w-[auto]" : ""}`}>
           <div className={`flex flex-col md:flex-row justify-between ${inArtistProfileView ? "md:w-[fit-content]" : "w-full"}`}>
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
               <div
-                className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2 md:opacity-80 md:hover:opacity-100`}>
+                className={`bg-gradient-to-r from-yellow-300 to-orange-500 p-[1px] px-[2px] rounded-lg justify-center mr-2 md:opacity-80 md:hover:opacity-100 w-fit`}>
                 <Button
                   className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[46px] px-[10px]`}
                   variant="outline"
@@ -999,7 +999,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   delete currentParams["action"];
                                   setSearchParams(currentParams);
                                 }}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors relative
                                   ${
                                     activeTab === "discography"
                                       ? "border-orange-500 text-orange-500"
@@ -1017,7 +1017,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   currentParams["tab"] = "fan";
                                   setSearchParams(currentParams);
                                 }}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors relative
                                   ${
                                     activeTab === "fan"
                                       ? "border-orange-500 text-orange-500"
@@ -1036,7 +1036,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   delete currentParams["action"];
                                   setSearchParams(currentParams);
                                 }}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors relative
                                   ${
                                     activeTab === "leaderboard"
                                       ? "border-orange-500 text-orange-500"
@@ -1055,7 +1055,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   delete currentParams["action"];
                                   setSearchParams(currentParams);
                                 }}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors relative
                                   ${
                                     activeTab === "artistStats"
                                       ? "border-orange-500 text-orange-500"
@@ -1074,7 +1074,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   delete currentParams["action"];
                                   setSearchParams(currentParams);
                                 }}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm md:text-base transition-colors relative
+                                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors relative
                                   ${
                                     activeTab === "aiRemixes"
                                       ? "border-orange-500 text-orange-500"

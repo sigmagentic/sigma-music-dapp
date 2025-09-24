@@ -288,4 +288,8 @@ h6 {
 body .w3a-parent-container #w3a-modal .w3a-modal__loader {
   background-color: #0a0a0a !important;
 }
+
+/* body .w3a-parent-container #w3a-modal .w3a-modal__inner.w3a-modal__inner--active {
+  transform: scale(1.1) !important;
+} */
 /* E: Web3 Auth Overrides */

@@ -81,11 +81,11 @@ export const MediaUpdate: React.FC<MediaUpdateProps> = ({
   return (
     <div className={`${sizeClasses[size]} ${className} relative`}>
       <div
-        className="w-full h-full rounded-md overflow-hidden bg-gray-900 border-2 border-gray-700 cursor-pointer hover:border-yellow-300 transition-colors"
+        className="w-full h-full rounded-md overflow-hidden bg-gray-900 border-2 border-gray-700 cursor-pointer hover:border-yellow-300 transition-colors bg-[#482d1a] p-[5px]"
         onClick={handleImageClick}>
         {previewUrl ? (
           isAudio ? (
-            <audio src={previewUrl} controls className="w-full h-full object-cover" />
+            <audio src={previewUrl} controls className="w-full h-full object-cover pb-[30px]" />
           ) : (
             <img src={previewUrl} alt={alt} className="w-full h-full object-cover" />
           )
