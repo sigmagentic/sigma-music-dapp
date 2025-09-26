@@ -64,7 +64,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   const [songTitle, setSongTitle] = useState("");
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
-  const [remixingStatus, setRemixingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("confirmed");
+  const [remixingStatus, setRemixingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
@@ -832,7 +832,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         {remixingStatus === "confirmed" && (
           <>
             <h3 className="!text-xl font-bold">Success! Your remix is being created.</h3>
-            <p className="text-gray-300 mb-4">It may take a few minutes to create. You will be notified when it is ready.</p>
+            <p className="text-gray-300 mb-4 text-sm">It may take a few minutes to create. You will be notified when it is ready.</p>
             <div className="space-y-4 flex flex-col items-center">
               <div className="flex flex-col md:flex-row gap-4">
                 <Button
