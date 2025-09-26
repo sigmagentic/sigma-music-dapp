@@ -266,7 +266,7 @@ export const mergeRawAiRemixTracks = (newTracks: AiRemixLaunch[], graduatedTrack
       status: track.status,
       refTrack_alId: track.promptParams.refTrack_alId,
       refTrackWasFreeLicense: track.promptParams.meta?.isFreeLicense ? "1" : undefined,
-      isNewlyCreated: track.isNewlyCreated || false,
+      // isNewlyCreated: track.isNewlyCreated || false,
     }))
   );
 
@@ -305,7 +305,8 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
     stream: remix.streamUrl,
     bountyId: remix.bountyId,
     isSigmaAiRemixUsingFreeLicense: remix.refTrackWasFreeLicense ? "1" : undefined,
-    isNewlyCreatedAiRemixDuringCurrentSession: remix.isNewlyCreated || false,
+    // isNewlyCreatedAiRemixDuringCurrentSession: remix.isNewlyCreated || false,
+    isNewlyCreatedAiRemixDuringCurrentSession: remix.createdOn > Date.now() - 1000 * 60 * 10, // createdOn is within the last 10 minutes (i.e. is newly created)
   }));
 
   return { virtualAlbum, allMyRemixesAsMusicTracks };

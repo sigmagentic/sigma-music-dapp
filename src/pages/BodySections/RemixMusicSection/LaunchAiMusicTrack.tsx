@@ -64,7 +64,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
   const [songTitle, setSongTitle] = useState("");
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "confirmed">("idle");
-  const [remixingStatus, setRemixingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("idle");
+  const [remixingStatus, setRemixingStatus] = useState<"idle" | "processing" | "confirmed" | "failed">("confirmed");
   const [backendErrorMessage, setBackendErrorMessage] = useState<string | null>(null);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<any[]>([]);
@@ -831,31 +831,33 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
         {remixingStatus === "confirmed" && (
           <>
-            <h3 className="!text-xl font-bold">Success! Your tracks are being generated.</h3>
-            <p className="text-gray-300 mb-4">It may take a few minutes to generate. You will be notified when they are ready.</p>
-            <div className="space-y-4 flex flex-col">
-              <Button
-                onClick={() => {
-                  resetStateToPristine();
-                }}
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
-                Back to App
-              </Button>
+            <h3 className="!text-xl font-bold">Success! Your remix is being created.</h3>
+            <p className="text-gray-300 mb-4">It may take a few minutes to create. You will be notified when it is ready.</p>
+            <div className="space-y-4 flex flex-col items-center">
+              <div className="flex flex-col md:flex-row gap-4">
+                <Button
+                  onClick={() => {
+                    resetStateToPristine();
+                  }}
+                  className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity">
+                  Back to App
+                </Button>
 
-              <div className="bg-yellow-300 rounded-full p-[10px] -z-1 ">
-                <a
-                  className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
-                  href={"https://twitter.com/intent/tweet?" + tweetText}
-                  data-size="large"
-                  target="_blank"
-                  rel="noreferrer">
-                  <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
-                      <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
-                    </svg>
-                  </span>
-                  <p className="z-10">Share this news on X</p>
-                </a>
+                <div className="bg-yellow-300 rounded-full p-[10px] -z-1">
+                  <a
+                    className="z-1 bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
+                    href={"https://twitter.com/intent/tweet?" + tweetText}
+                    data-size="large"
+                    target="_blank"
+                    rel="noreferrer">
+                    <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                        <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                      </svg>
+                    </span>
+                    <p className="z-10 text-sm">Share this news on X</p>
+                  </a>
+                </div>
               </div>
             </div>
           </>
@@ -1123,7 +1125,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
             <button
               key={genre.code}
               onClick={() => handleGenreClick(genre.code)}
-              className={`px-4 py-2 rounded-lg border transition-all duration-300 whitespace-nowrap ${
+              className={`text-sm px-4 py-2 rounded-lg border transition-all duration-300 whitespace-nowrap ${
                 selectedGenre === genre.code
                   ? "border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 text-white"
                   : "border-gray-600 hover:border-yellow-500 bg-[#2A2A2A] text-gray-300 hover:text-white"
@@ -1168,7 +1170,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
             <button
               key={mood.code}
               onClick={() => handleMoodClick(mood.code)}
-              className={`px-4 py-2 rounded-lg border transition-all duration-300 whitespace-nowrap ${
+              className={`text-sm px-4 py-2 rounded-lg border transition-all duration-300 whitespace-nowrap ${
                 selectedMood === mood.code
                   ? "border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 text-white"
                   : "border-gray-600 hover:border-yellow-500 bg-[#2A2A2A] text-gray-300 hover:text-white"
@@ -1456,7 +1458,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                     </>
                   ) : (
                     <div className="text-center py-6">
-                      <p className="text-sm text-gray-400 mb-2">
+                      <p className="text-xs text-gray-400 mb-2">
                         <span className="text-xl">⚠️</span> <br />
                         You need a commercial license to generate new AI remixes and you don't have any yet.
                       </p>

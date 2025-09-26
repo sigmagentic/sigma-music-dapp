@@ -366,13 +366,13 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     console.log("___ calgetRemixLaunchesViaAPI B");
     const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol });
 
-    // if a new item is added, can we compare responseA items to newLaunches items and mark the new item with a flag called isNewlyCreated
-    const isNewlyCreated = responseA.filter((item: AiRemixLaunch) => !newLaunchesData.some((newItem) => newItem.launchId === item.launchId));
-    responseA.forEach((item: AiRemixLaunch) => {
-      if (isNewlyCreated.some((newItem: AiRemixLaunch) => newItem.launchId === item.launchId)) {
-        item.isNewlyCreated = true;
-      }
-    });
+    // // if a new item is added, can we compare responseA items to newLaunches items and mark the new item with a flag called isNewlyCreated
+    // const isNewlyCreated = responseA.filter((item: AiRemixLaunch) => !newLaunchesData.some((newItem) => newItem.launchId === item.launchId));
+    // responseA.forEach((item: AiRemixLaunch) => {
+    //   if (isNewlyCreated.some((newItem: AiRemixLaunch) => newItem.launchId === item.launchId)) {
+    //     item.isNewlyCreated = true;
+    //   }
+    // });
 
     setNewLaunchesData(responseA);
 
@@ -1265,7 +1265,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                               />
                             </div>
                           ) : (
-                            <div className="flex flex-col items-center justify-center py-8 text-gray-400">No remixes found. Create one now!</div>
+                            <div className="flex flex-col items-center justify-center py-8 text-gray-400 text-sm">No remixes found. Create one now!</div>
                           )}
                         </>
                       )}

@@ -598,9 +598,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
   return (
     <div className="flex flex-col justify-center items-center">
-      <div className="flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
+      <div className="relative flex flex-col mb-8 justify-center w-[100%] items-center xl:items-start">
         <div
-          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "md:h-[1px] relative md:z-[1] md:left-[-15px] w-[auto]" : ""}`}>
+          className={`text-2xl xl:text-3xl cursor-pointer mr-auto ml-[8px] w-full ${inArtistProfileView ? "!absolute md:!relative md:h-[1px] md:left-[-15px] w-[auto] z-[1] !top-1 md:!top-auto " : ""}`}>
           <div className={`flex flex-col md:flex-row justify-between ${inArtistProfileView ? "md:w-[fit-content]" : "w-full"}`}>
             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && inArtistProfileView ? (
               <div
@@ -685,7 +685,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             <div className="w-full">
               {/* all artists or albums tiles */}
               {!inArtistProfileView && (
-                <div className="flex flex-col gap-4 p-2 items-start bg-background min-h-[350px] w-full">
+                <div className="flex flex-col gap-4 items-start bg-background min-h-[350px] w-full">
                   {!isAllAlbumsMode && (
                     <div className="artist-boxes w-full flex flex-col items-center md:items-start md:grid md:grid-auto-flow-column md:grid-cols-[repeat(auto-fill,250px)] md:gap-[10px]">
                       {artistAlbumDataset.map((artist: any) => (
