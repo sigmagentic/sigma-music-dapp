@@ -242,7 +242,10 @@ export const TrackList: React.FC<TrackListProps> = ({
                   )}
                   {track.isSigmaAiRemixUsingFreeLicense && (
                     <span className="text-xs text-black px-2 py-1 rounded-full">
-                      <InfoTooltip content={`This was remixed with a CC BY-NC 4.0 license - ${LICENSE_BLURBS["CC BY-NC 4.0"].blurb}`} position="right" />
+                      <InfoTooltip
+                        content={`This was remixed with a CC BY-NC 4.0 license - ${LICENSE_BLURBS["CC BY-NC 4.0"].oneLinerBlurb}`}
+                        position="right"
+                      />
                     </span>
                   )}
                 </>

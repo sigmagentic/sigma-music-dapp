@@ -399,14 +399,17 @@ export const MUSIC_GEN_PROMPT_FALLBACK_LIBRARY: any = {
 export const LICENSE_BLURBS: any = {
   "CC BY-NC 4.0": {
     blurb: "Attribution Needed, Non Commercial Use, Derivatives and Distribution allowed",
+    oneLinerBlurb: "Personal, Non-Commercial Use Only",
     link: "https://creativecommons.org/licenses/by-nc/4.0/",
   },
   "CC BY-NC-ND 4.0": {
     blurb: "Attribution Needed, Non Commercial Use, Derivatives allowed but Distribution not allowed",
+    oneLinerBlurb: "Personal, Non-Commercial Use Only",
     link: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
   },
   "CC BY 4.0": {
     blurb: "Attribution Only. Commercial Use, Derivatives and Distribution allowed",
+    oneLinerBlurb: "Commercial Use allowed. Only Attribution Needed",
     link: "https://creativecommons.org/licenses/by/4.0/",
   },
 };

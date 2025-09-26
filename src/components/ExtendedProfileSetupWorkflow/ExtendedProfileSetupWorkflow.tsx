@@ -464,9 +464,11 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
 
       // If user is an artist, also save artist profile (only if the artist did not select to skip the artist profile)
       if (
-        userProfileData.profileTypes.includes("remixer") ||
-        (userProfileData.profileTypes.includes("composer") &&
-          (artistProfileData.name !== "" || artistProfileData.bio !== "" || artistProfileData.img !== "" || artistProfileData.slug !== ""))
+        (userProfileData.profileTypes.includes("remixer") || userProfileData.profileTypes.includes("composer")) &&
+        artistProfileData.name !== "" &&
+        artistProfileData.bio !== "" &&
+        artistProfileData.img !== "" &&
+        artistProfileData.slug !== ""
       ) {
         try {
           if (newSelectedArtistProfileImageFile) {
