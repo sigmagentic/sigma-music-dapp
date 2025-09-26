@@ -204,11 +204,11 @@ export const FeaturedBanners = ({
       {/* Tier 1 Genre Playlists */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-2">
         <div className="text-xl cursor-pointer w-full">
-          <span>Exclusive Music Playlists</span>
+          <span className="text-lg text-white/70">Exclusive Music Playlists</span>
         </div>
         <div className="relative w-full">
           <div
-            className="overflow-x-auto pb-4 mt-2
+            className="overflow-x-auto pb-4 mt-1
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -261,7 +261,7 @@ export const FeaturedBanners = ({
       {/* Most streamed songs */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="">Most Streamed Songs</span>
+          <span className="text-lg text-white/70">Most Streamed Songs</span>
         </div>
         {isLoadingMostStreamedTracks || Object.keys(musicTrackLookup).length === 0 ? (
           <LoadingSkeleton />
@@ -270,7 +270,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-2
+              className="overflow-x-auto pb-4 mt-1
                 [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -319,7 +319,7 @@ export const FeaturedBanners = ({
       {/* AI Remix Ready Albums */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="">AI Remix Ready Albums</span>
+          <span className="text-lg text-white/70">AI Remix Ready Albums</span>
         </div>
         {isLoadingLatestAlbumOptions ? (
           <LoadingSkeleton />
@@ -328,7 +328,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-2
+              className="overflow-x-auto pb-4 mt-1
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -383,7 +383,7 @@ export const FeaturedBanners = ({
       {/* Featured albums */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="">Featured Albums</span>
+          <span className="text-lg text-white/70">Featured Albums</span>
         </div>
         {isLoadingFeaturedAlbumsAndArtists ? (
           <LoadingSkeleton />
@@ -392,7 +392,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-2
+              className="overflow-x-auto pb-4 mt-1
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -434,7 +434,7 @@ export const FeaturedBanners = ({
       {/* Featured artists */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="">Featured Artists</span>
+          <span className="text-lg text-white/70">Featured Artists</span>
         </div>
         {isLoadingFeaturedAlbumsAndArtists ? (
           <LoadingSkeleton />
@@ -443,7 +443,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-2
+              className="overflow-x-auto pb-4 mt-1
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -484,7 +484,7 @@ export const FeaturedBanners = ({
       {/* Latest Music Collectible For Sale */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="">Latest Music Collectibles For Sale</span>
+          <span className="text-lg text-white/70">Latest Music Collectibles For Sale</span>
         </div>
         {isLoadingLatestAlbumOptions ? (
           <LoadingSkeleton />
@@ -493,7 +493,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-2
+              className="overflow-x-auto pb-4 mt-1
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
@@ -546,7 +546,7 @@ export const FeaturedBanners = ({
       {/* Latest Artist Fan Clubs */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="">Latest Artist Fan Clubs</span>
+          <span className="text-lg text-white/70">Latest Artist Fan Clubs</span>
         </div>
         {isLoadingLatestInnerCircleOptions ? (
           <LoadingSkeleton />
@@ -555,7 +555,7 @@ export const FeaturedBanners = ({
         ) : (
           <div className="relative w-full">
             <div
-              className="overflow-x-auto pb-4 mt-2
+              className="overflow-x-auto pb-4 mt-1
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">

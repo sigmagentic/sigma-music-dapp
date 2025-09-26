@@ -173,7 +173,7 @@ export const Leaderboards = ({ navigateToDeepAppView }: { navigateToDeepAppView:
     <div className="flex flex-col w-full md:w-1/2 p-4">
       <h2 className="!text-xl font-bold !text-yellow-300 text-center md:text-left mb-2">
         {title}
-        {subtitle && <span className="text-white text-base block">{subtitle}</span>}
+        {subtitle && <span className="text-sm block text-white/70">{subtitle}</span>}
       </h2>
       <div className="rounded-md border">
         {isBountyDataLoading ? (
@@ -222,13 +222,13 @@ export const Leaderboards = ({ navigateToDeepAppView }: { navigateToDeepAppView:
           <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
             XP Leaderboards
           </span>
-          <p className="text-center md:text-left text-lg text-white">Sigma Music XP leaderboards are a great way to win rewards for being active!</p>
+          <p className="text-center md:text-left text-md text-white/70">Sigma Music XP leaderboards are a great way to win rewards for being active!</p>
         </div>
 
         {/* Most Generous Fans Leaderboard */}
         <div className="flex flex-col w-full mb-8">
           <h2 className="!text-2xl font-bold !text-yellow-300 text-center md:text-left">
-            Most Generous Fans <span className="text-white text-lg"> (Fans who gave the most XP to support their favorite artists)</span>
+            Most Generous Fans <span className="text-white/70 text-sm"> (Fans who gave the most XP to support their favorite artists)</span>
           </h2>
 
           <div className="flex items-center justify-center md:justify-start space-x-2 my-4 p-4 bg-black/50 rounded-lg border border-yellow-300/20">
@@ -331,7 +331,6 @@ export const Leaderboards = ({ navigateToDeepAppView }: { navigateToDeepAppView:
 
         {/* Artist Leaderboards Section */}
         <div className="flex flex-col w-full mb-8">
-          <h2 className="!text-2xl font-bold !text-yellow-300 text-center md:text-left mb-4">Artist Leaderboards</h2>
           <div className="flex flex-wrap">
             {renderLeaderboardTable(
               artistPowerLeaderboard,
@@ -417,7 +416,6 @@ export const Leaderboards = ({ navigateToDeepAppView }: { navigateToDeepAppView:
 
         {/* Album Leaderboards Section */}
         <div className="flex flex-col w-full">
-          <h2 className="!text-2xl font-bold !text-yellow-300 text-center md:text-left mb-4">Album Leaderboards</h2>
           <div className="flex flex-wrap">
             {renderLeaderboardTable(
               albumPowerLeaderboard,

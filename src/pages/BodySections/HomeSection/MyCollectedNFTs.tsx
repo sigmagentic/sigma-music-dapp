@@ -322,7 +322,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                         </>
                       ) : (
                         <div className="text-lg">
-                          <span>⚠️ You have not collected any albums.</span>{" "}
+                          <span className="text-white/70 text-md">⚠️ You have not collected any albums.</span>{" "}
                           <span
                             className="text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
                             onClick={() => {
@@ -473,7 +473,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                       </>
                     ) : (
                       <div className="text-lg">
-                        <span>⚠️ You have not purchased any commercial licenses yet.</span>
+                        <span className="text-white/70 text-md">⚠️ You have not purchased any commercial licenses yet.</span>
                         <span
                           className="ml-2 text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
                           onClick={() => {

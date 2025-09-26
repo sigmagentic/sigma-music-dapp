@@ -1111,7 +1111,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                 Sigma AI REMiX <span className="text-xs text-gray-500">Beta</span>
               </span>
             </h1>
-            <p className="text-sm text-gray-500">Launch IP-Safe AI Remixes influenced by the music of your favorite artists</p>
+            <p className="text-sm text-white/70">Launch IP-Safe AI Remixes influenced by the music of your favorite artists</p>
           </div>
 
           <div className="flex flex-col md:flex-row md:gap-4 gap-2">

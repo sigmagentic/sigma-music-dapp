@@ -73,7 +73,7 @@ export const PlaylistTile = ({
       style={{ background: color }}>
       {/* Genre Title */}
       <div className="absolute top-4 left-5 z-5">
-        <span className="text-white text-2xl font-bold drop-shadow-lg">{genre.label}</span>
+        <span className="text-white text-xl font-bold drop-shadow-lg">{genre.label}</span>
       </div>
       {/* Loader/Playing indicator */}
       {selectedPlaylistGenre === "" && lastClickedGenreForPlaylist === genre.code && (
