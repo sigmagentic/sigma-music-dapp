@@ -175,3 +175,19 @@ So my inner circle fans get access to some perks IRL or virtual
 [COMPOSING ARTISTs make 80% of everything that's sold on the platform that's linked to their work]
 [COMPOSING ARTISTs make 10% of every derative work sold that a REMIX ARTIST's SOLD that used a license]
 [COMPOSING ARTISTs get 5$ a week if their tracks are used to make the weekly award for best AI REMIX]
+
+On CLose
+
+NETWORK----
+the success modal "Back to App" triggers these...
+NEW logs (no items)
+PaymentLogs (one item with async_processing)
+
+CONSOLE----
+refreshOnlyNewLaunchesData() -- triggered by the "Back to App"
+Pending jobs monitor \_**_ refreshOnlyNewLaunchesData called (in refreshOnlyNewLaunchesData which is triggered by the above action to go Back to App)
+_** calgetRemixLaunchesViaAPI B (in same method above... happens after the last log)
+
+handleRefreshJobs() -- triggered by the "Back to App" (but no await unlike with refreshOnlyNewLaunchesData and actually happens before refreshOnlyNewLaunchesData)
+Pending jobs monitor \_\_\_\_ handleRefreshJobs called and data reloaded...
+UI was stuck in the 1 Remix Jobs Pending

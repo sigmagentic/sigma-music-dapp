@@ -51,7 +51,7 @@ const customInfoToastStyle = {
 };
 
 let newJobsInterval: NodeJS.Timeout | null = null;
-let isFirstFetchOfJobsDone = false;
+// let isFirstFetchOfJobsDone = false;
 
 interface RemixMusicSectionContentProps {
   navigateToDeepAppView: (e: any) => void;
@@ -290,10 +290,10 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   // Use a interval to monitor the status of new jobs and refresh data if needed
   useEffect(() => {
     if (myJobsPayments.length > 0) {
-      if (!isFirstFetchOfJobsDone) {
-        isFirstFetchOfJobsDone = true;
-        return;
-      }
+      // if (!isFirstFetchOfJobsDone) {
+      //   isFirstFetchOfJobsDone = true;
+      //   return;
+      // }
 
       console.log("Pending jobs monitor ____ Start");
       // if there are some jobs that are "new", then every 60 seconds, we need to recheck if they are "completed"
@@ -307,7 +307,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
 
           // dont clear and reload here as it break app bootup logic
           // ... there are some pending jobs, so lets get them again to cechk if their are completed
-          handleRefreshJobs();
+          await handleRefreshJobs();
           setWeDetectedNewJobs(true); // this is so we can show in UI that there is some new jobs fetched (or else in the UI we have a winder where there is no UI label)
         } else {
           console.log("Pending jobs monitor ____ Interval C -- No pending jobs found!");
@@ -336,7 +336,8 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   }, [myJobsPayments]);
 
   useEffect(() => {
-    if (!addressSol || isLoadingSolanaWallet || isFirstFetchOfJobsDone) return;
+    // if (!addressSol || isLoadingSolanaWallet || isFirstFetchOfJobsDone) return;
+    if (!addressSol || isLoadingSolanaWallet) return;
 
     const handleRefreshJobsAndLaunchData = async () => {
       setVirtualAiRemixAlbumTracksLoading(true);
@@ -1162,7 +1163,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
                         renderInline={true}
                         onCloseModal={async (refreshPaymentLogs?: boolean) => {
                           if (refreshPaymentLogs) {
-                            handleRefreshJobs();
+                            await handleRefreshJobs();
 
                             // show a notice to the user that we are checking for new jobs
                             setCheckingIfNewJobsHaveCompleted(true);
@@ -1453,9 +1454,9 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
         <>
           {launchMusicMemeModalOpen && (
             <LaunchAiMusicTrack
-              onCloseModal={(refreshPaymentLogs?: boolean) => {
+              onCloseModal={async (refreshPaymentLogs?: boolean) => {
                 if (refreshPaymentLogs) {
-                  handleRefreshJobs();
+                  await handleRefreshJobs();
                 }
                 setLaunchMusicMemeModalOpen(false);
               }}
