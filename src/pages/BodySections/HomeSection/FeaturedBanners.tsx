@@ -65,6 +65,7 @@ export const FeaturedBanners = ({
   const [isLoadingMostStreamedTracks, setIsLoadingMostStreamedTracks] = useState(true);
   const [featuredArtists, setFeaturedArtists] = useState<FeaturedArtist[]>([]);
   const [featuredAlbums, setFeaturedAlbums] = useState<FeaturedAlbum[]>([]);
+  const [latestAlbums, setLatestAlbums] = useState<FeaturedAlbum[]>([]);
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
   const { musicTrackLookup, artistLookup, albumLookup, artistLookupEverything, mintsLeaderboard } = useAppStore();
   const [latestInnerCircleOptions, setLatestInnerCircleOptions] = useState<LatestFanCollectibleOption[]>([]);
@@ -93,7 +94,7 @@ export const FeaturedBanners = ({
     setFeaturedArtists(artists);
 
     // Process featured albums
-    const albums = Object.entries(albumLookup)
+    const featuredAlbums = Object.entries(albumLookup)
       .filter(([_, album]) => album.isFeatured === "1")
       .map(([albumId, album]) => ({
         albumId,
@@ -103,7 +104,24 @@ export const FeaturedBanners = ({
         title: album.title,
       }));
 
-    setFeaturedAlbums(albums);
+    // Process latest albums
+    const latestAlbums = Object.entries(albumLookup)
+      .filter(([_, album]) => album.createdOn && album.createdOn !== "0" && album.isPublished === "1")
+      .sort((a, b) => {
+        const aTimestamp = parseInt(a[1].createdOn || "0");
+        const bTimestamp = parseInt(b[1].createdOn || "0");
+        return bTimestamp - aTimestamp;
+      })
+      .map(([albumId, album]) => ({
+        albumId,
+        artistSlug: artistLookup[albumId.split("_")[0]].slug,
+        artistName: artistLookup[albumId.split("_")[0]].name,
+        img: album.img,
+        title: album.title,
+      }));
+
+    setFeaturedAlbums(featuredAlbums);
+    setLatestAlbums(latestAlbums);
 
     setTimeout(() => {
       setIsLoadingFeaturedAlbumsAndArtists(false);
@@ -365,7 +383,7 @@ export const FeaturedBanners = ({
                               onFeaturedArtistDeepLinkSlug(`${artistInfo.slug}~${albumId}`);
                             }
                           }}>
-                          Listen & Collect
+                          Listen
                         </Button>
                       </div>
                     </div>
@@ -374,6 +392,60 @@ export const FeaturedBanners = ({
               </div>
             </div>
             {aiRemixReadyAlbums.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Latest albums */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="text-lg text-white/70">Latest Albums</span>
+        </div>
+        {isLoadingFeaturedAlbumsAndArtists ? (
+          <LoadingSkeleton />
+        ) : latestAlbums.length === 0 ? (
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No latest albums data yet</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-1
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {latestAlbums.map((album, index) => (
+                  <div
+                    key={`${album.albumId}-${index}`}
+                    className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                    style={{
+                      backgroundImage: `url(${album.img})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundBlendMode: "multiply",
+                      backgroundColor: "#161616d4",
+                      backgroundRepeat: "no-repeat",
+                    }}>
+                    <div className="text-center mt-4">
+                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
+                      <div className="text-sm text-white/70 mb-2">By {album.artistName}</div>
+                      <Button
+                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                        onClick={() => {
+                          navigateToDeepAppView({
+                            artistSlug: `${album.artistSlug}~${album.albumId}`,
+                            toAction: "tracklist",
+                          });
+                        }}>
+                        Listen
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {latestAlbums.length > 3 && (
               <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
             )}
           </div>
@@ -417,7 +489,7 @@ export const FeaturedBanners = ({
                         onClick={() => {
                           onFeaturedArtistDeepLinkSlug(`${album.artistSlug}~${album.albumId}`);
                         }}>
-                        Listen & Collect
+                        Listen
                       </Button>
                     </div>
                   </div>
@@ -467,7 +539,7 @@ export const FeaturedBanners = ({
                         onClick={() => {
                           onFeaturedArtistDeepLinkSlug(artist.slug);
                         }}>
-                        Listen & Collect
+                        Listen
                       </Button>
                     </div>
                   </div>

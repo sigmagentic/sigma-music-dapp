@@ -30,6 +30,7 @@ export const App = () => {
     artistProfileTab,
     toSection,
     toView,
+    toAction,
   }: {
     artistCampaignCode?: string;
     artistSubGroup1Code?: string;
@@ -39,6 +40,7 @@ export const App = () => {
     artistProfileTab?: string;
     toSection?: string;
     toView?: string;
+    toAction?: string;
   }) => {
     /*
     routes we support navigation to:
@@ -158,7 +160,13 @@ export const App = () => {
             currentParams["tab"] = artistProfileTab;
           }
 
-          setFeaturedArtistDeepLinkSlug(artistSlug);
+          if (toAction) {
+            currentParams["action"] = toAction;
+          } else {
+            delete currentParams["action"];
+          }
+
+          // setFeaturedArtistDeepLinkSlug(artistSlug); // removed this on 29 Sep as setSearchParams should do the work, not sure if it has any impact but seemed to now have any impact on the app
           setHomeMode(`artists-${new Date().getTime()}`);
           setSearchParams(currentParams);
         } else if (toSection) {
