@@ -105,7 +105,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
 
       // Validate file type
       const fileName = newSelectedAlbumImageFile.name.toLowerCase();
-      const validExtensions = [".gif", ".png", ".jpg"];
+      const validExtensions = [".gif", ".png", ".jpg", ".jpeg"];
       const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
 
       if (!hasValidExtension) {
@@ -151,7 +151,12 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
         }
 
         try {
-          const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedAlbumImageFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+          const fileUploadResponse = await saveMediaToServerViaAPI({
+            file: newSelectedAlbumImageFile,
+            solSignature: solPreaccessSignature,
+            signatureNonce: solPreaccessNonce,
+            creatorWallet: addressSol,
+          });
 
           if (fileUploadResponse) {
             formData.img = fileUploadResponse;

@@ -14,7 +14,7 @@ import { Modal } from "./Modal";
 import { adminApi } from "../services";
 import { FastStreamTrack, MusicTrack } from "libs/types";
 import { MediaUpdate } from "libComponents/MediaUpdate";
-import { saveMediaToServerViaAPI } from "libs/utils/api";
+import { saveMediaToServerViaAPI, saveSongMediaViaAPI } from "libs/utils/api";
 import { toastError, toastSuccess } from "libs/utils/ui";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { usePreventScroll } from "hooks";
@@ -285,7 +285,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
       // Validate file type
       const fileName = newSelectedTrackCoverArtFile.name.toLowerCase();
-      const validExtensions = [".gif", ".png", ".jpg"];
+      const validExtensions = [".gif", ".png", ".jpg", ".jpeg"];
       const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
 
       if (!hasValidExtension) {
@@ -302,10 +302,10 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       newErrors.file = "Audio file URL is required";
     }
 
-    // check if the audio file is less than 4.5MB
+    // check if the audio file is less than 10MB
     if (newSelectedAudioFile) {
-      if (newSelectedAudioFile.size > 4.5 * 1024 * 1024) {
-        newErrors.file = "Audio file must be less than 4.5MB";
+      if (newSelectedAudioFile.size > 10 * 1024 * 1024) {
+        newErrors.file = "Audio file must be less than 10MB";
       }
 
       // Validate file type for audio
@@ -347,7 +347,12 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       if (addressSol) {
         if (newSelectedTrackCoverArtFile) {
           try {
-            const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedTrackCoverArtFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+            const fileUploadResponse = await saveMediaToServerViaAPI({
+              file: newSelectedTrackCoverArtFile,
+              solSignature: solPreaccessSignature,
+              signatureNonce: solPreaccessNonce,
+              creatorWallet: addressSol,
+            });
 
             if (fileUploadResponse) {
               formData.cover_art_url = fileUploadResponse;
@@ -363,7 +368,15 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
         if (newSelectedAudioFile) {
           try {
-            const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedAudioFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+            const fileUploadResponse = await saveSongMediaViaAPI({
+              file: newSelectedAudioFile,
+              solSignature: solPreaccessSignature,
+              signatureNonce: solPreaccessNonce,
+              creatorWallet: addressSol,
+              fileType: newSelectedAudioFile.type,
+              fileName: newSelectedAudioFile.name,
+              fileSize: newSelectedAudioFile.size,
+            });
 
             if (fileUploadResponse) {
               formData.file = fileUploadResponse;
@@ -578,7 +591,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
           </div>
 
           {/* Asset Uploads */}
-          <div className="flex flex-row gap-4 w-full md:col-span-2">
+          <div className="flex flex-row gap-4 w-full md:col-span-2 mb-4">
             {/* Cover Art URL */}
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -627,7 +640,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
               </div>
 
               {errors.file && <p className="text-red-400 text-sm mt-1">{errors.file}</p>}
-              <p className="text-gray-400 text-xs mt-1">Must be a valid MP3 file (Max size: 4.5MB)</p>
+              <p className="text-gray-400 text-xs mt-1">Must be a valid MP3 file (Max size: 10MB)</p>
             </div>
           </div>
         </div>
@@ -750,7 +763,8 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         onClose();
       }}
       title={`${albumTitle} : Tracks`}
-      size="lg">
+      size="lg"
+      isWorking={isSubmitting}>
       {isFormView ? RenderNewTrackFormView() : RenderTrackListView()}
     </Modal>
   );

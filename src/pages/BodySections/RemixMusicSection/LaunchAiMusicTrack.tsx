@@ -18,7 +18,7 @@ import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { FastStreamTrack, Artist, MusicTrack } from "libs/types/common";
 import { injectXUserNameIntoTweet, toastSuccess, fetchMyAlbumsFromMintLogsViaAPI, downloadTrackViaClientSide, toastError } from "libs/utils";
-import { logPaymentToAPI, saveMediaToServerViaAPI, sendRemixJobAfterPaymentViaAPI } from "libs/utils/api";
+import { logPaymentToAPI, saveMediaToServerViaAPI, saveSongMediaViaAPI, sendRemixJobAfterPaymentViaAPI } from "libs/utils/api";
 import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
 import { getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import { useAccountStore } from "store/account";
@@ -252,7 +252,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
 
         // Validate file type
         const fileName = newSelectedTrackCoverArtFile.name.toLowerCase();
-        const validExtensions = [".gif", ".png", ".jpg"];
+        const validExtensions = [".gif", ".png", ".jpg", ".jpeg"];
         const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
 
         if (!hasValidExtension) {
@@ -269,10 +269,10 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         newErrors.file = "Audio file URL is required";
       }
 
-      // Check if the audio file is less than 4.5MB and has valid file type
+      // Check if the audio file is less than 10MB and has valid file type
       if (newSelectedAudioFile) {
-        if (newSelectedAudioFile.size > 4.5 * 1024 * 1024) {
-          newErrors.file = "Audio file must be less than 4.5MB";
+        if (newSelectedAudioFile.size > 10 * 1024 * 1024) {
+          newErrors.file = "Audio file must be less than 10MB";
         }
 
         // Validate file type for audio
@@ -395,7 +395,12 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
     if (selectedAiModel === "other") {
       try {
         if (newSelectedTrackCoverArtFile) {
-          const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedTrackCoverArtFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+          const fileUploadResponse = await saveMediaToServerViaAPI({
+            file: newSelectedTrackCoverArtFile,
+            solSignature: solPreaccessSignature,
+            signatureNonce: solPreaccessNonce,
+            creatorWallet: addressSol,
+          });
 
           if (fileUploadResponse) {
             formData.cover_art_url = fileUploadResponse;
@@ -406,7 +411,22 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         }
 
         if (newSelectedAudioFile) {
-          const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedAudioFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+          // const fileUploadResponse = await saveMediaToServerViaAPI({
+          //   file: newSelectedAudioFile,
+          //   solSignature: solPreaccessSignature,
+          //   signatureNonce: solPreaccessNonce,
+          //   creatorWallet: addressSol,
+          // });
+
+          const fileUploadResponse = await saveSongMediaViaAPI({
+            file: newSelectedAudioFile,
+            solSignature: solPreaccessSignature,
+            signatureNonce: solPreaccessNonce,
+            creatorWallet: addressSol,
+            fileType: newSelectedAudioFile.type,
+            fileName: newSelectedAudioFile.name,
+            fileSize: newSelectedAudioFile.size,
+          });
 
           if (fileUploadResponse) {
             formData.file = fileUploadResponse;
@@ -1376,7 +1396,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                         </div>
 
                         {errors.file && <p className="text-red-400 text-xs mt-1">{errors.file}</p>}
-                        <p className="text-gray-400 text-xs mt-1">Must be an MP3 file (Max size: 4.5MB)</p>
+                        <p className="text-gray-400 text-xs mt-1">Must be an MP3 file (Max size: 10MB)</p>
                       </div>
                     </div>
                   </>

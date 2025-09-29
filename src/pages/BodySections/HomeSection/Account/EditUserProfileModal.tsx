@@ -101,7 +101,7 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
 
       // Validate file type
       const fileName = newSelectedProfileImageFile.name.toLowerCase();
-      const validExtensions = [".gif", ".png", ".jpg"];
+      const validExtensions = [".gif", ".png", ".jpg", ".jpeg"];
       const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
 
       if (!hasValidExtension) {
@@ -189,7 +189,12 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
       }
 
       try {
-        const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedProfileImageFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+        const fileUploadResponse = await saveMediaToServerViaAPI({
+          file: newSelectedProfileImageFile,
+          solSignature: solPreaccessSignature,
+          signatureNonce: solPreaccessNonce,
+          creatorWallet: addressSol,
+        });
 
         if (fileUploadResponse) {
           formData.profileImage = fileUploadResponse;

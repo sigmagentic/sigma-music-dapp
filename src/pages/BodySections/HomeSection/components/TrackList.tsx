@@ -256,9 +256,19 @@ export const TrackList: React.FC<TrackListProps> = ({
                 <div className="flex items-center gap-2">
                   {isNewlyCreatedAiRemixDuringCurrentSession && <span className="text-[9px] bg-yellow-400 text-black px-2 py-1 rounded-full">New</span>}
                   <span className={`text-sm ${isDisabled || isCurrentlyPlaying ? "text-gray-500" : "text-white"}`}>
-                    {track.title}
+                    <div className="flex items-center">
+                      {track.title}
+                      {track.isExplicit && track.isExplicit === "1" && (
+                        <img
+                          className="max-h-[15px] relative ml-[5px] rounded-md"
+                          src={ratingE}
+                          alt="Warning: Explicit Content"
+                          title="Warning: Explicit Content"
+                        />
+                      )}
+                    </div>
 
-                    {isCurrentlyPlaying && <span className="text-yellow-300 ml-2 text-xs">Playing...</span>}
+                    {isCurrentlyPlaying && <span className="text-yellow-300 text-[9px]">Playing...</span>}
                   </span>
                   {isBonusTrack && <span className="text-[9px] bg-yellow-400 text-black px-2 py-1 rounded-full">Bonus</span>}
                 </div>

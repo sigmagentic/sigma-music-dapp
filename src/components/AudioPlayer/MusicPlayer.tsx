@@ -35,6 +35,7 @@ import { toastClosableError } from "libs/utils/uiShared";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
+import ratingE from "assets/img/icons/rating-E.png";
 
 type MusicPlayerProps = {
   trackList: MusicTrack[];
@@ -753,6 +754,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     );
   };
 
+  console.log("tracklist", trackList);
+
   return (
     <div
       className={`relative w-full md:w-auto border-[1px] border-foreground/20 rounded-lg bg-[#2d2719] transition-all duration-300 md:m-[10px] ${
@@ -1005,7 +1008,18 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                     });
                   }
                 }}>
-                <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"}`}>{trackList[currentTrackIndex]?.title}</span>
+                <div className="flex items-center">
+                  <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"}`}>{trackList[currentTrackIndex]?.title}</span>
+                  {trackList[currentTrackIndex]?.isExplicit && trackList[currentTrackIndex]?.isExplicit === "1" && (
+                    <img
+                      className="max-h-[15px] relative ml-[5px] rounded-md"
+                      src={ratingE}
+                      alt="Warning: Explicit Content"
+                      title="Warning: Explicit Content"
+                    />
+                  )}
+                </div>
+
                 <span className={`text-white ${isFullScreen ? "text-lg" : "text-sm"}`}>{trackList[currentTrackIndex]?.artist}</span>
                 <span className="text-xs text-muted-foreground">Track {currentTrackIndex + 1}</span>
               </div>
@@ -1106,7 +1120,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             </div>
 
             {/* boost album */}
-            {!DISABLE_BITZ_FEATURES && !isSmallScreen && bitzGiftingMeta && (
+            {/* {!DISABLE_BITZ_FEATURES && !isSmallScreen && bitzGiftingMeta && (
               <div
                 className={`absolute right-2 ${isFullScreen && displayTrackList ? "md:right-[410px]" : "md:right-[50px]"} ${!isFullScreen ? "scale-75" : ""} z-10 top-4 text-center mb-1 text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 rounded w-[100px] flex items-center justify-center ${publicKey ? "cursor-pointer" : ""}`}
                 onClick={() => {
@@ -1127,7 +1141,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   <Rocket className="w-4 h-4" />
                 </div>
               </div>
-            )}
+            )} */}
 
             {trackList[currentTrackIndex]?.bonus === 1 && (
               <p

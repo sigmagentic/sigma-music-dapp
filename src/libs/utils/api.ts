@@ -1520,7 +1520,42 @@ export const downloadMp3TrackViaAPI = async (artistId: string, albumId: string, 
   }
 };
 
-export const saveMediaToServerViaAPI = async (file: File, solSignature: string, signatureNonce: string, creatorWallet: string) => {
+export const saveSongMediaViaAPI = async ({
+  solSignature,
+  signatureNonce,
+  creatorWallet,
+  file,
+  fileType,
+  fileName,
+  fileSize,
+}: {
+  solSignature: string;
+  signatureNonce: string;
+  creatorWallet: string;
+  file: File;
+  fileType: string;
+  fileName: string;
+  fileSize: number;
+}) => {
+  // if file is less than 3 MB we use the saveMediaToServerViaAPI otherwise we use the saveLargerMediaToServerViaAPI
+  if (file.size < 3 * 1024 * 1024) {
+    return await saveMediaToServerViaAPI({ solSignature, signatureNonce, creatorWallet, file });
+  } else {
+    return await saveLargerMediaToServerViaAPI({ solSignature, signatureNonce, creatorWallet, file, fileType, fileName, fileSize });
+  }
+};
+
+export const saveMediaToServerViaAPI = async ({
+  solSignature,
+  signatureNonce,
+  creatorWallet,
+  file,
+}: {
+  solSignature: string;
+  signatureNonce: string;
+  creatorWallet: string;
+  file: File;
+}) => {
   try {
     const formData = new FormData();
     formData.append("media", file, file.name);
@@ -1547,6 +1582,84 @@ export const saveMediaToServerViaAPI = async (file: File, solSignature: string, 
       }
     } else {
       throw new Error("API Error on upload media - did not get a success response back");
+    }
+  } catch (error) {
+    console.error("Error saving media to server:", error);
+    throw new Error("Failed to upload media to server " + (error as Error).message);
+  }
+};
+
+export const saveLargerMediaToServerViaAPI = async ({
+  solSignature,
+  signatureNonce,
+  creatorWallet,
+  file,
+  fileType,
+  fileName,
+  fileSize,
+}: {
+  solSignature: string;
+  signatureNonce: string;
+  creatorWallet: string;
+  file: File;
+  fileType: string;
+  fileName: string;
+  fileSize: number;
+}) => {
+  try {
+    // Get presigned POST data
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/account/uploadMediaLarger`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ solSignature, signatureNonce, creatorWallet, fileType, fileName, fileSize }),
+    });
+
+    if (response.ok) {
+      const mediaUploadResponse = await response.json();
+
+      const { url, fields, fileUrl } = mediaUploadResponse.data;
+
+      if (!url || !fields || !fileUrl) {
+        throw new Error("API Error on upload media - did not get a url or fields back");
+      }
+
+      // Upload with POST using FormData
+      const formData = new FormData();
+
+      // appear all the fields in the fields object
+      Object.entries(fields).forEach(([key, value]) => {
+        formData.append(key, value as string);
+      });
+
+      formData.append("file", file);
+
+      // save it to S3 via the signed URL
+      try {
+        await fetch(url, {
+          method: "POST",
+          body: formData,
+        });
+
+        return fileUrl;
+      } catch (error) {
+        throw new Error("Failed to upload media to server " + (error as Error).message);
+      }
+    } else {
+      const errorDetails = await response.json();
+      /*
+      {
+        "error": true,
+        "errorMessage": "File size too large. Maximum size: 1MB",
+        "receivedSize": "1.83MB",
+        "maxSize": "1.00MB"
+      }
+      */
+
+      if (errorDetails?.error) {
+        throw new Error("Failed to upload media to server " + errorDetails?.errorMessage || " - unknown error");
+      } else {
+        throw new Error("Failed to upload media to server");
+      }
     }
   } catch (error) {
     console.error("Error saving media to server:", error);

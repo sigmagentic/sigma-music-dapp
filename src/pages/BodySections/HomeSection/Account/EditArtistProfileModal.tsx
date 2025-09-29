@@ -133,7 +133,7 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
 
       // Validate file type
       const fileName = newSelectedArtistProfileImageFile.name.toLowerCase();
-      const validExtensions = [".gif", ".png", ".jpg"];
+      const validExtensions = [".gif", ".png", ".jpg", ".jpeg"];
       const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
 
       if (!hasValidExtension) {
@@ -204,7 +204,12 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
       }
 
       try {
-        const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedArtistProfileImageFile, solPreaccessSignature, solPreaccessNonce, addressSol);
+        const fileUploadResponse = await saveMediaToServerViaAPI({
+          file: newSelectedArtistProfileImageFile,
+          solSignature: solPreaccessSignature,
+          signatureNonce: solPreaccessNonce,
+          creatorWallet: addressSol,
+        });
 
         if (fileUploadResponse) {
           formData.img = fileUploadResponse;

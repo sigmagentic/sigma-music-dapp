@@ -92,7 +92,7 @@ export const MediaUpdate: React.FC<MediaUpdateProps> = ({
         ) : imageUrl ? (
           <img src={imageUrl} alt={alt} className="w-full h-full object-cover" />
         ) : mediaUrl ? (
-          <audio src={mediaUrl} controls className="w-full h-full object-cover" />
+          <audio src={mediaUrl} controls className="w-full h-full object-cover pb-[30px]" />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
             {imgPlaceholder === "image" ? (

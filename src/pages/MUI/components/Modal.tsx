@@ -9,9 +9,10 @@ interface ModalProps {
   children: React.ReactNode;
   size?: "sm" | "md" | "lg" | "xl";
   showCloseButton?: boolean;
+  isWorking?: boolean;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = "md", showCloseButton = true }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = "md", showCloseButton = true, isWorking = false }) => {
   // Handle escape key to close modal
   useEffect(() => {
     // const handleEscape = (event: KeyboardEvent) => {
@@ -53,7 +54,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="!text-2xl font-semibold !text-yellow-400">{title}</h2>
           {showCloseButton && (
-            <Button onClick={onClose} variant="ghost" size="icon" className="h-8 w-8 p-0">
+            <Button
+              onClick={onClose}
+              disabled={isWorking}
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 p-0 ${isWorking ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
               <X className="h-4 w-4" />
             </Button>
           )}

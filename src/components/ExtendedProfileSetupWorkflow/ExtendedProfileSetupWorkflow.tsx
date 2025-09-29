@@ -314,7 +314,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
 
       // Validate file type
       const fileName = newSelectedArtistProfileImageFile.name.toLowerCase();
-      const validExtensions = [".gif", ".png", ".jpg"];
+      const validExtensions = [".gif", ".png", ".jpg", ".jpeg"];
       const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
 
       if (!hasValidExtension) {
@@ -425,7 +425,12 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
 
       if (newSelectedProfileImageFile) {
         try {
-          const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedProfileImageFile, usedPreAccessSignature, usedPreAccessNonce, addressSol);
+          const fileUploadResponse = await saveMediaToServerViaAPI({
+            file: newSelectedProfileImageFile,
+            solSignature: usedPreAccessSignature,
+            signatureNonce: usedPreAccessNonce,
+            creatorWallet: addressSol,
+          });
 
           if (fileUploadResponse) {
             userProfileData.profileImage = fileUploadResponse;
@@ -472,7 +477,12 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       ) {
         try {
           if (newSelectedArtistProfileImageFile) {
-            const fileUploadResponse = await saveMediaToServerViaAPI(newSelectedArtistProfileImageFile, usedPreAccessSignature, usedPreAccessNonce, addressSol);
+            const fileUploadResponse = await saveMediaToServerViaAPI({
+              file: newSelectedArtistProfileImageFile,
+              solSignature: usedPreAccessSignature,
+              signatureNonce: usedPreAccessNonce,
+              creatorWallet: addressSol,
+            });
 
             if (fileUploadResponse) {
               artistProfileData.img = fileUploadResponse;
