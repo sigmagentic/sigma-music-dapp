@@ -320,11 +320,6 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
       if (!hasValidExtension) {
         newErrors.img = "Cover art must be a GIF, PNG, or JPG file";
       }
-
-      // Check for JPEG and ask to rename to JPG
-      if (fileName.endsWith(".jpeg")) {
-        newErrors.img = "Please rename your JPEG file to JPG and try again";
-      }
     }
 
     // Slug validation - required, max 80 characters, no spaces or special chars, and must be available

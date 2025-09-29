@@ -111,11 +111,6 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
       if (!hasValidExtension) {
         newErrors.img = "Cover art must be a GIF, PNG, or JPG file";
       }
-
-      // Check for JPEG and ask to rename to JPG
-      if (fileName.endsWith(".jpeg")) {
-        newErrors.img = "Please rename your JPEG file to JPG and try again";
-      }
     }
 
     setErrors(newErrors);

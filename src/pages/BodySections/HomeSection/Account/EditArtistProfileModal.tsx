@@ -139,11 +139,6 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
       if (!hasValidExtension) {
         newErrors.img = "Cover art must be a GIF, PNG, or JPG file";
       }
-
-      // Check for JPEG and ask to rename to JPG
-      if (fileName.endsWith(".jpeg")) {
-        newErrors.img = "Please rename your JPEG file to JPG and try again";
-      }
     }
 
     // Optional link validations - if provided, must be valid HTTPS URLs

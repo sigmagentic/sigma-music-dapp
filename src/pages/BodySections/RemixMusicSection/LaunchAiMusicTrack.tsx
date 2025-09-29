@@ -258,11 +258,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         if (!hasValidExtension) {
           newErrors.cover_art_url = "Cover art must be a GIF, PNG, or JPG file";
         }
-
-        // Check for JPEG and ask to rename to JPG
-        if (fileName.endsWith(".jpeg")) {
-          newErrors.cover_art_url = "Please rename your JPEG file to JPG and try again";
-        }
       }
 
       if (!formData.file.trim() && !newSelectedAudioFile) {
