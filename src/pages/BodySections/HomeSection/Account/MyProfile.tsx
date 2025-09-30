@@ -23,7 +23,7 @@ type MyProfileProps = {
 
 export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlayer, setHomeMode }: MyProfileProps) => {
   const { userInfo, publicKey: web3AuthPublicKey, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
-  const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const { signMessage } = useWallet();
   const { userWeb2AccountDetails, myPaymentLogs, myMusicAssetPurchases, updateUserWeb2AccountDetails } = useAccountStore();
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
@@ -35,7 +35,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["profile"]);
   const [activeTab, setActiveTab] = useState<"artist" | "profile">("profile");
 
-  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : solanaPublicKey; // Use the appropriate public key based on wallet type
+  const displayPublicKey = walletType === "web3auth" ? web3AuthPublicKey : publicKeySol; // Use the appropriate public key based on wallet type
 
   useEffect(() => {
     // from the URL we can get these optional params: view=artistProfile&action=createAlbum
@@ -91,7 +91,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         solPreaccessSignature,
         solPreaccessTimestamp,
         signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
-        publicKey: solanaPublicKey,
+        publicKey: publicKeySol,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
         updateSolPreaccessTimestamp,
@@ -252,7 +252,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
               </thead>
               <tbody>
                 {myMusicAssetPurchases.map((log, index) => (
-                  <tr key={index} className="border-b border-gray-700">
+                  <tr key={index} className="border-t border-gray-700">
                     <td className="text-xs py-3">{new Date(log.purchasedOn).toLocaleString()}</td>
                     <td className="text-xs py-3">
                       <>
@@ -301,7 +301,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
               </thead>
               <tbody>
                 {myPaymentLogs.map((log, index) => (
-                  <tr key={index} className="border-b border-gray-700">
+                  <tr key={index} className="border-t border-gray-700">
                     <td className="text-xs py-3">{new Date(log.createdOn).toLocaleString()}</td>
                     <td className="text-xs py-3">
                       {log.task === "buyAlbum" && (

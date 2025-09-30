@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Loader, Music, Plus } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { Album, Artist, MusicTrack } from "libs/types";
-import { getAlbumTracksFromDBViaAPI, getPayoutLogsViaAPI } from "libs/utils";
+import { Album, Artist, MusicTrack, PaymentLog } from "libs/types";
+import { fetchArtistSalesViaAPI, getAlbumTracksFromDBViaAPI, getPayoutLogsViaAPI } from "libs/utils";
 import { isUserArtistType } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
 import { UserIcon } from "@heroicons/react/24/outline";
@@ -36,6 +36,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
   const { signMessage } = useWallet();
+  const { albumLookup } = useAppStore();
 
   const [payoutLogs, setPayoutLogs] = useState<any[]>([]);
   const [loadingPayouts, setLoadingPayouts] = useState<boolean>(false);
@@ -52,6 +53,8 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   const [isLoadingTracks, setIsLoadingTracks] = useState<boolean>(false);
   const [isLoadingTracksForAlbumId, setIsLoadingTracksForAlbumId] = useState<string>("");
   const [showVerificationInfoModal, setShowVerificationInfoModal] = useState<boolean>(false);
+  const [artistSales, setArtistSales] = useState<PaymentLog[]>([]);
+  const [isLoadingSales, setIsLoadingSales] = useState<boolean>(false);
 
   const showVerificationInfo = () => {
     setShowVerificationInfoModal(true);
@@ -59,6 +62,8 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 
   // Fetch payout logs when artist profile is active
   useEffect(() => {
+    if (isLoadingSolanaWallet || !publicKeySol) return;
+
     if (isUserArtistType(userWeb2AccountDetails.profileTypes) && !loadingPayouts) {
       const fetchPayoutLogs = async () => {
         setLoadingPayouts(true);
@@ -76,10 +81,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 
       fetchPayoutLogs();
     }
-  }, [userWeb2AccountDetails]);
+  }, [userWeb2AccountDetails, isLoadingSolanaWallet, publicKeySol]);
 
   useEffect(() => {
     if (isLoadingSolanaWallet || !publicKeySol) return;
+
     if (userArtistProfile && userArtistProfile.artistId) {
       setAlbumsLoading(true);
       getAlbumFromDBViaAPI(userArtistProfile.artistId).then((albums) => {
@@ -90,6 +96,33 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
       setNoArtistIdError(true);
     }
   }, [userArtistProfile, isLoadingSolanaWallet, publicKeySol]);
+
+  useEffect(() => {
+    if (isLoadingSolanaWallet || !publicKeySol) return;
+
+    const loadArtistData = async () => {
+      try {
+        const [salesData] = await Promise.all([fetchArtistSalesViaAPI(userArtistProfile.creatorPaymentsWallet, userArtistProfile.artistId)]);
+
+        // append _albumName to the salesData
+        salesData.forEach((sale: any) => {
+          if (sale.task === "buyAlbum") {
+            sale._albumName = albumLookup[sale.albumId]?.title;
+          }
+        });
+
+        setArtistSales(salesData);
+      } catch (error) {
+        console.error("Error fetching artist sales data:", error);
+      } finally {
+        setIsLoadingSales(false);
+      }
+    };
+
+    if (userArtistProfile && !isLoadingSales && Object.keys(albumLookup).length > 0) {
+      loadArtistData();
+    }
+  }, [userArtistProfile, isLoadingSolanaWallet, publicKeySol, albumLookup]);
 
   const parseTypeCodeToLabel = (typeCode: string) => {
     switch (typeCode) {
@@ -356,7 +389,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         {albumsLoading ? (
           <div className="flex flex-col items-center justify-center py-12">
             {!noArtistIdError ? (
-              <Loader className="animate-spin" size={30} />
+              <Loader className="animate-spin text-yellow-300" size={20} />
             ) : (
               <p className="text-red-400">Your artist profile is not yet created. Please click on 'Edit Artist Profile' below to create it.</p>
             )}
@@ -572,6 +605,75 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         )}
       </div>
 
+      {/* Sales Insights Section */}
+      <div className="rounded-lg p-6 border-b border-gray-800">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-4">
+          <h2 className="!text-xl !md:text-xl font-bold mb-4 text-center md:text-left">Sales</h2>
+        </div>
+
+        {isLoadingSales ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader className="animate-spin text-yellow-300" size={20} />
+          </div>
+        ) : artistSales.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <p className="text-md text-gray-400">No sales found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-left border-b border-gray-700">
+                  <th className="pb-3 text-xs">Date</th>
+                  <th className="pb-3 text-xs">What Was Bought</th>
+                  <th className="pb-3 text-xs">Purchase Status</th>
+                  <th className="pb-3 text-xs">Payment Method</th>
+                  <th className="pb-3 text-xs">Amount</th>
+                  <th className="pb-3 text-xs">Amount in USD</th>
+                </tr>
+              </thead>
+              <tbody>
+                {artistSales.map((log, index) => (
+                  <tr key={index} className="border-t border-gray-700">
+                    <td className="text-xs py-3">{new Date(log.createdOn).toLocaleString()}</td>
+                    <td className="text-xs py-3">
+                      {log.task === "buyAlbum" && (
+                        <>
+                          <div className="text-orange-500">Album: {log._albumName}</div>
+                          <div className="text-sm text-gray-400">
+                            {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
+                            {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
+                            {log.albumSaleTypeOption === "3" && "Digital Album + Commercial License + Download + Collectible (NFT)"}
+                            {log.albumSaleTypeOption === "4" && "Digital Album + Commercial License + Download"}
+                          </div>
+                        </>
+                      )}
+
+                      {log.task === "joinFanClub" && <div>Inner Circle Membership ID: {log.membershipId}</div>}
+                    </td>
+                    <td className="text-xs py-3">
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          log.paymentStatus === "success"
+                            ? "bg-green-900 text-green-300"
+                            : log.paymentStatus === "failed"
+                              ? "bg-red-900 text-red-300"
+                              : "bg-yellow-900 text-yellow-300"
+                        }`}>
+                        {log.paymentStatus.charAt(0).toUpperCase() + log.paymentStatus.slice(1)}
+                      </span>
+                    </td>
+                    <td className="text-xs py-3">{log.type === "sol" ? "SOL" : log.type === "xp" ? "XP" : "Credit Card"}</td>
+                    <td className="text-xs py-3">{log.type === "cc" ? `$${log.amount}` : log.type === "xp" ? `${log.amount} XP` : `${log.amount} SOL`}</td>
+                    <td className="text-xs py-3">{log.priceInUSD ? `$${log.priceInUSD}` : "N/A"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {/* Artist Payouts Section */}
       <div className="rounded-lg p-6 border-b border-gray-800">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4">
@@ -585,7 +687,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 
         {loadingPayouts ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <Loader className="animate-spin" size={30} />
+            <Loader className="animate-spin text-yellow-300" size={20} />
           </div>
         ) : payoutLogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
@@ -596,31 +698,31 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
             <table className="w-full">
               <thead>
                 <tr className="text-left border-b border-gray-700">
-                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Date</th>
-                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Amount</th>
-                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Type</th>
-                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Info</th>
-                  <th className="pb-3 px-4 py-2 border border-gray-700 border-r-2 border-r-gray-700 bg-gray-800">Transaction</th>
+                  <th className="pb-3 text-xs">Date</th>
+                  <th className="pb-3 text-xs">Amount</th>
+                  <th className="pb-3 text-xs">Type</th>
+                  <th className="pb-3 text-xs">Info</th>
+                  <th className="pb-3 text-xs">Transaction</th>
                 </tr>
               </thead>
               <tbody>
                 {payoutLogs.map((log, index) => (
                   <tr key={index} className="border-b border-gray-700">
-                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">{new Date(log.paymentTS).toLocaleString()}</td>
-                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">
+                    <td className="text-xs py-3">{new Date(log.paymentTS).toLocaleString()}</td>
+                    <td className="text-xs py-3">
                       {log.amount} {log.token}
                     </td>
-                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">
+                    <td className="text-xs py-3">
                       <span className="capitalize">{parseTypeCodeToLabel(log.type)}</span>
                     </td>
-                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">{log.info}</td>
-                    <td className="py-3 px-4 border border-gray-700 border-r-2 border-r-gray-700">
+                    <td className="text-xs py-3">{log.info}</td>
+                    <td className="text-xs py-3">
                       {log.tx && (
                         <a
                           href={`https://solscan.io/tx/${log.tx}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
+                          className="text-yellow-300 hover:text-yellow-200 hover:underline">
                           View on Solscan
                         </a>
                       )}

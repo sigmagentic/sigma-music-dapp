@@ -365,7 +365,7 @@ export const JoinInnerCircleCC = ({
 
             {paymentStatus === "processing" ? (
               <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
-                <Loader className="w-full text-center animate-spin hover:scale-105" />
+                <Loader className="animate-spin text-yellow-300" size={20} />
                 <p className="text-yellow-300">Payment in process... do not close this page</p>
               </div>
             ) : (
@@ -543,7 +543,7 @@ export const JoinInnerCircleCC = ({
                   }}
                   className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
                   disabled={isCCPaymentsDisabled || fetchingPaymentIntent || mintingStatus !== "idle"}>
-                  {fetchingPaymentIntent ? <Loader className="animate-spin" /> : "Proceed"}
+                  {fetchingPaymentIntent ? <Loader className="animate-spin text-yellow-300" size={20} /> : "Proceed"}
                 </Button>
               </div>
 

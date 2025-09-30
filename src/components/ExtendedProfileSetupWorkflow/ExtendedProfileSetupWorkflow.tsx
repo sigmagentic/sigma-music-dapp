@@ -71,8 +71,8 @@ const generateSlug = (name: string): string => {
 
 export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflowProps> = ({ isOpen, onClose, setHomeMode }) => {
   const { userInfo, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
-  const { publicKey: solanaPublicKey, walletType } = useSolanaWallet();
-  const addressSol = solanaPublicKey?.toBase58();
+  const { publicKey: publicKeySol, walletType } = useSolanaWallet();
+  const addressSol = publicKeySol?.toBase58();
   const { signMessage } = useWallet();
   const {
     updateUserWeb2AccountDetails,
@@ -408,7 +408,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
         solPreaccessSignature,
         solPreaccessTimestamp,
         signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
-        publicKey: solanaPublicKey,
+        publicKey: publicKeySol,
         updateSolPreaccessNonce,
         updateSolSignedPreaccess,
         updateSolPreaccessTimestamp,

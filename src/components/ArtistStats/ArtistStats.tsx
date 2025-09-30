@@ -1,35 +1,11 @@
 import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
-import { StreamMetricData } from "libs/types/common";
+import { StreamMetricData, ArtistStatsProps, ArtistSale, SalesSummary } from "libs/types/common";
 import { fetchArtistSalesViaAPI, fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/api";
 import { useAppStore } from "store/app";
 
-interface ArtistSale {
-  task: string;
-  createdOn: number;
-  albumId?: string;
-  amount: string;
-  totalQuantity?: number;
-}
-
-interface ArtistStatsProps {
-  creatorPaymentsWallet: string;
-  showAmounts?: boolean;
-  artistId: string;
-  setActiveTab: (tab: string) => void;
-  onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => void;
-}
-
-interface SalesSummary {
-  totalCount: number;
-  totalAmount: number;
-  last7Days: { count: number; amount: number };
-  last30Days: { count: number; amount: number };
-  last3Months: { count: number; amount: number };
-}
-
 export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false, artistId, setActiveTab, onFeaturedArtistDeepLinkSlug }: ArtistStatsProps) {
-  const [artistStats, setArtistSales] = useState<ArtistSale[]>([]);
+  const [artistSales, setArtistSales] = useState<ArtistSale[]>([]);
   const [streamMetricData, setStreamMetricData] = useState<StreamMetricData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { albumMasterLookup, musicTrackLookup, artistLookup } = useAppStore();
@@ -92,8 +68,8 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
     }
   }, [creatorPaymentsWallet, musicTrackLookup]);
 
-  const albumSalesSummary = calculateSummary(artistStats, "buyAlbum");
-  const fanClubSalesSummary = calculateSummary(artistStats, "joinFanClub");
+  const albumSalesSummary = calculateSummary(artistSales, "buyAlbum");
+  const fanClubSalesSummary = calculateSummary(artistSales, "joinFanClub");
 
   const handleOpenAlbum = (alid: string) => {
     // Extract album ID from alid (e.g., "ar24_a1-1" -> "ar24_a1")
@@ -116,7 +92,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
               Most Streamed Songs
             </h1>
             {streamMetricData.length === 0 ? (
-              <p className="text-xl mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
+              <p className="mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
             ) : (
               <div className="relative w-full">
                 <div
@@ -169,37 +145,37 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
             <h1 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
               Sales Insights
             </h1>
-            {artistStats.length === 0 && <p className="text-xl mb-10 text-center md:text-left opacity-50">No sales data yet</p>}
-            {artistStats.length > 0 && (
+            {artistSales.length === 0 && <p className="mb-10 text-center md:text-left opacity-50">No sales data yet</p>}
+            {artistSales.length > 0 && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mt-5">
                   <div className="bg-muted/50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-3 text-orange-500">Album Sales Summary</h3>
+                    <h3 className="!text-lg font-semibold mb-3 text-orange-500">Album Sales Summary</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Total Sales:</span>
-                        <span className="font-medium">
+                        <span className="text-sm">Total Sales:</span>
+                        <span className="text-sm font-medium">
                           {albumSalesSummary.totalCount}
                           {showAmounts && ` (${albumSalesSummary.totalAmount.toFixed(2)} SOL)`}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Last 7 Days:</span>
-                        <span className="font-medium">
+                        <span className="text-sm">Last 7 Days:</span>
+                        <span className="text-sm font-medium">
                           {albumSalesSummary.last7Days.count}
                           {showAmounts && ` (${albumSalesSummary.last7Days.amount.toFixed(2)} SOL)`}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Last 30 Days:</span>
-                        <span className="font-medium">
+                        <span className="text-sm">Last 30 Days:</span>
+                        <span className="text-sm font-medium">
                           {albumSalesSummary.last30Days.count}
                           {showAmounts && ` (${albumSalesSummary.last30Days.amount.toFixed(2)} SOL)`}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Last 3 Months:</span>
-                        <span className="font-medium">
+                        <span className="text-sm">Last 3 Months:</span>
+                        <span className="text-sm font-medium">
                           {albumSalesSummary.last3Months.count}
                           {showAmounts && ` (${albumSalesSummary.last3Months.amount.toFixed(2)} SOL)`}
                         </span>
@@ -207,32 +183,32 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                     </div>
                   </div>
                   <div className="bg-muted/50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-3 text-orange-500">Fan Club Memberships</h3>
+                    <h3 className="!text-lg font-semibold mb-3 text-orange-500">Fan Club Memberships</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Total Members:</span>
-                        <span className="font-medium">
+                        <span className="text-sm">Total Members:</span>
+                        <span className="font-medium text-sm">
                           {fanClubSalesSummary.totalCount}
                           {showAmounts && ` (${fanClubSalesSummary.totalAmount.toFixed(2)} SOL)`}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Last 7 Days:</span>
-                        <span className="font-medium">
+                        <span className="text-sm">Last 7 Days:</span>
+                        <span className="font-medium text-sm">
                           {fanClubSalesSummary.last7Days.count}
                           {showAmounts && ` (${fanClubSalesSummary.last7Days.amount.toFixed(2)} SOL)`}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Last 30 Days:</span>
-                        <span className="font-medium">
+                        <span className="text-sm">Last 30 Days:</span>
+                        <span className="font-medium text-sm">
                           {fanClubSalesSummary.last30Days.count}
                           {showAmounts && ` (${fanClubSalesSummary.last30Days.amount.toFixed(2)} SOL)`}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Last 3 Months:</span>
-                        <span className="font-medium">
+                        <span className="text-sm">Last 3 Months:</span>
+                        <span className="font-medium text-sm">
                           {fanClubSalesSummary.last3Months.count}
                           {showAmounts && ` (${fanClubSalesSummary.last3Months.amount.toFixed(2)} SOL)`}
                         </span>
@@ -245,11 +221,11 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                     <thead className="bg-muted/50">
                       <tr>
                         <th className="py-3 px-6 text-left text-sm font-medium">Date</th>
-                        <th className="py-3 px-6 text-left text-sm font-medium">Sale Item</th>
+                        <th className="py-3 px-6 text-left text-sm font-medium">Sold Item</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {artistStats.map((sale, index) => (
+                      {artistSales.map((sale, index) => (
                         <tr key={index} className="border-t">
                           <td className="py-4 px-6 text-sm">
                             {new Date(sale.createdOn).toLocaleString("en-US", {

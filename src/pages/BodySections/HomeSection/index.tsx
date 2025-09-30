@@ -1149,7 +1149,7 @@ export const HomeSection = (props: HomeSectionProps) => {
             <div className="fixed left-0 bottom-0 w-full z-50">
               <div className="w-full md:w-auto border-[1px] border-foreground/20 rounded-lg bg-[#2d2719] md:m-[10px]">
                 <div className="h-[100px] flex flex-col items-center justify-center px-2">
-                  <Loader className="animate-spin" />
+                  <Loader className="animate-spin text-yellow-300" size={20} />
                   <p className="text-foreground text-xs mt-3">hang tight, queuing music for playback</p>
                 </div>
               </div>

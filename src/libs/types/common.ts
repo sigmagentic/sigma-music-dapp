@@ -324,3 +324,27 @@ export interface FastStreamTrack {
   isExplicit?: string;
   hideOrDelete?: string; // // "1" for hide, "2" for delete (optional) 0 means the track is not deleted or hidden anymore (recovering a track)
 }
+
+export interface ArtistSale {
+  task: string;
+  createdOn: number;
+  albumId?: string;
+  amount: string;
+  totalQuantity?: number;
+}
+
+export interface ArtistStatsProps {
+  creatorPaymentsWallet: string;
+  showAmounts?: boolean;
+  artistId: string;
+  setActiveTab: (tab: string) => void;
+  onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => void;
+}
+
+export interface SalesSummary {
+  totalCount: number;
+  totalAmount: number;
+  last7Days: { count: number; amount: number };
+  last30Days: { count: number; amount: number };
+  last3Months: { count: number; amount: number };
+}

@@ -75,10 +75,10 @@ export const TrackList: React.FC<TrackListProps> = ({
       }
     };
 
-    if (album.title !== "My AI Remixes") {
+    if (album.title !== "AI Remixes") {
       fetchTracks(); // get live tracks from the DB
     } else {
-      // we are loading a manual list of remixes (most likely for the user's remixes -- i.e. album is "My AI Remixes")
+      // we are loading a manual list of remixes (most likely for the user's remixes -- i.e. album is "AI Remixes")
       if (virtualTrackList) {
         setTracks(virtualTrackList); // we are loading a manual virtual track list (e.g. for the user's remixes)
       }
@@ -134,7 +134,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader className="animate-spin w-8 h-8 text-yellow-300" />
+        <Loader className="animate-spin text-yellow-300" size={20} />
       </div>
     );
   }

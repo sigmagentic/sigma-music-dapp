@@ -371,7 +371,7 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
               {isLoadingMostStreamedSongs ? (
                 <LoadingSkeleton />
               ) : streamMetricData.length === 0 ? (
-                <p className="text-xl mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
+                <p className="mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
               ) : (
                 <div className="relative w-full">
                   <div

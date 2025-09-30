@@ -523,7 +523,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
               {paymentStatus === "processing" ? (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
-                  <Loader className="w-full text-center animate-spin hover:scale-105" />
+                  <Loader className="animate-spin text-yellow-300" size={20} />
                   <p className="text-yellow-300">Payment in process... do not close this page</p>
                 </div>
               ) : (
@@ -579,7 +579,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
                 {paymentStatus === "processing" ? (
                   <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
-                    <Loader className="w-full text-center animate-spin hover:scale-105" />
+                    <Loader className="animate-spin text-yellow-300" size={20} />
                     <p className="text-yellow-300">Payment in process... do not close this page</p>
                   </div>
                 ) : (
@@ -710,7 +710,7 @@ export const BuyAndMintAlbumUsingSOL = ({
 
               {mintingStatus === "processing" && (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg col-span-2">
-                  <Loader className="w-full text-center animate-spin hover:scale-105" />
+                  <Loader className="animate-spin text-yellow-300" size={20} />
                   <p className="text-yellow-300">
                     {mintingIsInCommercialLicensePathway
                       ? "License procurement processing... do not close this page"

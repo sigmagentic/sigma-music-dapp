@@ -115,7 +115,7 @@ const StripeCheckoutFormXP = ({ priceInUSD, closeStripePaymentPopup, commitedXPO
     <form onSubmit={handleSubmit}>
       {!paymentElementReady && (
         <div className="flex justify-center items-center">
-          <Loader className="animate-spin" />
+          <Loader className="animate-spin text-yellow-300" size={20} />
         </div>
       )}
       <div className="flex flex-col gap-4 mb-3">

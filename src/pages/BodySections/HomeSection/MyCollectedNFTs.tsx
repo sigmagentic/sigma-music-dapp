@@ -441,7 +441,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
               }
             }}>
             {isLoadingStoryLicenses ? (
-              <Loader className="w-5 h-5 animate-spin" />
+              <Loader className="animate-spin text-yellow-300" size={20} />
             ) : (
               <>
                 <RefreshCcw className="w-5 h-5" />

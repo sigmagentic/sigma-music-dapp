@@ -169,7 +169,8 @@ export const BuyAndMintAlbumUsingCC = ({
         ) : (
           <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
             <div className="flex flex-col items-center gap-4">
-              <Loader className="animate-spin" />
+              <Loader className="animate-spin text-yellow-300" size={20} />
+
               <p className="text-white text-sm font-bold">Loading payment gateway...</p>
             </div>
           </div>
@@ -216,7 +217,7 @@ export const BuyAndMintAlbumUsingCC = ({
 
                 {paymentStatus === "processing" ? (
                   <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
-                    <Loader className="w-full text-center animate-spin hover:scale-105" />
+                    <Loader className="animate-spin text-yellow-300" size={20} />
                     <p className="text-yellow-300">Payment in process... do not close this page</p>
                   </div>
                 ) : (
@@ -544,7 +545,7 @@ export const BuyAndMintAlbumUsingCC = ({
 
               {mintingStatus === "processing" && (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg col-span-2">
-                  <Loader className="w-full text-center animate-spin hover:scale-105" />
+                  <Loader className="animate-spin text-yellow-300" size={20} />
                   <p className="text-yellow-300">
                     {mintingIsInCommercialLicensePathway
                       ? "License procurement processing... do not close this page"

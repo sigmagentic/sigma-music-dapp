@@ -78,7 +78,7 @@ export const PlaylistTile = ({
       {/* Loader/Playing indicator */}
       {selectedPlaylistGenre === "" && lastClickedGenreForPlaylist === genre.code && (
         <div className="absolute top-4 right-5 z-5">
-          <Loader className="animate-spin text-white" />
+          <Loader className="animate-spin text-yellow-300" size={20} />
         </div>
       )}
       {selectedPlaylistGenre === genre.code ? (

@@ -280,8 +280,8 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
   // lets create a "virtual album" for the user that contains all their remixes
   const virtualAlbum: Album = {
     albumId: "virtual-album-PF6xCtUzeCMqXVdvqLCkZGsajKoz2XZ5JJJjuMRcjxD",
-    title: "My AI Remixes",
-    desc: "My AI Remixes",
+    title: "AI Remixes",
+    desc: "AI Remixes",
     ctaPreviewStream: "",
     ctaBuy: "",
     dripSet: "",
@@ -297,9 +297,9 @@ export function mapRawAiRemixTracksToMusicTracks(allMyRemixes: AiRemixRawTrack[]
   // next, lets map all the AiRemixRawTrack into stadard MusicTrack objects
   const allMyRemixesAsMusicTracks: MusicTrack[] = allMyRemixes.map((remix: AiRemixRawTrack, index: number) => ({
     idx: index,
-    artist: "My AI Remixes",
+    artist: "AI Remixes",
     category: "ai music, simremix",
-    album: "My AI Remixes",
+    album: "AI Remixes",
     cover_art_url: fixImgIconForRemixes(remix.image, remix.songTitle),
     title: remix.songTitle,
     stream: remix.streamUrl,

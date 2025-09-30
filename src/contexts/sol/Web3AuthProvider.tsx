@@ -117,6 +117,7 @@ export const Web3AuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Only auto-connect if we're not on the login page
         if (web3authInstance.connected && location.pathname !== routeNames.login) {
           const provider = web3authInstance.provider;
+
           if (provider) {
             const publicKeyBytes = await provider.request({ method: "solanaPublicKey" });
             if (publicKeyBytes) {

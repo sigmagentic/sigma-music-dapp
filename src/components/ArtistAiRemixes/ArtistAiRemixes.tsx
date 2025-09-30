@@ -7,13 +7,21 @@ import { useAudioPlayerStore } from "store/audioPlayer";
 
 interface ArtistAiRemixesProps {
   artistId: string;
+  artistName: string;
   setActiveTab: (tab: string) => void;
   onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => void;
   onCloseMusicPlayer: () => void;
   viewSolData: (e: number, f?: any, g?: boolean, h?: MusicTrack[]) => void;
 }
 
-export default function ArtistAiRemixes({ artistId, setActiveTab, onFeaturedArtistDeepLinkSlug, onCloseMusicPlayer, viewSolData }: ArtistAiRemixesProps) {
+export default function ArtistAiRemixes({
+  artistId,
+  artistName,
+  setActiveTab,
+  onFeaturedArtistDeepLinkSlug,
+  onCloseMusicPlayer,
+  viewSolData,
+}: ArtistAiRemixesProps) {
   const { updateAssetPlayIsQueued } = useAudioPlayerStore();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +60,7 @@ export default function ArtistAiRemixes({ artistId, setActiveTab, onFeaturedArti
                 <TrackList
                   album={virtualAiRemixAlbum}
                   artistId={"virtual-artist-id-PF6xCtUzeCMqXVdvqLCkZGsajKoz2XZ5JJJjuMRcjxD"}
-                  artistName={"Fan Made AI Remixes"}
+                  artistName={`Fan Made AI Remixes Inspired By ${artistName}`}
                   virtualTrackList={virtualAiRemixAlbumTracks}
                   checkOwnershipOfMusicAsset={() => 0}
                   trackPlayIsQueued={false}
@@ -84,10 +92,10 @@ export default function ArtistAiRemixes({ artistId, setActiveTab, onFeaturedArti
               </div>
             ) : (
               <div className="streams-leaderboard-container">
-                <h1 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
-                  My AI Remixes
+                <h1 className="!text-xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
+                  Fan Made AI Remixes Inspired By {artistName}
                 </h1>
-                <p className="text-xl mb-10 text-center md:text-left opacity-50">No official AI remixes found</p>
+                <p className="mb-10 text-center md:text-left opacity-50">No official AI remixes found</p>
               </div>
             )}
           </>

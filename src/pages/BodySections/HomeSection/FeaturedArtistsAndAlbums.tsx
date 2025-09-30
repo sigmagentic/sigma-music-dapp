@@ -1148,6 +1148,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           <div className="artist-album-sales w-full">
                             <ArtistAiRemixes
                               artistId={artistProfile.artistId}
+                              artistName={artistProfile.name}
                               setActiveTab={setActiveTab}
                               onFeaturedArtistDeepLinkSlug={onFeaturedArtistDeepLinkSlug}
                               onCloseMusicPlayer={onCloseMusicPlayer}
