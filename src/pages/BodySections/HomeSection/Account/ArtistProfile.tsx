@@ -692,7 +692,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
         onClose={() => setShowEditTrackModal(false)}
         onTracksUpdated={() => {
           handleViewCurrentTracks({ albumId: selectedAlbumMeta.albumId, albumTitle: selectedAlbumMeta.albumTitle, albumImg: selectedAlbumMeta.albumImg });
-          toastSuccess("Tracks updated successfully");
         }}
       />
 

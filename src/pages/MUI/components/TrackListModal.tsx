@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Music, Plus, X, Edit, Loader2, Trash } from "lucide-react";
+import { Music, Plus, X, Edit, Loader2, Trash, EyeOff, Recycle } from "lucide-react";
 import { ALL_MUSIC_GENRES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Badge } from "libComponents/Badge";
@@ -163,7 +163,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     setIsFormView(true);
   };
 
-  const handleDeleteTrack = async (arId: string, alId: string) => {
+  const handleDeleteTrack = async (arId: string, alId: string, recoverTrack: boolean = false) => {
     setIsDeletingTrackId(alId);
 
     try {
@@ -193,6 +193,11 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         signatureNonce: usedPreAccessNonce,
       };
 
+      // a user can recover a track that was previously deleted or hidden, we just set the older value of hideOrDelete to 0
+      if (recoverTrack) {
+        payloadToSave.hideOrDelete = "0";
+      }
+
       if (!isNonMUIMode) {
         payloadToSave.adminWallet = publicKey?.toBase58() || "";
       }
@@ -202,7 +207,12 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
       if (response.success) {
         onTracksUpdated();
-        toastSuccess(`Track ${albumIsPublished === "1" ? "hidden" : "deleted"} successfully`);
+
+        if (recoverTrack) {
+          toastSuccess("Track recovered successfully");
+        } else {
+          toastSuccess(`Track ${albumIsPublished === "1" ? "hidden" : "deleted"} successfully`);
+        }
       } else {
         toastError("Error deleting track: " + response.error);
       }
@@ -399,15 +409,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         payloadToSave.adminWallet = publicKey?.toBase58() || "";
       }
 
-      let response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
-
-      // if (isEditing) {
-      //   // Update existing track
-      //   response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
-      // } else {
-      //   // Add new track
-      //   response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
-      // }
+      const response = await adminApi.fastStream.addOrUpdateFastStreamTracksForAlbum(payloadToSave);
 
       if (response.success) {
         setIsFormView(false);
@@ -425,6 +427,8 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
           isExplicit: "",
         });
         setErrors({});
+
+        toastSuccess("Tracks updated successfully");
       } else {
         toastError(`Error: ${response.error || `Failed to ${isEditing ? "update" : "add"} track`}`);
       }
@@ -693,24 +697,45 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                       <div className="flex-shrink-0 ml-2 flex space-x-1">
                         <Button
                           disabled={isDeletingTrackId !== ""}
+                          title={track.hideOrDelete === "2" || track.hideOrDelete === "1" ? "Recover Track" : "Delete Track"}
                           onClick={() => {
-                            const alertMsg =
-                              albumIsPublished === "1"
-                                ? "You are sure you want to delete this track? Note that as your album is published and some people may have already bought it, the track just gets hidden from the public in future."
-                                : "You are sure you want to delete this track?";
-                            const confirmed = confirm(alertMsg);
-                            if (!confirmed) {
-                              return;
-                            }
+                            if (track.hideOrDelete === "2" || track.hideOrDelete === "1") {
+                              const alertMsg = "Are are sure you want to recover this track? Once it is recovered, it will be visible to the public again.";
+                              const confirmed = confirm(alertMsg);
+                              if (!confirmed) {
+                                return;
+                              }
 
-                            handleDeleteTrack(track.arId, track.alId);
+                              handleDeleteTrack(track.arId, track.alId, true);
+                              return;
+                            } else {
+                              const alertMsg =
+                                albumIsPublished === "1"
+                                  ? "Are are sure you want to delete this track? Note that as your album is published and some people may have already bought it, the track just gets hidden from the public in future."
+                                  : "Are are sure you want to delete this track?";
+                              const confirmed = confirm(alertMsg);
+                              if (!confirmed) {
+                                return;
+                              }
+
+                              handleDeleteTrack(track.arId, track.alId);
+                            }
                           }}
                           variant="outline"
                           size="sm"
                           className="h-8 w-8 p-0">
-                          {isDeletingTrackId === track.alId ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash className="w-3 h-3" />}
+                          {isDeletingTrackId === track.alId ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <>{track.hideOrDelete === "2" || track.hideOrDelete === "1" ? <Recycle className="w-3 h-3" /> : <Trash className="w-3 h-3" />}</>
+                          )}
                         </Button>
-                        <Button disabled={isDeletingTrackId !== ""} onClick={() => handleEditTrack(track)} variant="outline" size="sm" className="h-8 w-8 p-0">
+                        <Button
+                          disabled={isDeletingTrackId !== "" || track.hideOrDelete === "2" || track.hideOrDelete === "1"}
+                          onClick={() => handleEditTrack(track)}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0">
                           <Edit className="w-3 h-3" />
                         </Button>
                       </div>
