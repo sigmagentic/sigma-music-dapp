@@ -365,7 +365,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
   };
 
   const calculateArtistEarningSplit = (totalAmount: number) => {
-    return totalAmount * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100);
+    return Math.round(totalAmount * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100));
   };
 
   return (
