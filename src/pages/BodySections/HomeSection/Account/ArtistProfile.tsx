@@ -364,6 +364,10 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
     }
   };
 
+  const calculateArtistEarningSplit = (totalAmount: number) => {
+    return totalAmount * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100);
+  };
+
   return (
     <>
       {/* Music Catalog Section */}
@@ -665,9 +669,9 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                     </td>
                     <td className="text-xs py-3">{log.type === "sol" ? "SOL" : log.type === "xp" ? "XP" : "Credit Card"}</td>
                     <td className="text-xs py-3">{log.type === "cc" ? `$${log.amount}` : log.type === "xp" ? `${log.amount} XP` : `${log.amount} SOL`}</td>
-                    <td className="text-xs py-3">{log.priceInUSD ? `$${log.priceInUSD}` : "N/A"}</td>
+                    <td className="text-xs py-3">{log.type === "cc" ? log.amount : log.priceInUSD ? `$${log.priceInUSD}` : "N/A"}</td>
                     <td className="text-xs py-3">
-                      {log.priceInUSD ? `$${(parseFloat(log.priceInUSD) * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100)).toFixed(2)}` : "N/A"}
+                      {calculateArtistEarningSplit(log.type === "cc" ? parseFloat(log.amount) : log.priceInUSD ? parseFloat(log.priceInUSD) : 0)}
                     </td>
                   </tr>
                 ))}
