@@ -729,11 +729,20 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               </>
                             )}
                             {(!filterByArtistCampaignCode || filterByArtistCampaignCode === -1) && (
-                              <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
-                                <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
-                                  {artist.name.replaceAll("_", " ")}
-                                </h2>
-                              </div>
+                              <>
+                                <div className="bg-black absolute bottom-0 w-[100%] p-2 rounded-b-[7px]">
+                                  <h2 className={`!text-lg !text-white lg:!text-lg text-nowrap text-center text-ellipsis overflow-hidden`}>
+                                    {artist.name.replaceAll("_", " ")}
+                                  </h2>
+                                </div>
+                                {artist.isVerifiedArtist && (
+                                  <div
+                                    title="This artist has been verified by Sigma Music"
+                                    className={`absolute top-1 right-1 rounded-md text-md p-2 bg-yellow-300 text-gray-800 text-[10px]`}>
+                                    ☑️ Verified Artist
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>
@@ -790,7 +799,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                     <div className="flex flex-col md:flex-row gap-4 w-full">
                       <div className="artist-bio md:w-[700px] flex flex-col md:sticky md:top-4 md:self-start">
                         <div
-                          className={`img-container relative ${activeTab === "fan" && artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== "" ? "cursor-pointer" : ""}`}
+                          className={`img-container ${artistProfile.isVerifiedArtist ? "border-2 border-yellow-300 bg-yellow-300 rounded-md" : "border-2 border-yellow-300/10 bg-yellow-300/10 rounded-md"} relative ${activeTab === "fan" && artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== "" ? "cursor-pointer" : ""}`}
                           onClick={() => {
                             // if the artist has a 3D gif teaser, allow the user to click on the image to see the full size image
                             if (activeTab === "fan" && artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== "") {
@@ -800,7 +809,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             }
                           }}>
                           <div
-                            className="relative border-[0.5px] border-neutral-500/90 h-[320px] md:h-[320px] w-[100%] flex-1 bg-no-repeat bg-cover rounded-lg"
+                            className="relative h-[320px] md:h-[320px] w-[100%] flex-1 bg-no-repeat bg-cover rounded-md"
                             style={{
                               "backgroundImage": `url(${showTargettedArtistImg(artistProfile.img, artistProfile.fanToken3DGifTeaser)})`,
                               "backgroundPosition":
@@ -813,6 +822,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                   ? "contain"
                                   : getImagePositionMeta(artistProfile.img, "psize"),
                             }}></div>
+
+                          {artistProfile.isVerifiedArtist && (
+                            <div title="This artist has been verified by Sigma Music" className={`text-md p-2 bg-yellow-300 text-gray-800 text-sm`}>
+                              ☑️ Verified Artist{" "}
+                            </div>
+                          )}
                         </div>
 
                         {/* artists details and power up */}

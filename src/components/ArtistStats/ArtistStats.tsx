@@ -40,7 +40,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
     const loadArtistData = async () => {
       try {
         const [salesData, _streamsData] = await Promise.all([
-          fetchArtistSalesViaAPI(creatorPaymentsWallet, artistId),
+          fetchArtistSalesViaAPI({ creatorPaymentsWallet, artistId }),
           fetchStreamsLeaderboardByArtistViaAPI(artistId),
         ]);
 

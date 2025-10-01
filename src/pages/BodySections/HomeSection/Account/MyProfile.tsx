@@ -311,7 +311,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                             onClick={() => navigateToDeepAppView({ artistSlug: log._artistSlug, albumId: log.albumId })}>
                             Album: {log._albumName} by {log._artistName}
                           </div>
-                          <div className="text-sm text-gray-400">
+                          <div className="text-xs text-gray-400">
                             {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
                             {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
                             {log.albumSaleTypeOption === "3" && "Digital Album + Commercial License + Download + Collectible (NFT)"}
@@ -442,16 +442,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
       </div>
 
       {/* Render content based on active tab */}
-      {activeTab === "artist" ? (
-        <ArtistProfile
-          onCloseMusicPlayer={onCloseMusicPlayer}
-          viewSolData={viewSolData}
-          setHomeMode={setHomeMode}
-          navigateToDeepAppView={navigateToDeepAppView}
-        />
-      ) : (
-        renderAppProfile()
-      )}
+      {activeTab === "artist" ? <ArtistProfile navigateToDeepAppView={navigateToDeepAppView} /> : renderAppProfile()}
 
       {/* Preferences Modal */}
       <NFMePreferencesModal isOpen={showNfMePreferencesModal} onClose={() => setShowNfMePreferencesModal(false)} />

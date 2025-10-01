@@ -679,20 +679,35 @@ export const fetchMyAlbumsFromMintLogsViaAPI = async (addressSol: string, bypass
 
 const cache_artistSales: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export const fetchArtistSalesViaAPI = async (creatorPaymentsWallet: string, artistId: string) => {
+export const fetchArtistSalesViaAPI = async ({
+  creatorPaymentsWallet,
+  artistId,
+  xTakeReadOnlyPersona,
+}: {
+  creatorPaymentsWallet: string;
+  artistId: string;
+  xTakeReadOnlyPersona?: string | null;
+}) => {
+  if (xTakeReadOnlyPersona) {
+    alert("ALERT! fetchArtistSalesViaAPI using xTakeReadOnlyPersona: " + xTakeReadOnlyPersona);
+  }
+
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_artistSales[`${creatorPaymentsWallet}-${artistId}`];
+
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_2_MIN) {
       console.log(`fetchArtistSalesViaAPI: Getting artist sales for creatorPaymentsWallet: ${creatorPaymentsWallet} and artistId: ${artistId} from cache`);
       return cacheEntry.data;
     }
 
+    const walletToUse = xTakeReadOnlyPersona ? xTakeReadOnlyPersona : creatorPaymentsWallet;
+
     // if the userOwnsAlbum, then we instruct the DB to also send back the bonus tracks
     const response = await fetch(
-      `${getApiWeb2Apps()}/datadexapi/sigma/paymentsByCreatorSales?creatorWallet=${creatorPaymentsWallet}&artistId=${artistId}&byCreatorSalesStatusFilter=success`
+      `${getApiWeb2Apps()}/datadexapi/sigma/paymentsByCreatorSales?creatorWallet=${walletToUse}&artistId=${artistId}&byCreatorSalesStatusFilter=success`
     );
 
     if (response.ok) {
@@ -1401,17 +1416,25 @@ export const doFastStreamOnAlbumCheckViaAPI = async (alId: string) => {
 
 const cache_payoutLogs: { [key: string]: CacheEntry_DataWithTimestamp } = {};
 
-export async function getPayoutLogsViaAPI({ addressSol }: { addressSol: string }): Promise<any> {
+export async function getPayoutLogsViaAPI({ addressSol, xTakeReadOnlyPersona }: { addressSol: string; xTakeReadOnlyPersona?: string | null }): Promise<any> {
+  if (xTakeReadOnlyPersona) {
+    alert("ALERT! getPayoutLogsViaAPI using xTakeReadOnlyPersona: " + xTakeReadOnlyPersona);
+  }
+
   const now = Date.now();
 
   try {
     // Check if we have a valid cache entry
     const cacheEntry = cache_payoutLogs["payoutLogs"];
+
     if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_HALF_MIN) {
       console.log(`getPayoutLogsViaAPI: Getting payout logs from cache`);
       return cacheEntry.data;
     }
-    let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/payoutLogs?receiverAddr=${addressSol}`;
+
+    const walletToUse = xTakeReadOnlyPersona ? xTakeReadOnlyPersona : addressSol;
+
+    let callUrl = `${getApiWeb2Apps()}/datadexapi/sigma/payoutLogs?receiverAddr=${walletToUse}`;
 
     const res = await fetch(callUrl);
 

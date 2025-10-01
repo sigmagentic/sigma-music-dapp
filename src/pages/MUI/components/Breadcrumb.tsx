@@ -17,7 +17,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ currentView, selectedArt
 
   return (
     <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
-      <button onClick={onNavigateToMain} className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
+      <button onClick={onNavigateToMain} className="flex items-center space-x-1 hover:text-gray-200 transition-colors">
         <Home className="w-4 h-4" />
         <span>Home</span>
       </button>
@@ -28,7 +28,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ currentView, selectedArt
 
       {currentView === "albums" && (
         <>
-          <button onClick={onNavigateBack} className="hover:text-blue-600 transition-colors">
+          <button onClick={onNavigateBack} className="hover:text-gray-200 transition-colors">
             Music Catalog
           </button>
           <ChevronRight className="w-4 h-4" />

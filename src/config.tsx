@@ -61,7 +61,6 @@ export const GENERATE_MUSIC_MEME_PRICE_IN_USD = 0.04; // how much for a single v
 
 export const SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS = "6WjQ42oteJmPQTiyHpjc7tufvxyenjQs9FUiJFHb1YDX";
 
-// export const SIGMA_MEME_FEATURE_WHITELIST = "7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj,7i9D7tKmrc1vnxYXCv3C6Mf8EaxK6VL2vi2ZEK1jBpLj";
 export const SIGMA_MEME_FEATURE_WHITELIST = false;
 
 export const ENABLE_CC_PAYMENTS = import.meta.env.VITE_ENV_ENABLE_CC_PAYMENTS || "0";
@@ -434,3 +433,5 @@ export const LICENSE_TERMS_MAP = {
 };
 
 export const ONE_USD_IN_XP = 1000; // conversion rate from USD to XP
+
+export const ARTIST_EARNINGS_SPLIT_PERCENTAGE = 80; // 80% of the earnings go to the artist, 20% goes to the platform

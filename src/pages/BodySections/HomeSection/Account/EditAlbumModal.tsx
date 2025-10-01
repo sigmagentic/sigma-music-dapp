@@ -49,7 +49,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
     updateSolPreaccessNonce,
     updateSolPreaccessTimestamp,
     updateSolSignedPreaccess,
-    userWeb2AccountDetails,
+    userArtistProfile,
   } = useAccountStore();
 
   const [formData, setFormData] = useState<AlbumFormData>({ ...initialData });
@@ -351,7 +351,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
 
             {/* Pricing Options */}
             <div className="relative">
-              {!userWeb2AccountDetails.isVerifiedArtist && (
+              {!userArtistProfile.isVerifiedArtist && (
                 <p className="mb-2 absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-yellow-400 rounded-lg p-2 text-center text-black z-10">
                   Only Verified Artists can offer pricing options. Find out how to get verified{" "}
                   <a href="/faq#get-verified-artist-status" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
@@ -360,7 +360,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 </p>
               )}
               <div
-                className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${userWeb2AccountDetails.isVerifiedArtist ? "" : "opacity-20 cursor-not-allowed pointer-events-none"}`}>
+                className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${userArtistProfile.isVerifiedArtist ? "" : "opacity-20 cursor-not-allowed pointer-events-none"}`}>
                 {/* Option 1: Digital Album + Bonus Tracks Only */}
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">

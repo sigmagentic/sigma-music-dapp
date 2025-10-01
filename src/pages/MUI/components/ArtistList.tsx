@@ -5,6 +5,12 @@ import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
 import { Artist } from "libs/types/common";
 import { CollectibleMetadataModal } from "./CollectibleMetadataModal";
+import { toastError, toastSuccess } from "libs/utils/ui";
+import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
+import { useAccountStore } from "store/account";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
+import { updateArtistProfileOnBackEndAPI } from "libs/utils";
 
 interface ArtistListProps {
   artists: Artist[];
@@ -19,10 +25,10 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
   const [selectedArtistTitle, setSelectedArtistTitle] = useState<string>("");
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
 
-  const handleAddAlbum = (artistId: string, artistName: string) => {
-    // TODO: Implement add album functionality
-    console.log(`Add album for artist: ${artistName} (${artistId})`);
-  };
+  const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
+    useAccountStore();
+  const { signMessage } = useWallet();
+  const { publicKey } = useSolanaWallet();
 
   const handleViewCollectibleMetadata = async (artistName: string, artistId: string, creatorPaymentsWallet: string, tier: string) => {
     const collectibleId = `${creatorPaymentsWallet}-${artistId}-${tier}`;
@@ -45,6 +51,51 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
     console.log("Collectible metadata updated");
   };
 
+  const handlePromoteToVerifiedArtist = async (artistId: string) => {
+    alert(`Promoting artist ${artistId} to verified artist`);
+
+    try {
+      // Get the pre-access nonce and signature
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage,
+        publicKey,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
+      if (!usedPreAccessNonce || !usedPreAccessSignature) {
+        throw new Error("Failed to valid signature to prove account ownership");
+      }
+
+      // only send the changed form data to the server to save
+      const changedFormData = { isVerifiedArtist: "1" };
+
+      const artistProfileDataToSave = {
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
+        adminWallet: publicKey?.toBase58() || "",
+        artistId: artistId, // this will trigger the edit workflow
+        artistFieldsObject: changedFormData,
+      };
+
+      const response = await updateArtistProfileOnBackEndAPI(artistProfileDataToSave);
+
+      toastSuccess("Artist promoted to verified artist successfully. Reload page to verify update.");
+
+      return true;
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toastError("Error updating profile - " + (error as Error).message);
+      throw error;
+    }
+  };
+
+  console.log("artists", artists);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -53,7 +104,7 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
           <p className="text-gray-600 mt-1">Manage artists and their albums</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+          <Badge variant="secondary" className="">
             {artists.length} Artists
           </Badge>
         </div>
@@ -68,14 +119,35 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
                 <a href={`/?artist=${artist.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 mb-2 hover:underline">
                   <p className="text-sm text-gray-500 mb-2">@{artist.slug}</p>
                 </a>
-                <p className="text-sm text-gray-500 mb-2">{artist.artistId}</p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm text-gray-500 mb-2">{artist.artistId}</p>
+                  <p className="text-xs text-gray-500 mb-2">Last Index On: {artist.lastIndexOn ? new Date(artist.lastIndexOn).toLocaleString() : "N/A"}</p>
+                </div>
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   {artist.creatorPaymentsWallet && (
                     <div className="flex items-center space-x-1">
                       <Users className="w-4 h-4" />
-                      <span className="font-mono text-xs">
-                        {artist.creatorPaymentsWallet.slice(0, 6)}...{artist.creatorPaymentsWallet.slice(-4)}
-                      </span>
+
+                      <div className="relative group">
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(artist.creatorPaymentsWallet);
+                              toastSuccess("Creator Payments Wallet copied to clipboard!");
+                            } catch (err) {
+                              console.error("Failed to copy: ", err);
+                              toastError("Failed to copy to clipboard");
+                            }
+                          }}
+                          className="text-gray-300 hover:text-gray-200 hover:underline cursor-pointer transition-colors">
+                          <span className="font-mono text-xs">
+                            {artist.creatorPaymentsWallet.slice(0, 6)}...{artist.creatorPaymentsWallet.slice(-4)}
+                          </span>
+                        </button>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                          Click to Copy
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -91,25 +163,22 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
             )}
 
             <div className="flex flex-col space-y-2">
-              <Button
-                onClick={() => handleViewCollectibleMetadata(artist.name, artist.artistId, artist.creatorPaymentsWallet, "t1")}
-                variant="outline"
-                className="w-full">
+              <Button onClick={() => handleViewCollectibleMetadata(artist.name, artist.artistId, artist.creatorPaymentsWallet, "t1")}>
                 <Tag className="w-4 h-4 mr-2" />
                 View Basic Fan Collectible Metadata
               </Button>
-              <div className="flex space-x-2">
-                <Button onClick={() => onArtistSelect(artist.artistId, artist.name)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-                  View Albums
-                </Button>
+              <Button onClick={() => onArtistSelect(artist.artistId, artist.name)}>View Albums</Button>
+
+              {!artist.isVerifiedArtist ? (
                 <Button
-                  onClick={() => handleAddAlbum(artist.artistId, artist.name)}
-                  variant="outline"
-                  size="sm"
-                  className="opacity-10 pointer-events-none px-3">
-                  <Plus className="w-4 h-4" />
+                  onClick={() => {
+                    handlePromoteToVerifiedArtist(artist.artistId);
+                  }}>
+                  Promote to Verified Artist
                 </Button>
-              </div>
+              ) : (
+                <p>Artist is Already Verified!</p>
+              )}
             </div>
           </Card>
         ))}

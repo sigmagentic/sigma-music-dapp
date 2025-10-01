@@ -9,7 +9,7 @@ import { useAccountStore } from "store/account";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { EditArtistProfileModal, ArtistProfileFormData } from "./EditArtistProfileModal";
 import { EditAlbumModal, AlbumFormData } from "./EditAlbumModal";
-import { SOL_ENV_ENUM } from "config";
+import { ARTIST_EARNINGS_SPLIT_PERCENTAGE, SOL_ENV_ENUM } from "config";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { toastSuccess, toastError, updateArtistProfileOnBackEndAPI, getAlbumFromDBViaAPI, updateAlbumOnBackEndAPI } from "libs/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -21,14 +21,13 @@ import { useAppStore } from "store/app";
 import ratingE from "assets/img/icons/rating-E.png";
 
 type ArtistProfileProps = {
-  onCloseMusicPlayer: () => void;
-  viewSolData: (e: number, f?: any, g?: boolean, h?: MusicTrack[]) => void;
-  setHomeMode: (homeMode: string) => void;
   navigateToDeepAppView: (logicParams: any) => void;
 };
 
+let TAKE_PERSONA_WALLET: string | null = null;
+
 // Render the artist profile content
-export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, navigateToDeepAppView }: ArtistProfileProps) => {
+export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => {
   const { publicKey: web3AuthPublicKey, web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
   const { userWeb2AccountDetails, userArtistProfile, updateUserArtistProfile } = useAccountStore();
   const { publicKey: publicKeySol, walletType, isLoading: isLoadingSolanaWallet } = useSolanaWallet();
@@ -56,9 +55,14 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
   const [artistSales, setArtistSales] = useState<PaymentLog[]>([]);
   const [isLoadingSales, setIsLoadingSales] = useState<boolean>(false);
 
-  const showVerificationInfo = () => {
-    setShowVerificationInfoModal(true);
-  };
+  // in the url, if xTakeReadOnlyPersona exists, set the TAKE_PERSONA_WALLET
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const takeReadOnlyPersona = urlParams.get("xTakeReadOnlyPersona");
+    if (takeReadOnlyPersona) {
+      TAKE_PERSONA_WALLET = takeReadOnlyPersona;
+    }
+  }, []);
 
   // Fetch payout logs when artist profile is active
   useEffect(() => {
@@ -68,7 +72,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
       const fetchPayoutLogs = async () => {
         setLoadingPayouts(true);
         try {
-          const payouts = await getPayoutLogsViaAPI({ addressSol: displayPublicKey?.toString() || "" });
+          const payouts = await getPayoutLogsViaAPI({ addressSol: displayPublicKey?.toString() || "", xTakeReadOnlyPersona: TAKE_PERSONA_WALLET || null });
           setTotalPayout(payouts.reduce((acc: number, log: any) => acc + parseFloat(log.amount), 0));
           setPayoutLogs(payouts || []);
         } catch (error) {
@@ -102,7 +106,13 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 
     const loadArtistData = async () => {
       try {
-        const [salesData] = await Promise.all([fetchArtistSalesViaAPI(userArtistProfile.creatorPaymentsWallet, userArtistProfile.artistId)]);
+        const [salesData] = await Promise.all([
+          fetchArtistSalesViaAPI({
+            creatorPaymentsWallet: userArtistProfile.creatorPaymentsWallet,
+            artistId: userArtistProfile.artistId,
+            xTakeReadOnlyPersona: TAKE_PERSONA_WALLET || null,
+          }),
+        ]);
 
         // append _albumName to the salesData
         salesData.forEach((sale: any) => {
@@ -235,11 +245,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
 
   const handleArtistProfileSave = async (artistProfileData: ArtistProfileFormData) => {
     try {
-      // Here you would typically make an API call to update the user's profile
-      console.log("Saving artist profile data:", artistProfileData);
-
-      const chainId = import.meta.env.VITE_ENV_NETWORK === "devnet" ? SOL_ENV_ENUM.devnet : SOL_ENV_ENUM.mainnet;
-
       // Get the pre-access nonce and signature
       const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
         solPreaccessNonce,
@@ -297,10 +302,6 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
       };
 
       const response = await updateArtistProfileOnBackEndAPI(artistProfileDataToSave);
-      console.log("Artist profile saved:", response);
-
-      // const updatedUserWeb2AccountDetails = { ...response };
-      // delete updatedUserWeb2AccountDetails.chainId;
 
       updateUserArtistProfile(response.fullArtistData as Artist);
       if (noArtistIdError) {
@@ -374,13 +375,11 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Badge variant="secondary" className="text-xs">
-                  {myAlbums.length} {myAlbums.length === 1 ? "Album" : "Albums"}
+                  {myAlbums.length} {myAlbums.length === 1 ? "Album" : "Albums"}{" "}
+                  {myAlbums.some((album) => album.isPublished === "1") && (
+                    <span className="text-xs text-yellow-400 ml-1">{myAlbums.filter((album) => album.isPublished === "1").length} Published</span>
+                  )}{" "}
                 </Badge>
-                {myAlbums.some((album) => album.isPublished === "1") && (
-                  <Badge variant="secondary" className="bg-yellow-400 text-black text-xs">
-                    {myAlbums.filter((album) => album.isPublished === "1").length} Published
-                  </Badge>
-                )}
               </div>
             </div>
           )}
@@ -413,7 +412,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
             <Button
               className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 mt-4"
               onClick={handleAddNewAlbum}>
-              Create New Album
+              Add New Album
             </Button>
           </div>
         )}
@@ -425,10 +424,10 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
           <h2 className="!text-xl font-bold mb-4">Your Artist Profile</h2>
 
           <div
-            className={`text-md font-bold border-2 rounded-lg p-2 ${userWeb2AccountDetails.isVerifiedArtist ? "bg-yellow-300 text-black" : "bg-gray-500 text-white"}`}>
-            {userWeb2AccountDetails.isVerifiedArtist ? "☑️ Verified Artist Account" : "Unverified Artist Account"}
-            {!userWeb2AccountDetails.isVerifiedArtist && (
-              <button type="button" onClick={showVerificationInfo} className="text-gray-400 hover:text-yellow-400 transition-colors p-1 ml-2">
+            className={`text-md font-bold border-2 rounded-lg p-2 ${userArtistProfile.isVerifiedArtist ? "bg-yellow-300 text-gray-800 text-sm" : "bg-gray-500 text-white text-sm"}`}>
+            {userArtistProfile.isVerifiedArtist ? "☑️ Verified Artist" : "Unverified Artist"}
+            {!userArtistProfile.isVerifiedArtist && (
+              <button type="button" onClick={() => setShowVerificationInfoModal(true)} className="text-gray-400 hover:text-yellow-400 transition-colors ml-1">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
@@ -629,7 +628,8 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                   <th className="pb-3 text-xs">Purchase Status</th>
                   <th className="pb-3 text-xs">Payment Method</th>
                   <th className="pb-3 text-xs">Amount</th>
-                  <th className="pb-3 text-xs">Amount in USD</th>
+                  <th className="pb-3 text-xs">Sale Total in USD</th>
+                  <th className="pb-3 text-xs">Artist Earning in USD</th>
                 </tr>
               </thead>
               <tbody>
@@ -640,7 +640,7 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                       {log.task === "buyAlbum" && (
                         <>
                           <div className="text-orange-500">Album: {log._albumName}</div>
-                          <div className="text-sm text-gray-400">
+                          <div className="text-xs text-gray-400">
                             {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
                             {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
                             {log.albumSaleTypeOption === "3" && "Digital Album + Commercial License + Download + Collectible (NFT)"}
@@ -666,6 +666,9 @@ export const ArtistProfile = ({ onCloseMusicPlayer, viewSolData, setHomeMode, na
                     <td className="text-xs py-3">{log.type === "sol" ? "SOL" : log.type === "xp" ? "XP" : "Credit Card"}</td>
                     <td className="text-xs py-3">{log.type === "cc" ? `$${log.amount}` : log.type === "xp" ? `${log.amount} XP` : `${log.amount} SOL`}</td>
                     <td className="text-xs py-3">{log.priceInUSD ? `$${log.priceInUSD}` : "N/A"}</td>
+                    <td className="text-xs py-3">
+                      {log.priceInUSD ? `$${(parseFloat(log.priceInUSD) * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100)).toFixed(2)}` : "N/A"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -866,12 +869,15 @@ const ArtistAlbumList: React.FC<{
       {albums.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {albums.map((album: Album) => (
-            <Card key={album.albumId} className="p-6 hover:shadow-lg bg-gradient-to-br from-yellow-500/10 to-orange-500/10 flex flex-col">
+            <Card
+              key={album.albumId}
+              className={`p-6 hover:shadow-lg flex flex-col border rounded-lg w-[100%]  border-2 ${album.isPublished === "1" ? "bg-yellow-500/10 border-yellow-500 " : "bg-yellow-500/5 border-yellow-800"}`}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="!text-md font-semibold text-gray-200 mb-1">{album.title}</h3>
-                  <p className="text-xs text-gray-600 mb-2">id: {album.albumId}</p>
-                  <p className="text-sm text-gray-400 mb-2">
+                  <p className="text-xs text-gray-600 mb-1">id: {album.albumId}</p>
+                  {album.bountyId && <p className="mb-1 text-xs text-gray-600">Bounty ID: {album.bountyId}</p>}
+                  <p className="text-xs text-gray-400 mb-1">
                     Status:{" "}
                     {album?.isPublished === "1" ? (
                       <span className="text-yellow-400 font-medium">Published</span>
@@ -897,14 +903,6 @@ const ArtistAlbumList: React.FC<{
                   </div>
                 )}
               </div>
-
-              {album.bountyId && (
-                <div className="mb-2 -ml-2">
-                  <Badge variant="outline" className="text-xs text-gray-300 border-gray-600">
-                    Bounty: {album.bountyId}
-                  </Badge>
-                </div>
-              )}
 
               <div className="flex gap-2 flex-wrap mt-auto">
                 <Button

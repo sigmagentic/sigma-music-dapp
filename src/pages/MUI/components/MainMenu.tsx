@@ -14,13 +14,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onMusicCatalogClick }) => {
         {/* Music Catalog */}
         <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={onMusicCatalogClick}>
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Music className="w-8 h-8 text-blue-600" />
+            <div className="p-3 bg-gray-800 rounded-lg">
+              <Music className="w-8 h-8 text-gray-400" />
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Music Catalog</h3>
               <p className="text-gray-600 mb-4">Manage artists, albums, and tracks</p>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Manage Catalog</Button>
+              <Button className="">Manage Catalog</Button>
             </div>
           </div>
         </Card>

@@ -116,6 +116,7 @@ export interface Artist {
   createdOn?: number;
   updatedOn?: number;
   isVerifiedArtist?: boolean;
+  lastIndexOn?: number;
   albums: Album[];
 }
 

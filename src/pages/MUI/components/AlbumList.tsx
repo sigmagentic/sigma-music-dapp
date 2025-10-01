@@ -243,9 +243,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
         </div>
 
         <div className="flex justify-start">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-all duration-200" onClick={handleAddNewAlbum}>
-            Create New Album
-          </Button>
+          <Button onClick={handleAddNewAlbum}>Create New Album</Button>
         </div>
 
         {albumsLoading && (
@@ -282,11 +280,8 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Button
-                    onClick={() => handleViewCurrentTracks(album.albumId, album.title, album.img, album.isPublished)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={isLoadingTracks}>
+                <div className="flex flex-col space-y-2">
+                  <Button onClick={() => handleViewCurrentTracks(album.albumId, album.title, album.img, album.isPublished)} disabled={isLoadingTracks}>
                     <Eye className="w-4 h-4 mr-2" />
                     {isLoadingTracks ? "Loading..." : "Add/Edit Tracks"}
                   </Button>
@@ -296,26 +291,18 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
                       onClick={() => {
                         setSelectedAlbumForEdit(album);
                         setShowEditAlbumModal(true);
-                      }}
-                      variant="outline"
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                      }}>
                       <Edit className="w-4 h-4 mr-2" />
                       Edit Album
                     </Button>
                   )}
 
-                  <Button
-                    onClick={() => handleViewCollectibleMetadata(album.albumId, album.title)}
-                    variant="outline"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title)}>
                     <Tag className="w-4 h-4 mr-2" />
                     Non-Commercial Collectible Metadata
                   </Button>
 
-                  <Button
-                    onClick={() => handleViewCollectibleMetadata(album.albumId, album.title, "t2")}
-                    variant="outline"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title, "t2")}>
                     <Tag className="w-4 h-4 mr-2" />
                     Commercial Collectible Metadata
                   </Button>
@@ -330,7 +317,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
             <Music className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Albums Found</h3>
             <p className="text-gray-600">No albums are currently available for this artist.</p>
-            <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">
+            <Button className="mt-4">
               <Plus className="w-4 h-4 mr-2" />
               Add Album
             </Button>
