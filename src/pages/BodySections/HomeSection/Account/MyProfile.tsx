@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { NFMePreferencesModal } from "components/NFMePreferencesModal";
-import { SOL_ENV_ENUM } from "config";
+import { APP_NETWORK, SOL_ENV_ENUM } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -238,7 +238,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         <h2 className="!text-xl font-bold mb-4">Your Music Asset Purchases</h2>
         {myMusicAssetPurchases.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <p className="text-xl text-gray-400">No logs yet</p>
+            <p className="text-md text-gray-400">No logs yet</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -284,7 +284,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
         <h2 className="!text-xl font-bold mb-4">Your Full Purchase Log</h2>
         {myPaymentLogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <p className="text-xl text-gray-400">No logs yet</p>
+            <p className="text-md text-gray-400">No logs yet</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -381,7 +381,7 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                     <td className="text-xs py-3">
                       {log.type === "sol" && log.tx ? (
                         <a
-                          href={`https://solscan.io/tx/${log.tx}`}
+                          href={`https://solscan.io/tx/${log.tx}${APP_NETWORK === "devnet" ? "?cluster=devnet" : ""}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-yellow-300 hover:text-yellow-200 hover:underline">

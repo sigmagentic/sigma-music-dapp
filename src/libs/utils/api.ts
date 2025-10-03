@@ -293,6 +293,33 @@ export const sendRemixJobAfterPaymentViaAPI = async (remixData: any) => {
   }
 };
 
+export const claimPayoutViaAPI = async (claimData: any) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/account/claimPayout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(claimData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error claiming payout:", error);
+    throw error;
+  }
+};
+
 export const logStatusChangeToAPI = async ({
   launchId,
   createdOn,
@@ -1510,7 +1537,7 @@ export async function getArtistAiRemixViaAPI({ artistId }: { artistId: string })
   }
 }
 
-export const downloadMp3TrackViaAPI = async (artistId: string, albumId: string, alId: string, trackTitle: string) => {
+export const downloadMp3TrackViaAPI = async (albumId: string, alId: string, trackTitle: string) => {
   try {
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/musicTracksDownload?albumId=${albumId}&alId=${alId}&directDownload=1`);
 

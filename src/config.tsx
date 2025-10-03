@@ -77,6 +77,8 @@ export const LOG_STREAM_EVENT_METRIC_EVERY_SECONDS = 30;
 
 export const MINTER_WALLET = APP_NETWORK === "devnet" ? "5QrQzQk5nnTJbBhdnwwwmQr94AQUkMEaZkDbU5HsvKMY" : "33iDRaAJCFY8GVTCFhnhfHMvtMqfMbTxcCgEkr6eRQnT";
 
+export const PAYOUTS_WALLET = APP_NETWORK === "devnet" ? "GHCYW4Xa52Kk2rmpKTKbNJ6G3P1uCujJMd458t89Wfcz" : "GHCYW4Xa52Kk2rmpKTKbNJ6G3P1uCujJMd458t89Wfcz";
+
 export enum GenreTier {
   TIER1 = "tier1",
   TIER2 = "tier2",

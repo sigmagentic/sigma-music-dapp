@@ -3,13 +3,13 @@ import { Loader, Music, Plus } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { Album, Artist, MusicTrack, PaymentLog } from "libs/types";
-import { fetchArtistSalesViaAPI, getAlbumTracksFromDBViaAPI, getPayoutLogsViaAPI } from "libs/utils";
+import { fetchArtistSalesViaAPI, getAlbumTracksFromDBViaAPI, getPayoutLogsViaAPI, claimPayoutViaAPI } from "libs/utils";
 import { isUserArtistType } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
 import { UserIcon } from "@heroicons/react/24/outline";
 import { EditArtistProfileModal, ArtistProfileFormData } from "./EditArtistProfileModal";
 import { EditAlbumModal, AlbumFormData } from "./EditAlbumModal";
-import { ARTIST_EARNINGS_SPLIT_PERCENTAGE, SOL_ENV_ENUM } from "config";
+import { APP_NETWORK, ARTIST_EARNINGS_SPLIT_PERCENTAGE, SOL_ENV_ENUM } from "config";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { toastSuccess, toastError, updateArtistProfileOnBackEndAPI, getAlbumFromDBViaAPI, updateAlbumOnBackEndAPI } from "libs/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -19,6 +19,7 @@ import { Card } from "libComponents/Card";
 import { TrackListModal } from "pages/MUI/components/TrackListModal";
 import { useAppStore } from "store/app";
 import ratingE from "assets/img/icons/rating-E.png";
+import { showSuccessConfetti } from "libs/utils/uiShared";
 
 type ArtistProfileProps = {
   navigateToDeepAppView: (logicParams: any) => void;
@@ -55,6 +56,10 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
   const [artistSales, setArtistSales] = useState<PaymentLog[]>([]);
   const [isLoadingSales, setIsLoadingSales] = useState<boolean>(false);
 
+  const [payoutClaimStatus, setPayoutClaimStatus] = useState<"idle" | "processing" | "failed" | "confirmed">("idle");
+  const [activePayoutClaim, setActivePayoutClaim] = useState<any>(null);
+  const [claimBackendErrorMessage, setClaimBackendErrorMessage] = useState<string | null>(null);
+
   // in the url, if xTakeReadOnlyPersona exists, set the TAKE_PERSONA_WALLET
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -70,17 +75,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
 
     if (isUserArtistType(userWeb2AccountDetails.profileTypes) && !loadingPayouts) {
       const fetchPayoutLogs = async () => {
-        setLoadingPayouts(true);
-        try {
-          const payouts = await getPayoutLogsViaAPI({ addressSol: displayPublicKey?.toString() || "", xTakeReadOnlyPersona: TAKE_PERSONA_WALLET || null });
-          setTotalPayout(payouts.reduce((acc: number, log: any) => acc + parseFloat(log.amount), 0));
-          setPayoutLogs(payouts || []);
-        } catch (error) {
-          console.error("Error fetching payout logs:", error);
-          setPayoutLogs([]);
-        } finally {
-          setLoadingPayouts(false);
-        }
+        await refreshPayoutLogs();
       };
 
       fetchPayoutLogs();
@@ -133,6 +128,20 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
       loadArtistData();
     }
   }, [userArtistProfile, isLoadingSolanaWallet, publicKeySol, albumLookup]);
+
+  const refreshPayoutLogs = async () => {
+    try {
+      setLoadingPayouts(true);
+      const payouts = await getPayoutLogsViaAPI({ addressSol: displayPublicKey?.toString() || "", xTakeReadOnlyPersona: TAKE_PERSONA_WALLET || null });
+      setTotalPayout(payouts.reduce((acc: number, log: any) => acc + parseFloat(log.amount), 0));
+      setPayoutLogs(payouts || []);
+    } catch (error) {
+      console.error("Error fetching payout logs:", error);
+      setPayoutLogs([]);
+    } finally {
+      setLoadingPayouts(false);
+    }
+  };
 
   const parseTypeCodeToLabel = (typeCode: string) => {
     switch (typeCode) {
@@ -304,6 +313,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
       const response = await updateArtistProfileOnBackEndAPI(artistProfileDataToSave);
 
       updateUserArtistProfile(response.fullArtistData as Artist);
+
       if (noArtistIdError) {
         setNoArtistIdError(false); // reset this flag as we have now created the artist profile
       }
@@ -366,6 +376,55 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
 
   const calculateArtistEarningSplit = (totalAmount: number) => {
     return Math.round(totalAmount * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100));
+  };
+
+  const handleClaimPayout = async ({ receiverAddr, paymentTS }: { receiverAddr: string; paymentTS: string }) => {
+    setPayoutClaimStatus("processing");
+
+    try {
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
+        publicKey: publicKeySol,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
+      const payoutResponse = await claimPayoutViaAPI({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
+        receiverAddr: receiverAddr,
+        paymentTS: paymentTS,
+      });
+
+      if (payoutResponse.error) {
+        throw new Error(payoutResponse.errorMessage);
+      }
+
+      toastSuccess("Payout claimed successfully");
+
+      setPayoutClaimStatus("confirmed");
+
+      setTimeout(() => {
+        showSuccessConfetti();
+      }, 500);
+    } catch (error) {
+      console.error("Error claiming payout:", error);
+      setPayoutClaimStatus("failed");
+      setClaimBackendErrorMessage((error as Error).message);
+      return;
+    }
+
+    // SIMILUATE A REAL TIME CLAIM PAYOUT
+    // setPayoutClaimStatus("confirmed");
+    // setTimeout(() => {
+    //   showSuccessConfetti();
+    // }, 500);
+    // setPayoutClaimStatus("confirmed");
+    // setActivePayoutClaim(null);
   };
 
   return (
@@ -669,9 +728,9 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                     </td>
                     <td className="text-xs py-3">{log.type === "sol" ? "SOL" : log.type === "xp" ? "XP" : "Credit Card"}</td>
                     <td className="text-xs py-3">{log.type === "cc" ? `$${log.amount}` : log.type === "xp" ? `${log.amount} XP` : `${log.amount} SOL`}</td>
-                    <td className="text-xs py-3">{log.type === "cc" ? log.amount : log.priceInUSD ? `$${log.priceInUSD}` : "N/A"}</td>
+                    <td className="text-xs py-3">{log.type === "cc" ? `$${log.amount}` : log.priceInUSD ? `$${log.priceInUSD}` : "N/A"}</td>
                     <td className="text-xs py-3">
-                      {calculateArtistEarningSplit(log.type === "cc" ? parseFloat(log.amount) : log.priceInUSD ? parseFloat(log.priceInUSD) : 0)}
+                      ${calculateArtistEarningSplit(log.type === "cc" ? parseFloat(log.amount) : log.priceInUSD ? parseFloat(log.priceInUSD) : 0)}
                     </td>
                   </tr>
                 ))}
@@ -682,14 +741,14 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
       </div>
 
       {/* Artist Payouts Section */}
-      <div className="rounded-lg p-6 border-b border-gray-800">
+      <div className="rounded-lg p-6 border-b border-gray-800 mt-5">
         <div className="flex flex-col md:flex-row items-center justify-between mb-4">
-          <h2 className="!text-xl !md:text-xl font-bold mb-4 text-center md:text-left">Artist Payouts</h2>
-          {payoutLogs.length > 0 && (
-            <div className="text-md text-yellow-300 font-bold border-2 border-yellow-300 rounded-lg p-2">
-              Total Payout: <span className="text-2xl font-bold">${totalPayout.toFixed(2)}</span>
+          <h2 className="!text-xl !md:text-xl font-bold mb-4 text-center md:text-left">Payouts</h2>
+          {/* {payoutLogs.length > 0 && (
+            <div className="text-sm text-yellow-300 font-bold border-2 border-yellow-300 rounded-lg p-1">
+              Total Payout: <span className="text-lg font-bold">${totalPayout.toFixed(2)}</span>
             </div>
-          )}
+          )} */}
         </div>
 
         {loadingPayouts ? (
@@ -714,7 +773,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
               </thead>
               <tbody>
                 {payoutLogs.map((log, index) => (
-                  <tr key={index} className="border-b border-gray-700">
+                  <tr key={index} className="border-t border-gray-700">
                     <td className="text-xs py-3">{new Date(log.paymentTS).toLocaleString()}</td>
                     <td className="text-xs py-3">
                       {log.amount} {log.token}
@@ -726,12 +785,25 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                     <td className="text-xs py-3">
                       {log.tx && (
                         <a
-                          href={`https://solscan.io/tx/${log.tx}`}
+                          href={`https://solscan.io/tx/${log.tx}${APP_NETWORK === "devnet" ? "?cluster=devnet" : ""}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-yellow-300 hover:text-yellow-200 hover:underline">
                           View on Solscan
                         </a>
+                      )}
+
+                      {!log.tx && (
+                        <Button
+                          className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black py-2 px-4 text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
+                          onClick={() => {
+                            setPayoutClaimStatus("idle");
+                            setClaimBackendErrorMessage(null);
+                            setActivePayoutClaim(log);
+                          }}
+                          disabled={payoutClaimStatus === "processing"}>
+                          Claim
+                        </Button>
                       )}
                     </td>
                   </tr>
@@ -839,6 +911,112 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                 Got it
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Claim Payout Modal */}
+      {activePayoutClaim && (
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
+          <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">
+              {payoutClaimStatus === "idle"
+                ? "Confirm Payout Details"
+                : payoutClaimStatus === "processing"
+                  ? "Payout in Process..."
+                  : payoutClaimStatus === "failed"
+                    ? "Payout Failed"
+                    : "Artist Payout Successful!"}
+            </h3>
+
+            {payoutClaimStatus !== "confirmed" ? (
+              <>
+                <div className="text-xs bg-gray-800 p-4 rounded-lg mb-4">
+                  ⚠️ You are above to claim stablecoin earnings to your wallet. Please make sure you have access to this wallet and understand how stablecoins
+                  work to make sure you are not losing any funds. If you are not sure, please contact the Sigma support team first
+                </div>
+                <div>
+                  <div className="mb-2">
+                    <p className="text-sm">
+                      Amount to claim:{" "}
+                      <span className="text-yellow-300 text-xs">
+                        {activePayoutClaim.amount} {activePayoutClaim.token}
+                      </span>
+                    </p>
+                    <p className="text-sm">
+                      Receiver Wallet: <span className="text-yellow-300 text-[10px]">{activePayoutClaim.receiverAddr}</span>
+                    </p>
+                  </div>
+
+                  {payoutClaimStatus === "failed" && (
+                    <div className="space-y-4 flex flex-col my-4">
+                      {claimBackendErrorMessage && (
+                        <div className="flex flex-col gap-4 w-full">
+                          <p className="bg-red-500 p-4 rounded-lg text-xs overflow-x-auto">
+                            ⚠️ {claimBackendErrorMessage}. Please contact the Sigma support team for assistance or try again later.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {payoutClaimStatus === "processing" ? (
+                    <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg mt-2">
+                      <Loader className="w-full text-center animate-spin text-yellow-300" size={20} />
+                      <p className="text-yellow-300 text-sm">Payout in process... do not close this page</p>
+                    </div>
+                  ) : (
+                    <div className="flex gap-4">
+                      <Button
+                        onClick={() => {
+                          setPayoutClaimStatus("idle");
+                          setClaimBackendErrorMessage(null);
+                          setActivePayoutClaim(null);
+                        }}
+                        className="flex-1 bg-gray-600 hover:bg-gray-700">
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          handleClaimPayout({
+                            receiverAddr: activePayoutClaim.receiverAddr,
+                            paymentTS: activePayoutClaim.paymentTS,
+                          });
+                        }}
+                        className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black"
+                        disabled={payoutClaimStatus === "failed"}>
+                        Proceed
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-5">
+                  <p>Your artist earnings of</p>
+                  <p className="text-2xl text-yellow-300">
+                    ${activePayoutClaim.amount} {activePayoutClaim.token}
+                  </p>
+                  <p>have been sent out!</p>
+
+                  <p className="text-yellow-300 mt-3">Keep making awesome music!</p>
+                </div>
+                <div className="flex justify-start">
+                  <Button
+                    onClick={async () => {
+                      setActivePayoutClaim(null);
+                      setPayoutClaimStatus("idle");
+                      setClaimBackendErrorMessage(null);
+
+                      await refreshPayoutLogs();
+                    }}
+                    className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black">
+                    Back to App
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

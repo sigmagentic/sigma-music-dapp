@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { SolAddressLink } from "components/SolAddressLink";
-import { MINTER_WALLET, SOLANA_NETWORK_RPC, APP_NETWORK } from "../config";
+import { MINTER_WALLET, SOLANA_NETWORK_RPC, APP_NETWORK, PAYOUTS_WALLET } from "../config";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
 
 interface MintTransaction {
   signature: string;
@@ -12,6 +13,8 @@ interface MintTransaction {
 
 export const StatusBoard = () => {
   const [minterBalance, setMinterBalance] = useState<number | null>(null);
+  const [payoutsBalance, setPayoutsBalance] = useState<number | null>(null);
+  const [payoutsBalanceUSDC, setPayoutsBalanceUSDC] = useState<number | null>(null);
   const [recentMints, setRecentMints] = useState<MintTransaction[]>([]);
   const [showRecentMints, setShowRecentMints] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +28,35 @@ export const StatusBoard = () => {
         // Fetch balance
         const balance = await connection.getBalance(new PublicKey(MINTER_WALLET));
         setMinterBalance(balance / LAMPORTS_PER_SOL);
+
+        const payoutsBalance = await connection.getBalance(new PublicKey(PAYOUTS_WALLET));
+        setPayoutsBalance(payoutsBalance / LAMPORTS_PER_SOL);
+
+        // find the USDC coin balance for PAYOUTS_WALLET
+        const USDC_MINT_ADDRESS =
+          APP_NETWORK === "mainnet"
+            ? "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" // Mainnet
+            : "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"; // Devnet
+
+        const usdcMintPubkey = new PublicKey(USDC_MINT_ADDRESS);
+        const senderPubkey = new PublicKey(PAYOUTS_WALLET);
+
+        // Get associated token address (mint, owner)
+        const senderTokenAccount = await getAssociatedTokenAddress(usdcMintPubkey, senderPubkey);
+
+        const senderAccountInfo = await connection.getAccountInfo(senderTokenAccount);
+
+        // Check if the token account exists
+        if (!senderAccountInfo) {
+          console.log("PAYOUTS_WALLET does not have a USDC token account");
+          setPayoutsBalanceUSDC(0); // Set to 0 if no token account exists
+        } else {
+          // Parse token account data to get balance
+          const senderAccountData = senderAccountInfo.data;
+          const usdcBalance = senderAccountData.readBigUInt64LE(64); // Balance is at offset 64
+
+          setPayoutsBalanceUSDC(Number(usdcBalance) / 10 ** 6);
+        }
       } catch (error) {
         console.error("Error fetching minter data:", error);
       } finally {
@@ -117,11 +149,11 @@ export const StatusBoard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">App Status</h1>
+      <h1 className="!text-3xl font-bold mb-8">App Status</h1>
 
       <div className="space-y-8">
         <section className="bg-black text-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-semibold mb-4">Story Protocol Network</h2>
+          <h2 className="!text-2xl font-semibold mb-4">Story Protocol Network</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Minter Wallet Balance:</span>
@@ -131,14 +163,28 @@ export const StatusBoard = () => {
         </section>
 
         <section className="bg-black text-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-semibold mb-4">Solana Network</h2>
+          <h2 className="!text-2xl font-semibold mb-4">Solana Network</h2>
+          {/* Payouts Wallet Balance */}
           <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-400">Payouts Wallet Balance:</span>
+              <span className="font-mono">
+                {payoutsBalance !== null ? `${payoutsBalance.toFixed(4)} SOL` : "Loading..."} <br />
+                {payoutsBalanceUSDC !== null ? `$${payoutsBalanceUSDC.toFixed(2)} USDC` : "Loading..."}
+              </span>
+            </div>
+            <div className="text-sm text-gray-400">
+              <SolAddressLink address={MINTER_WALLET} explorerAddress={explorerUrl} />
+            </div>
+          </div>
+          {/* Minter Wallet Balance */}
+          <div className="space-y-4 mt-6">
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Minter Wallet Balance:</span>
               <span className="font-mono">{minterBalance !== null ? `${minterBalance.toFixed(4)} SOL` : "Loading..."}</span>
             </div>
             <div className="text-sm text-gray-400">
-              Wallet: <SolAddressLink address={MINTER_WALLET} explorerAddress={explorerUrl} />
+              <SolAddressLink address={MINTER_WALLET} explorerAddress={explorerUrl} />
             </div>
 
             <div className="mt-6">

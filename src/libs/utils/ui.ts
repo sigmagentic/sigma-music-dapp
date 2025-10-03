@@ -354,7 +354,7 @@ export const downloadTrackViaClientSide = async ({
   let apiDownloadFailed = false;
 
   try {
-    apiDownloadFailed = !(await downloadMp3TrackViaAPI(artistId, albumId, alId, trackTitle || ""));
+    apiDownloadFailed = !(await downloadMp3TrackViaAPI(albumId, alId, trackTitle || ""));
   } catch (error) {
     console.error("Error downloading track:", error);
     // Fallback to the original method if fetch fails

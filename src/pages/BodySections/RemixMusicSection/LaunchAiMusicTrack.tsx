@@ -406,13 +406,6 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         }
 
         if (newSelectedAudioFile) {
-          // const fileUploadResponse = await saveMediaToServerViaAPI({
-          //   file: newSelectedAudioFile,
-          //   solSignature: solPreaccessSignature,
-          //   signatureNonce: solPreaccessNonce,
-          //   creatorWallet: addressSol,
-          // });
-
           const fileUploadResponse = await saveSongMediaViaAPI({
             file: newSelectedAudioFile,
             solSignature: solPreaccessSignature,
@@ -726,7 +719,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
             {paymentStatus === "processing" ? (
               <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg mt-2">
                 <Loader className="w-full text-center animate-spin text-yellow-300" size={20} />
-                <p className="text-yellow-300">Payment in process... do not close this page</p>
+                <p className="text-yellow-300 text-sm">Payment in process... do not close this page</p>
               </div>
             ) : (
               <div className="flex gap-4">
@@ -818,7 +811,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
             <h3 className="!text-xl font-bold">Sending Remix Job...</h3>
             <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
               <Loader className="w-full text-center animate-spin text-yellow-300" size={20} />
-              <p className="text-yellow-300">Job is being sent... do not close this page</p>
+              <p className="text-yellow-300 text-sm">Job is being sent... do not close this page</p>
             </div>
           </div>
         )}

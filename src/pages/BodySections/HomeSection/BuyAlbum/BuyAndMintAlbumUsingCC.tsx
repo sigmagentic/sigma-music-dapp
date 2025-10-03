@@ -218,7 +218,7 @@ export const BuyAndMintAlbumUsingCC = ({
                 {paymentStatus === "processing" ? (
                   <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg">
                     <Loader className="animate-spin text-yellow-300" size={20} />
-                    <p className="text-yellow-300">Payment in process... do not close this page</p>
+                    <p className="text-yellow-300 text-sm">Payment in process... do not close this page</p>
                   </div>
                 ) : (
                   <div className="flex gap-4">
@@ -546,7 +546,7 @@ export const BuyAndMintAlbumUsingCC = ({
               {mintingStatus === "processing" && (
                 <div className="text-center flex flex-col items-center gap-2 bg-gray-800 p-4 rounded-lg col-span-2">
                   <Loader className="animate-spin text-yellow-300" size={20} />
-                  <p className="text-yellow-300">
+                  <p className="text-yellow-300 text-sm">
                     {mintingIsInCommercialLicensePathway
                       ? "License procurement processing... do not close this page"
                       : "Collectible Minting in process... do not close this page"}
