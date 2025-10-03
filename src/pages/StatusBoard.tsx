@@ -174,7 +174,7 @@ export const StatusBoard = () => {
               </span>
             </div>
             <div className="text-sm text-gray-400">
-              <SolAddressLink address={MINTER_WALLET} explorerAddress={explorerUrl} />
+              <SolAddressLink address={PAYOUTS_WALLET} explorerAddress={explorerUrl} />
             </div>
           </div>
           {/* Minter Wallet Balance */}
