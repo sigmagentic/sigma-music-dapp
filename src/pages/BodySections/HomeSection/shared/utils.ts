@@ -31,8 +31,12 @@ export async function getArtistsAlbumsData() {
       const dataResV2 = await axios.get(getV2ArtistsAlbumsAPI);
       let datasetV2: any[] = dataResV2.data;
 
+      // Remove duplicates from datasetV1 if they exist in datasetV2 (datasetV2 is the master version)
+      const datasetV2ArtistIds = new Set(datasetV2.map((item: any) => item.artistId));
+      const filteredDatasetV1 = datasetV1.filter((item: any) => !datasetV2ArtistIds.has(item.artistId));
+
       // merge the two datasets
-      let dataset = [...datasetV1, ...datasetV2];
+      let dataset = [...filteredDatasetV1, ...datasetV2];
 
       // some items in the dataset will have isDeprioratized === "1", if so, move them to the bottom of the dataset
       dataset = dataset.sort((a: any, b: any) => {
