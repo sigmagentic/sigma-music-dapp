@@ -934,18 +934,21 @@ export const HomeSection = (props: HomeSectionProps) => {
                       }}
                       navigateToDeepAppView={navigateToDeepAppView}
                       handleLatestAlbumsReceived={(latestAlbums: any[]) => {
+                        const currentHeroSlideshowContent = [...heroSlideshowContent];
+                        const topAlbums = latestAlbums.slice(0, 3).map((album) => ({
+                          image: album.img,
+                          alt: album.title,
+                          buttonText: "New Music by " + album.artistName + " just dropped!",
+                          onClick: () => {
+                            navigateToDeepAppView({ artistSlug: `${album.artistSlug}~${album.albumId}`, toAction: "tracklist" });
+                          },
+                        }));
+
+                        console.log("topAlbums", topAlbums);
+                        console.log("currentHeroSlideshowContent", currentHeroSlideshowContent);
+
                         // push the top 3 albums to the hero slideshow content
-                        setHeroSlideshowContent([
-                          latestAlbums.slice(0, 3).map((album) => ({
-                            image: album.img,
-                            alt: album.title,
-                            buttonText: "New Music by " + album.artistName + " just dropped!",
-                            onClick: () => {
-                              navigateToDeepAppView({ artistSlug: `${album.artistSlug}~${album.albumId}`, toAction: "tracklist" });
-                            },
-                          })),
-                          ...heroSlideshowContent,
-                        ]);
+                        setHeroSlideshowContent([...topAlbums, ...currentHeroSlideshowContent]);
                       }}
                     />
                   </div>
