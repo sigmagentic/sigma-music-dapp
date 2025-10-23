@@ -545,7 +545,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       if (metaKey === "pcolor" || metaKey === "tcolor") {
         return `#${pos}` || "intial";
       } else {
-        return pos || "intial";
+        if (metaKey === "tpos") {
+          return pos || "center";
+        } else {
+          return pos || "intial";
+        }
       }
     } catch {
       // Return default if URL is invalid

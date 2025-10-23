@@ -590,7 +590,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             <div className="p-2 md:p-5">
               <div className="albumDetails flex flex-col items-start md:items-center md:flex-row">
                 <div
-                  className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover rounded-lg md:m-auto relative group ${album._albumCanBeFastStreamed && !inCollectedAlbumsView ? "cursor-pointer" : ""}`}
+                  className={`albumImg border-[0.5px] border-neutral-500/90 h-[150px] w-[150px] bg-no-repeat bg-cover bg-center rounded-lg md:m-auto relative group ${album._albumCanBeFastStreamed && !inCollectedAlbumsView ? "cursor-pointer" : ""}`}
                   style={{
                     "backgroundImage": `url(${album.img})`,
                   }}
