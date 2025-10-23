@@ -935,15 +935,17 @@ export const HomeSection = (props: HomeSectionProps) => {
                       navigateToDeepAppView={navigateToDeepAppView}
                       handleLatestAlbumsReceived={(latestAlbums: any[]) => {
                         console.log("latestAlbums received", latestAlbums);
-                        // // push the top 3 albums to the hero slideshow content
-                        // setHeroSlideshowContent(latestAlbums.slice(0, 3).map((album) => ({
-                        //   image: album.img,
-                        //   alt: album.title,
-                        //   buttonText: "Listen",
-                        //   onClick: () => {
-                        //     navigateToDeepAppView({ artistSlug: `${album.artistSlug}~${album.albumId}`, toAction: "tracklist" });
-                        //   },
-                        // })));
+                        // push the top 3 albums to the hero slideshow content
+                        setHeroSlideshowContent(
+                          latestAlbums.slice(0, 3).map((album) => ({
+                            image: album.img,
+                            alt: album.title,
+                            buttonText: "Listen",
+                            onClick: () => {
+                              navigateToDeepAppView({ artistSlug: `${album.artistSlug}~${album.albumId}`, toAction: "tracklist" });
+                            },
+                          }))
+                        );
                       }}
                     />
                   </div>
