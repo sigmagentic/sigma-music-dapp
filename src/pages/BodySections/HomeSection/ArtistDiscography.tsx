@@ -131,6 +131,13 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       const fetchAlbumsWithCanBeMinted = async () => {
         const allAlbums = [...albums];
 
+        // order by createdOn, it will be a value like 1727597270000 (most recent first)
+        allAlbums.sort((a: Album, b: Album) => {
+          const aCreatedOn = parseInt(a.createdOn?.toString() || "0");
+          const bCreatedOn = parseInt(b.createdOn?.toString() || "0");
+          return bCreatedOn - aCreatedOn;
+        });
+
         const albumsWithCanBeMintedAndFastStreamed = await Promise.all(
           allAlbums.map(async (album) => {
             const meta = await checkIfAlbumCanBeMintedViaAPI(album.albumId);

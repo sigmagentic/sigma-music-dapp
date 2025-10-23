@@ -417,28 +417,21 @@ export const HomeSection = (props: HomeSectionProps) => {
           // Step 2: If no saved genres, get random genre from Tier1 of ALL_MUSIC_GENRES
           const tier1Genres = ALL_MUSIC_GENRES.filter((genre) => genre.tier === GenreTier.TIER1);
           userSelectedGenre = tier1Genres[Math.floor(Math.random() * tier1Genres.length)].code;
-          // console.log("All available genres:", tier1Genres);
-          // console.log("Random selected genre from tier1Genres:", userSelectedGenre);
         }
 
         // Step 3: Get all tracks
         const allTracksRes = await getMusicTracksByGenreViaAPI({ genre: "all", pageSize: 35 }); // note that API MAY fail if too much response data is requested (35 seems to ok, 50 is too much)
         const allTracks = allTracksRes.tracks || [];
-        // console.log("All tracks:", allTracks);
 
         // Step 4: Get tracks for selected genre
         const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: userSelectedGenre, pageSize: 20 });
         const genreTracks = genreTracksRes.tracks || [];
-        // console.log("Genre tracks:", genreTracks);
 
         // Step 5: Merge tracks with genre tracks having priority
         const mergedTracks = [...genreTracks, ...allTracks.filter((track: any) => !genreTracks.some((genreTrack: any) => genreTrack.alId === track.alId))];
-        // console.log("Merged tracks:", mergedTracks);
 
         // Step 6: Augment tracks with artist data
         const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(mergedTracks);
-
-        // console.log("Augmented tracks:", augmentedTracks);
 
         // Set the tracks and cache the first track
         if (augmentedTracks.length > 0) {

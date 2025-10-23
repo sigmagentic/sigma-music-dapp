@@ -26,6 +26,7 @@ let originalSortedAlbumsDataset: AlbumWithArtist[] = []; // sorted by "Featured"
 const filterNames = {
   featured: "Featured",
   recent_added: "Recent Added",
+  recent_updated: "Recent Updated",
   with_ai_remix_licenses: "With AI Remix Licenses",
   alphabetical: "Alphabetical",
 };
@@ -99,7 +100,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [tabsOrdered, setTabsOrdered] = useState<string[]>(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
-  const [selectedFilter, setSelectedFilter] = useState<string>("featured");
+  const [selectedFilter, setSelectedFilter] = useState<string>("recent_added");
 
   const prevIsAllAlbumsModeRef = useRef<boolean | undefined>(isAllAlbumsMode);
 
@@ -338,6 +339,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             return bCreatedOn - aCreatedOn;
           });
           break;
+        case "recent_updated":
+          // when artists and albums get updated, the lastIndexOn gets incremented, so we sort by this value, most recent first
+          reSortedTileData = reSortedTileData.sort((a, b) => {
+            const aLastIndexOn = parseInt(a.lastIndexOn?.toString() || "0");
+            const bLastIndexOn = parseInt(b.lastIndexOn?.toString() || "0");
+            return bLastIndexOn - aLastIndexOn;
+          });
+          break;
         default:
           reSortedTileData = reSortedTileData.sort((a, b) => {
             const aMostRecentAlbumTimestamp = a.albums.reduce((max, album) => {
@@ -375,6 +384,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
             const aTimestamp = parseInt(a.updatedOn?.toString() || a.timestampAlbumAdded || "0");
             const bTimestamp = parseInt(b.updatedOn?.toString() || b.timestampAlbumAdded || "0");
             return bTimestamp - aTimestamp;
+          });
+          break;
+        case "recent_updated":
+          // when albums get updated, the lastIndexOn gets incremented, so we sort by this value, most recent first
+          reSortedTileData = reSortedTileData.sort((a, b) => {
+            const aLastIndexOn = parseInt(a.lastIndexOn?.toString() || "0");
+            const bLastIndexOn = parseInt(b.lastIndexOn?.toString() || "0");
+            return bLastIndexOn - aLastIndexOn;
           });
           break;
         case "with_ai_remix_licenses":
@@ -637,11 +654,14 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("recent_added")} className="cursor-pointer">
+                              Recently Added
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("featured")} className="cursor-pointer">
                               Featured
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("recent_added")} className="cursor-pointer">
-                              Recently Added
+                            <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("recent_updated")} className="cursor-pointer">
+                              Recently Updated
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => updateUrlWithSelectedFilter("with_ai_remix_licenses")} className="cursor-pointer">
                               With AI Remix Licenses

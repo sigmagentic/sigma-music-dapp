@@ -64,6 +64,7 @@ export interface Album {
   createdOn?: number; // the timestamp of the album created on the database
   updatedOn?: number; // the timestamp of the album updated on the database
   isPublished?: string; // 0 or 1 indicated if the album is published (0 means draft, 1 means published)
+  lastIndexOn?: number;
   _buyNowMeta?: {
     rarityGrade?: string; // the rarity of the album (e.g. "common", "uncommon", "rare", "epic", "legendary")
     maxMints?: number; // the max number of mints for the album (0 means unlimited)

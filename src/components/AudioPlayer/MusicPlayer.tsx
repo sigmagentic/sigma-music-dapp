@@ -158,6 +158,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showBonusTrackModal, setShowBonusTrackModal] = useState(false);
   const [loggedStreamMetricForTrack, setLoggedStreamMetricForTrack] = useState(0); // a simple 1 or 0 that is linked to the logic of logging a stream event to the backend so in the UI we can reflect this for debugging
+  const [mostLikelyPlaybackError, setMostLikelyPlaybackError] = useState(false);
+
   const isSmallScreen = window.innerWidth < 768;
 
   const sliderSettings = {
@@ -393,6 +395,17 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       setCurrentTrackIndex(finalTrackIndex);
     }
   }, [jumpToTrackIndexInAlbumBeingPlayed]);
+
+  useEffect(() => {
+    // if the firstSongBlobUrl is null or "", then let's give it 10 seconds to load. and if not, set a mostLikelyPlaybackError state to true
+    if (!firstSongBlobUrl || firstSongBlobUrl === "") {
+      setTimeout(() => {
+        if (!firstSongBlobUrl || firstSongBlobUrl === "") {
+          setMostLikelyPlaybackError(true);
+        }
+      }, 10000);
+    }
+  }, [firstSongBlobUrl]);
 
   const pauseMusicPlayer = () => {
     if (isPlaying) {
@@ -725,17 +738,18 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         <Loader className={styles.loader.icon + (isSmallScreen ? " w-8 h-8 mr-12" : "")} />
         {!isSmallScreen && <p className={styles.loader.text}>hang tight, queuing music for playback</p>}
 
-        {/* only show close button if the view sol data failed durign track load */}
-        {viewSolDataHasError && (
-          <button
-            className={`closePlayer select-none absolute top-0 ${isFullScreen ? "left-[10px] top-[10px]" : "top-0 left-0"} flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
-            onClick={() => {
-              updateTrackPlayIsQueued(false);
-              resetStateOnClosePlayer();
-            }}>
-            <CircleX className="w-6 h-6" />
-          </button>
-        )}
+        {/* only show close button if the view sol data failed durign track load OR the first song blob url is not loaded after 10 seconds (can happen if the mp3 has a CORs error etc) */}
+        {viewSolDataHasError ||
+          (mostLikelyPlaybackError && (
+            <button
+              className={`closePlayer select-none absolute top-0 ${isFullScreen ? "left-[10px] top-[10px]" : "top-0 left-0"} flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
+              onClick={() => {
+                updateTrackPlayIsQueued(false);
+                resetStateOnClosePlayer();
+              }}>
+              <CircleX className="w-6 h-6" />
+            </button>
+          ))}
       </div>
     );
   };
@@ -753,8 +767,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       </div>
     );
   };
-
-  console.log("tracklist", trackList);
 
   return (
     <div
