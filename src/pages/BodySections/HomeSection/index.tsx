@@ -84,6 +84,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
   const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
   const [heroSlideshowContent, setHeroSlideshowContent] = useState<any[]>([]);
+  const [dynamicHeroContentAdded, setDynamicHeroContentAdded] = useState<boolean>(false);
 
   // Animated text rotation words
   const rotatingWords = [
@@ -934,6 +935,8 @@ export const HomeSection = (props: HomeSectionProps) => {
                       }}
                       navigateToDeepAppView={navigateToDeepAppView}
                       handleLatestAlbumsReceived={(latestAlbums: any[]) => {
+                        if (dynamicHeroContentAdded) return;
+
                         const currentHeroSlideshowContent = [...heroSlideshowContent];
                         const topAlbums = latestAlbums.slice(0, 3).map((album) => ({
                           image: album.img,
@@ -944,11 +947,9 @@ export const HomeSection = (props: HomeSectionProps) => {
                           },
                         }));
 
-                        console.log("topAlbums", topAlbums);
-                        console.log("currentHeroSlideshowContent", currentHeroSlideshowContent);
-
                         // push the top 3 albums to the hero slideshow content
                         setHeroSlideshowContent([...topAlbums, ...currentHeroSlideshowContent]);
+                        setDynamicHeroContentAdded(true); // if we dont do this, it keep addign content each time we come back to this view
                       }}
                     />
                   </div>
