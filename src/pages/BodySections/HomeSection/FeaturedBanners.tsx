@@ -51,6 +51,7 @@ export const FeaturedBanners = ({
   onCloseMusicPlayer,
   setLaunchPlaylistPlayer,
   setLaunchPlaylistPlayerWithDefaultTracks,
+  handleLatestAlbumsReceived,
 }: {
   onFeaturedArtistDeepLinkSlug: (slug: string) => void;
   selectedPlaylistGenre: string;
@@ -60,6 +61,7 @@ export const FeaturedBanners = ({
   onCloseMusicPlayer: () => void;
   setLaunchPlaylistPlayer: (launchPlaylistPlayer: boolean) => void;
   setLaunchPlaylistPlayerWithDefaultTracks: (launchPlaylistPlayerWithDefaultTracks: boolean) => void;
+  handleLatestAlbumsReceived: (latestAlbums: FeaturedAlbum[]) => void;
 }) => {
   const [streamMetricData, setStreamMetricData] = useState<any[]>([]);
   const [isLoadingMostStreamedTracks, setIsLoadingMostStreamedTracks] = useState(true);
@@ -122,6 +124,8 @@ export const FeaturedBanners = ({
 
     setFeaturedAlbums(featuredAlbums);
     setLatestAlbums(latestAlbums);
+
+    handleLatestAlbumsReceived(latestAlbums);
 
     setTimeout(() => {
       setIsLoadingFeaturedAlbumsAndArtists(false);

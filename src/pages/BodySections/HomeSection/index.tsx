@@ -83,6 +83,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
   const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [heroSlideshowContent, setHeroSlideshowContent] = useState<any[]>([]);
 
   // Animated text rotation words
   const rotatingWords = [
@@ -204,6 +205,69 @@ export const HomeSection = (props: HomeSectionProps) => {
       setHomeMode(`artists-${new Date().getTime()}`);
       return;
     }
+
+    // load the base slides
+    setHeroSlideshowContent([
+      {
+        image: "https://api.itheumcloud.com/app_nftunes/assets/img/Bobby_Ibo_Underdogs.JPG",
+        imageCustomClass: "object-none",
+        alt: "New EP by Bobby Ibo is Live!",
+        buttonText: "New EP by Bobby Ibo is Live!",
+        onClick: () => {
+          navigateToDeepAppView({
+            artistSlug: "bobby-ibo",
+            albumId: "ar20_a2",
+          });
+        },
+      },
+      {
+        image: "https://api.itheumcloud.com/app_nftunes/assets/img/OLLYG_Avatar_Cover.jpeg",
+        imageCustomClass: "bg-top",
+        alt: "Olly'G Drops a Sigma Exclusive EP!",
+        buttonText: "Olly'G Drops a Sigma Exclusive EP!",
+        onClick: () => {
+          navigateToDeepAppView({
+            artistSlug: "olly-g",
+            albumId: "ar14_a5",
+          });
+        },
+      },
+      {
+        image: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Cereals.png",
+        imageCustomClass: "bg-top",
+        alt: "YFGP Drops a Sigma Exclusive EP!",
+        buttonText: "YFGP Drops a Sigma Exclusive EP!",
+        onClick: () => {
+          navigateToDeepAppView({
+            artistSlug: "yfgp",
+            albumId: "ar2_a9",
+          });
+        },
+      },
+      {
+        image: "https://api.itheumcloud.com/app_nftunes/assets/img/April_Four_Amendment_Cover.jpg",
+        imageCustomClass: "bg-center",
+        alt: "Artist Spotlight on April Four",
+        buttonText: "Artist Spotlight on April Four",
+        onClick: () => {
+          navigateToDeepAppView({
+            artistSlug: "april-four",
+            albumId: "ar23",
+          });
+        },
+      },
+      {
+        image: "https://api.itheumcloud.com/app_nftunes/assets/img/DuoDo.jpg",
+        imageCustomClass: "object-none",
+        alt: "New Music By Dúo Dø is Live!",
+        buttonText: "New Music By Dúo Dø is Live!",
+        onClick: () => {
+          navigateToDeepAppView({
+            artistSlug: "dúo-dø",
+          });
+        },
+      },
+    ]);
   }, []);
 
   // Cleanup timeout on component unmount
@@ -832,69 +896,7 @@ export const HomeSection = (props: HomeSectionProps) => {
               <div className="flex flex-col-reverse md:flex-row justify-center items-center xl:items-start w-[100%]">
                 <div className="flex flex-col w-full gap-4">
                   <div className="flex flex-col-reverse md:flex-row gap-4">
-                    <Slideshow
-                      slides={[
-                        {
-                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/Bobby_Ibo_Underdogs.JPG",
-                          imageCustomClass: "object-none",
-                          alt: "New EP by Bobby Ibo is Live!",
-                          buttonText: "New EP by Bobby Ibo is Live!",
-                          onClick: () => {
-                            navigateToDeepAppView({
-                              artistSlug: "bobby-ibo",
-                              albumId: "ar20_a2",
-                            });
-                          },
-                        },
-                        {
-                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/OLLYG_Avatar_Cover.jpeg",
-                          imageCustomClass: "bg-top",
-                          alt: "Olly'G Drops a Sigma Exclusive EP!",
-                          buttonText: "Olly'G Drops a Sigma Exclusive EP!",
-                          onClick: () => {
-                            navigateToDeepAppView({
-                              artistSlug: "olly-g",
-                              albumId: "ar14_a5",
-                            });
-                          },
-                        },
-                        {
-                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Cereals.png",
-                          imageCustomClass: "bg-top",
-                          alt: "YFGP Drops a Sigma Exclusive EP!",
-                          buttonText: "YFGP Drops a Sigma Exclusive EP!",
-                          onClick: () => {
-                            navigateToDeepAppView({
-                              artistSlug: "yfgp",
-                              albumId: "ar2_a9",
-                            });
-                          },
-                        },
-                        {
-                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/April_Four_Amendment_Cover.jpg",
-                          imageCustomClass: "bg-center",
-                          alt: "Artist Spotlight on April Four",
-                          buttonText: "Artist Spotlight on April Four",
-                          onClick: () => {
-                            navigateToDeepAppView({
-                              artistSlug: "april-four",
-                              albumId: "ar23",
-                            });
-                          },
-                        },
-                        {
-                          image: "https://api.itheumcloud.com/app_nftunes/assets/img/DuoDo.jpg",
-                          imageCustomClass: "object-none",
-                          alt: "New Music By Dúo Dø is Live!",
-                          buttonText: "New Music By Dúo Dø is Live!",
-                          onClick: () => {
-                            navigateToDeepAppView({
-                              artistSlug: "dúo-dø",
-                            });
-                          },
-                        },
-                      ]}
-                    />
+                    <Slideshow slides={heroSlideshowContent} />
                     <div className="flex flex-col flex-1 text-left align-center justify-center p-2 md:p-5">
                       <span className="md:text-right font-[Clash-Medium] text-3xl md:text-5xl xl:text-5xl bg-gradient-to-r from-yellow-300 via-orange-500 to-yellow-300 animate-text-gradient inline-block text-transparent bg-clip-text transition-transform cursor-default">
                         <p className="mb-2">Monetize Your Music in</p>
@@ -931,6 +933,18 @@ export const HomeSection = (props: HomeSectionProps) => {
                         setSearchParams({ "artist": slug });
                       }}
                       navigateToDeepAppView={navigateToDeepAppView}
+                      handleLatestAlbumsReceived={(latestAlbums: any[]) => {
+                        console.log("latestAlbums received", latestAlbums);
+                        // // push the top 3 albums to the hero slideshow content
+                        // setHeroSlideshowContent(latestAlbums.slice(0, 3).map((album) => ({
+                        //   image: album.img,
+                        //   alt: album.title,
+                        //   buttonText: "Listen",
+                        //   onClick: () => {
+                        //     navigateToDeepAppView({ artistSlug: `${album.artistSlug}~${album.albumId}`, toAction: "tracklist" });
+                        //   },
+                        // })));
+                      }}
                     />
                   </div>
                 </div>

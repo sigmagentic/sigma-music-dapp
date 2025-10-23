@@ -414,7 +414,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     // Only run custom logic if the value has changed
     if (prevValue !== currentValue) {
-      setSelectedFilter("featured"); // revert to the default filter if user swapped between artist and album view
+      setSelectedFilter("recent_added"); // revert to the default filter if user swapped between artist and album view
     }
 
     // Update the ref to the current value for the next effect run
