@@ -176,6 +176,31 @@ const faqSections: FAQSection[] = [
           </div>
         ),
       },
+      {
+        id: "sales-splits-and-licensing",
+        question: "What are the sales splits?",
+        answer: (
+          <div>
+            <p>
+              Selling your music on Sigma Music is fully "self-serve" and "optional" for "verified" Musicians. At the moment, Sigma Music offers some fixed
+              rates for albums, EPs and singles based on the type of album and the number of tracks and these rates are optimized to ensure we can account for
+              payment processing fees and other costs. The sales splits are 80% of net sales revenue goes to the artist, with 20% retained by Sigma Music as a
+              platform fee.
+            </p>
+            <p>
+              For more details on the terms of launching music, please refer to the{" "}
+              <a
+                href="/legal#terms-of-launching-music"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-yellow-300 hover:text-yellow-300 transition-colors">
+                Terms of Launching Music
+              </a>
+              .
+            </p>
+          </div>
+        ),
+      },
     ],
   },
   {
@@ -260,48 +285,6 @@ const faqSections: FAQSection[] = [
                   className="text-yellow-300 hover:text-yellow-300 transition-colors inline-block mt-2">
                   👉 https://sigmamusic.fm?g=tour
                 </a>
-              </div>
-            </div>
-          </div>
-        ),
-      },
-      {
-        id: "fan-revenue-share",
-        question: "How Does the Fan Revenue Share Work?",
-        answer: (
-          <div className="space-y-4">
-            <p className="mb-4">
-              Sigma Music shares platform success directly with its biggest supporters — the fans. We're starting with a raffle-based model, designed to be
-              simple, fun, and fair.
-            </p>
-
-            <div className="space-y-4">
-              <h4 className="text-lg font-semibold mb-2">How it works:</h4>
-              <p className="mb-4">
-                Every 2 weeks, 10% of all Sigma Music platform revenue (from music sales, fan memberships, etc.) is pooled into a reward bucket.
-              </p>
-
-              <div className="bg-gray-800 p-4 rounded-lg mb-4">
-                <h5 className="font-semibold mb-2">Eligibility Requirements:</h5>
-                <p>We take random snapshots of users who hold:</p>
-                <ul className="list-disc pl-6 space-y-2 mt-2">
-                  <li>🎵 Music NFTs</li>
-                  <li>🌟 Inner Circle Fan Club NFTs</li>
-                  <li>💰 $FAN tokens worth at least $9.99 (the price of a fan membership)</li>
-                </ul>
-              </div>
-
-              <p className="mb-4">
-                From these eligible wallets, 10 winners are randomly selected. The top winner receives a larger share — because a little competition makes it
-                more exciting 😉
-              </p>
-
-              <div className="bg-gray-800 p-4 rounded-lg">
-                <p className="font-semibold">🗓️ First Raffle Event:</p>
-                <p className="mt-2">
-                  We're aiming to run our first revenue share raffle in the last week of May 2025. As Sigma grows, we'll evolve the model based on community
-                  feedback — but our core belief stays the same: Fans should win when the platform wins.
-                </p>
               </div>
             </div>
           </div>
@@ -656,16 +639,6 @@ const faqSections: FAQSection[] = [
                       target="_blank"
                       rel="noopener noreferrer">
                       Raydium
-                    </a>
-                  </li>
-                  <li>
-                    Buy for SOL on Auto.Fun
-                    <a
-                      className="text-yellow-300 hover:text-yellow-300 transition-colors ml-2"
-                      href="https://auto.fun/token/D7qqKEr7JFpAd82m9nvJL2psdPmU1oW54g1LHvDUYFAN"
-                      target="_blank"
-                      rel="noopener noreferrer">
-                      Auto.Fun
                     </a>
                   </li>
                   <li>

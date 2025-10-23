@@ -34,6 +34,17 @@ const legalSections: LegalSection[] = [
                 not post misleading content or content that doesn't belong to them, we are not liable for any content that is misleading, breaches copyright
                 laws, or is offensive. If you encounter such content, please report it to us for investigation.
               </li>
+              <li>
+                Artists can upload content and are responsible for tagging it with the appropriate content warnings, therefore this site is not intended for
+                children under the age of 18 as it may contain explicit content that is not suitable for minors.
+              </li>
+              <li>
+                If you are an artist, you are also bound by the{" "}
+                <a href="#terms-of-launching-music" className="text-yellow-300 hover:text-yellow-300 transition-colors">
+                  Terms of Launching Music
+                </a>{" "}
+                as outlined in this document.
+              </li>
             </ul>
             <p className="mt-4">
               For any questions or concerns regarding these terms, please contact us through our{" "}
@@ -118,6 +129,182 @@ const legalSections: LegalSection[] = [
               </a>
               . We'll do our best to assist you and find a satisfactory resolution.
             </p>
+          </div>
+        ),
+      },
+      {
+        id: "terms-of-launching-music",
+        question: "Terms of Launching Music",
+        answer: (
+          <div className="space-y-4">
+            <p>By uploading, publishing, or selling music on Sigma Music, you ("the Artist") agree to the following terms:</p>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-white mb-2">1. Ownership and Rights</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>
+                    You confirm that you are the sole owner of the music you upload or that you have obtained all necessary rights, licenses, and permissions to
+                    publish and commercialize the content on Sigma Music.
+                  </li>
+                  <li>
+                    You confirm that uploading your music does not breach any copyright, contract, or other legal obligations you may have with labels,
+                    distributors, or third parties.
+                  </li>
+                  <li>You retain full ownership of your music but grant Sigma Music the rights listed below to operate the platform.</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">2. License to Sigma Music</h4>
+                <p>By uploading your music, you grant Sigma Music a worldwide, non-exclusive, royalty-free, and perpetual license to:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-2">
+                  <li>
+                    Stream, display, and promote your music on Sigma Music and its connected services (including APIs, mobile apps, social platforms, and
+                    promotional channels).
+                  </li>
+                  <li>Use your music and related materials (e.g., album art, titles, descriptions) for marketing, discovery, and promotional purposes.</li>
+                </ul>
+                <p className="mt-2">This license exists solely to enable Sigma Music to operate and promote your content within its ecosystem.</p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">3. Artist Responsibility</h4>
+                <p>You take full legal and financial responsibility for the content you upload:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-2">
+                  <li>You agree not to upload, publish, or sell any content that you do not have full rights to.</li>
+                  <li>
+                    You agree not to unpublish, alter, or materially change any album, EP, or single after it has been purchased or licensed by fans. Doing so
+                    may mislead buyers, and you accept responsibility for any refunds, disputes, or claims that result.
+                  </li>
+                  <li>You agree to accurately tag any explicit content and acknowledge that Sigma Music may remove or restrict untagged explicit material.</li>
+                  <li>
+                    You may not upload or distribute content that promotes hate, discrimination, abuse, or illegal activity. Sigma Music reserves the right to
+                    remove such content at its discretion.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">4. Sales and Payouts</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Artists and labels receive 80% of net sales revenue, with 20% retained by Sigma Music as a platform fee.</li>
+                  <li>Payouts are processed at Sigma Music's discretion, typically within the first two weeks of each month for the prior month's sales.</li>
+                  <li>Delays may occur due to processing, technical, or regulatory reasons.</li>
+                  <li>Sigma Music is not responsible for payment delays caused by third-party payment providers or external systems.</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">5. Label Representation</h4>
+                <p>
+                  If you are acting on behalf of a label or collective, you confirm that you have full legal authority to upload, promote, and sell the music of
+                  the artists you represent.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">6. Indemnity</h4>
+                <p>
+                  You agree to indemnify and hold harmless Sigma Music, its founders, employees, and partners from any claims, damages, losses, or legal costs
+                  arising from:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 mt-2">
+                  <li>Breach of these terms</li>
+                  <li>Copyright infringement</li>
+                  <li>Misrepresentation of ownership or rights</li>
+                  <li>Any other dispute between you and a third party related to your uploaded content.</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">7. Limitation of Liability</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Sigma Music is provided "as is" and makes no guarantees regarding sales, exposure, or income.</li>
+                  <li>
+                    Sigma Music is not liable for any indirect, incidental, or consequential damages (including loss of revenue, data, or reputation) arising
+                    from your use of the platform.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">8. Content Removal</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Sigma Music reserves the right to suspend or remove content that violates these terms or applicable law, without prior notice.</li>
+                  <li>
+                    In cases of repeated or severe violations, Sigma Music may terminate your account and withhold pending payouts until disputes are resolved.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">9. General Clause</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>These terms may be updated periodically. Continued use of the platform after updates constitutes your acceptance of the new terms.</li>
+                  <li>Any disputes shall be governed by the laws of New South Wales, Australia.</li>
+                  <li>
+                    By using Sigma Music, you agree that Sigma Music's total liability in any claim will not exceed the total amount of platform fees earned
+                    from your content during the prior 12 months.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "take-down-policy",
+        question: "Take Down Policy",
+        answer: (
+          <div className="space-y-4">
+            <p>
+              Sigma Music respects the intellectual property rights of artists, creators, and copyright holders. If you believe that any content on Sigma Music
+              infringes your copyright or violates any legal rights, you can request its removal by contacting us directly.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-white mb-2">How to Submit a Take Down Request</h4>
+                <p>
+                  Please contact us through our{" "}
+                  <a
+                    href="https://t.me/SigmaXMusicOfficial"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-yellow-300 hover:text-yellow-300 transition-colors">
+                    Telegram support channel
+                  </a>{" "}
+                  or email us at{" "}
+                  <a href="mailto:support@zedgehorizon.com" className="text-yellow-300 hover:text-yellow-300 transition-colors">
+                    support@zedgehorizon.com
+                  </a>
+                  .
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">Your Request Should Include</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Your full name and contact information</li>
+                  <li>The URL or title of the content you believe infringes your rights</li>
+                  <li>A short description of the issue (e.g., copyright claim, offensive content, impersonation, etc.)</li>
+                  <li>Proof of ownership or authority (if applicable)</li>
+                  <li>
+                    A statement confirming that the information you've provided is accurate and that you are the rightful owner (or authorized to act on behalf
+                    of the owner)
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">Review Process</h4>
+                <p>
+                  Sigma Music will review all take down requests promptly and may remove or restrict access to the content in question while investigating the
+                  claim.
+                </p>
+              </div>
+            </div>
           </div>
         ),
       },

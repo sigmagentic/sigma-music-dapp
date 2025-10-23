@@ -59,6 +59,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
   const [showPricingDisclaimerModal, setShowPricingDisclaimerModal] = useState(false);
   const [showPricingInfoModal, setShowPricingInfoModal] = useState(false);
   const [currentPricingInfo, setCurrentPricingInfo] = useState<{ title: string; content: string }>({ title: "", content: "" });
+  const [agreeToTermsOfLaunchMusic, setAgreeToTermsOfLaunchMusic] = useState(false);
 
   usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
@@ -594,6 +595,19 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
               </div>
             </div>
           )}
+
+          {/* agree to terms of launch music  */}
+          <div className="flex items-center justify-between my-4 border border-gray-700 p-2 rounded-md">
+            <div className="flex items-center space-x-2">
+              <label htmlFor="agree-to-terms-of-launch-music" className="text-sm font-medium text-gray-300">
+                I agree to the{" "}
+                <a href="/legal#terms-of-launching-music" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:text-yellow-300 underline">
+                  terms of launching music on Sigma Music
+                </a>
+              </label>
+            </div>
+            <Switch checked={agreeToTermsOfLaunchMusic} onCheckedChange={(checked) => setAgreeToTermsOfLaunchMusic(checked)} />
+          </div>
         </div>
 
         {/* Footer */}
@@ -604,7 +618,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
           <Button
             onClick={handleSubmit}
             className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black hover:from-yellow-400 hover:to-orange-600"
-            disabled={isSubmitting}>
+            disabled={isSubmitting || !agreeToTermsOfLaunchMusic}>
             {isSubmitting ? "Saving..." : isNewAlbum ? "Create Album" : "Save Changes"}
           </Button>
         </div>

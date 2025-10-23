@@ -86,6 +86,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
   const [newSelectedTrackCoverArtFile, setNewSelectedTrackCoverArtFile] = useState<File | null>(null);
   const [newSelectedAudioFile, setNewSelectedAudioFile] = useState<File | null>(null);
   const [isDeletingTrackId, setIsDeletingTrackId] = useState<string>("");
+  const [agreeToTermsOfLaunchMusic, setAgreeToTermsOfLaunchMusic] = useState(false);
 
   usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
@@ -643,10 +644,23 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
             </div>
           </div>
         </div>
+
+        {/* agree to terms of launch music  */}
+        <div className="flex items-center justify-between my-4 border border-gray-700 p-2 rounded-md">
+          <div className="flex items-center space-x-2">
+            <label htmlFor="agree-to-terms-of-launch-music" className="text-sm font-medium text-gray-300">
+              I agree to the{" "}
+              <a href="/legal#terms-of-launching-music" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:text-yellow-300 underline">
+                terms of launching music on Sigma Music
+              </a>
+            </label>
+          </div>
+          <Switch checked={agreeToTermsOfLaunchMusic} onCheckedChange={(checked) => setAgreeToTermsOfLaunchMusic(checked)} />
+        </div>
       </div>
 
       <div className="flex justify-end pt-4 border-t border-gray-200">
-        <Button onClick={handleSave} disabled={isSubmitting} className="bg-yellow-300 text-black hover:bg-yellow-400">
+        <Button onClick={handleSave} disabled={isSubmitting || !agreeToTermsOfLaunchMusic} className="bg-yellow-300 text-black hover:bg-yellow-400">
           {isSubmitting ? (isEditing ? "Updating..." : "Saving...") : isEditing ? "Update Track" : "Save Track"}
         </Button>
       </div>
