@@ -261,7 +261,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
       }
 
       if (!formData.file.trim() && !newSelectedAudioFile) {
-        newErrors.file = "Audio file URL is required";
+        newErrors.file = "Audio file is required";
       }
 
       // Check if the audio file is less than 10MB and has valid file type
@@ -1201,12 +1201,12 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
         className={`${renderInline ? "w-full h-full grid grid-cols-1 lg:grid-cols-2 gap-2" : "relative bg-[#1A1A1A] rounded-lg p-6 max-w-5xl w-full mx-4 grid grid-cols-1 lg:grid-cols-2 gap-6"}`}>
         {/* Close button - moved outside the grid */}
         {!renderInline && (
-          <button
+          <Button
             disabled={paymentStatus === "processing"}
             onClick={() => onCloseModal(false)}
             className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
             ✕
-          </button>
+          </Button>
         )}
 
         {/* Left Column - Prompt Form */}
@@ -1325,7 +1325,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                 {selectedAiModel === "other" && (
                   <>
                     {/* Asset Uploads */}
-                    <div className="flex flex-row gap-4 w-full md:col-span-2">
+                    <div className="flex flex-col gap-4 w-full md:col-span-2">
                       {/* Cover Art URL */}
                       <div className="flex-1">
                         <label className="block text-sm font-medium mb-1">
@@ -1360,13 +1360,14 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                       {/* File URL */}
                       <div className="flex-1">
                         <label className="block text-sm font-medium mb-1">
-                          Remix Audio File <span className="text-red-400">*</span>
+                          Remix Audio <span className="text-red-400">*</span>
                         </label>
 
                         <div className="mb-3">
                           <MediaUpdate
                             mediaUrl={formData.file}
                             size="md"
+                            customWidthClass="w-[90%]"
                             onFileSelect={(file) => {
                               setNewSelectedAudioFile(file);
                               // Clear error when file is selected

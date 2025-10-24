@@ -73,9 +73,11 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
         albumPriceOption3: initialData.albumPriceOption3 || "",
         albumPriceOption4: initialData.albumPriceOption4 || "",
       };
+
       setFormData(defaultPricingData);
       setErrors({});
       setNewSelectedAlbumImageFile(null);
+      setAgreeToTermsOfLaunchMusic(false);
     }
   }, [isOpen, initialData]);
 
@@ -299,8 +301,9 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-300">Explicit Content</label>
-                <p className="text-gray-400 text-xs">Does this album contain explicit content?</p>
+                <label className="text-sm font-medium text-gray-300">
+                  Does this album contain <span className="text-orange-400">Explicit Content</span> or adult themes?
+                </label>
               </div>
               <Switch checked={formData.isExplicit === "1"} onCheckedChange={(checked) => handleToggleChange("isExplicit", checked)} />
             </div>
@@ -331,19 +334,19 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
           </div>
 
           {/* Album Sale Options */}
-          <div className="space-y-2">
+          <div className="space-y-2 bg-gray-800 border border-gray-600 rounded-lg p-4">
             {/* Disclaimer */}
-            <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
+            <div className="">
               <div className="flex items-start space-x-3">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-2">Album Pricing Options</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">Album Sales Options</h3>
                   <p className="text-gray-300 text-sm mb-3">
                     Before enabling pricing options,{" "}
                     <button
                       type="button"
                       onClick={() => setShowPricingDisclaimerModal(true)}
                       className="text-yellow-400 hover:text-yellow-300 underline font-medium">
-                      (Read and agree) to this first
+                      Read and agree to these terms first
                     </button>
                   </p>
                 </div>
@@ -354,7 +357,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
             <div className="relative">
               {!userArtistProfile.isVerifiedArtist && (
                 <p className="mb-2 absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-yellow-400 rounded-lg p-2 text-center text-black z-10">
-                  Only Verified Artists can offer pricing options. Find out how to get verified{" "}
+                  Only Verified Artists can sell albums with pricing options. Find out how to get verified{" "}
                   <a href="/faq#get-verified-artist-status" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
                     here
                   </a>
@@ -493,6 +496,52 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
             </div>
           </div>
 
+          {/* Advanced Options */}
+          <div className="space-y-2 bg-gray-800 border border-gray-600 rounded-lg p-4">
+            <div className="">
+              <div className="flex items-start space-x-3">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-white mb-2">Advanced Options</h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Advanced Options Content */}
+            <div className="relative">
+              <div className="grid grid-cols-1 gap-6">
+                {/* Option: Seal & Protect Album on the Blockchain */}
+                <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <h4 className="text-md font-medium text-white">Seal & Protect Album on the Blockchain</h4>
+                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Coming Soon</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        showPricingInfo(
+                          "Seal & Protect Album on the Blockchain",
+                          "If your album contains tracks that you have not yet legally registered for IP protection, then using this Seal & Protect option may help you. Once your album is ready to be published, if you choose to Seal & Protect Album on the Blockchain, a proof of the album and its tracks will be stored on a decentralized network and a proof of it stored on a blockchain. This immutable step creates a timestamp and proof of when you produced the tracks, so in the future if someone were to steal any of your composition work, even if you do not have formal IP registered, you will have an immutable way to prove that the tracks were composed by you at a specific timestamp in history. These kinds of proofs can help you with any legal proceedings and are a key use-case of blockchain technology."
+                        )
+                      }
+                      className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-gray-400 text-sm">
+                    This feature will allow you to create an immutable blockchain record of your album and tracks for IP protection purposes.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Pricing Disclaimer Modal */}
           {showPricingDisclaimerModal && (
             <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
@@ -537,9 +586,9 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
 
                   <div>
                     <p className="mb-3">
-                      Also remember to be very clear on how payment splits and licensing work, learn more{" "}
+                      Also remember to be very clear on how sales splits and licensing work, learn more{" "}
                       <a
-                        href="/faq#payment-splits-and-licensing"
+                        href="/faq#sales-splits-and-licensing"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-yellow-400 hover:text-yellow-300 underline">
@@ -553,7 +602,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                     <p className="mb-3">
                       By enabling and proceeding with sales, you agree to these{" "}
                       <a
-                        href="/legal#terms-of-sale-by-artist"
+                        href="/legal#terms-of-launching-music"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-yellow-400 hover:text-yellow-300 underline">

@@ -5,6 +5,7 @@ interface MediaUpdateProps {
   imageUrl?: string;
   mediaUrl?: string;
   size?: "sm" | "md" | "lg";
+  customWidthClass?: string;
   onFileSelect: (file: File) => void;
   onFileRevert?: () => void;
   alt?: string;
@@ -23,6 +24,7 @@ export const MediaUpdate: React.FC<MediaUpdateProps> = ({
   imageUrl,
   mediaUrl,
   size = "md",
+  customWidthClass = "",
   onFileSelect,
   onFileRevert,
   alt = "Media",
@@ -79,7 +81,7 @@ export const MediaUpdate: React.FC<MediaUpdateProps> = ({
   };
 
   return (
-    <div className={`${sizeClasses[size]} ${className} relative`}>
+    <div className={`${sizeClasses[size]} ${customWidthClass} ${className} relative`}>
       <div
         className="w-full h-full rounded-md overflow-hidden bg-gray-900 border-2 border-gray-700 cursor-pointer hover:border-yellow-300 transition-colors bg-[#482d1a] p-[5px]"
         onClick={handleImageClick}>

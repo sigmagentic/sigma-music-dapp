@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Music, Plus, X, Edit, Loader2, Trash, EyeOff, Recycle } from "lucide-react";
+import { Music, Plus, X, Edit, Loader2, Trash, Recycle, ArrowUp, ArrowDown } from "lucide-react";
 import { ALL_MUSIC_GENRES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Badge } from "libComponents/Badge";
@@ -36,6 +36,7 @@ interface TrackListModalProps {
 
 interface TrackFormData {
   idx: number;
+  displayidx: number;
   arId: string;
   alId: string;
   bonus: number;
@@ -67,10 +68,12 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     useAccountStore();
 
   const [isFormView, setIsFormView] = useState(false);
+  const [isReorderView, setIsReorderView] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<TrackFormData>({
     idx: -1,
+    displayidx: -1,
     arId: artistId,
     alId: `${albumId}-X`,
     bonus: 0,
@@ -83,10 +86,15 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
   const [errors, setErrors] = useState<Partial<TrackFormData>>({});
   const [trackIdxListSoFar, setTrackIdxListSoFar] = useState<string>("");
   const [trackIdxNextGuess, setTrackIdxNextGuess] = useState<number>(1);
+  const [trackDisplayIdxListSoFar, setTrackDisplayIdxListSoFar] = useState<string>("");
+  const [trackDisplayIdxNextGuess, setTrackDisplayIdxNextGuess] = useState<number>(1);
   const [newSelectedTrackCoverArtFile, setNewSelectedTrackCoverArtFile] = useState<File | null>(null);
   const [newSelectedAudioFile, setNewSelectedAudioFile] = useState<File | null>(null);
   const [isDeletingTrackId, setIsDeletingTrackId] = useState<string>("");
   const [agreeToTermsOfLaunchMusic, setAgreeToTermsOfLaunchMusic] = useState(false);
+  const [reorderedTracks, setReorderedTracks] = useState<(FastStreamTrack & { _displayIdxNew: number })[]>([]);
+  const [supportTrackReordering, setSupportTrackReordering] = useState(false);
+  const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
 
   usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
@@ -107,6 +115,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
     setFormData({
       idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
+      displayidx: trackDisplayIdxNextGuess > 0 ? trackDisplayIdxNextGuess : 1,
       arId: artistId,
       alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
       bonus: 0,
@@ -121,6 +130,8 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     setIsEditing(false);
     setNewSelectedTrackCoverArtFile(null);
     setNewSelectedAudioFile(null);
+    setAgreeToTermsOfLaunchMusic(false);
+    setIsReorderView(false);
 
     if (preloadExistingTrackToAlbum) {
       setIsFormView(true);
@@ -131,15 +142,41 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
   useEffect(() => {
     if (tracks.length > 0) {
+      // work out next idx
       const trackListIdxList = tracks.map((track) => track.idx);
       setTrackIdxListSoFar(trackListIdxList.join(","));
 
       const nextHighestIdx = Math.max(...trackListIdxList);
       setTrackIdxNextGuess(nextHighestIdx + 1);
+
+      // work out next display idx
+      const trackListDisplayIdxList = tracks.map((track) => track.displayidx);
+      setTrackDisplayIdxListSoFar(trackListDisplayIdxList.join(","));
+
+      const nextHighestDisplayIdx = Math.max(...trackListDisplayIdxList);
+      setTrackDisplayIdxNextGuess(nextHighestDisplayIdx + 1);
+
+      // if all the tracks have a displayIdx prop then we support track reordering
+      console.log("Tracks:", tracks);
+      if (tracks.every((track) => typeof track.displayidx === "number")) {
+        setSupportTrackReordering(true);
+      } else {
+        setSupportTrackReordering(false);
+      }
     } else {
       setTrackIdxListSoFar("");
       setTrackIdxNextGuess(1);
     }
+  }, [tracks]);
+
+  // Initialize reordered tracks with _displayIdxNew
+  useEffect(() => {
+    const clonedTracks = tracks.map((track) => ({
+      ...track,
+      _displayIdxNew: track.displayidx || track.idx,
+    }));
+
+    setReorderedTracks(clonedTracks);
   }, [tracks]);
 
   const handleAddTrackToFastStream = () => {
@@ -151,6 +188,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     setIsEditing(true);
     setFormData({
       idx: track.idx,
+      displayidx: track.displayidx,
       arId: track.arId || artistId,
       alId: track.alId || `${albumId}-${track.idx}`,
       bonus: track.bonus || 0,
@@ -226,10 +264,12 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
   const handleCancelForm = () => {
     setIsFormView(false);
+    setIsReorderView(false);
     setIsEditing(false);
     setIsSubmitting(false);
     setFormData({
       idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
+      displayidx: trackDisplayIdxNextGuess > 0 ? trackDisplayIdxNextGuess : 1,
       arId: artistId,
       alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
       bonus: 0,
@@ -239,9 +279,11 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       title: "",
       isExplicit: "",
     });
+
     setErrors({});
     setNewSelectedTrackCoverArtFile(null);
     setNewSelectedAudioFile(null);
+    setAgreeToTermsOfLaunchMusic(false);
   };
 
   const handleFormChange = (field: keyof TrackFormData, value: any) => {
@@ -305,7 +347,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     }
 
     if (!formData.file.trim() && !newSelectedAudioFile) {
-      newErrors.file = "Audio file URL is required";
+      newErrors.file = "Audio file is required";
     }
 
     // check if the audio file is less than 10MB
@@ -418,6 +460,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         onTracksUpdated(); // Refresh the track list
         setFormData({
           idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
+          displayidx: trackDisplayIdxNextGuess > 0 ? trackDisplayIdxNextGuess : 1,
           arId: artistId,
           alId: `${albumId}-${trackIdxNextGuess > 0 ? trackIdxNextGuess : 1}`,
           bonus: 0,
@@ -440,6 +483,109 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       setIsSubmitting(false);
       setNewSelectedTrackCoverArtFile(null);
       setNewSelectedAudioFile(null);
+      setAgreeToTermsOfLaunchMusic(false);
+      setIsReorderView(false);
+    }
+  };
+
+  const handleMoveTrackUp = (index: number) => {
+    if (index === 0) return; // Can't move first track up
+
+    const newTracks = [...reorderedTracks];
+    const currentTrack = newTracks[index];
+    const previousTrack = newTracks[index - 1];
+
+    // Swap _displayIdxNew values
+    const tempDisplayIdx = currentTrack._displayIdxNew;
+    currentTrack._displayIdxNew = previousTrack._displayIdxNew;
+    previousTrack._displayIdxNew = tempDisplayIdx;
+
+    // Swap positions in array
+    newTracks[index] = previousTrack;
+    newTracks[index - 1] = currentTrack;
+
+    setReorderedTracks(newTracks);
+  };
+
+  const handleMoveTrackDown = (index: number) => {
+    if (index === reorderedTracks.length - 1) return; // Can't move last track down
+
+    const newTracks = [...reorderedTracks];
+    const currentTrack = newTracks[index];
+    const nextTrack = newTracks[index + 1];
+
+    // Swap _displayIdxNew values
+    const tempDisplayIdx = currentTrack._displayIdxNew;
+    currentTrack._displayIdxNew = nextTrack._displayIdxNew;
+    nextTrack._displayIdxNew = tempDisplayIdx;
+
+    // Swap positions in array
+    newTracks[index] = nextTrack;
+    newTracks[index + 1] = currentTrack;
+
+    setReorderedTracks(newTracks);
+  };
+
+  const handleUpdateOrder = async () => {
+    // we only need to save the items that changed (by comparing the originalDisplayIdx and the updatedDisplayIdx) that we need to save
+    const itemsToSave = reorderedTracks
+      .filter((track) => track.displayidx !== track._displayIdxNew)
+      .map((track) => ({
+        arId: track.arId,
+        alId: track.alId,
+        updatedDisplayIdx: track._displayIdxNew,
+      }));
+
+    console.log("Update display order items to save:", itemsToSave);
+
+    if (itemsToSave.length > 0) {
+      setIsUpdatingOrder(true);
+
+      try {
+        // let's get the user's signature here as we will need it for mint verification (best we get it before payment)
+        const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+          solPreaccessNonce,
+          solPreaccessSignature,
+          solPreaccessTimestamp,
+          signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
+          publicKey,
+          updateSolPreaccessNonce,
+          updateSolSignedPreaccess,
+          updateSolPreaccessTimestamp,
+        });
+
+        // S: if new img and  or mp3 files are selected we need to save that to the media server and get back a https url
+        if (!usedPreAccessNonce || !usedPreAccessSignature) {
+          throw new Error("Failed to valid signature to prove account ownership");
+        }
+
+        const payloadToSave: any = { updatedDisplayOrderList: itemsToSave, solSignature: usedPreAccessSignature, signatureNonce: usedPreAccessNonce };
+
+        if (!isNonMUIMode) {
+          payloadToSave.adminWallet = publicKey?.toBase58() || "";
+        } else {
+          payloadToSave.arId = artistId;
+        }
+
+        const response = await adminApi.fastStream.updateDisplayOrderForTracks(payloadToSave);
+
+        if (response.success) {
+          onTracksUpdated(); // Refresh the track list
+          setIsReorderView(false);
+          setIsUpdatingOrder(false);
+          setReorderedTracks([]);
+          toastSuccess("Display order updated successfully");
+        } else {
+          toastError(`Error: ${response.error || `Failed to update display order`}`);
+        }
+      } catch (error) {
+        console.error("Error updating display order:", error);
+        toastError(`Failed to update display order. Please try again.`);
+      } finally {
+        setIsUpdatingOrder(false);
+      }
+    } else {
+      toastError("No changes to display order");
     }
   };
 
@@ -483,8 +629,37 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
               className={errors.idx ? "border-red-500" : ""}
             />
             {errors.idx && <p className="text-red-400 text-sm mt-1">{errors.idx}</p>}
+          </div>
+          {/* Display Track Number */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Display Track Order <span className="text-red-400">*</span>
+            </label>
+            <Input
+              type="number"
+              min="1"
+              value={formData.displayidx}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                handleFormChange("displayidx", isNaN(value) ? 1 : value);
+              }}
+              placeholder="1"
+              required
+              disabled={true}
+              className={errors.displayidx ? "border-red-500" : ""}
+            />
+            {errors.displayidx && <p className="text-red-400 text-sm mt-1">{errors.displayidx}</p>}
+          </div>
+
+          <div className="col-span-2">
             {!isEditing && (
-              <span className="text-xs text-gray-600">track numbers used so far (make sure it's in sequence with no duplicates): {trackIdxListSoFar}</span>
+              <>
+                <span className="text-xs text-gray-600">
+                  track numbers used so far (make sure it's in sequence with no duplicates): {trackIdxListSoFar}
+                  <br />
+                  display track numbers used so far (make sure it's in sequence with no duplicates): {trackDisplayIdxListSoFar}
+                </span>
+              </>
             )}
           </div>
 
@@ -620,13 +795,14 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
             {/* File URL */}
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Audio File URL <span className="text-red-400">*</span>
+                Audio File (MP3) <span className="text-red-400">*</span>
               </label>
 
               <div className="mb-3">
                 <MediaUpdate
                   mediaUrl={formData.file}
                   size="md"
+                  customWidthClass="w-[90%]"
                   onFileSelect={(file) => {
                     setNewSelectedAudioFile(file);
                   }}
@@ -771,12 +947,23 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         </div>
       )}
 
-      <div className="flex justify-end space-x-3  p-6items-center border-t border-gray-700 pt-4">
+      <div className="flex justify-end space-x-3 items-center border-t border-gray-700 pt-4">
         <Button
-          onClick={onClose}
+          onClick={() => {
+            handleCancelForm();
+            onClose();
+          }}
           variant="outline"
           className={`border-gray-600 text-white hover:bg-gray-800 ${isSubmitting ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
           Cancel
+        </Button>
+
+        <Button
+          onClick={() => setIsReorderView(true)}
+          disabled={tracks.length === 0 || !supportTrackReordering}
+          variant="outline"
+          className="border-gray-600 text-white hover:bg-gray-800">
+          {supportTrackReordering ? "Reorder Tracks" : "Track reordering not supported"}
         </Button>
 
         <Button
@@ -789,6 +976,93 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     </div>
   );
 
+  const RenderReorderTrackListView = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Reorder Tracks</h3>
+          <p className="text-sm text-gray-600">Use the arrow buttons to reorder your tracks</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          {reorderedTracks.length > 0 && (
+            <Badge variant="secondary">
+              {reorderedTracks.length} {reorderedTracks.length === 1 ? "Track" : "Tracks"}
+            </Badge>
+          )}
+          <Button
+            onClick={() => {
+              setIsReorderView(false);
+            }}
+            disabled={isUpdatingOrder}
+            variant="outline"
+            size="sm"
+            className={`border-gray-600 text-white hover:bg-gray-800 ${isUpdatingOrder ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
+            <X className="w-4 h-4 mr-2" />
+            {isUpdatingOrder ? "Updating..." : "Cancel"}
+          </Button>
+        </div>
+      </div>
+
+      {reorderedTracks.length > 0 ? (
+        <div className="space-y-2">
+          {reorderedTracks.map((track, index) => (
+            <Card key={`${track.alId}-${index}`} className="p-2 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4 flex-1">
+                  <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-lg">
+                    <span className="text-lg font-bold text-gray-700">#{track._displayIdxNew}</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="!text-base font-semibold text-gray-900">{track.title}</h3>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button onClick={() => handleMoveTrackUp(index)} disabled={index === 0} variant="outline" size="sm" className="h-9 w-9 p-0" title="Move Up">
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    onClick={() => handleMoveTrackDown(index)}
+                    disabled={index === reorderedTracks.length - 1}
+                    variant="outline"
+                    size="sm"
+                    className="h-9 w-9 p-0"
+                    title="Move Down">
+                    <ArrowDown className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <Music className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Tracks Found</h3>
+          <p className="text-gray-600">No tracks are currently available for this album.</p>
+        </div>
+      )}
+
+      <div className="flex justify-end space-x-3 items-center border-t border-gray-700 pt-4 mt-6">
+        <Button
+          onClick={() => {
+            handleCancelForm();
+            onClose();
+          }}
+          variant="outline"
+          className="border-gray-600 text-white hover:bg-gray-800">
+          Cancel
+        </Button>
+
+        <Button
+          onClick={handleUpdateOrder}
+          disabled={isUpdatingOrder}
+          className={`bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-3 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200 ${isUpdatingOrder ? "opacity-20 cursor-not-allowed pointer-events-none" : ""}`}>
+          {isUpdatingOrder ? "Updating..." : "Update Order"}
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <Modal
       isOpen={isOpen}
@@ -796,10 +1070,10 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         handleCancelForm();
         onClose();
       }}
-      title={`${albumTitle} : Tracks`}
+      title={`Tracks: ${albumTitle}`}
       size="lg"
-      isWorking={isSubmitting}>
-      {isFormView ? RenderNewTrackFormView() : RenderTrackListView()}
+      isWorking={isSubmitting || isUpdatingOrder}>
+      {isFormView ? RenderNewTrackFormView() : isReorderView ? RenderReorderTrackListView() : RenderTrackListView()}
     </Modal>
   );
 };

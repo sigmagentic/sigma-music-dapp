@@ -221,6 +221,17 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     if (trackList && trackList.length > 0 && firstSongBlobUrl && firstSongBlobUrl !== "") {
       console.log("$$ trackList, firstSongBlobUrl effect MOUNTING ---");
 
+      console.log("$$ trackList:", trackList);
+
+      // if the cover_art_url is the same for files, append a ?v=idx to the url to force a reload or we get a blur
+      if (trackList.every((track) => track.cover_art_url === trackList[0].cover_art_url)) {
+        trackList.forEach((track, idx) => {
+          track.cover_art_url = track.cover_art_url + "?v=" + idx;
+        });
+
+        console.log("$$ trackList with cover_art_url appended with timestamp as they are all the same:", trackList);
+      }
+
       updateTrackPlayIsQueued(false);
 
       setSongSource((prevState) => ({

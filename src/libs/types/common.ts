@@ -323,6 +323,7 @@ export interface FastStreamTrack {
   alId: string;
   idx: number;
   title: string;
+  displayidx: number;
   isExplicit?: string;
   hideOrDelete?: string; // // "1" for hide, "2" for delete (optional) 0 means the track is not deleted or hidden anymore (recovering a track)
 }
