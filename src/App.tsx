@@ -196,6 +196,7 @@ export const App = () => {
     delete currentParams["campaign"];
     delete currentParams["section"];
     delete currentParams["view"];
+    delete currentParams["alId"];
     setSearchParams(currentParams);
   };
 
