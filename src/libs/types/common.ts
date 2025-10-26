@@ -127,6 +127,14 @@ export interface AlbumWithArtist extends Album {
   artistSlug: string;
 }
 
+export interface TrackWithKeyAlbumInfo extends MusicTrack {
+  img: string;
+  title: string;
+  albumId: string;
+  artistId: string;
+  albumCoverImg: string;
+}
+
 export interface Perk {
   pid: string;
   name: string;
@@ -191,8 +199,8 @@ export interface MintLeaderboard {
 export enum AlbumSaleTypeOption {
   priceOption1 = "1", // Digital Album + Download Only
   priceOption2 = "2", // Digital Album + Download + NFT
-  priceOption3 = "3", // Digital Album + Commercial License + Download + NFT
-  priceOption4 = "4", // Digital Album + Commercial License
+  priceOption3 = "3", // Digital Album + Commercial AI Remix License + Download + NFT
+  priceOption4 = "4", // Digital Album + Commercial AI Remix License
 }
 
 export interface PaymentLog {

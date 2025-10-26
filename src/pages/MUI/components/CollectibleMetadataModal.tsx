@@ -610,7 +610,7 @@ export const CollectibleMetadataModal: React.FC<CollectibleMetadataModalProps> =
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            Add New {isFanCollectible ? "Fan" : collectibleTier && collectibleTier === "t2" ? `Commercial License` : ""} Collectible Metadata
+            Add New {isFanCollectible ? "Fan" : collectibleTier && collectibleTier === "t2" ? `Commercial AI Remix License` : ""} Collectible Metadata
           </h3>
           <p className="text-gray-600">No collectible metadata found. Create new metadata for this {isFanCollectible ? "fan membership" : "album"}.</p>
         </div>

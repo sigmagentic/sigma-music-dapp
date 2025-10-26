@@ -444,6 +444,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   function appendAlbumIdToArtistSlug(artistSlug: string, albumId: string, revertToArtistSlug: boolean = false) {
     // at this stage, we should update the artist param to have the artisitSlug~albumId compound param
     const currentParams = Object.fromEntries(searchParams.entries());
+
     if (revertToArtistSlug) {
       currentParams["artist"] = artistSlug;
       delete currentParams["action"];
@@ -451,6 +452,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       currentParams["artist"] = `${artistSlug}~${albumId}`;
       currentParams["action"] = "tracklist";
     }
+
     setSearchParams(currentParams);
   }
 
@@ -478,6 +480,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             album={selectedAlbumForTrackList}
             artistId={artistProfile.artistId}
             artistName={artistProfile.name}
+            artistSlug={artistProfile.slug}
             onBack={() => {
               setSelectedAlbumForTrackList(null);
 
@@ -496,7 +499,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
           <div
             key={`${album.albumId}-${idx}`}
             className={`album relative flex flex-col my-3 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
-            {/* Commercial License Badge */}
+            {/* Commercial Commercial AI Remix License Badge */}
             <div className="flex flex-col relative">
               {/* Sigma Exclusive Badge */}
               {album.isSigmaExclusive && album.isSigmaExclusive === "1" && (
@@ -544,25 +547,25 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-3 py-1.5 rounded-bl-lg rounded-tr-sm font-semibold text-sm shadow-lg border border-yellow-400/50">
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 bg-black rounded-full animate-pulse"></span>
-                          Commercial License Available
+                          Commercial AI Remix License Available
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Commercial License Modal */}
+                  {/* Commercial AI Remix License Modal */}
                   {showCommercialLicenseModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
                       <div className="bg-[#1A1A1A] rounded-lg p-6  max-w-2xl w-full mx-4">
                         <div className="flex justify-between items-center mb-2">
-                          <h3 className="text-xl font-bold text-white">Commercial License Available!</h3>
+                          <h3 className="text-xl font-bold text-white">Commercial AI Remix License Available!</h3>
                           <button onClick={() => setShowCommercialLicenseModal(false)} className="text-gray-400 hover:text-white">
                             <X size={24} />
                           </button>
                         </div>
                         <div className="text-white py-2">
-                          <strong className="text-yellow-400">Commercial License</strong> is available for this album. If you buy a commercical license, you can
-                          AI Remix any track inside this album!
+                          <strong className="text-yellow-400">Commercial AI Remix License</strong> is available for this album. If you buy a commercical
+                          license, you can AI Remix any track inside this album!
                         </div>
                         <div className="flex justify-center mt-4">
                           <Button variant="outline" className="text-sm px-6" onClick={() => setShowCommercialLicenseModal(false)}>

@@ -189,7 +189,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
 
         {renderOption({
           option: "priceOption4",
-          title: "Album + Commercial License",
+          title: "Album + Commercial AI Remix License",
           description: "You Get: Digital Album + commercial use license",
           license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption4].shortDescription,
           licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption4].urlToLicense,
@@ -209,7 +209,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
 
         {renderOption({
           option: "priceOption3",
-          title: "Album + Fan Collectible + Commercial License",
+          title: "Album + Fan Collectible + Commercial AI Remix License",
           description: "You Get: Everything above + commercial use",
           license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption3].shortDescription,
           licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption3].urlToLicense,

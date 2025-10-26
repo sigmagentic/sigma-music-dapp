@@ -726,7 +726,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     }
   };
 
-  // Add scroll handler for tracklist
+  // Add scroll handler for Track List
   const handleTrackListScroll = (e: React.WheelEvent) => {
     e.stopPropagation();
   };
@@ -945,7 +945,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           <div
             className={`player flex flex-col select-none ${
               isFullScreen
-                ? `h-full justify-center items-center ${displayTrackList ? "pr-[400px]" : ""}` // Add padding when tracklist is open
+                ? `h-full justify-center items-center ${displayTrackList ? "pr-[400px]" : ""}` // Add padding when Track List is open
                 : "md:h-[110px] md:flex-row"
             } relative w-full border-t-[1px] border-foreground/10 animate-fade-in transition-all duration-300`}>
             <div className="">

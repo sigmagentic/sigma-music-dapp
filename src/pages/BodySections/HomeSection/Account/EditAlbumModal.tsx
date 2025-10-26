@@ -24,7 +24,7 @@ export interface AlbumFormData {
   isPublished: string;
   albumPriceOption1: string; // Digital Album + Bonus Tracks Only
   albumPriceOption2: string; // Album + Fan Collectible (NFT)
-  albumPriceOption3: string; // Album + Fan Collectible + Commercial License
+  albumPriceOption3: string; // Album + Fan Collectible + Commercial AI Remix License
   albumPriceOption4: string; // Album + Commercial AI Remix License
 }
 
@@ -276,7 +276,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
             {/* Image URL */}
             <div className="md:w-1/3 flex flex-col items-center justify-top">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Album Cover Image URL <span className="text-red-400">*</span>
+                Album Cover Art <span className="text-red-400">*</span>
               </label>
 
               <div className="mb-3">
@@ -339,7 +339,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
             <div className="">
               <div className="flex items-start space-x-3">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-2">Album Sales Options</h3>
+                  <h3 className="!text-lg font-semibold text-white mb-2">Album Sales Options</h3>
                   <p className="text-gray-300 text-sm mb-3">
                     Before enabling pricing options,{" "}
                     <button
@@ -368,13 +368,13 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 {/* Option 1: Digital Album + Bonus Tracks Only */}
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-md font-medium text-white">Digital Album + Bonus Tracks Only</h4>
+                    <h4 className="!text-lg font-medium text-white">Digital Album + Bonus Tracks Only</h4>
                     <button
                       type="button"
                       onClick={() =>
                         showPricingInfo(
                           "Digital Album + Bonus Tracks Only",
-                          "Buyer gets Stream + MP3 downloads incl. bonus tracks. Enabled immediately.\n\nLicense: CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives"
+                          "Buyer gets all track (including bonus tracks) to Stream and as MP3 downloads. Enabled immediately.\n\nLicense: CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives"
                         )
                       }
                       className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
@@ -387,11 +387,14 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                       </svg>
                     </button>
                   </div>
+                  <div className="mb-2">
+                    <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
+                  </div>
                   <select
                     value={formData.albumPriceOption1}
                     onChange={(e) => handleInputChange("albumPriceOption1", e.target.value)}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Not offered</option>
+                    <option value="">Not Enabled</option>
                     <option value="4">$4 (less than 6 tracks album)</option>
                     <option value="9">$9 (more than 6 tracks in album)</option>
                   </select>
@@ -400,7 +403,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 {/* Option 4: Album + Commercial AI Remix License */}
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-md font-medium text-white">Album + Commercial AI Remix License</h4>
+                    <h4 className="!text-lg font-medium text-white">Album + Commercial AI Remix License</h4>
                     <button
                       type="button"
                       onClick={() =>
@@ -423,7 +426,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                     value={formData.albumPriceOption4}
                     onChange={(e) => handleInputChange("albumPriceOption4", e.target.value)}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Not offered</option>
+                    <option value="">Not Enabled</option>
                     <option value="34">$34 (less than 6 tracks album)</option>
                     <option value="39">$39 (more than 6 tracks in album)</option>
                   </select>
@@ -432,7 +435,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 {/* Option 2: Album + Fan Collectible (NFT) */}
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-md font-medium text-white">Album + Fan Collectible (NFT)</h4>
+                    <h4 className="!text-lg font-medium text-white">Album + Fan Collectible (NFT)</h4>
                     <button
                       type="button"
                       onClick={() =>
@@ -455,21 +458,21 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                     value={formData.albumPriceOption2}
                     onChange={(e) => handleInputChange("albumPriceOption2", e.target.value)}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Not offered</option>
+                    <option value="">Not Enabled</option>
                     <option value="14">$14 (less than 6 tracks album)</option>
                     <option value="19">$19 (more than 6 tracks in album)</option>
                   </select>
                 </div>
 
-                {/* Option 3: Album + Fan Collectible + Commercial License */}
+                {/* Option 3: Album + Fan Collectible + Commercial AI Remix License */}
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-md font-medium text-white">Album + Fan Collectible + Commercial License</h4>
+                    <h4 className="!text-lg font-medium text-white">Album + Fan Collectible + Commercial AI Remix License</h4>
                     <button
                       type="button"
                       onClick={() =>
                         showPricingInfo(
-                          "Album + Fan Collectible + Commercial License",
+                          "Album + Fan Collectible + Commercial AI Remix License",
                           "Buyer gets full digital Album + fan collectible + commercial license. Ultimate web3 + AI Remix ready package! Takes a few days to setup and be enabled.\n\nLicense: CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license"
                         )
                       }
@@ -487,7 +490,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                     value={formData.albumPriceOption3}
                     onChange={(e) => handleInputChange("albumPriceOption3", e.target.value)}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Not offered</option>
+                    <option value="">Not Enabled</option>
                     <option value="44">$44 (less than 6 tracks album)</option>
                     <option value="49">$49 (more than 6 tracks in album)</option>
                   </select>
@@ -501,7 +504,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
             <div className="">
               <div className="flex items-start space-x-3">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-2">Advanced Options</h3>
+                  <h3 className="!text-lg font-semibold text-white mb-2">Advanced Options</h3>
                 </div>
               </div>
             </div>
@@ -513,8 +516,8 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <h4 className="text-md font-medium text-white">Seal & Protect Album on the Blockchain</h4>
-                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Coming Soon</span>
+                      <h4 className="!text-lg font-medium text-white">Seal & Protect Album on the Blockchain</h4>
+                      <span className="px-2 py-1 text-xs font-semibold text-black bg-orange-400 rounded">Coming Soon</span>
                     </div>
                     <button
                       type="button"

@@ -1,21 +1,25 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { ArrowLeft, Play, Loader, Download, MoreVertical, Plus } from "lucide-react";
+import { ArrowLeft, Play, Loader, Download, MoreVertical, Plus, Copy } from "lucide-react";
 import ratingE from "assets/img/icons/rating-E.png";
 import { Button } from "libComponents/Button";
-import { Album, MusicTrack } from "libs/types";
-import { getAlbumTracksFromDBViaAPI } from "libs/utils/api";
-import { scrollToTopOnMainContentArea, downloadTrackViaClientSide } from "libs/utils/ui";
+import { Album, MusicTrack, TrackWithKeyAlbumInfo } from "libs/types";
+import { getAlbumTracksFromDBViaAPI, injectXUserNameIntoTweet } from "libs/utils";
+import { scrollToTopOnMainContentArea, downloadTrackViaClientSide, toastSuccess } from "libs/utils/ui";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "libComponents/DropdownMenu";
 import { InfoTooltip } from "libComponents/Tooltip";
 import { LICENSE_BLURBS } from "config";
 import { TrackRatingButtons } from "components/TrackRatingButtons";
 import { useTrackVoting } from "hooks/useTrackVoting";
+import { useSearchParams } from "react-router-dom";
+import { useAppStore } from "store/app";
+import { Artist } from "libs/types";
 
 interface TrackListProps {
   album: Album;
   artistId: string;
   artistName: string;
+  artistSlug?: string;
   virtualTrackList?: MusicTrack[];
   trackPlayIsQueued?: boolean;
   assetPlayIsQueued?: boolean;
@@ -31,6 +35,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   album,
   artistId,
   artistName,
+  artistSlug,
   virtualTrackList,
   trackPlayIsQueued,
   assetPlayIsQueued,
@@ -41,11 +46,15 @@ export const TrackList: React.FC<TrackListProps> = ({
   onPlayTrack,
   handleTrackSelection,
 }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredTrackIndex, setHoveredTrackIndex] = useState<number | null>(null);
   const { playlistTrackIndexBeingPlayed, albumIdBeingPlayed, updateJumpToTrackIndexInAlbumBeingPlayed } = useAudioPlayerStore();
   const [trackDownloadIsInProgress, setTrackDownloadIsInProgress] = useState<boolean>(false);
+  const [selectedTrackIdForDeepLinkModal, setSelectedTrackIdForDeepLinkModal] = useState<TrackWithKeyAlbumInfo | null>(null);
+
   // Calculate bounty IDs for voting system - memoized to prevent re-render loops
   const bountyIds = useMemo(() => [...(virtualTrackList?.map((track) => track.bountyId).filter(Boolean) || [])] as string[], [virtualTrackList]);
 
@@ -86,6 +95,28 @@ export const TrackList: React.FC<TrackListProps> = ({
       setLoading(false);
     }
   }, [artistId, album.albumId, virtualTrackList]);
+
+  useEffect(() => {
+    if (album && artistId && tracks.length > 0 && searchParams) {
+      // alId is the track id, if a user sends this in then they are deep linking to a track
+      const alIdToDeepLinkTo = searchParams.get("alId");
+      if (alIdToDeepLinkTo && alIdToDeepLinkTo !== "") {
+        const track = tracks.find((track) => track.alId === alIdToDeepLinkTo);
+
+        if (track) {
+          setSelectedTrackIdForDeepLinkModal({
+            ...track,
+            albumId: album.albumId,
+            artistId: artistId,
+            albumCoverImg: album.img || "",
+          } as TrackWithKeyAlbumInfo);
+        }
+
+        console.log("show track deep link modal: album", album);
+        console.log("show track deep link modal: tracks", tracks);
+      }
+    }
+  }, [album, artistId, tracks, searchParams]);
 
   const handleTrackClick = (track: MusicTrack, trackIndex: number) => {
     // Don't allow clicking if audio player is being loaded
@@ -205,7 +236,7 @@ export const TrackList: React.FC<TrackListProps> = ({
         <div className="grid grid-cols-[50px_1fr_50px] gap-4 text-gray-400 text-sm font-medium">
           <div>#</div>
           <div>Title</div>
-          {!disabledDownloadAlways && <div>{remixWorkspaceView ? "Options" : "Download"}</div>}
+          {!disabledDownloadAlways && <div>Options</div>}
         </div>
       </div>
 
@@ -275,31 +306,8 @@ export const TrackList: React.FC<TrackListProps> = ({
                 <span className="text-gray-400 text-xs">{artistName}</span>
               </div>
 
-              {/* Download Button */}
-              {!disabledDownloadAlways && !remixWorkspaceView && (
-                <div className="flex items-center justify-center">
-                  {userOwnsAlbum ? (
-                    <button
-                      className={`text-gray-400 hover:text-white transition-colors ${isHovered ? "opacity-100" : "opacity-0"}`}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent track click handler from firing
-                        downloadTrackViaClientSideWrapper(track);
-                      }}
-                      disabled={trackDownloadIsInProgress}
-                      title="Download track">
-                      {trackDownloadIsInProgress ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-5 h-5" />}
-                    </button>
-                  ) : (
-                    <div
-                      className={`text-gray-400 transition-opacity cursor-not-allowed ${isHovered ? "opacity-50" : "opacity-0"}`}
-                      title="Buy the digital version of this album to download this track">
-                      <Download className="w-4 h-4" />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!disabledDownloadAlways && remixWorkspaceView && (
+              {/* Options Dropdown */}
+              {!disabledDownloadAlways && (
                 <div className="flex items-center justify-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -313,31 +321,54 @@ export const TrackList: React.FC<TrackListProps> = ({
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-gray-800 border-gray-700 text-white" sideOffset={5}>
+                      {/* Copy Track Link */}
                       <DropdownMenuItem
                         className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
-                          downloadTrackViaClientSideWrapper(track);
-                        }}
-                        disabled={trackDownloadIsInProgress}>
-                        <Download className="w-4 h-4 mr-2" />
-                        {trackDownloadIsInProgress ? "Downloading..." : "Download Track"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (handleTrackSelection) {
-                            handleTrackSelection(track);
+                          try {
+                            await navigator.clipboard.writeText(
+                              `${window.location.origin}/?section=artists&action=tracklist&alId=${track.alId}&artist=${artistSlug || artistId}~${album.albumId}`
+                            );
+                            toastSuccess("Track link copied!");
+                          } catch (err) {
+                            console.error("Failed to copy track link:", err);
                           }
                         }}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Track to Album
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Track Link
                       </DropdownMenuItem>
+
+                      {/* Download Track - only if user owns album */}
+                      {userOwnsAlbum && (
+                        <DropdownMenuItem
+                          className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadTrackViaClientSideWrapper(track);
+                          }}
+                          disabled={trackDownloadIsInProgress}>
+                          <Download className="w-4 h-4 mr-2" />
+                          {trackDownloadIsInProgress ? "Downloading..." : "Download Track"}
+                        </DropdownMenuItem>
+                      )}
+
+                      {/* Add Track to Album - only in remix workspace view */}
+                      {remixWorkspaceView && handleTrackSelection && (
+                        <DropdownMenuItem
+                          className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTrackSelection(track);
+                          }}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Track to Album
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  {track.bountyId && (
+                  {remixWorkspaceView && track.bountyId && (
                     <TrackRatingButtons bountyId={track.bountyId} userVotedOptions={userVotedOptions} setUserVotedOptions={setUserVotedOptions} />
                   )}
                 </div>
@@ -355,6 +386,134 @@ export const TrackList: React.FC<TrackListProps> = ({
           </p>
         </div>
       )}
+
+      {/* Track Deep Link Modal */}
+      {selectedTrackIdForDeepLinkModal && (
+        <TrackDeepLinkModal
+          track={selectedTrackIdForDeepLinkModal}
+          artistName={artistName}
+          albumTitle={album.title}
+          onClose={() => {
+            setSelectedTrackIdForDeepLinkModal(null);
+            // Remove alId from URL
+            const currentParams = Object.fromEntries(searchParams.entries());
+            delete currentParams["alId"];
+            setSearchParams(currentParams);
+          }}
+          onPlayTrack={() => {
+            handleTrackClick(selectedTrackIdForDeepLinkModal, selectedTrackIdForDeepLinkModal.idx);
+            setSelectedTrackIdForDeepLinkModal(null);
+            // Remove alId from URL
+            const currentParams = Object.fromEntries(searchParams.entries());
+            delete currentParams["alId"];
+            setSearchParams(currentParams);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+// Track Deep Link Modal Component
+interface TrackDeepLinkModalProps {
+  track: TrackWithKeyAlbumInfo;
+  artistName: string;
+  albumTitle: string;
+  onClose: () => void;
+  onPlayTrack: () => void;
+}
+
+const TrackDeepLinkModal: React.FC<TrackDeepLinkModalProps> = ({ track, artistName, albumTitle, onClose, onPlayTrack }) => {
+  const { artistLookupEverything } = useAppStore();
+  const [tweetText, setTweetText] = useState<string>("");
+
+  useEffect(() => {
+    if (track.title && track.title !== "") {
+      const findArtist = Object.values(artistLookupEverything).find((artist: Artist) => artist.artistId === track.artistId);
+
+      // Include artist slug and album ID in the deep link so it can be opened from anywhere
+      const artistSlug = findArtist?.slug || track.artistId;
+      const trackDeepSlug = `artist=${artistSlug}~${track.albumId}&action=tracklist&alId=${track.alId}`;
+
+      const tweetMsg = injectXUserNameIntoTweet(`Check out "${track.title}" by ${artistName} _(xUsername)_ on @SigmaXMusic!`, findArtist?.xLink);
+
+      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm?${trackDeepSlug}`)}&text=${encodeURIComponent(tweetMsg)}`);
+    }
+  }, [track, artistName, artistLookupEverything]);
+
+  return (
+    <div className="fixed inset-0 bg-yellow-400 bg-opacity-60 flex items-center justify-center z-50">
+      <div className="relative bg-[#1A1A1A] rounded-lg p-6 max-w-lg w-full mx-4">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full text-xl transition-colors z-10">
+          ✕
+        </button>
+
+        <div className="space-y-2 flex flex-col items-center w-full">
+          {/* Track Title */}
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <h2 className="!text-xl text-center font-bold text-white">{track.title}</h2>
+            {track.isExplicit && track.isExplicit === "1" && (
+              <img className="max-h-[20px] rounded-md" src={ratingE} alt="Warning: Explicit Content" title="Warning: Explicit Content" />
+            )}
+            {track.bonus === 1 && <span className="text-[9px] bg-yellow-400 text-black px-2 py-1 rounded-full">Bonus</span>}
+          </div>
+
+          {/* Track Cover Art */}
+          <div className="relative group flex justify-center w-full cursor-pointer" onClick={onPlayTrack}>
+            <div
+              className="w-64 h-64 bg-no-repeat bg-cover bg-center rounded-md relative"
+              style={{
+                backgroundImage: `url(${track.cover_art_url})`,
+              }}
+            />
+          </div>
+
+          {/* Album Details Section */}
+          <div className="w-full border-yellow-500 bg-yellow-500/10 border-2 rounded-lg p-4 flex items-center gap-3">
+            <div
+              className="w-16 h-16 bg-no-repeat bg-cover bg-center rounded-md border border-gray-600"
+              style={{
+                backgroundImage: `url(${track.albumCoverImg})`,
+              }}
+            />
+            <div className="flex flex-col">
+              <p className="text-xs text-gray-400">Track from</p>
+              <p className="text-sm font-semibold text-white">{albumTitle}</p>
+              <p className="text-xs text-gray-300">by {artistName}</p>
+            </div>
+          </div>
+
+          {/* Share on X Button */}
+          <div className="bg-yellow-300 rounded-full p-[10px] w-full">
+            <a
+              className="bg-yellow-300 text-black rounded-3xl gap-2 flex flex-row justify-center items-center"
+              href={"https://twitter.com/intent/tweet?" + tweetText}
+              data-size="large"
+              target="_blank"
+              rel="noreferrer">
+              <span className="[&>svg]:h-4 [&>svg]:w-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                  <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                </svg>
+              </span>
+              <p className="text-sm">Share this track on X</p>
+            </a>
+          </div>
+
+          <div className="mt-5"></div>
+
+          {/* Play Track Button */}
+          <Button
+            onClick={onPlayTrack}
+            className="w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 text-black font-bold py-4 px-8 rounded-lg transition-all duration-300 text-lg">
+            <Play className="w-6 h-6 mr-2" />
+            Play Track
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
