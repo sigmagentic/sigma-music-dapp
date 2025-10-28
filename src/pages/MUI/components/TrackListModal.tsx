@@ -167,7 +167,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       setTrackIdxNextGuess(1);
       setTrackDisplayIdxListSoFar("");
       setTrackDisplayIdxNextGuess(1);
-      setSupportTrackReordering(false);
+      setSupportTrackReordering(true); // it's a new album, so we support track reordering
     }
   }, [tracks]);
 
@@ -960,13 +960,15 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
           Cancel
         </Button>
 
-        <Button
-          onClick={() => setIsReorderView(true)}
-          disabled={tracks.length === 0 || !supportTrackReordering}
-          variant="outline"
-          className="border-gray-600 text-white hover:bg-gray-800">
-          {supportTrackReordering ? "Reorder Tracks" : "Track reordering not supported"}
-        </Button>
+        {supportTrackReordering && (
+          <Button
+            onClick={() => setIsReorderView(true)}
+            disabled={tracks.length === 0 || !supportTrackReordering}
+            variant="outline"
+            className="border-gray-600 text-white hover:bg-gray-800">
+            Reorder Tracks
+          </Button>
+        )}
 
         <Button
           onClick={handleAddTrackToFastStream}
