@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Music, Plus, X, Edit, Loader2, Trash, Recycle, ArrowUp, ArrowDown } from "lucide-react";
+import { Music, Plus, X, Edit, Loader2, Trash, Recycle, ArrowUp, ArrowDown, Download } from "lucide-react";
 import { ALL_MUSIC_GENRES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Badge } from "libComponents/Badge";
@@ -15,7 +15,7 @@ import { adminApi } from "../services";
 import { FastStreamTrack, MusicTrack } from "libs/types";
 import { MediaUpdate } from "libComponents/MediaUpdate";
 import { saveMediaToServerViaAPI, saveSongMediaViaAPI } from "libs/utils/api";
-import { toastError, toastSuccess } from "libs/utils/ui";
+import { toastError, toastSuccess, downloadTrackViaClientSide } from "libs/utils/ui";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { usePreventScroll } from "hooks";
 import ratingE from "assets/img/icons/rating-E.png";
@@ -91,6 +91,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
   const [newSelectedTrackCoverArtFile, setNewSelectedTrackCoverArtFile] = useState<File | null>(null);
   const [newSelectedAudioFile, setNewSelectedAudioFile] = useState<File | null>(null);
   const [isDeletingTrackId, setIsDeletingTrackId] = useState<string>("");
+  const [isDownloadingTrackId, setIsDownloadingTrackId] = useState<string>("");
   const [agreeToTermsOfLaunchMusic, setAgreeToTermsOfLaunchMusic] = useState(false);
   const [reorderedTracks, setReorderedTracks] = useState<(FastStreamTrack & { _displayIdxNew: number })[]>([]);
   const [supportTrackReordering, setSupportTrackReordering] = useState(false);
@@ -204,6 +205,24 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     });
     setErrors({});
     setIsFormView(true);
+  };
+
+  const handleDownloadTrack = async (track: FastStreamTrack) => {
+    setIsDownloadingTrackId(track.alId);
+    try {
+      await downloadTrackViaClientSide({
+        trackMediaUrl: track.file || "",
+        artistId: track.arId || artistId,
+        albumId: albumId,
+        alId: track.alId,
+        trackTitle: track.title || "",
+      });
+      toastSuccess("Track download started");
+    } catch (error) {
+      toastError("Error downloading track: " + (error as Error)?.message);
+    } finally {
+      setIsDownloadingTrackId("");
+    }
   };
 
   const handleDeleteTrack = async (arId: string, alId: string, recoverTrack: boolean = false) => {
@@ -949,6 +968,15 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                           ) : (
                             <>{track.hideOrDelete === "2" || track.hideOrDelete === "1" ? <Recycle className="w-3 h-3" /> : <Trash className="w-3 h-3" />}</>
                           )}
+                        </Button>
+                        <Button
+                          disabled={isDownloadingTrackId !== "" || track.hideOrDelete === "2" || track.hideOrDelete === "1"}
+                          title="Download Track"
+                          onClick={() => handleDownloadTrack(track)}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0">
+                          {isDownloadingTrackId === track.alId ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                         </Button>
                         <Button
                           disabled={isDeletingTrackId !== "" || track.hideOrDelete === "2" || track.hideOrDelete === "1"}

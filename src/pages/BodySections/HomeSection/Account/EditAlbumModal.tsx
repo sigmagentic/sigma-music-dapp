@@ -321,7 +321,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 onCheckedChange={(checked) => {
                   if (checked) {
                     const confirmed = confirm(
-                      "You are about to publish this album. Once you publish it, your album goes live and you wont be able to delete tracks OR reorder tracks anymore. Only publish albums that are ready to be streamed by the public and are in the final state / order you want them to be."
+                      "You are about to publish this album. Once you publish it, your album goes live and you will have limited ability to delete, hide or reorder tracks. Only publish albums that are ready to be streamed by the public and are in the final published state you want them to be."
                     );
                     if (!confirmed) {
                       return;
