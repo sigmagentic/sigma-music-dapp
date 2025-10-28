@@ -210,8 +210,28 @@ export const ALL_MUSIC_GENRES = [
   { code: "world beat", label: "World Beat", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
   { code: "drill", label: "Drill", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
   { code: "dark trap", label: "Dark Trap", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+
   { code: "rock ballad", label: "Rock Ballad", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/4AiXzf8.png" },
   { code: "alternative rock", label: "Alternative Rock", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
+  {
+    code: "pop rock",
+    label: "Pop Rock",
+    tier: GenreTier.TIER2,
+    tileImgBg: "https://placehold.co/200x200/facc14/000?text=Pop+Rock",
+  },
+  {
+    code: "indie rock",
+    label: "Indie Rock",
+    tier: GenreTier.TIER2,
+    tileImgBg: "https://placehold.co/200x200/facc14/000?text=Indie+Rock",
+  },
+  {
+    code: "post grunge",
+    label: "Post Grunge",
+    tier: GenreTier.TIER2,
+    tileImgBg: "https://placehold.co/200x200/facc14/000?text=Post+Grunge",
+  },
+
   { code: "ballad", label: "Ballad", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
 
   { code: "metal", label: "Metal", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
@@ -224,12 +244,7 @@ export const ALL_MUSIC_GENRES = [
   { code: "dubstep", label: "Dubstep", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
   { code: "jungle", label: "Jungle", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },
   { code: "vibrant electronic", label: "Vibrant Electronic", tier: GenreTier.TIER2, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
-  {
-    code: "pop rock",
-    label: "Pop Rock",
-    tier: GenreTier.TIER2,
-    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/deep-forest.jpg?tpos=bottom",
-  },
+
   { code: "breakcore", label: "Breakcore", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/3GvwNBf.png" },
   { code: "cyberpunk", label: "Cyberpunk", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/5M0pF6u.png" },
   { code: "gypsy", label: "Gypsy", tier: GenreTier.FRINGE, tileImgBg: "https://i.imgur.com/1bX5QH6.png" },

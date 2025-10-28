@@ -387,9 +387,11 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                       </svg>
                     </button>
                   </div>
-                  <div className="mb-2">
-                    <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
-                  </div>
+                  {formData.albumPriceOption1 !== "" && (
+                    <div className="mb-2">
+                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
+                    </div>
+                  )}
                   <select
                     value={formData.albumPriceOption1}
                     onChange={(e) => handleInputChange("albumPriceOption1", e.target.value)}
@@ -422,6 +424,11 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                       </svg>
                     </button>
                   </div>
+                  {formData.albumPriceOption4 !== "" && (
+                    <div className="mb-2">
+                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
+                    </div>
+                  )}
                   <select
                     value={formData.albumPriceOption4}
                     onChange={(e) => handleInputChange("albumPriceOption4", e.target.value)}
@@ -454,6 +461,11 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                       </svg>
                     </button>
                   </div>
+                  {formData.albumPriceOption2 !== "" && (
+                    <div className="mb-2">
+                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
+                    </div>
+                  )}
                   <select
                     value={formData.albumPriceOption2}
                     onChange={(e) => handleInputChange("albumPriceOption2", e.target.value)}
@@ -486,6 +498,11 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                       </svg>
                     </button>
                   </div>
+                  {formData.albumPriceOption3 !== "" && (
+                    <div className="mb-2">
+                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
+                    </div>
+                  )}
                   <select
                     value={formData.albumPriceOption3}
                     onChange={(e) => handleInputChange("albumPriceOption3", e.target.value)}

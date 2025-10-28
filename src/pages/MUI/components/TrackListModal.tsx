@@ -157,7 +157,6 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       setTrackDisplayIdxNextGuess(nextHighestDisplayIdx + 1);
 
       // if all the tracks have a displayIdx prop then we support track reordering
-      console.log("Tracks:", tracks);
       if (tracks.every((track) => typeof track.displayidx === "number")) {
         setSupportTrackReordering(true);
       } else {
@@ -166,6 +165,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     } else {
       setTrackIdxListSoFar("");
       setTrackIdxNextGuess(1);
+      setTrackDisplayIdxListSoFar("");
+      setTrackDisplayIdxNextGuess(1);
+      setSupportTrackReordering(false);
     }
   }, [tracks]);
 
