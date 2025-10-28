@@ -95,6 +95,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
   const [reorderedTracks, setReorderedTracks] = useState<(FastStreamTrack & { _displayIdxNew: number })[]>([]);
   const [supportTrackReordering, setSupportTrackReordering] = useState(false);
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
+  const [genreSearchQuery, setGenreSearchQuery] = useState("");
 
   usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
@@ -132,6 +133,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     setNewSelectedAudioFile(null);
     setAgreeToTermsOfLaunchMusic(false);
     setIsReorderView(false);
+    setGenreSearchQuery("");
 
     if (preloadExistingTrackToAlbum) {
       setIsFormView(true);
@@ -286,6 +288,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     setNewSelectedTrackCoverArtFile(null);
     setNewSelectedAudioFile(null);
     setAgreeToTermsOfLaunchMusic(false);
+    setGenreSearchQuery("");
   };
 
   const handleFormChange = (field: keyof TrackFormData, value: any) => {
@@ -487,6 +490,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
       setNewSelectedAudioFile(null);
       setAgreeToTermsOfLaunchMusic(false);
       setIsReorderView(false);
+      setGenreSearchQuery("");
     }
   };
 
@@ -697,47 +701,71 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
               </p>
             )}
             <div className={`border rounded-md p-3 bg-gray-800 max-h-48 overflow-y-auto ${errors.category ? "border-red-500" : "border-gray-300"}`}>
+              <div className="flex items-center gap-2 mb-3">
+                <Input
+                  type="text"
+                  placeholder="Search genres"
+                  value={genreSearchQuery}
+                  onChange={(e) => setGenreSearchQuery(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="button" size="sm" variant="outline" onClick={() => setGenreSearchQuery("")} className="px-3 py-1 text-xs">
+                  Clear
+                </Button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {ALL_MUSIC_GENRES.map((genre) => {
-                  const selectedGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
-                  const isSelected = selectedGenres.includes(genre.code);
-                  const canSelect = isSelected || selectedGenres.length < 5;
+                {(() => {
+                  // Filter genres based on search query (only if query is > 3 characters)
+                  const filteredGenres =
+                    genreSearchQuery.length > 3
+                      ? ALL_MUSIC_GENRES.filter(
+                          (genre) =>
+                            genre.label.toLowerCase().includes(genreSearchQuery.toLowerCase()) ||
+                            genre.code.toLowerCase().includes(genreSearchQuery.toLowerCase())
+                        )
+                      : ALL_MUSIC_GENRES;
 
-                  return (
-                    <label
-                      key={genre.code}
-                      className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-                        isSelected ? "text-yellow-300" : "hover:bg-gray-700"
-                      } ${!canSelect && !isSelected ? "opacity-50 cursor-not-allowed" : ""}`}>
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={(e) => {
-                          // if preloadExistingTrackToAlbum is NOT null, then we should NOT allow them to remove either ai music or simremix
-                          if (preloadExistingTrackToAlbum) {
-                            if (genre.code === "ai music" || genre.code === "simremix") {
-                              return;
+                  return filteredGenres.map((genre) => {
+                    const selectedGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
+                    const isSelected = selectedGenres.includes(genre.code);
+                    const canSelect = isSelected || selectedGenres.length < 5;
+
+                    return (
+                      <label
+                        key={genre.code}
+                        className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
+                          isSelected ? "text-yellow-300" : "hover:bg-gray-700"
+                        } ${!canSelect && !isSelected ? "opacity-50 cursor-not-allowed" : ""}`}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            // if preloadExistingTrackToAlbum is NOT null, then we should NOT allow them to remove either ai music or simremix
+                            if (preloadExistingTrackToAlbum) {
+                              if (genre.code === "ai music" || genre.code === "simremix") {
+                                return;
+                              }
                             }
-                          }
 
-                          const currentGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
-                          let newGenres;
+                            const currentGenres = formData.category ? formData.category.split(",").map((g) => g.trim()) : [];
+                            let newGenres;
 
-                          if (e.target.checked) {
-                            newGenres = [...currentGenres, genre.code];
-                          } else {
-                            newGenres = currentGenres.filter((g) => g !== genre.code);
-                          }
+                            if (e.target.checked) {
+                              newGenres = [...currentGenres, genre.code];
+                            } else {
+                              newGenres = currentGenres.filter((g) => g !== genre.code);
+                            }
 
-                          handleFormChange("category", newGenres.join(", "));
-                        }}
-                        disabled={!canSelect && !isSelected}
-                        className="rounded border-gray-300 text-yellow-300 focus:ring-yellow-500"
-                      />
-                      <span className="text-sm">{genre.label}</span>
-                    </label>
-                  );
-                })}
+                            handleFormChange("category", newGenres.join(", "));
+                          }}
+                          disabled={!canSelect && !isSelected}
+                          className="rounded border-gray-300 text-yellow-300 focus:ring-yellow-500"
+                        />
+                        <span className="text-sm">{genre.label}</span>
+                      </label>
+                    );
+                  });
+                })()}
               </div>
             </div>
             {errors.category && <p className="text-red-400 text-sm mt-1">{errors.category}</p>}
