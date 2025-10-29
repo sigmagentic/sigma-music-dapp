@@ -498,7 +498,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         orderedAlbums.map((album: Album, idx: number) => (
           <div
             key={`${album.albumId}-${idx}`}
-            className={`album relative flex flex-col my-3 border rounded-lg w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
+            className={`album relative flex flex-col my-3 border rounded-sm w-[100%] ${highlightAlbumId === album.albumId ? "border-yellow-500 bg-yellow-500/10 border-2" : ""}`}>
             {/* Commercial Commercial AI Remix License Badge */}
             <div className="flex flex-col relative">
               {/* Sigma Exclusive Badge */}

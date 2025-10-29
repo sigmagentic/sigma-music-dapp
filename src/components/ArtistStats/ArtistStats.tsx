@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
-import { StreamMetricData, ArtistStatsProps, ArtistSale, SalesSummary } from "libs/types/common";
+import { StreamMetricData, ArtistSale, SalesSummary } from "libs/types/common";
 import { fetchArtistSalesViaAPI, fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/api";
 import { useAppStore } from "store/app";
 
-export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false, artistId, setActiveTab, onFeaturedArtistDeepLinkSlug }: ArtistStatsProps) {
+interface ArtistStatsProps {
+  creatorPaymentsWallet: string;
+  showAmounts?: boolean;
+  artistId: string;
+  setActiveTab: (tab: string) => void;
+  navigateToDeepAppView: (logicParams: any) => void;
+}
+
+export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false, artistId, setActiveTab, navigateToDeepAppView }: ArtistStatsProps) {
   const [artistSales, setArtistSales] = useState<ArtistSale[]>([]);
   const [streamMetricData, setStreamMetricData] = useState<StreamMetricData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,14 +79,6 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
   const albumSalesSummary = calculateSummary(artistSales, "buyAlbum");
   const fanClubSalesSummary = calculateSummary(artistSales, "joinFanClub");
 
-  const handleOpenAlbum = (alid: string) => {
-    // Extract album ID from alid (e.g., "ar24_a1-1" -> "ar24_a1")
-    const albumId = alid.split("-")[0];
-    const artistSlug = artistLookup[artistId].slug;
-    setActiveTab("discography");
-    onFeaturedArtistDeepLinkSlug(artistSlug, albumId);
-  };
-
   return (
     <>
       {isLoading ? (
@@ -125,9 +125,20 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                           <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
                           <div className="text-sm text-white/70 mb-2">Streams</div>
                           <button
-                            onClick={() => handleOpenAlbum(stream.alid)}
+                            onClick={() => {
+                              setActiveTab("discography");
+
+                              const artistId = stream.alid.split("_")[0];
+                              const albumId = stream.alid.split("-")[0];
+
+                              navigateToDeepAppView({
+                                artistSlug: `${artistLookup[artistId].slug}~${albumId}`,
+                                toAction: "tracklist",
+                                toTrackIdForDeepLink: stream.alid,
+                              });
+                            }}
                             className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors">
-                            Open Containing Album
+                            Open Track
                           </button>
                         </div>
                       </div>

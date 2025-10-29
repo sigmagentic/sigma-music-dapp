@@ -686,7 +686,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                 <div className="m-auto w-full">
                   <div className="w-full flex flex-col items-center h-[250px] md:h-[100%] md:grid md:grid-rows-[250px] md:auto-rows-[250px] md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] md:gap-[10px]">
                     {[...Array(30)].map((_, index) => (
-                      <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
+                      <div key={index} className="m-2 md:m-0 w-full h-full min-w-[250px] rounded-sm animate-pulse bg-gray-200 dark:bg-gray-700" />
                     ))}
                   </div>
                 </div>
@@ -732,7 +732,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             }
                           }}>
                           <div
-                            className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-lg cursor-pointer group"
+                            className="relative h-[100%] w-[100%] bg-no-repeat bg-cover rounded-sm cursor-pointer group"
                             style={{
                               "backgroundImage": `url(${artist.img})`,
                               "backgroundPosition": getImagePositionMeta(artist.img, "tpos"),
@@ -823,7 +823,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                     <div className="flex flex-col md:flex-row gap-4 w-full">
                       <div className="artist-bio md:w-[700px] flex flex-col md:sticky md:top-4 md:self-start">
                         <div
-                          className={`img-container ${artistProfile.isVerifiedArtist ? "border-2 border-yellow-300 bg-yellow-300 rounded-md" : "border-2 border-yellow-300/10 bg-yellow-300/10 rounded-md"} relative ${activeTab === "fan" && artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== "" ? "cursor-pointer" : ""}`}
+                          className={`img-container ${artistProfile.isVerifiedArtist ? "border-2 border-yellow-300 bg-yellow-300 rounded-sm" : "border-2 border-yellow-300/10 bg-yellow-300/10 rounded-md"} relative ${activeTab === "fan" && artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== "" ? "cursor-pointer" : ""}`}
                           onClick={() => {
                             // if the artist has a 3D gif teaser, allow the user to click on the image to see the full size image
                             if (activeTab === "fan" && artistProfile.fanToken3DGifTeaser && artistProfile.fanToken3DGifTeaser !== "") {
@@ -946,7 +946,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               artistProfile.ytLink !== "" ||
                               artistProfile.otherLink1 !== "" ||
                               artistProfile.instaLink !== "" ||
-                              artistProfile.tikTokLink !== "") && (
+                              artistProfile.tikTokLink !== "" ||
+                              artistProfile.sunoLink !== "" ||
+                              artistProfile.bandcampLink !== "" ||
+                              artistProfile.soundcloudLink !== "") && (
                               <div className="flex flex-row mt-5 flex-wrap">
                                 {artistProfile.dripLink && (
                                   <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.dripLink} target="_blank">
@@ -992,6 +995,30 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                     <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
                                       <img src={TikTokIcon} alt="TikTok" className="m-auto w-[24px] h-[24px]" />
                                       TikTok
+                                    </div>
+                                  </a>
+                                )}
+                                {artistProfile.sunoLink && (
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.sunoLink} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
+                                      <Globe className="m-auto w-5" />
+                                      Suno
+                                    </div>
+                                  </a>
+                                )}
+                                {artistProfile.bandcampLink && (
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.bandcampLink} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
+                                      <Globe className="m-auto w-5" />
+                                      Bandcamp
+                                    </div>
+                                  </a>
+                                )}
+                                {artistProfile.soundcloudLink && (
+                                  <a className="underline hover:no-underline md:mx-2 text-sm mt-1" href={artistProfile.soundcloudLink} target="_blank">
+                                    <div className="border-[0.5px] text-center p-2 ml-1 md:m-2 flex flex-col justify-center align-middle w-[100px]">
+                                      <Globe className="m-auto w-5" />
+                                      Soundcloud
                                     </div>
                                   </a>
                                 )}
@@ -1165,7 +1192,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               creatorPaymentsWallet={artistProfile.creatorPaymentsWallet}
                               artistId={artistProfile.artistId}
                               setActiveTab={setActiveTab}
-                              onFeaturedArtistDeepLinkSlug={onFeaturedArtistDeepLinkSlug}
+                              navigateToDeepAppView={navigateToDeepAppView}
                             />
                           </div>
                         )}

@@ -32,6 +32,9 @@ export interface ArtistProfileFormData {
   tikTokLink: string;
   instaLink: string;
   webLink: string;
+  sunoLink: string;
+  bandcampLink: string;
+  soundcloudLink: string;
 }
 
 interface ValidationErrors {
@@ -45,6 +48,9 @@ interface ValidationErrors {
   tikTokLink?: string;
   instaLink?: string;
   webLink?: string;
+  sunoLink?: string;
+  bandcampLink?: string;
+  soundcloudLink?: string;
 }
 
 export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
@@ -84,6 +90,9 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
         formData.tikTokLink.trim() !== initialData.tikTokLink ||
         formData.instaLink.trim() !== initialData.instaLink ||
         formData.webLink.trim() !== initialData.webLink ||
+        formData.sunoLink.trim() !== initialData.sunoLink ||
+        formData.bandcampLink.trim() !== initialData.bandcampLink ||
+        formData.soundcloudLink.trim() !== initialData.soundcloudLink ||
         formData.slug !== initialData.slug ||
         !!newSelectedArtistProfileImageFile) &&
       (formData.slug === initialData.slug || (formData.slug !== initialData.slug && slugAvailability === "available"))
@@ -159,6 +168,15 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
     }
     if (formData.webLink.trim() && !isValidUrl(formData.webLink)) {
       newErrors.webLink = "Please enter a valid HTTPS URL";
+    }
+    if (formData.sunoLink.trim() && !isValidUrl(formData.sunoLink)) {
+      newErrors.sunoLink = "Please enter a valid HTTPS URL";
+    }
+    if (formData.bandcampLink.trim() && !isValidUrl(formData.bandcampLink)) {
+      newErrors.bandcampLink = "Please enter a valid HTTPS URL";
+    }
+    if (formData.soundcloudLink.trim() && !isValidUrl(formData.soundcloudLink)) {
+      newErrors.soundcloudLink = "Please enter a valid HTTPS URL";
     }
 
     setErrors(newErrors);
@@ -250,6 +268,18 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
 
       if (initialData.webLink !== formData.webLink) {
         changedFormData.webLink = formData.webLink.trim();
+      }
+
+      if (initialData.sunoLink !== formData.sunoLink) {
+        changedFormData.sunoLink = formData.sunoLink.trim();
+      }
+
+      if (initialData.bandcampLink !== formData.bandcampLink) {
+        changedFormData.bandcampLink = formData.bandcampLink.trim();
+      }
+
+      if (initialData.soundcloudLink !== formData.soundcloudLink) {
+        changedFormData.soundcloudLink = formData.soundcloudLink.trim();
       }
 
       const success = await onSave(changedFormData as ArtistProfileFormData);
@@ -565,6 +595,54 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
                     className={`bg-gray-800 border-gray-600 text-white placeholder-gray-400 ${errors.instaLink ? "border-red-500" : ""}`}
                   />
                   {errors.instaLink && <p className="text-red-400 text-sm mt-1">{errors.instaLink}</p>}
+                </div>
+
+                {/* Suno Account */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Suno Account
+                    <InfoTooltip content="Enter Full URL of your Suno Account" position="right" />
+                  </label>
+                  <Input
+                    type="url"
+                    value={formData.sunoLink}
+                    onChange={(e) => handleFormChange("sunoLink", e.target.value)}
+                    placeholder="https://suno.com/yourusername"
+                    className={`bg-gray-800 border-gray-600 text-white placeholder-gray-400 ${errors.sunoLink ? "border-red-500" : ""}`}
+                  />
+                  {errors.sunoLink && <p className="text-red-400 text-sm mt-1">{errors.sunoLink}</p>}
+                </div>
+
+                {/* Bandcamp Account */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Bandcamp Account
+                    <InfoTooltip content="Enter Full URL of your Bandcamp Account" position="right" />
+                  </label>
+                  <Input
+                    type="url"
+                    value={formData.bandcampLink}
+                    onChange={(e) => handleFormChange("bandcampLink", e.target.value)}
+                    placeholder="https://bandcamp.com/yourusername"
+                    className={`bg-gray-800 border-gray-600 text-white placeholder-gray-400 ${errors.bandcampLink ? "border-red-500" : ""}`}
+                  />
+                  {errors.bandcampLink && <p className="text-red-400 text-sm mt-1">{errors.bandcampLink}</p>}
+                </div>
+
+                {/* Soundcloud Account */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Soundcloud Account
+                    <InfoTooltip content="Enter Full URL of your Soundcloud Account" position="right" />
+                  </label>
+                  <Input
+                    type="url"
+                    value={formData.soundcloudLink}
+                    onChange={(e) => handleFormChange("soundcloudLink", e.target.value)}
+                    placeholder="https://soundcloud.com/yourusername"
+                    className={`bg-gray-800 border-gray-600 text-white placeholder-gray-400 ${errors.soundcloudLink ? "border-red-500" : ""}`}
+                  />
+                  {errors.soundcloudLink && <p className="text-red-400 text-sm mt-1">{errors.soundcloudLink}</p>}
                 </div>
 
                 {/* Website */}

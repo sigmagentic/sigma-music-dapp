@@ -31,6 +31,7 @@ export const App = () => {
     toSection,
     toView,
     toAction,
+    toTrackIdForDeepLink,
   }: {
     artistCampaignCode?: string;
     artistSubGroup1Code?: string;
@@ -41,6 +42,7 @@ export const App = () => {
     toSection?: string;
     toView?: string;
     toAction?: string;
+    toTrackIdForDeepLink?: string;
   }) => {
     /*
     routes we support navigation to:
@@ -164,6 +166,12 @@ export const App = () => {
             currentParams["action"] = toAction;
           } else {
             delete currentParams["action"];
+          }
+
+          if (toTrackIdForDeepLink) {
+            currentParams["alId"] = toTrackIdForDeepLink;
+          } else {
+            delete currentParams["alId"];
           }
 
           // setFeaturedArtistDeepLinkSlug(artistSlug); // removed this on 29 Sep as setSearchParams should do the work, not sure if it has any impact but seemed to now have any impact on the app

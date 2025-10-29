@@ -107,6 +107,9 @@ export interface Artist {
   otherLink1: string;
   altMainPortfolioLink?: string;
   fanTokenNftMarketplaceLink?: string;
+  sunoLink?: string;
+  bandcampLink?: string;
+  soundcloudLink?: string;
   isArtistFeatured: string;
   isDeprioritized: string;
   creatorPaymentsWallet: string;
@@ -342,14 +345,6 @@ export interface ArtistSale {
   albumId?: string;
   amount: string;
   totalQuantity?: number;
-}
-
-export interface ArtistStatsProps {
-  creatorPaymentsWallet: string;
-  showAmounts?: boolean;
-  artistId: string;
-  setActiveTab: (tab: string) => void;
-  onFeaturedArtistDeepLinkSlug: (artistSlug: string, albumId?: string) => void;
 }
 
 export interface SalesSummary {

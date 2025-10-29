@@ -302,6 +302,18 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
         changedFormData.webLink = artistProfileData.webLink;
       }
 
+      if (artistProfileData.sunoLink && artistProfileData.sunoLink !== "") {
+        changedFormData.sunoLink = artistProfileData.sunoLink;
+      }
+
+      if (artistProfileData.bandcampLink && artistProfileData.bandcampLink !== "") {
+        changedFormData.bandcampLink = artistProfileData.bandcampLink;
+      }
+
+      if (artistProfileData.soundcloudLink && artistProfileData.soundcloudLink !== "") {
+        changedFormData.soundcloudLink = artistProfileData.soundcloudLink;
+      }
+
       const artistProfileDataToSave = {
         solSignature: usedPreAccessSignature,
         signatureNonce: usedPreAccessNonce,
@@ -857,6 +869,9 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
           tikTokLink: userArtistProfile.tikTokLink || "",
           instaLink: userArtistProfile.instaLink || "",
           webLink: userArtistProfile.webLink || "",
+          sunoLink: userArtistProfile.sunoLink || "",
+          bandcampLink: userArtistProfile.bandcampLink || "",
+          soundcloudLink: userArtistProfile.soundcloudLink || "",
         }}
       />
 

@@ -67,7 +67,7 @@ export const PlaylistTile = ({
     <div
       key={genre.code}
       onClick={handleClick}
-      className={`flex-shrink-0 ${extendTileToFullWidth ? "w-full h-40" : "w-64 h-40"} bg-black rounded-xl p-0 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group shadow-lg
+      className={`flex-shrink-0 ${extendTileToFullWidth ? "w-full h-40" : "w-64 h-40"} bg-black rounded-sm p-0 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group shadow-lg
         ${assetPlayIsQueued ? "pointer-events-none cursor-not-allowed" : ""}
         ${selectedPlaylistGenre === genre.code ? "ring-2 ring-yellow-300" : ""}  ${hoverBgColor ? `hover:border-2 hover:border-${hoverBgColor}` : ""}`}
       style={{ background: color }}>

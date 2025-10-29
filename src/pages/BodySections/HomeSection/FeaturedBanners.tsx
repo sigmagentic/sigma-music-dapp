@@ -322,9 +322,18 @@ export const FeaturedBanners = ({
                       <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
                       <div className="text-sm text-white/70 mb-2">Streams</div>
                       <button
-                        onClick={() => handleOpenAlbum(stream.alid)}
+                        onClick={() => {
+                          const artistId = stream.alid.split("_")[0];
+                          const albumId = stream.alid.split("-")[0];
+
+                          navigateToDeepAppView({
+                            artistSlug: `${artistLookup[artistId].slug}~${albumId}`,
+                            toAction: "tracklist",
+                            toTrackIdForDeepLink: stream.alid,
+                          });
+                        }}
                         className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors">
-                        Open Containing Album
+                        Open Track
                       </button>
                     </div>
                   </div>
