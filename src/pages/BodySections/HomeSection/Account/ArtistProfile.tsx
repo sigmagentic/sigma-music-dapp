@@ -624,6 +624,51 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                   )}
                 </div>
                 <div>
+                  <label className="text-gray-400 text-sm">Suno Link</label>
+                  {userArtistProfile.sunoLink ? (
+                    <a
+                      href={userArtistProfile.sunoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-sm font-mono cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
+                      {userArtistProfile.sunoLink}
+                    </a>
+                  ) : (
+                    <p className="text-sm font-mono">Not provided</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-gray-400 text-sm">Bandcamp Link</label>
+                  {userArtistProfile.bandcampLink ? (
+                    <a
+                      href={userArtistProfile.bandcampLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-sm font-mono cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
+                      {userArtistProfile.bandcampLink}
+                    </a>
+                  ) : (
+                    <p className="text-sm font-mono">Not provided</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-gray-400 text-sm">Soundcloud Link</label>
+                  {userArtistProfile.soundcloudLink ? (
+                    <a
+                      href={userArtistProfile.soundcloudLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-sm font-mono cursor-pointer text-yellow-300 hover:text-yellow-200 hover:underline">
+                      {userArtistProfile.soundcloudLink}
+                    </a>
+                  ) : (
+                    <p className="text-sm font-mono">Not provided</p>
+                  )}
+                </div>
+
+                <div>
                   <label className="text-gray-400 text-sm">Website Link</label>
                   {userArtistProfile.webLink ? (
                     <a
