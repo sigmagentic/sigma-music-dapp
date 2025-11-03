@@ -919,7 +919,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                     <div className="flex items-start justify-between">
                       <div className="flex-1 max-w-[200px]">
                         <h3 className="!text-sm font-semibold text-gray-900 truncate">{track.title}</h3>
-                        <p className="text-xs text-gray-500 mt-1">Track #{track.idx}</p>
+                        <p className="text-xs text-gray-500 mt-1">Track #{index + 1}</p>
                         <div className="flex items-center space-x-2 mt-2">
                           <div className="flex items-center space-x-1">
                             <Music className="w-3 h-3 text-gray-400" />
@@ -1073,6 +1073,12 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                   </div>
                   <div className="flex-1">
                     <h3 className="!text-base font-semibold text-gray-900">{track.title}</h3>
+
+                    {(track.hideOrDelete === "2" || track.hideOrDelete === "1") && (
+                      <div className="text-red-500 text-xs">
+                        {track.hideOrDelete === "2" ? "Deleted (Not publicly visible)" : "Hidden (Not publicly visible)"}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
