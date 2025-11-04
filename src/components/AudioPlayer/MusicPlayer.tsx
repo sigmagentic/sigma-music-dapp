@@ -36,6 +36,7 @@ import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import ratingE from "assets/img/icons/rating-E.png";
+import { useMediaSession, MediaSessionSeekToActionDetails } from "./useMediaSession";
 
 type MusicPlayerProps = {
   trackList: MusicTrack[];
@@ -707,6 +708,62 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     }
     return true;
   };
+
+  // S: Media Session API integration
+  // Separate play and pause handlers for Media Session API
+  const handleMediaSessionPlay = () => {
+    if (!isPlaying) {
+      togglePlay();
+    }
+  };
+
+  const handleMediaSessionPause = () => {
+    if (isPlaying) {
+      togglePlay();
+    }
+  };
+
+  const handleMediaSessionSeekTo = (details: MediaSessionSeekToActionDetails) => {
+    const mediaElement = getCurrentMediaElement();
+    if (details.seekTime !== undefined && mediaElement.duration) {
+      const seekTime = Math.min(Math.max(0, details.seekTime), mediaElement.duration);
+      mediaElement.currentTime = seekTime;
+      updateProgress();
+    }
+  };
+
+  const handleMediaSessionSeekBackward = (details: MediaSessionActionDetails) => {
+    const mediaElement = getCurrentMediaElement();
+    const seekOffset = details.seekOffset || 10; // Default 10 seconds
+    const newTime = Math.max(0, mediaElement.currentTime - seekOffset);
+    mediaElement.currentTime = newTime;
+    updateProgress();
+  };
+
+  const handleMediaSessionSeekForward = (details: MediaSessionActionDetails) => {
+    const mediaElement = getCurrentMediaElement();
+    const seekOffset = details.seekOffset || 10; // Default 10 seconds
+    const newTime = Math.min(mediaElement.duration || 0, mediaElement.currentTime + seekOffset);
+    mediaElement.currentTime = newTime;
+    updateProgress();
+  };
+
+  // Use Media Session API hook
+  useMediaSession({
+    currentTrack: trackList[currentTrackIndex],
+    isPlaying,
+    handlers: {
+      onPlay: handleMediaSessionPlay,
+      onPause: handleMediaSessionPause,
+      onPreviousTrack: handlePrevButton,
+      onNextTrack: handleNextButton,
+      onSeekTo: handleMediaSessionSeekTo,
+      onSeekBackward: handleMediaSessionSeekBackward,
+      onSeekForward: handleMediaSessionSeekForward,
+    },
+    enabled: firstSongBlobUrl !== undefined && firstSongBlobUrl !== "", // Only enable when player is ready
+  });
+  // E: Media Session API integration
 
   const showPlaylist = () => {
     setDisplayTrackList(!displayTrackList);
