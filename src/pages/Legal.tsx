@@ -239,7 +239,17 @@ const legalSections: LegalSection[] = [
               </div>
 
               <div>
-                <h4 className="font-semibold text-white mb-2">9. General Clause</h4>
+                <h4 className="font-semibold text-white mb-2">9. Album / EP IP Rights & Licensing Terms</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>
+                    if you intend to sell your music with IP Rights & Licensing enabled, you confirm and agree to the terms outlined in the "Selling Album / EP
+                    IP Rights & Licensing Terms" section below.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">10. General Clause</h4>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>These terms may be updated periodically. Continued use of the platform after updates constitutes your acceptance of the new terms.</li>
                   <li>Any disputes shall be governed by the laws of New South Wales, Australia.</li>
@@ -248,6 +258,59 @@ const legalSections: LegalSection[] = [
                     from your content during the prior 12 months.
                   </li>
                 </ul>
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "terms-of-selling-album-ep-licenses",
+        question: "Selling Album / EP IP Rights & Licensing",
+        answer: (
+          <div className="space-y-4">
+            <p className="font-semibold text-white mb-2">Album / EP Rights & Licensing Grant</p>
+            <p>By publishing an Album or EP on Sigma Music and enabling a Commercial Use License for it, you confirm and agree to the following:</p>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-white mb-2">Rights Ownership</h4>
+                <p>
+                  You either: (a) own all copyrights to the sound recordings and compositions of every track included in the Album/EP, or (b) have secured full
+                  written permission from all rights holders to license and authorize the use of those tracks in the manner described here.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">License Grant</h4>
+                <p>You grant Sigma Music the right to:</p>
+                <ul className="list-disc pl-6 space-y-2 mt-2">
+                  <li>Offer and resell commercial-use or remix licenses for the Album/EP as a collective work</li>
+                  <li>
+                    Authorize buyers to create derivative works (including remixes, edits, or transformations) of any track included in the Album/EP, in line
+                    with the terms shown at the time of license purchase
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">Ownership Retained</h4>
+                <p>You retain all original ownership and copyright over your music. This agreement does not transfer or assign your copyrights.</p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">Samples & Collaborators</h4>
+                <p>
+                  If any track includes samples, co-writers, featured artists, session musicians, or producers who hold rights, you are responsible for ensuring
+                  that all required licenses and permissions have been obtained to allow derivative and commercial use.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-white mb-2">Responsibility & Indemnity</h4>
+                <p>
+                  You agree to indemnify and hold Sigma Music harmless from any claims or disputes that arise due to missing permissions, copyright issues, or
+                  ownership conflicts relating to the tracks in your Album/EP.
+                </p>
               </div>
             </div>
           </div>
