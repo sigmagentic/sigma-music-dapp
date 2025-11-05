@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import {
   Loader,
-  AudioWaveform,
   Pause,
   Play,
   ShoppingCart,
@@ -17,6 +16,7 @@ import {
   Image,
   List,
   Copy,
+  AudioLines,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import ratingE from "assets/img/icons/rating-E.png";
@@ -800,7 +800,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                           handlePlayAlbumNow(album);
                         }}>
                         <>
-                          {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <AudioWaveform />}
+                          {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <AudioLines />}
                           <span className="ml-2">
                             {thisIsPlayingOnMusicPlayer(album)
                               ? "Playing"
@@ -1023,7 +1023,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       setSelectedAlbumToShowEntitlements(null);
                       setEntitlementsForSelectedAlbum(null);
                     }}>
-                    <AudioWaveform className="w-4 h-4" />
+                    <Play className="w-4 h-4" />
                     <span className="ml-2">Play Now</span>
                   </Button>
                 </div>
