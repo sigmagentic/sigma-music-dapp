@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram, ChevronDown, Play } from "lucide-react";
+import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram, ChevronDown, Play, AudioLines } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import TikTokIcon from "assets/img/icons/tiktok-icon.png";
@@ -956,15 +956,18 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                             <div className="bgx-green-500 flex items-center justify-center">
                               {/* Large Circular Play Button */}
                               <button
-                                disabled={assetPlayIsQueued || trackPlayIsQueued || artistIdBeingPlayedInPlaylist !== artistProfile.artistId}
+                                disabled={assetPlayIsQueued || trackPlayIsQueued || artistIdBeingPlayedInPlaylist === artistProfile.artistId}
                                 className={`w-16 h-16 md:w-[5rem] md:h-[5rem] rounded-full flex items-center justify-center transition-all duration-200 ${
-                                  assetPlayIsQueued || trackPlayIsQueued || artistIdBeingPlayedInPlaylist !== artistProfile.artistId
+                                  assetPlayIsQueued || trackPlayIsQueued || artistIdBeingPlayedInPlaylist === artistProfile.artistId
                                     ? "bg-gray-600 cursor-not-allowed opacity-50"
                                     : "bg-gradient-to-r from-green-400 to-orange-500 hover:from-orange-500 hover:to-green-400 hover:scale-105 cursor-pointer"
                                 }`}
-                                onClick={() => handleArtistPlaylistPlay()}>
+                                onClick={() => handleArtistPlaylistPlay()}
+                                title={artistIdBeingPlayedInPlaylist === artistProfile.artistId ? "Playing..." : "Play"}>
                                 {assetPlayIsQueued || trackPlayIsQueued ? (
                                   <Loader className="w-6 h-6 text-white animate-spin" />
+                                ) : artistIdBeingPlayedInPlaylist === artistProfile.artistId ? (
+                                  <AudioLines className="w-6 h-6 text-white ml-1" style={{ animation: "playPulse 5s ease-in-out infinite" }} />
                                 ) : (
                                   <Play className="w-6 h-6 text-white ml-1" />
                                 )}

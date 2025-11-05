@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { ArrowLeft, Play, Loader, Download, MoreVertical, Plus, Copy } from "lucide-react";
+import { ArrowLeft, Play, Loader, Download, MoreVertical, Plus, Copy, AudioLines } from "lucide-react";
 import ratingE from "assets/img/icons/rating-E.png";
 import { Button } from "libComponents/Button";
 import { Album, MusicTrack, TrackWithKeyAlbumInfo } from "libs/types";
@@ -190,8 +190,15 @@ export const TrackList: React.FC<TrackListProps> = ({
                   ? "bg-gray-600 cursor-not-allowed opacity-50"
                   : "bg-gradient-to-r from-green-400 to-orange-500 hover:from-orange-500 hover:to-green-400 hover:scale-105 cursor-pointer"
               }`}
-              onClick={() => onPlayTrack(album)}>
-              {assetPlayIsQueued || trackPlayIsQueued ? <Loader className="w-6 h-6 text-white animate-spin" /> : <Play className="w-6 h-6 text-white ml-1" />}
+              onClick={() => onPlayTrack(album)}
+              title={albumIdBeingPlayed === album.albumId ? "Playing..." : "Play"}>
+              {assetPlayIsQueued || trackPlayIsQueued ? (
+                <Loader className="w-6 h-6 text-white animate-spin" />
+              ) : albumIdBeingPlayed === album.albumId ? (
+                <AudioLines className="w-6 h-6 text-white ml-1" style={{ animation: "playPulse 5s ease-in-out infinite" }} />
+              ) : (
+                <Play className="w-6 h-6 text-white ml-1" />
+              )}
             </button>
 
             <div>
@@ -468,11 +475,15 @@ const TrackDeepLinkModal: React.FC<TrackDeepLinkModalProps> = ({ track, artistNa
           {/* Track Cover Art */}
           <div className="relative group flex justify-center w-full cursor-pointer" onClick={onPlayTrack}>
             <div
-              className="w-64 h-64 bg-no-repeat bg-cover bg-center rounded-md relative"
+              className="w-64 h-64 bg-no-repeat bg-cover bg-center rounded-md relative overflow-hidden"
               style={{
                 backgroundImage: `url(${track.cover_art_url})`,
-              }}
-            />
+              }}>
+              {/* Play Icon Overlay - appears on hover */}
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
+                <Play className="w-20 h-20 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-1" />
+              </div>
+            </div>
           </div>
 
           {/* Album Details Section */}
