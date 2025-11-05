@@ -547,7 +547,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-3 py-1.5 rounded-bl-lg rounded-tr-sm font-semibold text-sm shadow-lg border border-yellow-400/50">
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 bg-black rounded-full animate-pulse"></span>
-                          Commercial AI Remix License Available
+                          AI Remix License Available
                         </span>
                       </div>
                     </div>

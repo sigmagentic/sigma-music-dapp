@@ -77,6 +77,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     updateAssetPlayIsQueued,
     albumIdBeingPlayed,
     updateAlbumIdBeingPlayed,
+    updateArtistIdBeingPlayedInPlaylist,
     updatePlaylistTrackIndexBeingPlayed,
     updateJumpToTrackIndexInAlbumBeingPlayed,
   } = useAudioPlayerStore();
@@ -408,15 +409,18 @@ export const HomeSection = (props: HomeSectionProps) => {
           }
         } else {
           const artistId = selectedCodeForPlaylist.split("artist_playlist-")[1];
-
           const artistPlaylistTracksRes = await getArtistPlaylistTracksFromDBViaAPI(artistId);
           const artistPlaylistTracks = artistPlaylistTracksRes || [];
           const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(artistPlaylistTracks);
 
           if (artistPlaylistTracks.length > 0) {
-            setMusicPlayerPlaylistTrackList(augmentedTracks);
             const blobUrl = await getFirstTrackBlobData(augmentedTracks[0]);
+            setMusicPlayerPlaylistTrackList(augmentedTracks);
             setFirstPlaylistSongBlobUrl(blobUrl);
+            updateArtistIdBeingPlayedInPlaylist(artistId);
+          } else {
+            // for whatever reason, the artist playlist has no tracks, so we reset the artistIdBeingPlayedInPlaylist state
+            updateArtistIdBeingPlayedInPlaylist(undefined);
           }
 
           setTimeout(() => {
@@ -894,6 +898,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     setViewSolDataHasError(false);
     setSelectedCodeForPlaylist("");
     updateAlbumIdBeingPlayed(undefined);
+    updateArtistIdBeingPlayedInPlaylist(undefined);
     updatePlaylistTrackIndexBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
     updateJumpToTrackIndexInAlbumBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
   }
