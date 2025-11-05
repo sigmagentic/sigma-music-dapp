@@ -957,7 +957,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               {/* Large Circular Play Button */}
                               <button
                                 disabled={assetPlayIsQueued || trackPlayIsQueued}
-                                className={`w-16 h-16 md:w-[6rem] md:h-[4rem] rounded-full flex items-center justify-center transition-all duration-200 ${
+                                className={`w-16 h-16 md:w-[5rem] md:h-[5rem] rounded-full flex items-center justify-center transition-all duration-200 ${
                                   assetPlayIsQueued || trackPlayIsQueued
                                     ? "bg-gray-600 cursor-not-allowed opacity-50"
                                     : "bg-gradient-to-r from-green-400 to-orange-500 hover:from-orange-500 hover:to-green-400 hover:scale-105 cursor-pointer"
