@@ -73,7 +73,7 @@ export const ENABLE_WSB_CAMPAIGN = import.meta.env.VITE_ENV_ENABLE_WSB_CAMPAIGN 
 
 export const ENABLE_APP_OFFLINE = import.meta.env.VITE_ENV_ENABLE_APP_OFFLINE || "0";
 
-export const LOG_STREAM_EVENT_METRIC_EVERY_SECONDS = 30;
+export const LOG_STREAM_EVENT_METRIC_EVERY_SECONDS = 15;
 
 export const MINTER_WALLET = APP_NETWORK === "devnet" ? "5QrQzQk5nnTJbBhdnwwwmQr94AQUkMEaZkDbU5HsvKMY" : "33iDRaAJCFY8GVTCFhnhfHMvtMqfMbTxcCgEkr6eRQnT";
 

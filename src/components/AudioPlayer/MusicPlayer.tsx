@@ -390,7 +390,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       console.log(
         `Saving Stream Metric Event for track alId = ${trackList[currentTrackIndex].albumTrackId} streamLogEventSentToAPI = ${streamLogEventSentToAPI}`
       );
-      // logStreamViaAPI({ streamerAddr: publicKey?.toBase58() || "0", albumTrackId: trackList[currentTrackIndex].albumTrackId });
+      logStreamViaAPI({ streamerAddr: publicKey?.toBase58() || "0", albumTrackId: trackList[currentTrackIndex].albumTrackId });
     }
   }, [timeInSecondsListenedToTrack, publicKey, trackList]);
 
