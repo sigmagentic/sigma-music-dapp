@@ -122,8 +122,8 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                           <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
                             {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alId}
                           </div>
-                          <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
-                          <div className="text-sm text-white/70 mb-2">Streams</div>
+                          {/* <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
+                          <div className="text-sm text-white/70 mb-2">Streams</div> */}
                           <button
                             onClick={() => {
                               setActiveTab("discography");
