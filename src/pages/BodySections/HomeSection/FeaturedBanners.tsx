@@ -319,8 +319,8 @@ export const FeaturedBanners = ({
                       <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
                         {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alId}
                       </div>
-                      <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
-                      <div className="text-sm text-white/70 mb-2">Streams</div>
+                      {/* <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
+                      <div className="text-sm text-white/70 mb-2">Streams</div> */}
                       <button
                         onClick={() => {
                           const artistId = stream.alId.split("_")[0];
@@ -341,6 +341,60 @@ export const FeaturedBanners = ({
               </div>
             </div>
             {streamMetricData.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Latest albums */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="text-lg text-white/70">Latest Albums</span>
+        </div>
+        {isLoadingFeaturedAlbumsAndArtists ? (
+          <LoadingSkeleton />
+        ) : latestAlbums.length === 0 ? (
+          <p className="text-xl mb-10 text-center md:text-left opacity-50">No latest albums data yet</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-1
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {latestAlbums.map((album, index) => (
+                  <div
+                    key={`${album.albumId}-${index}`}
+                    className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                    style={{
+                      backgroundImage: `url(${album.img})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundBlendMode: "multiply",
+                      backgroundColor: "#161616d4",
+                      backgroundRepeat: "no-repeat",
+                    }}>
+                    <div className="text-center mt-4">
+                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
+                      <div className="text-sm text-white/70 mb-2">By {album.artistName}</div>
+                      <Button
+                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                        onClick={() => {
+                          navigateToDeepAppView({
+                            artistSlug: `${album.artistSlug}~${album.albumId}`,
+                            toAction: "tracklist",
+                          });
+                        }}>
+                        Listen
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {latestAlbums.length > 3 && (
               <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
             )}
           </div>
@@ -405,60 +459,6 @@ export const FeaturedBanners = ({
               </div>
             </div>
             {aiRemixReadyAlbums.length > 3 && (
-              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Latest albums */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
-        <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">Latest Albums</span>
-        </div>
-        {isLoadingFeaturedAlbumsAndArtists ? (
-          <LoadingSkeleton />
-        ) : latestAlbums.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No latest albums data yet</p>
-        ) : (
-          <div className="relative w-full">
-            <div
-              className="overflow-x-auto pb-4 mt-1
-              [&::-webkit-scrollbar]:h-2
-              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-              <div className="flex space-x-4 min-w-max">
-                {latestAlbums.map((album, index) => (
-                  <div
-                    key={`${album.albumId}-${index}`}
-                    className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
-                    style={{
-                      backgroundImage: `url(${album.img})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      backgroundBlendMode: "multiply",
-                      backgroundColor: "#161616d4",
-                      backgroundRepeat: "no-repeat",
-                    }}>
-                    <div className="text-center mt-4">
-                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
-                      <div className="text-sm text-white/70 mb-2">By {album.artistName}</div>
-                      <Button
-                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
-                        onClick={() => {
-                          navigateToDeepAppView({
-                            artistSlug: `${album.artistSlug}~${album.albumId}`,
-                            toAction: "tracklist",
-                          });
-                        }}>
-                        Listen
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {latestAlbums.length > 3 && (
               <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
             )}
           </div>

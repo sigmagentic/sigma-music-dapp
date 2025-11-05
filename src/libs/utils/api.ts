@@ -973,6 +973,9 @@ export const fetchLatestCollectiblesAvailableViaAPI = async (nftType: string = "
       if (data.length > 0 && nftType === "album") {
         // remove items from data have that have a .isDemo property
         data = data.filter((item: any) => !item.isDemo);
+
+        // also, let's filter out the WSB ones for now as that campaign is over and not promoted anymore. These are items that have wsb in the tokenName. i.e "tokenName": "FANG79-WsbYshie-T1"
+        data = data.filter((item: any) => !item.tokenName.toLowerCase().includes("wsb"));
       }
 
       data = data.slice(0, limit);
