@@ -522,6 +522,52 @@ export const getAlbumTracksFromDBViaAPI = async (artistId: string, albumId: stri
   }
 };
 
+const cache_artistPlaylistTracks: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const getArtistPlaylistTracksFromDBViaAPI = async (artistId: string, bypassCache = false) => {
+  const now = Date.now();
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_artistPlaylistTracks[`${artistId}-playlist`];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN && !bypassCache) {
+      console.log(`getArtistPlaylistTracksFromDBViaAPI: Getting playlist tracks for artistId: ${artistId} from cache`);
+      return cacheEntry.data;
+    }
+
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/musicTracks/${artistId}`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      // Update cache
+      cache_artistPlaylistTracks[`${artistId}-playlist`] = {
+        data: data,
+        timestamp: now,
+      };
+
+      return data;
+    } else {
+      cache_artistPlaylistTracks[`${artistId}-playlist`] = {
+        data: [],
+        timestamp: now,
+      };
+
+      return [];
+    }
+  } catch (error) {
+    console.error("Error getting artist playlist tracks from DB:", error);
+
+    // Update cache (with [] as data)
+    cache_artistPlaylistTracks[`${artistId}-playlist`] = {
+      data: [],
+      timestamp: now,
+    };
+
+    return [];
+  }
+};
+
 export const getAlbumFromDBViaAPI = async (artistId: string) => {
   try {
     const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/albums/${artistId}`);

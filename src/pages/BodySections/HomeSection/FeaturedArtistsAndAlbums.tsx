@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
-import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram, ChevronDown } from "lucide-react";
+import { WalletMinimal, Twitter, Youtube, Link2, Globe, Droplet, Zap, CircleArrowLeft, Loader, Instagram, ChevronDown, Play } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import TikTokIcon from "assets/img/icons/tiktok-icon.png";
@@ -19,6 +19,7 @@ import { routeNames } from "routes";
 import { useAppStore } from "store/app";
 import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
+import { useAudioPlayerStore } from "store/audioPlayer";
 
 let originalSortedArtistAlbumDataset: Artist[] = []; // sorted by "Featured", this is the original "master" copy we always resort or filter from
 let originalSortedAlbumsDataset: AlbumWithArtist[] = []; // sorted by "Featured", this is the original "master" copy we always resort or filter from
@@ -51,6 +52,9 @@ type FeaturedArtistsAndAlbumsProps = {
   onCloseMusicPlayer: () => void;
   setLoadIntoTileView: (e: boolean) => void;
   navigateToDeepAppView: (e: any) => any;
+  setLaunchPlaylistPlayerWithDefaultTracks: (launchPlaylistPlayerWithDefaultTracks: boolean) => void;
+  setLaunchPlaylistPlayer: (launchPlaylistPlayer: boolean) => void;
+  onPlaylistUpdate: (playlistCode: string) => void;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
@@ -74,12 +78,16 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     onCloseMusicPlayer,
     setLoadIntoTileView,
     navigateToDeepAppView,
+    setLaunchPlaylistPlayerWithDefaultTracks,
+    setLaunchPlaylistPlayer,
+    onPlaylistUpdate,
   } = props;
   const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
   const [searchParams, setSearchParams] = useSearchParams();
   const { solBitzNfts } = useNftsStore();
   const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
+  const { trackPlayIsQueued, assetPlayIsQueued, updateAssetPlayIsQueued } = useAudioPlayerStore();
 
   const [previewTrackAudio] = useState(new Audio());
   const [isPreviewPlaying, setIsPreviewPlaying] = useState<boolean>(false);
@@ -615,6 +623,25 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setSelArtistId(undefined);
   }
 
+  function handleArtistPlaylistPlay() {
+    onCloseMusicPlayer();
+
+    if (isMusicPlayerOpen) {
+      updateAssetPlayIsQueued(true);
+      setTimeout(() => {
+        onPlaylistUpdate(`artist_playlist-${selArtistId}`);
+        setLaunchPlaylistPlayerWithDefaultTracks(false);
+        setLaunchPlaylistPlayer(true);
+        updateAssetPlayIsQueued(false);
+      }, 5000);
+    } else {
+      onPlaylistUpdate(`artist_playlist-${selArtistId}`);
+      setLaunchPlaylistPlayerWithDefaultTracks(false);
+      setLaunchPlaylistPlayer(true);
+      updateAssetPlayIsQueued(false);
+    }
+  }
+
   const xpCollectionIdToUse = !addressSol || solBitzNfts.length === 0 ? DEFAULT_BITZ_COLLECTION_SOL : solBitzNfts[0].grouping[0].group_value;
 
   return (
@@ -849,79 +876,101 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
                           {artistProfile.isVerifiedArtist && (
                             <div title="This artist has been verified by Sigma Music" className={`text-md p-2 bg-yellow-300 text-gray-800 text-sm`}>
-                              ☑️ Verified Artist{" "}
+                              ☑️ Verified Artist
                             </div>
                           )}
                         </div>
 
                         {/* artists details and power up */}
                         <div className="details-container p-2 md:p-5 pt-2 flex-1 flex flex-col md:block items-baseline">
-                          <h2 className={`!text-xl !text-white lg:!text-3xl text-nowrap mb-5 text-center md:text-left mt-5 md:mt-0`}>
-                            {artistProfile.name.replaceAll("_", " ")}
-                          </h2>
+                          <div className="flex flex-row w-full items-start bgx-red-500">
+                            <div className="flex flex-col w-full items-start bgx-blue-500">
+                              <h2 className={`!text-xl !text-white lg:!text-3xl text-nowrap mb-5 text-center md:text-left mt-5 md:mt-0`}>
+                                {artistProfile.name.replaceAll("_", " ")}
+                              </h2>
 
-                          {!DISABLE_BITZ_FEATURES && (
-                            <div className="powerUpWithBitz flex flex-row items-center mb-5 w-full md:w-auto">
-                              <div className="relative">
-                                {publicKeySol ? (
-                                  <Button
-                                    className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 cursor-pointer rounded-none rounded-l-sm mr-2"
-                                    disabled={!publicKeySol}
-                                    onClick={() => {
-                                      onSendBitzForMusicBounty({
-                                        creatorIcon: artistProfile.img,
-                                        creatorName: artistProfile.name,
-                                        creatorSlug: artistProfile.slug,
-                                        creatorXLink: artistProfile.xLink,
-                                        giveBitzToWho: artistProfile.creatorWallet,
-                                        giveBitzToCampaignId: artistProfile.bountyId,
-                                      });
-                                    }}>
-                                    <>
-                                      <Zap className="w-4 h-4" />
-                                      <span className="ml-2">Power-Up</span>
-                                    </>
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    className="!text-black text-sm px-[1rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 cursor-pointer rounded-none rounded-l-sm mr-2"
-                                    onClick={() => {
-                                      window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
-                                    }}>
-                                    <>
-                                      <WalletMinimal />
-                                      <span className="ml-2">Login to Power-Up</span>
-                                    </>
-                                  </Button>
-                                )}
-                              </div>
-
-                              <div
-                                className={`${publicKeySol && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "-ml-[12px]"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-0 rounded-r md:min-w-[100px] flex items-center justify-center `}>
-                                {typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum === "undefined" ? (
-                                  <Loader className="w-full text-center animate-spin m-2" size={20} />
-                                ) : (
-                                  <div
-                                    className="p-10 md:p-10"
-                                    onClick={() => {
-                                      if (publicKeySol) {
-                                        onSendBitzForMusicBounty({
-                                          creatorIcon: artistProfile.img,
-                                          creatorName: artistProfile.name,
-                                          creatorSlug: artistProfile.slug,
-                                          creatorXLink: artistProfile.xLink,
-                                          giveBitzToWho: artistProfile.creatorWallet,
-                                          giveBitzToCampaignId: artistProfile.bountyId,
-                                        });
-                                      }
-                                    }}>
-                                    <span className="font-bold text-sm">Power</span>
-                                    <span className="ml-1 mt-[10px] text-sm">{bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum}</span>
+                              {!DISABLE_BITZ_FEATURES && (
+                                <div className="powerUpWithBitz flex flex-row items-center mb-5 w-full md:w-auto">
+                                  <div className="relative">
+                                    {publicKeySol ? (
+                                      <Button
+                                        className="!text-black text-sm px-[2.35rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 cursor-pointer rounded-none rounded-l-sm mr-2"
+                                        disabled={!publicKeySol}
+                                        onClick={() => {
+                                          onSendBitzForMusicBounty({
+                                            creatorIcon: artistProfile.img,
+                                            creatorName: artistProfile.name,
+                                            creatorSlug: artistProfile.slug,
+                                            creatorXLink: artistProfile.xLink,
+                                            giveBitzToWho: artistProfile.creatorWallet,
+                                            giveBitzToCampaignId: artistProfile.bountyId,
+                                          });
+                                        }}>
+                                        <>
+                                          <Zap className="w-4 h-4" />
+                                          <span className="ml-2 text-xs">Power-Up</span>
+                                        </>
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        className="!text-black text-sm px-[1rem] bottom-1.5 bg-gradient-to-r from-yellow-300 to-orange-500 transition ease-in-out delay-150 duration-300 cursor-pointer rounded-none rounded-l-sm mr-2"
+                                        onClick={() => {
+                                          window.location.href = `${routeNames.login}?from=${encodeURIComponent(location.pathname + location.search)}`;
+                                        }}>
+                                        <>
+                                          <WalletMinimal />
+                                          <span className="ml-2 text-xs">Login to Power-Up</span>
+                                        </>
+                                      </Button>
+                                    )}
                                   </div>
-                                )}
-                              </div>
+
+                                  <div
+                                    className={`${publicKeySol && typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum !== "undefined" ? "-ml-[12px] hover:bg-orange-100 dark:hover:text-orange-500 cursor-pointer" : "-ml-[12px]"} text-center text-lg h-[40px] text-orange-500 dark:text-[#fde047] border border-orange-500 dark:border-yellow-300 mt-0 rounded-r md:min-w-[100px] flex items-center justify-center`}>
+                                    {typeof bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum === "undefined" ? (
+                                      <Loader className="w-full text-center animate-spin m-2" size={20} />
+                                    ) : (
+                                      <div
+                                        className="p-5 md:p-5"
+                                        onClick={() => {
+                                          if (publicKeySol) {
+                                            onSendBitzForMusicBounty({
+                                              creatorIcon: artistProfile.img,
+                                              creatorName: artistProfile.name,
+                                              creatorSlug: artistProfile.slug,
+                                              creatorXLink: artistProfile.xLink,
+                                              giveBitzToWho: artistProfile.creatorWallet,
+                                              giveBitzToCampaignId: artistProfile.bountyId,
+                                            });
+                                          }
+                                        }}>
+                                        <span className="font-bold text-xs">Power</span>
+                                        <span className="ml-1 mt-[10px] text-xs">{bountyBitzSumGlobalMapping[artistProfile.bountyId]?.bitsSum}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          )}
+
+                            <div className="bgx-green-500 flex items-center justify-center">
+                              {/* Large Circular Play Button */}
+                              <button
+                                disabled={assetPlayIsQueued || trackPlayIsQueued}
+                                className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                  assetPlayIsQueued || trackPlayIsQueued
+                                    ? "bg-gray-600 cursor-not-allowed opacity-50"
+                                    : "bg-gradient-to-r from-green-400 to-orange-500 hover:from-orange-500 hover:to-green-400 hover:scale-105 cursor-pointer"
+                                }`}
+                                onClick={() => handleArtistPlaylistPlay()}>
+                                {assetPlayIsQueued || trackPlayIsQueued ? (
+                                  <Loader className="w-6 h-6 text-white animate-spin" />
+                                ) : (
+                                  <Play className="w-6 h-6 text-white ml-1" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
 
                           <div className={`artist-bio-n-links flex flex-col items-baseline md:block`}>
                             <div className="relative">

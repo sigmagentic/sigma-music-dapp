@@ -56,8 +56,8 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
 
         const streamsDataWithAlbumTitle = _streamsData.map((stream: StreamMetricData) => ({
           ...stream,
-          songTitle: musicTrackLookup[stream.alid]?.title,
-          coverArtUrl: musicTrackLookup[stream.alid]?.cover_art_url,
+          songTitle: musicTrackLookup[stream.alId]?.title,
+          coverArtUrl: musicTrackLookup[stream.alId]?.cover_art_url,
         }));
 
         setStreamMetricData(streamsDataWithAlbumTitle);
@@ -103,7 +103,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                   <div className="flex space-x-4 min-w-max">
                     {streamMetricData.map((stream, index) => (
                       <div
-                        key={stream.alid}
+                        key={stream.alId}
                         className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
                         style={{
                           backgroundImage: `url(${stream.coverArtUrl})`,
@@ -120,7 +120,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                         </div>
                         <div className="text-center mt-2">
                           <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
-                            {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alid}
+                            {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alId}
                           </div>
                           <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
                           <div className="text-sm text-white/70 mb-2">Streams</div>
@@ -128,13 +128,13 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                             onClick={() => {
                               setActiveTab("discography");
 
-                              const artistId = stream.alid.split("_")[0];
-                              const albumId = stream.alid.split("-")[0];
+                              const artistId = stream.alId.split("_")[0];
+                              const albumId = stream.alId.split("-")[0];
 
                               navigateToDeepAppView({
                                 artistSlug: `${artistLookup[artistId].slug}~${albumId}`,
                                 toAction: "tracklist",
-                                toTrackIdForDeepLink: stream.alid,
+                                toTrackIdForDeepLink: stream.alId,
                               });
                             }}
                             className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors">

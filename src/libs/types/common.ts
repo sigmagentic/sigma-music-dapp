@@ -32,7 +32,7 @@ export interface MusicTrack {
   bountyId?: string;
   isExplicit?: string;
   alId?: string; // the album and track index in the format (ar22_a1-1) -- it comes for DB in this format, but in the app we normalize it to albumTrackId
-  albumTrackId?: string; // (same as above alid, the playlist (prev radio) streams json has it in this format) the album and track index in the format (ar22_a1-1)
+  albumTrackId?: string; // (same as above alId, the playlist (prev radio) streams json has it in this format) the album and track index in the format (ar22_a1-1)
   artistSlug?: string;
   isSigmaAiRemix?: string; // 0 or 1 indicated if the track was published via Sigma AI Remix
   isSigmaAiRemixUsingFreeLicense?: string; // 0 or 1 indicated if the track was published via Sigma AI Remix using a free license track
@@ -185,7 +185,7 @@ export interface TrackInfo {
 export type AlbumTrackCatalog = Record<string, TrackInfo>;
 
 export interface StreamMetricData {
-  alid: string;
+  alId: string;
   streams: number;
   songTitle: string;
   coverArtUrl: string;

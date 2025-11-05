@@ -892,14 +892,14 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         <>
           {displayTrackList && (
             <div
-              className={`z-10 bg-gradient-to-t from-[#171717] to-black ${
+              className={`z-10 bg-gradient-to-t from-[#171717] to-transparent ${
                 isFullScreen ? "fixed right-0 top-0 h-full w-[400px] overflow-y-auto" : "w-full pb-2"
               }`}
               onWheel={handleTrackListScroll}>
               <div className={`trackList ${isFullScreen ? "w-full px-4" : "w-[300px] md:w-[93%]"} mt-1 pt-3 mx-auto`}>
                 {!isFullScreen && (
                   <button
-                    className={`select-none absolute top-0 ${isFullScreen ? "right-1" : "right-0"} flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
+                    className={`select-none absolute top-1 right-1 flex flex-col items-center justify-center md:flex-row bg-[#fafafa]/50 dark:bg-[#0f0f0f]/25 p-2 gap-2 text-xs cursor-pointer transition-shadow rounded-2xl overflow-hidden`}
                     onClick={() => setDisplayTrackList(false)}>
                     <ChevronDown className="w-6 h-6" />
                   </button>
@@ -1089,7 +1089,9 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   }
                 }}>
                 <div className="flex items-center">
-                  <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"}`}>{trackList[currentTrackIndex]?.title}</span>
+                  <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"} max-w-[200px] truncate`}>
+                    {trackList[currentTrackIndex]?.title}
+                  </span>
                   {trackList[currentTrackIndex]?.isExplicit && trackList[currentTrackIndex]?.isExplicit === "1" && (
                     <img
                       className="max-h-[15px] relative ml-[5px] rounded-md"

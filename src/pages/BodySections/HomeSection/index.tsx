@@ -8,7 +8,7 @@ import { MARSHAL_CACHE_DURATION_SECONDS, ALL_MUSIC_GENRES, GenreTier, isUIDebugM
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { viewDataViaMarshalSol, getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { BlobDataType, ExtendedViewDataReturnType, MusicTrack } from "libs/types";
-import { getAlbumTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/api";
+import { getAlbumTracksFromDBViaAPI, getArtistPlaylistTracksFromDBViaAPI, getMusicTracksByGenreViaAPI } from "libs/utils/api";
 import { removeAllDeepSectionParamsFromUrlExceptSection, scrollToTopOnMainContentArea } from "libs/utils/ui";
 import { toastClosableError } from "libs/utils/uiShared";
 import { CampaignHeroWIR } from "pages/Campaigns/CampaignHeroWIR";
@@ -82,7 +82,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   } = useAudioPlayerStore();
   const [viewSolDataHasError, setViewSolDataHasError] = useState<boolean>(false);
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
-  const [genrePlaylistUpdateTimeout, setGenrePlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [playlistUpdateTimeout, setPlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
   const [heroSlideshowContent, setHeroSlideshowContent] = useState<any[]>([]);
   const [dynamicHeroContentAdded, setDynamicHeroContentAdded] = useState<boolean>(false);
 
@@ -155,7 +155,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [firstPlaylistSongBlobUrl, setFirstPlaylistSongBlobUrl] = useState<string | undefined>();
   const [firstDefaultPlaylistSongBlobUrl, setFirstDefaultPlaylistSongBlobUrl] = useState<string | undefined>();
   const [loadPlaylistPlayerIntoDockedMode, setLoadPlaylistPlayerIntoDockedMode] = useState(true); // load the playlist player into docked mode?
-  const [selectedPlaylistGenre, setSelectedGenreForPlaylist] = useState<string>("");
+  const [selectedCodeForPlaylist, setSelectedCodeForPlaylist] = useState<string>("");
   const [musicPlayerPauseInvokeIncrement, setMusicPlayerPauseInvokeIncrement] = useState(0); // a simple method a child component can call to increment this and in turn invoke a pause effect in the main music player
 
   // Here, when a deep link is hard reloaded, we look for search params and then call back the setHomeMode to load the local view
@@ -274,11 +274,11 @@ export const HomeSection = (props: HomeSectionProps) => {
   // Cleanup timeout on component unmount
   useEffect(() => {
     return () => {
-      if (genrePlaylistUpdateTimeout) {
-        clearTimeout(genrePlaylistUpdateTimeout);
+      if (playlistUpdateTimeout) {
+        clearTimeout(playlistUpdateTimeout);
       }
     };
-  }, [genrePlaylistUpdateTimeout]);
+  }, [playlistUpdateTimeout]);
 
   useEffect(() => {
     if (homeMode.includes("artists") || homeMode.includes("campaigns")) {
@@ -366,42 +366,67 @@ export const HomeSection = (props: HomeSectionProps) => {
     }
   }, [homeMode, artistLookupEverything, launchPlaylistPlayer]);
 
-  // user has requested a specific genre playlist
+  // user has requested a specific playlist
   useEffect(() => {
-    if (selectedPlaylistGenre && selectedPlaylistGenre !== "") {
+    if (selectedCodeForPlaylist && selectedCodeForPlaylist !== "") {
       (async () => {
         setFirstPlaylistSongBlobUrl(undefined);
         setMusicPlayerPlaylistTrackList([]);
 
-        if (selectedPlaylistGenre === "foryou") {
-          setLaunchPlaylistPlayer(true);
-          setLaunchPlaylistPlayerWithDefaultTracks(true);
-          updateAssetPlayIsQueued(false);
-        } else {
-          const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: selectedPlaylistGenre, pageSize: 20 });
-          const genreTracks = genreTracksRes.tracks || [];
-          const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(genreTracks);
+        // are we playing an artist playlist or a genre playlist?
+        let isArtistPlaylist = false;
+        if (selectedCodeForPlaylist.includes("artist_playlist-")) {
+          isArtistPlaylist = true;
+        }
 
-          if (genreTracks.length > 0) {
+        if (!isArtistPlaylist) {
+          if (selectedCodeForPlaylist === "foryou") {
+            setLaunchPlaylistPlayer(true);
+            setLaunchPlaylistPlayerWithDefaultTracks(true);
+            updateAssetPlayIsQueued(false);
+          } else {
+            const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: selectedCodeForPlaylist, pageSize: 20 });
+            const genreTracks = genreTracksRes.tracks || [];
+            const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(genreTracks);
+
+            if (genreTracks.length > 0) {
+              setMusicPlayerPlaylistTrackList(augmentedTracks);
+              const blobUrl = await getFirstTrackBlobData(augmentedTracks[0]);
+              setFirstPlaylistSongBlobUrl(blobUrl);
+
+              setTimeout(() => {
+                setLaunchPlaylistPlayer(true);
+                setLoadPlaylistPlayerIntoDockedMode(true);
+              }, 1000);
+            } else {
+              // it's unlikely we hit here, can only happen is there is some API issue OR the genre has no tracks
+              setTimeout(() => {
+                setLaunchPlaylistPlayer(true);
+                setLoadPlaylistPlayerIntoDockedMode(false);
+              }, 1000);
+            }
+          }
+        } else {
+          const artistId = selectedCodeForPlaylist.split("artist_playlist-")[1];
+
+          const artistPlaylistTracksRes = await getArtistPlaylistTracksFromDBViaAPI(artistId);
+          const artistPlaylistTracks = artistPlaylistTracksRes || [];
+          const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(artistPlaylistTracks);
+
+          if (artistPlaylistTracks.length > 0) {
             setMusicPlayerPlaylistTrackList(augmentedTracks);
             const blobUrl = await getFirstTrackBlobData(augmentedTracks[0]);
             setFirstPlaylistSongBlobUrl(blobUrl);
-
-            setTimeout(() => {
-              setLaunchPlaylistPlayer(true);
-              setLoadPlaylistPlayerIntoDockedMode(true);
-            }, 1000);
-          } else {
-            // it's unlikely we hit here, can only happen is there is some API issue OR the genre has no tracks
-            setTimeout(() => {
-              setLaunchPlaylistPlayer(true);
-              setLoadPlaylistPlayerIntoDockedMode(false);
-            }, 1000);
           }
+
+          setTimeout(() => {
+            setLaunchPlaylistPlayer(true);
+            setLoadPlaylistPlayerIntoDockedMode(false);
+          }, 1000);
         }
       })();
     }
-  }, [selectedPlaylistGenre]);
+  }, [selectedCodeForPlaylist]);
 
   useEffect(() => {
     if (solMusicAssetNfts && solMusicAssetNfts.length > 0) {
@@ -447,20 +472,20 @@ export const HomeSection = (props: HomeSectionProps) => {
     }
   }, [solBitzNfts]);
 
-  const debouncedGenrePlaylistUpdate = useCallback(
-    (genre: string) => {
-      if (genrePlaylistUpdateTimeout) {
-        clearTimeout(genrePlaylistUpdateTimeout);
+  const debouncedPlaylistUpdate = useCallback(
+    (playlistCode: string) => {
+      if (playlistUpdateTimeout) {
+        clearTimeout(playlistUpdateTimeout);
       }
 
       const timeout = setTimeout(() => {
-        setSelectedGenreForPlaylist(genre);
-        setGenrePlaylistUpdateTimeout(null);
+        setSelectedCodeForPlaylist(playlistCode);
+        setPlaylistUpdateTimeout(null);
       }, 1000); // 1 second delay
 
-      setGenrePlaylistUpdateTimeout(timeout);
+      setPlaylistUpdateTimeout(timeout);
     },
-    [genrePlaylistUpdateTimeout]
+    [playlistUpdateTimeout]
   );
 
   async function fetchAndLoadDefaultPersonalizedPlaylistTracks() {
@@ -867,7 +892,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     setBitzGiftingMeta(null);
     setLoadPlaylistPlayerIntoDockedMode(false);
     setViewSolDataHasError(false);
-    setSelectedGenreForPlaylist("");
+    setSelectedCodeForPlaylist("");
     updateAlbumIdBeingPlayed(undefined);
     updatePlaylistTrackIndexBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
     updateJumpToTrackIndexInAlbumBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
@@ -920,14 +945,14 @@ export const HomeSection = (props: HomeSectionProps) => {
 
                   <div className="featuredBanners flex-1">
                     <FeaturedBanners
-                      selectedPlaylistGenre={selectedPlaylistGenre}
+                      selectedCodeForPlaylist={selectedCodeForPlaylist}
                       isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
                       onCloseMusicPlayer={resetMusicPlayerState}
                       setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
                       setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
-                      onPlaylistGenreUpdate={(genre: string) => {
-                        setSelectedGenreForPlaylist(""); // clear any previous genre selection immediately
-                        debouncedGenrePlaylistUpdate(genre); // but debounce the actual logic in case the user is click spamming the genre buttons
+                      onPlaylistUpdate={(genreCode: string) => {
+                        setSelectedCodeForPlaylist(""); // clear any previous genre selection immediately
+                        debouncedPlaylistUpdate(genreCode); // but debounce the actual logic in case the user is click spamming the genre buttons
                       }}
                       onFeaturedArtistDeepLinkSlug={(slug: string) => {
                         setHomeMode(`artists-${new Date().getTime()}`);
@@ -968,14 +993,14 @@ export const HomeSection = (props: HomeSectionProps) => {
               <CampaignHeroWIR
                 setCampaignCodeFilter={setCampaignCodeFilter}
                 navigateToDeepAppView={navigateToDeepAppView}
-                selectedPlaylistGenre={selectedPlaylistGenre}
+                selectedCodeForPlaylist={selectedCodeForPlaylist}
                 isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
                 onCloseMusicPlayer={resetMusicPlayerState}
                 setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
                 setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
-                onPlaylistGenreUpdate={(genre: string) => {
-                  setSelectedGenreForPlaylist(""); // clear any previous genre selection immediately
-                  debouncedGenrePlaylistUpdate(genre); // but debounce the actual logic in case the user is click spamming the genre buttons
+                onPlaylistUpdate={(genreCode: string) => {
+                  setSelectedCodeForPlaylist(""); // clear any previous genre selection immediately
+                  debouncedPlaylistUpdate(genreCode); // but debounce the actual logic in case the user is click spamming the genre buttons
                 }}
               />
             )}
@@ -1024,6 +1049,12 @@ export const HomeSection = (props: HomeSectionProps) => {
                     isAllAlbumsMode={homeMode.includes("albums")}
                     filterByArtistCampaignCode={homeMode.includes("campaigns-wsb") ? campaignCodeFilter : -1}
                     navigateToDeepAppView={navigateToDeepAppView}
+                    setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
+                    setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
+                    onPlaylistUpdate={(artistCode: string) => {
+                      setSelectedCodeForPlaylist(""); // clear any previous playlist selection immediately
+                      debouncedPlaylistUpdate(artistCode); // but debounce the actual logic in case the user is click spamming the playlist button
+                    }}
                   />
                 </div>
               </>

@@ -236,7 +236,11 @@ export const TrackList: React.FC<TrackListProps> = ({
         <div className="grid grid-cols-[50px_1fr_50px] gap-4 text-gray-400 text-sm font-medium">
           <div>#</div>
           <div>Title</div>
-          {!disabledDownloadAlways && <div>Options</div>}
+          {!disabledDownloadAlways && (
+            <div>
+              <MoreVertical className="w-4 h-4" />
+            </div>
+          )}
         </div>
       </div>
 

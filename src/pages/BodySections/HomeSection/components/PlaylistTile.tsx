@@ -10,7 +10,7 @@ interface PlaylistTileProps {
   };
   color: string;
   hoverBgColor?: string;
-  selectedPlaylistGenre: string;
+  selectedCodeForPlaylist: string;
   lastClickedGenreForPlaylist: string;
   assetPlayIsQueued: boolean;
   isMusicPlayerOpen: boolean;
@@ -19,7 +19,7 @@ interface PlaylistTileProps {
   onCloseMusicPlayer: () => void;
   setLastClickedGenreForPlaylist: (genre: string) => void;
   updateAssetPlayIsQueued: (value: boolean) => void;
-  onPlaylistGenreUpdate: (genre: string) => void;
+  onPlaylistUpdate: (genre: string) => void;
   setLaunchPlaylistPlayerWithDefaultTracks: (value: boolean) => void;
   setLaunchPlaylistPlayer: (value: boolean) => void;
 }
@@ -28,7 +28,7 @@ export const PlaylistTile = ({
   genre,
   color,
   hoverBgColor,
-  selectedPlaylistGenre,
+  selectedCodeForPlaylist,
   lastClickedGenreForPlaylist,
   assetPlayIsQueued,
   isMusicPlayerOpen,
@@ -37,7 +37,7 @@ export const PlaylistTile = ({
   onCloseMusicPlayer,
   setLastClickedGenreForPlaylist,
   updateAssetPlayIsQueued,
-  onPlaylistGenreUpdate,
+  onPlaylistUpdate,
   setLaunchPlaylistPlayerWithDefaultTracks,
   setLaunchPlaylistPlayer,
 }: PlaylistTileProps) => {
@@ -48,13 +48,13 @@ export const PlaylistTile = ({
     if (isMusicPlayerOpen) {
       updateAssetPlayIsQueued(true);
       setTimeout(() => {
-        onPlaylistGenreUpdate(genre.code);
+        onPlaylistUpdate(genre.code);
         setLaunchPlaylistPlayerWithDefaultTracks(false);
         setLaunchPlaylistPlayer(true);
         updateAssetPlayIsQueued(false);
       }, 5000);
     } else {
-      onPlaylistGenreUpdate(genre.code);
+      onPlaylistUpdate(genre.code);
       setLaunchPlaylistPlayerWithDefaultTracks(false);
       setLaunchPlaylistPlayer(true);
       updateAssetPlayIsQueued(false);
@@ -69,25 +69,25 @@ export const PlaylistTile = ({
       onClick={handleClick}
       className={`flex-shrink-0 ${extendTileToFullWidth ? "w-full h-40" : "w-64 h-40"} bg-black rounded-sm p-0 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group shadow-lg
         ${assetPlayIsQueued ? "pointer-events-none cursor-not-allowed" : ""}
-        ${selectedPlaylistGenre === genre.code ? "ring-2 ring-yellow-300" : ""}  ${hoverBgColor ? `hover:border-2 hover:border-${hoverBgColor}` : ""}`}
+        ${selectedCodeForPlaylist === genre.code ? "ring-2 ring-yellow-300" : ""}  ${hoverBgColor ? `hover:border-2 hover:border-${hoverBgColor}` : ""}`}
       style={{ background: color }}>
       {/* Genre Title */}
       <div className="absolute top-4 left-5 z-5">
         <span className="text-white text-xl font-bold drop-shadow-lg">{genre.label}</span>
       </div>
       {/* Loader/Playing indicator */}
-      {selectedPlaylistGenre === "" && lastClickedGenreForPlaylist === genre.code && (
+      {selectedCodeForPlaylist === "" && lastClickedGenreForPlaylist === genre.code && (
         <div className="absolute top-4 right-5 z-5">
           <Loader className="animate-spin text-yellow-300" size={20} />
         </div>
       )}
-      {selectedPlaylistGenre === genre.code ? (
+      {selectedCodeForPlaylist === genre.code ? (
         <div className="absolute top-4 right-5 z-10">
           <span className="text-white text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Playing</span>
         </div>
       ) : (
         <>
-          {selectedPlaylistGenre === "" && lastClickedGenreForPlaylist !== genre.code && showClickToPlay ? (
+          {selectedCodeForPlaylist === "" && lastClickedGenreForPlaylist !== genre.code && showClickToPlay ? (
             <div className="absolute top-4 right-5 z-10">
               <span className="text-white text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Click to Play</span>
             </div>

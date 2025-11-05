@@ -44,9 +44,9 @@ interface LatestAlbumCollectibleOption {
 
 export const FeaturedBanners = ({
   onFeaturedArtistDeepLinkSlug,
-  selectedPlaylistGenre,
+  selectedCodeForPlaylist,
   isMusicPlayerOpen,
-  onPlaylistGenreUpdate,
+  onPlaylistUpdate,
   navigateToDeepAppView,
   onCloseMusicPlayer,
   setLaunchPlaylistPlayer,
@@ -54,9 +54,9 @@ export const FeaturedBanners = ({
   handleLatestAlbumsReceived,
 }: {
   onFeaturedArtistDeepLinkSlug: (slug: string) => void;
-  selectedPlaylistGenre: string;
+  selectedCodeForPlaylist: string;
   isMusicPlayerOpen: boolean;
-  onPlaylistGenreUpdate: (genre: string) => void;
+  onPlaylistUpdate: (genre: string) => void;
   navigateToDeepAppView: (logicParams: any) => void;
   onCloseMusicPlayer: () => void;
   setLaunchPlaylistPlayer: (launchPlaylistPlayer: boolean) => void;
@@ -138,8 +138,8 @@ export const FeaturedBanners = ({
         const data = await fetchStreamsLeaderboardAllTracksByMonthViaAPI("0_0", 20);
         const streamsDataWithAlbumTitle = data.map((stream: StreamMetricData) => ({
           ...stream,
-          songTitle: musicTrackLookup[stream.alid]?.title,
-          coverArtUrl: musicTrackLookup[stream.alid]?.cover_art_url,
+          songTitle: musicTrackLookup[stream.alId]?.title,
+          coverArtUrl: musicTrackLookup[stream.alId]?.cover_art_url,
         }));
 
         setStreamMetricData(streamsDataWithAlbumTitle);
@@ -186,14 +186,14 @@ export const FeaturedBanners = ({
   }, [artistLookupEverything]);
 
   useEffect(() => {
-    if (selectedPlaylistGenre && selectedPlaylistGenre !== "") {
+    if (selectedCodeForPlaylist && selectedCodeForPlaylist !== "") {
       setLastClickedGenreForPlaylist(""); // we only use it as a "loading" state until the debounce logic kicks in so we can clear it here
     }
-  }, [selectedPlaylistGenre]);
+  }, [selectedCodeForPlaylist]);
 
-  const handleOpenAlbum = (alid: string) => {
-    // Extract album ID from alid (e.g., "ar24_a1-1" -> "ar24_a1")
-    const albumId = alid.split("-")[0];
+  const handleOpenAlbum = (alId: string) => {
+    // Extract album ID from alId (e.g., "ar24_a1-1" -> "ar24_a1")
+    const albumId = alId.split("-")[0];
     const artistId = albumId.split("_")[0];
     const artistSlug = artistLookup[artistId].slug;
     onFeaturedArtistDeepLinkSlug(`${artistSlug}~${albumId}`);
@@ -243,14 +243,14 @@ export const FeaturedBanners = ({
                   tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Wen_Summer_Cover.jpg",
                 }}
                 color={RANDOM_COLORS[0]}
-                selectedPlaylistGenre={selectedPlaylistGenre}
+                selectedCodeForPlaylist={selectedCodeForPlaylist}
                 lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
                 assetPlayIsQueued={assetPlayIsQueued}
                 onCloseMusicPlayer={onCloseMusicPlayer}
                 setLastClickedGenreForPlaylist={setLastClickedGenreForPlaylist}
                 isMusicPlayerOpen={isMusicPlayerOpen}
                 updateAssetPlayIsQueued={updateAssetPlayIsQueued}
-                onPlaylistGenreUpdate={onPlaylistGenreUpdate}
+                onPlaylistUpdate={onPlaylistUpdate}
                 setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
                 setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
               />
@@ -262,14 +262,14 @@ export const FeaturedBanners = ({
                     key={genreObj.code}
                     genre={genreObj}
                     color={RANDOM_COLORS[(idx + 1) % RANDOM_COLORS.length]}
-                    selectedPlaylistGenre={selectedPlaylistGenre}
+                    selectedCodeForPlaylist={selectedCodeForPlaylist}
                     lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
                     assetPlayIsQueued={assetPlayIsQueued}
                     onCloseMusicPlayer={onCloseMusicPlayer}
                     setLastClickedGenreForPlaylist={setLastClickedGenreForPlaylist}
                     isMusicPlayerOpen={isMusicPlayerOpen}
                     updateAssetPlayIsQueued={updateAssetPlayIsQueued}
-                    onPlaylistGenreUpdate={onPlaylistGenreUpdate}
+                    onPlaylistUpdate={onPlaylistUpdate}
                     setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
                     setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
                   />
@@ -299,7 +299,7 @@ export const FeaturedBanners = ({
               <div className="flex space-x-4 min-w-max">
                 {streamMetricData.map((stream, index) => (
                   <div
-                    key={stream.alid}
+                    key={stream.alId}
                     className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
                     style={{
                       backgroundImage: `url(${stream.coverArtUrl})`,
@@ -317,19 +317,19 @@ export const FeaturedBanners = ({
                     </div>
                     <div className="text-center mt-4">
                       <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
-                        {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alid}
+                        {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alId}
                       </div>
                       <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
                       <div className="text-sm text-white/70 mb-2">Streams</div>
                       <button
                         onClick={() => {
-                          const artistId = stream.alid.split("_")[0];
-                          const albumId = stream.alid.split("-")[0];
+                          const artistId = stream.alId.split("_")[0];
+                          const albumId = stream.alId.split("-")[0];
 
                           navigateToDeepAppView({
                             artistSlug: `${artistLookup[artistId].slug}~${albumId}`,
                             toAction: "tracklist",
-                            toTrackIdForDeepLink: stream.alid,
+                            toTrackIdForDeepLink: stream.alId,
                           });
                         }}
                         className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors">

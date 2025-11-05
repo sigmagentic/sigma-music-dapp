@@ -1654,7 +1654,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
       }
 
 
-      the "published" version indicates that the track get put inside an album so we need to link the album-track id (alid) to the launchId.
+      the "published" version indicates that the track get put inside an album so we need to link the album-track id (alId) to the launchId.
  
  {
       "launchId": "asdt2",

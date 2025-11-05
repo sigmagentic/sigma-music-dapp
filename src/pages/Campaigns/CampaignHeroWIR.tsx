@@ -14,10 +14,10 @@ import { PlaylistTile } from "../BodySections/HomeSection/components/PlaylistTil
 type CampaignHeroProps = {
   setCampaignCodeFilter: (campaignCode: string | undefined) => void;
   navigateToDeepAppView: (logicParams: any) => void;
-  selectedPlaylistGenre: string;
+  selectedCodeForPlaylist: string;
   onCloseMusicPlayer: () => void;
   isMusicPlayerOpen: boolean;
-  onPlaylistGenreUpdate: (genre: string) => void;
+  onPlaylistUpdate: (genre: string) => void;
   setLaunchPlaylistPlayerWithDefaultTracks: (value: boolean) => void;
   setLaunchPlaylistPlayer: (value: boolean) => void;
 };
@@ -34,10 +34,10 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
   const {
     setCampaignCodeFilter,
     navigateToDeepAppView,
-    selectedPlaylistGenre,
+    selectedCodeForPlaylist,
     onCloseMusicPlayer,
     isMusicPlayerOpen,
-    onPlaylistGenreUpdate,
+    onPlaylistUpdate,
     setLaunchPlaylistPlayerWithDefaultTracks,
     setLaunchPlaylistPlayer,
   } = props;
@@ -88,8 +88,8 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
 
         const streamsDataWithAlbumTitle = _streamsData.map((stream: StreamMetricData) => ({
           ...stream,
-          songTitle: musicTrackLookup[stream.alid]?.title,
-          coverArtUrl: musicTrackLookup[stream.alid]?.cover_art_url,
+          songTitle: musicTrackLookup[stream.alId]?.title,
+          coverArtUrl: musicTrackLookup[stream.alId]?.cover_art_url,
         }));
 
         setStreamMetricData(streamsDataWithAlbumTitle);
@@ -141,9 +141,9 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
     }, 2000);
   }, [artistLookup, albumLookup, selectedArtist]);
 
-  const handleOpenAlbumFromAlId = (alid: string) => {
-    // Extract album ID from alid (e.g., "ar24_a1-1" -> "ar24_a1")
-    const albumId = alid.split("-")[0];
+  const handleOpenAlbumFromAlId = (alId: string) => {
+    // Extract album ID from alId (e.g., "ar24_a1-1" -> "ar24_a1")
+    const albumId = alId.split("-")[0];
     const artistSlug = artistLookup[selectedArtist ?? ""].slug;
 
     navigateToDeepAppView({
@@ -219,7 +219,7 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
                 }}
                 color={"#161616d4"}
                 hoverBgColor={"yellow-300"}
-                selectedPlaylistGenre={selectedPlaylistGenre}
+                selectedCodeForPlaylist={selectedCodeForPlaylist}
                 lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
                 assetPlayIsQueued={assetPlayIsQueued}
                 isMusicPlayerOpen={isMusicPlayerOpen}
@@ -228,7 +228,7 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
                 onCloseMusicPlayer={onCloseMusicPlayer}
                 setLastClickedGenreForPlaylist={setLastClickedGenreForPlaylist}
                 updateAssetPlayIsQueued={updateAssetPlayIsQueued}
-                onPlaylistGenreUpdate={onPlaylistGenreUpdate}
+                onPlaylistUpdate={onPlaylistUpdate}
                 setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
                 setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
               />
@@ -382,7 +382,7 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
                     <div className="flex space-x-4 min-w-max">
                       {streamMetricData.map((stream, index) => (
                         <div
-                          key={stream.alid}
+                          key={stream.alId}
                           className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
                           style={{
                             backgroundImage: `url(${stream.coverArtUrl})`,
@@ -399,12 +399,12 @@ export const CampaignHeroWIR = (props: CampaignHeroProps) => {
                           </div>
                           <div className="text-center mt-2">
                             <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
-                              {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alid}
+                              {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alId}
                             </div>
                             <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
                             <div className="text-sm text-white/70 mb-2">Streams</div>
                             <button
-                              onClick={() => handleOpenAlbumFromAlId(stream.alid)}
+                              onClick={() => handleOpenAlbumFromAlId(stream.alId)}
                               className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors">
                               Open Containing Album
                             </button>
