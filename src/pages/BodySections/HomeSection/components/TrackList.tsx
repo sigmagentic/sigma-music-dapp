@@ -479,9 +479,9 @@ const TrackDeepLinkModal: React.FC<TrackDeepLinkModalProps> = ({ track, artistNa
               style={{
                 backgroundImage: `url(${track.cover_art_url})`,
               }}>
-              {/* Play Icon Overlay - appears on hover */}
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
-                <Play className="w-20 h-20 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-1" />
+              {/* Play Icon Overlay - always visible, dimmed by default, brighter and bigger on hover */}
+              <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
+                <Play className="w-16 h-16 text-white opacity-80 group-hover:opacity-100 group-hover:w-20 group-hover:h-20 transition-all duration-300 ml-1" />
               </div>
             </div>
           </div>
@@ -521,12 +521,12 @@ const TrackDeepLinkModal: React.FC<TrackDeepLinkModalProps> = ({ track, artistNa
           <div className="mt-5"></div>
 
           {/* Play Track Button */}
-          <Button
+          {/* <Button
             onClick={onPlayTrack}
             className="w-full bg-gradient-to-r from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300 text-black font-bold py-4 px-8 rounded-lg transition-all duration-300 text-lg">
             <Play className="w-6 h-6 mr-2" />
             Play Track
-          </Button>
+          </Button> */}
         </div>
       </div>
     </div>
