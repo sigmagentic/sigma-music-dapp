@@ -967,7 +967,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                                 {assetPlayIsQueued || trackPlayIsQueued ? (
                                   <Loader className="w-6 h-6 text-white animate-spin" />
                                 ) : artistIdBeingPlayedInPlaylist === artistProfile.artistId ? (
-                                  <AudioLines className="w-6 h-6 text-white ml-1" style={{ animation: "playPulse 5s ease-in-out infinite" }} />
+                                  <AudioLines className="w-6 h-6 text-white" style={{ animation: "playPulse 5s ease-in-out infinite" }} />
                                 ) : (
                                   <Play className="w-6 h-6 text-white ml-1" />
                                 )}

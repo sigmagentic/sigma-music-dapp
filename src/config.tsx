@@ -123,6 +123,13 @@ export const ALL_MUSIC_GENRES = [
     tileImgBg: "https://api.itheumcloud-stg.com/app_sigmamusic/HYzBq-TYmRa/img/dj-sigma-square-1756778226645.jpg",
   },
   {
+    code: "rock",
+    label: "Rock",
+    tier: GenreTier.TIER1,
+    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/deep-forest.jpg?tpos=bottom",
+    isAiRemixOption: true,
+  },
+  {
     code: "electronic",
     label: "Electronic",
     tier: GenreTier.TIER1,
@@ -140,13 +147,6 @@ export const ALL_MUSIC_GENRES = [
     label: "Hip Hop",
     tier: GenreTier.TIER1,
     tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Streetz_Cover.jpg",
-    isAiRemixOption: true,
-  },
-  {
-    code: "rock",
-    label: "Rock",
-    tier: GenreTier.TIER1,
-    tileImgBg: "https://api.itheumcloud.com/app_nftunes/images/artist_profile/deep-forest.jpg?tpos=bottom",
     isAiRemixOption: true,
   },
   {

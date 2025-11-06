@@ -69,11 +69,11 @@ export const PlaylistTile = ({
       onClick={handleClick}
       className={`flex-shrink-0 ${extendTileToFullWidth ? "w-full h-40" : "w-64 h-40"} bg-black rounded-sm p-0 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group shadow-lg
         ${assetPlayIsQueued ? "pointer-events-none cursor-not-allowed" : ""}
-        ${selectedCodeForPlaylist === genre.code ? "ring-2 ring-yellow-300" : ""}  ${hoverBgColor ? `hover:border-2 hover:border-${hoverBgColor}` : ""}`}
+        ${selectedCodeForPlaylist === genre.code ? "ring-2 ring-yellow-300" : ""} hover:scale-105`}
       style={{ background: color }}>
       {/* Genre Title */}
       <div className="absolute top-4 left-5 z-5">
-        <span className="text-white text-xl font-bold drop-shadow-lg">{genre.label}</span>
+        <span className="text-black text-lg font-bold drop-shadow-lg">{genre.label}</span>
       </div>
       {/* Loader/Playing indicator */}
       {selectedCodeForPlaylist === "" && lastClickedGenreForPlaylist === genre.code && (
@@ -83,13 +83,13 @@ export const PlaylistTile = ({
       )}
       {selectedCodeForPlaylist === genre.code ? (
         <div className="absolute top-4 right-5 z-10">
-          <span className="text-white text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Playing</span>
+          <span className="text-black text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Playing</span>
         </div>
       ) : (
         <>
           {selectedCodeForPlaylist === "" && lastClickedGenreForPlaylist !== genre.code && showClickToPlay ? (
             <div className="absolute top-4 right-5 z-10">
-              <span className="text-white text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Click to Play</span>
+              <span className="text-black text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Click to Play</span>
             </div>
           ) : null}
         </>

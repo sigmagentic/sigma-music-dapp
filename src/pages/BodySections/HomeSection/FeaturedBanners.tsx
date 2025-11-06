@@ -226,15 +226,15 @@ export const FeaturedBanners = ({
       {/* Tier 1 Genre Playlists */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-2">
         <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">Exclusive Music Playlists</span>
+          <span className="text-lg text-white/70">Editorial Playlists</span>
         </div>
         <div className="relative w-full">
           <div
-            className="overflow-x-auto pb-4 mt-1
+            className="overflow-x-auto pb-2 mt-1
               [&::-webkit-scrollbar]:h-2
               dark:[&::-webkit-scrollbar-track]:bg-neutral-700
               dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-            <div className="flex space-x-4 min-w-max mt-[2px] px-[2px]">
+            <div className="flex space-x-4 min-w-max px-[8px] py-[4px] pb-[1px]">
               <PlaylistTile
                 genre={{
                   code: "foryou",
@@ -242,7 +242,8 @@ export const FeaturedBanners = ({
                   tier: null,
                   tileImgBg: "https://api.itheumcloud.com/app_nftunes/assets/img/YFGP_Wen_Summer_Cover.jpg",
                 }}
-                color={RANDOM_COLORS[0]}
+                color={"#fddb45"}
+                hoverBgColor={"#fcb535"}
                 selectedCodeForPlaylist={selectedCodeForPlaylist}
                 lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
                 assetPlayIsQueued={assetPlayIsQueued}
@@ -261,7 +262,8 @@ export const FeaturedBanners = ({
                   <PlaylistTile
                     key={genreObj.code}
                     genre={genreObj}
-                    color={RANDOM_COLORS[(idx + 1) % RANDOM_COLORS.length]}
+                    color={"#fddb45"}
+                    hoverBgColor={"#fcb535"}
                     selectedCodeForPlaylist={selectedCodeForPlaylist}
                     lastClickedGenreForPlaylist={lastClickedGenreForPlaylist}
                     assetPlayIsQueued={assetPlayIsQueued}

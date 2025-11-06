@@ -29,7 +29,7 @@ export const Slideshow: React.FC<SlideshowProps> = ({ slides, autoSlideInterval 
 
   return (
     <div className="campaign-cta-slides flex flex-col md:mt-0 flex-1 relative" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-      <div className="relative h-[200px] w-full overflow-hidden rounded-sm mt-2">
+      <div className="relative h-[200px] w-full overflow-hidden rounded-sm mt-2 border-2 border-yellow-300">
         {slides.map((slide, index) => (
           <div
             key={index}
