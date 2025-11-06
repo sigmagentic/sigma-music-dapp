@@ -111,7 +111,7 @@ export interface Artist {
   bandcampLink?: string;
   soundcloudLink?: string;
   isArtistFeatured: string;
-  isDeprioritized: string;
+  isDeprioratized: string;
   creatorPaymentsWallet: string;
   artistCampaignCode?: string;
   artistSubGroup1Code?: string;

@@ -378,6 +378,13 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
           break;
       }
 
+      // if any items are isDeprioratized === "1", then we move them to the bottom of the dataset
+      reSortedTileData = reSortedTileData.sort((a, b) => {
+        if (a.isDeprioratized === "1") return 1;
+        if (b.isDeprioratized === "1") return -1;
+        return 0;
+      });
+
       setArtistAlbumDataset(reSortedTileData);
     } else {
       let reSortedTileData = [...originalSortedAlbumsDataset];
