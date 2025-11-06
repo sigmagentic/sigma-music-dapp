@@ -3,6 +3,7 @@ import { Loader } from "lucide-react";
 import { StreamMetricData, ArtistSale, SalesSummary } from "libs/types/common";
 import { fetchArtistSalesViaAPI, fetchStreamsLeaderboardByArtistViaAPI } from "libs/utils/api";
 import { useAppStore } from "store/app";
+import { Button } from "libComponents/Button";
 
 interface ArtistStatsProps {
   creatorPaymentsWallet: string;
@@ -112,7 +113,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                           backgroundBlendMode: "multiply",
                           backgroundColor: "#161616d4",
                         }}>
-                        <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{index + 1}</div>
+                        <div className="absolute top-2 left-4 text-2xl font-bold text-yellow-500">#{index + 1}</div>
                         <div className="absolute top-2 right-4 text-4xl">
                           {index === 0 && <span>🥇</span>}
                           {index === 1 && <span>🥈</span>}
@@ -124,7 +125,7 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                           </div>
                           {/* <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
                           <div className="text-sm text-white/70 mb-2">Streams</div> */}
-                          <button
+                          <Button
                             onClick={() => {
                               setActiveTab("discography");
 
@@ -137,9 +138,9 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                                 toTrackIdForDeepLink: stream.alId,
                               });
                             }}
-                            className="mt-2 px-3 py-1 text-sm bg-orange-500/20 hover:bg-orange-500/30 text-orange-500 rounded-full transition-colors">
+                            className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors">
                             Open Track
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ))}

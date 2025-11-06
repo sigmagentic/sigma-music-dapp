@@ -311,7 +311,7 @@ export const FeaturedBanners = ({
                       backgroundColor: "#161616d4",
                       backgroundRepeat: "no-repeat",
                     }}>
-                    <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{index + 1}</div>
+                    <div className="absolute top-2 left-4 text-2xl font-bold text-yellow-500">#{index + 1}</div>
                     <div className="absolute top-2 right-4 text-4xl">
                       {index === 0 && <span>🥇</span>}
                       {index === 1 && <span>🥈</span>}
@@ -323,7 +323,7 @@ export const FeaturedBanners = ({
                       </div>
                       {/* <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
                       <div className="text-sm text-white/70 mb-2">Streams</div> */}
-                      <button
+                      <Button
                         onClick={() => {
                           const artistId = stream.alId.split("_")[0];
                           const albumId = stream.alId.split("-")[0];
@@ -334,9 +334,9 @@ export const FeaturedBanners = ({
                             toTrackIdForDeepLink: stream.alId,
                           });
                         }}
-                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors">
+                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors">
                         Open Track
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -382,7 +382,7 @@ export const FeaturedBanners = ({
                       <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
                       <div className="text-sm text-white/70 mb-2">By {album.artistName}</div>
                       <Button
-                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                         onClick={() => {
                           navigateToDeepAppView({
                             artistSlug: `${album.artistSlug}~${album.albumId}`,
@@ -446,13 +446,13 @@ export const FeaturedBanners = ({
                         <div className="text-sm text-white/70 mb-2">By {artistInfo?.name || "Unknown Artist"}</div>
                         <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
                         <Button
-                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                          className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                           onClick={() => {
                             if (artistInfo?.slug) {
                               onFeaturedArtistDeepLinkSlug(`${artistInfo.slug}~${albumId}`);
                             }
                           }}>
-                          Listen
+                          Buy License
                         </Button>
                       </div>
                     </div>
@@ -500,7 +500,7 @@ export const FeaturedBanners = ({
                       <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
                       <div className="text-sm text-white/70 mb-2">By {album.artistName}</div>
                       <Button
-                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                         onClick={() => {
                           onFeaturedArtistDeepLinkSlug(`${album.artistSlug}~${album.albumId}`);
                         }}>
@@ -550,7 +550,7 @@ export const FeaturedBanners = ({
                     <div className="text-center mt-4">
                       <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{artist.name}</div>
                       <Button
-                        className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                         onClick={() => {
                           onFeaturedArtistDeepLinkSlug(artist.slug);
                         }}>
@@ -609,13 +609,13 @@ export const FeaturedBanners = ({
                         <div className="text-sm text-white/70 mb-2">By {artistInfo?.name || "Unknown Artist"}</div>
                         <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
                         <Button
-                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                          className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                           onClick={() => {
                             if (artistInfo?.slug) {
                               onFeaturedArtistDeepLinkSlug(`${artistInfo.slug}~${option.collectibleId}`);
                             }
                           }}>
-                          Listen & Collect
+                          Collect
                         </Button>
                       </div>
                     </div>
@@ -667,7 +667,7 @@ export const FeaturedBanners = ({
                           <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
                         </div>
                         <Button
-                          className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
+                          className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                           onClick={() => {
                             if (artistInfo?.slug) {
                               if (artistInfo?.artistCampaignCode && artistInfo?.artistCampaignCode !== "0") {

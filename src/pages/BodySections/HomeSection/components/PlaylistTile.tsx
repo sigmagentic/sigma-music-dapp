@@ -83,13 +83,13 @@ export const PlaylistTile = ({
       )}
       {selectedCodeForPlaylist === genre.code ? (
         <div className="absolute top-4 right-5 z-10">
-          <span className="text-black text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Playing</span>
+          <span className="text-white text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Playing</span>
         </div>
       ) : (
         <>
           {selectedCodeForPlaylist === "" && lastClickedGenreForPlaylist !== genre.code && showClickToPlay ? (
             <div className="absolute top-4 right-5 z-10">
-              <span className="text-black text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Click to Play</span>
+              <span className="text-white text-sm font-semibold bg-black/40 px-2 py-1 rounded-full">Click to Play</span>
             </div>
           ) : null}
         </>
