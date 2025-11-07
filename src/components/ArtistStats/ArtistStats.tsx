@@ -119,8 +119,8 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
                           {index === 1 && <span>🥈</span>}
                           {index === 2 && <span>🥉</span>}
                         </div>
-                        <div className="text-center mt-2">
-                          <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap mt-2">
+                        <div className="text-center mt-5">
+                          <div className="text-md font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap">
                             {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alId}
                           </div>
                           {/* <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>

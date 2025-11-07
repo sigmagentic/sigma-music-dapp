@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ALL_MUSIC_GENRES, RANDOM_COLORS, GenreTier } from "config";
+import { ALL_MUSIC_GENRES, GenreTier } from "config";
 import { Button } from "libComponents/Button";
 import { StreamMetricData } from "libs/types/common";
 import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestCollectiblesAvailableViaAPI } from "libs/utils/api";
@@ -140,6 +140,7 @@ export const FeaturedBanners = ({
           ...stream,
           songTitle: musicTrackLookup[stream.alId]?.title,
           coverArtUrl: musicTrackLookup[stream.alId]?.cover_art_url,
+          artistName: artistLookup[stream.alId.split("_")[0]]?.name,
         }));
 
         setStreamMetricData(streamsDataWithAlbumTitle);
@@ -318,11 +319,12 @@ export const FeaturedBanners = ({
                       {index === 2 && <span>🥉</span>}
                     </div>
                     <div className="text-center mt-4">
-                      <div className="text-md font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap mt-2">
+                      <div className="text-md font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap mt-2">
                         {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alId}
                       </div>
                       {/* <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
                       <div className="text-sm text-white/70 mb-2">Streams</div> */}
+                      <div className="text-xs text-white/70 mb-1">By {stream.artistName}</div>
                       <Button
                         onClick={() => {
                           const artistId = stream.alId.split("_")[0];
@@ -379,8 +381,8 @@ export const FeaturedBanners = ({
                       backgroundRepeat: "no-repeat",
                     }}>
                     <div className="text-center mt-4">
-                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
-                      <div className="text-sm text-white/70 mb-2">By {album.artistName}</div>
+                      <div className="text-lg font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
+                      <div className="text-xs text-white/70 mb-1">By {album.artistName}</div>
                       <Button
                         className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                         onClick={() => {
@@ -440,10 +442,10 @@ export const FeaturedBanners = ({
                         backgroundRepeat: "no-repeat",
                       }}>
                       <div className="text-center">
-                        <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
+                        <div className="text-lg font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap">
                           {albumInfo?.title || "Unknown Album"}
                         </div>
-                        <div className="text-sm text-white/70 mb-2">By {artistInfo?.name || "Unknown Artist"}</div>
+                        <div className="text-xs text-white/70 mb-1">By {artistInfo?.name || "Unknown Artist"}</div>
                         <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
                         <Button
                           className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
@@ -497,8 +499,8 @@ export const FeaturedBanners = ({
                       backgroundRepeat: "no-repeat",
                     }}>
                     <div className="text-center mt-4">
-                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
-                      <div className="text-sm text-white/70 mb-2">By {album.artistName}</div>
+                      <div className="text-lg font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
+                      <div className="text-xs text-white/70 mb-1">By {album.artistName}</div>
                       <Button
                         className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                         onClick={() => {
@@ -603,10 +605,10 @@ export const FeaturedBanners = ({
                         backgroundRepeat: "no-repeat",
                       }}>
                       <div className="text-center">
-                        <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">
+                        <div className="text-lg font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap">
                           {albumInfo?.title || "Unknown Album"}
                         </div>
-                        <div className="text-sm text-white/70 mb-2">By {artistInfo?.name || "Unknown Artist"}</div>
+                        <div className="text-xs text-white/70 mb-1">By {artistInfo?.name || "Unknown Artist"}</div>
                         <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
                         <Button
                           className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
