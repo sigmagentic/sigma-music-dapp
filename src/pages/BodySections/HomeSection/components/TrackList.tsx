@@ -332,7 +332,6 @@ export const TrackList: React.FC<TrackListProps> = ({
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-gray-800 border-gray-700 text-white" sideOffset={5}>
-                      {/* Copy Track Link */}
                       <DropdownMenuItem
                         className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-sm py-2 px-3"
                         onClick={async (e) => {

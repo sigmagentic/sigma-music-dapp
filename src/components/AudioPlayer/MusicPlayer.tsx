@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -18,6 +18,7 @@ import {
   Maximize2,
   Minimize2,
   Zap,
+  ThumbsUp,
 } from "lucide-react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -37,6 +38,8 @@ import { useAudioPlayerStore } from "store/audioPlayer";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import ratingE from "assets/img/icons/rating-E.png";
 import { useMediaSession, MediaSessionSeekToActionDetails } from "./useMediaSession";
+import { TrackRatingButtons } from "components/TrackRatingButtons";
+import { useTrackVoting } from "hooks/useTrackVoting";
 
 type MusicPlayerProps = {
   trackList: MusicTrack[];
@@ -160,6 +163,11 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [showBonusTrackModal, setShowBonusTrackModal] = useState(false);
   const [loggedStreamMetricForTrack, setLoggedStreamMetricForTrack] = useState(0); // a simple 1 or 0 that is linked to the logic of logging a stream event to the backend so in the UI we can reflect this for debugging
   const [mostLikelyPlaybackError, setMostLikelyPlaybackError] = useState(false);
+
+  // Calculate bounty IDs for voting system - memoized to prevent re-render loops
+  const bountyIds = useMemo(() => [...(trackList?.map((track) => track.albumTrackId).filter(Boolean) || [])] as string[], [trackList]);
+  // Rating system state - tracks which specific votes user has made to prevent spam
+  const { userVotedOptions, setUserVotedOptions } = useTrackVoting({ bountyIds });
 
   const isSmallScreen = window.innerWidth < 768;
 
@@ -667,6 +675,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     }
   };
 
+  const likeTrack = () => {
+    alert("Like Track");
+  };
+
   const handleProgressChange = (newProgress: number) => {
     const mediaElement = getCurrentMediaElement();
     if (!mediaElement.duration) return;
@@ -1161,9 +1173,20 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               </div>
             </div>
             <div
-              className={`albumControls ${isSmallScreen ? "absolute top-0 right-0" : ""}  mb-2 md:mb-0 select-none p-2 flex items-center z-10 ${
+              className={`albumControls ${!isLoaded ? "opacity-50 cursor-not-allowed pointer-events-none" : ""} ${isSmallScreen ? "absolute top-0 right-0" : ""} mb-2 md:mb-0 select-none p-2 flex items-center z-10 ${
                 isFullScreen ? "w-[600px] mt-4 justify-center" : "md:w-[600px] md:mt-[2.2rem] justify-center md:justify-end"
               }`}>
+              {trackList[currentTrackIndex]?.albumTrackId && (
+                <div className="mr-5 scale-125 hover:scale-150 transition-all duration-300">
+                  <TrackRatingButtons
+                    bountyId={trackList[currentTrackIndex]?.albumTrackId}
+                    userVotedOptions={userVotedOptions}
+                    setUserVotedOptions={setUserVotedOptions}
+                    onlyShowLike={true}
+                  />
+                </div>
+              )}
+
               {!isSmallScreen && (
                 <button className="cursor-pointer" onClick={repeatTrack}>
                   <RefreshCcwDot className="w-full hover:scale-105" />

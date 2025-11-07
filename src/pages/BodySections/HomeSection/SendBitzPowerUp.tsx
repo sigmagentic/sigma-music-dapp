@@ -189,7 +189,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
     if (isRemixVoteMode) {
       return "Vote For This Remix With XP";
     }
-    return "Power-Up This Creator With XP";
+    return "Power-Up This Artist With XP";
   };
 
   return (
@@ -221,7 +221,7 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                       ℹ️ Why should you boost albums?
                     </span>{" "}
                     {showDetails && (
-                      <div>
+                      <div className="text-sm">
                         Boosted albums get promoted and featured more on Sigma Music and other social channels, and this may drive more sales of the artist's
                         content.
                       </div>
@@ -232,7 +232,9 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                     <span className="font-bold cursor-pointer" onClick={() => setShowDetails((prev) => !prev)}>
                       ℹ️ Why should you power-up artists?
                     </span>{" "}
-                    {showDetails && <div>Artists with the most XP powering them will be featured more on Sigma Music and other social channels.</div>}
+                    {showDetails && (
+                      <div className="text-sm">Artists with the most XP powering them will be featured more on Sigma Music and other social channels.</div>
+                    )}
                   </>
                 ) : (
                   <></>
@@ -349,9 +351,9 @@ export const SendBitzPowerUp = (props: SendBitzPowerUpProps) => {
                             onClick={() => {
                               sendPowerUpSol();
                             }}>
-                            <span className="ml-2">
+                            <span className={`ml-2 ${poweringUpInProgress ? "text-sm" : "text-lg"}`}>
                               {poweringUpInProgress
-                                ? "Sending, Please Wait..."
+                                ? "Sending XP..."
                                 : !isLikeMode && !isRemixVoteMode
                                   ? `Gift Creator ${bitzValToGift} XP`
                                   : `Like with ${bitzValToGift} XP`}

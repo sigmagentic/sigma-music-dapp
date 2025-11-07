@@ -1,5 +1,5 @@
-import React from "react";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+import React, { useState } from "react";
+import { ThumbsUp, ThumbsDown, Loader } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { logAssetRatingToAPI } from "libs/utils";
 import { toastError, toastSuccess } from "libs/utils/ui";
@@ -7,12 +7,16 @@ import { toastError, toastSuccess } from "libs/utils/ui";
 interface TrackRatingButtonsProps {
   bountyId: string;
   userVotedOptions: Record<string, Set<"up" | "down">>;
+  onlyShowLike?: boolean;
   setUserVotedOptions: (value: Record<string, Set<"up" | "down">>) => void;
 }
 
-export const TrackRatingButtons: React.FC<TrackRatingButtonsProps> = ({ bountyId, userVotedOptions, setUserVotedOptions }) => {
+export const TrackRatingButtons: React.FC<TrackRatingButtonsProps> = ({ bountyId, userVotedOptions, onlyShowLike = false, setUserVotedOptions }) => {
   const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
+
+  const [isVotingUp, setIsVotingUp] = useState(false);
+  const [isVotingDown, setIsVotingDown] = useState(false);
 
   const hasUserVotedOption = (bountyId: string, rating: "up" | "down"): boolean => {
     return userVotedOptions[bountyId]?.has(rating) || false;
@@ -39,8 +43,11 @@ export const TrackRatingButtons: React.FC<TrackRatingButtonsProps> = ({ bountyId
     }
 
     try {
-      // TODO: Replace with actual API call
-      // await sendVoteToAPI(bountyId, rating);
+      if (rating === "up") {
+        setIsVotingUp(true);
+      } else {
+        setIsVotingDown(true);
+      }
       console.log(`Sending vote to API: ${bountyId} - ${rating}`);
 
       await logAssetRatingToAPI({ assetId: bountyId, rating, address: addressSol });
@@ -60,6 +67,12 @@ export const TrackRatingButtons: React.FC<TrackRatingButtonsProps> = ({ bountyId
     } catch (error) {
       console.error("Error sending vote:", error);
       toastError("Failed to submit vote. Most likely you have already voted on this track. Please try again later.");
+    } finally {
+      if (rating === "up") {
+        setIsVotingUp(false);
+      } else {
+        setIsVotingDown(false);
+      }
     }
   };
 
@@ -73,22 +86,25 @@ export const TrackRatingButtons: React.FC<TrackRatingButtonsProps> = ({ bountyId
           handleTrackRating(bountyId, "up");
           e.stopPropagation();
         }}
-        disabled={hasVotedUp}
+        disabled={hasVotedUp || isVotingUp}
         className={`p-1 rounded transition-colors ${
-          hasVotedUp ? "text-green-400 cursor-not-allowed" : "text-gray-400 hover:text-green-400 hover:bg-green-400/10"
+          hasVotedUp || isVotingUp ? "text-green-400 cursor-not-allowed" : "text-white hover:text-green-400 hover:bg-green-400/10"
         }`}
         title={hasVotedUp ? "You already liked this track" : "Like this track"}>
-        <ThumbsUp className="w-4 h-4" />
+        {(isVotingUp && <Loader className="w-4 h-4 animate-spin" />) || <ThumbsUp className="w-4 h-4" />}
       </button>
-      <button
-        onClick={(e) => {
-          handleTrackRating(bountyId, "down");
-          e.stopPropagation();
-        }}
-        className={`p-1 rounded transition-colors ${hasVotedDown ? "text-red-400 cursor-not-allowed" : "text-gray-400 hover:text-red-400 hover:bg-red-400/10"}`}
-        title={hasVotedDown ? "You already disliked this track" : "Dislike this track"}>
-        <ThumbsDown className="w-4 h-4" />
-      </button>
+      {!onlyShowLike && (
+        <button
+          onClick={(e) => {
+            handleTrackRating(bountyId, "down");
+            e.stopPropagation();
+          }}
+          disabled={isVotingDown}
+          className={`p-1 rounded transition-colors ${hasVotedDown || isVotingDown ? "text-red-400 cursor-not-allowed" : "text-white hover:text-red-400 hover:bg-red-400/10"}`}
+          title={hasVotedDown ? "You already disliked this track" : "Dislike this track"}>
+          {(isVotingDown && <Loader className="w-4 h-4 animate-spin" />) || <ThumbsDown className="w-4 h-4" />}
+        </button>
+      )}
     </div>
   );
 };
