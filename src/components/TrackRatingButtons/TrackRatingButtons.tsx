@@ -32,7 +32,7 @@ export const TrackRatingButtons: React.FC<TrackRatingButtonsProps> = ({ bountyId
 
   const handleTrackRating = async (bountyId: string, rating: "up" | "down") => {
     if (!addressSol) {
-      toastError("You must be logged in to vote on a track!");
+      toastError(!onlyShowLike ? "You must be logged in to vote on a track!" : "You must be logged in like a track!");
       return;
     }
 

@@ -107,8 +107,6 @@ export const EditArtistProfileModal: React.FC<EditArtistProfileModalProps> = ({ 
       newErrors.name = "Artist name is required";
     } else if (formData.name.length > 50) {
       newErrors.name = "Artist name must be 50 characters or less";
-    } else if (!/^[a-zA-Z0-9- ]+$/.test(formData.name)) {
-      newErrors.name = "Artist name can only contain letters, numbers, spaces, and hyphens";
     }
 
     // Bio validation - required, max 1000 characters
