@@ -237,6 +237,18 @@ export const ALL_MUSIC_GENRES = [
     tier: GenreTier.TIER2,
     tileImgBg: "https://placehold.co/200x200/facc14/000?text=Britpop+Rock",
   },
+  {
+    code: "poppunk",
+    label: "Pop Punk",
+    tier: GenreTier.TIER2,
+    tileImgBg: "https://placehold.co/200x200/facc14/000?text=Pop+Punk",
+  },
+  {
+    code: "punkrock",
+    label: "Punk Rock",
+    tier: GenreTier.TIER2,
+    tileImgBg: "https://placehold.co/200x200/facc14/000?text=Punk+Rock",
+  },
 
   { code: "ballad", label: "Ballad", tier: GenreTier.TIER2, tileImgBg: "https://placehold.co/200x200/facc14/000?text=ballad" },
 

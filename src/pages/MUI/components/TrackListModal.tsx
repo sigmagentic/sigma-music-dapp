@@ -734,9 +734,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {(() => {
-                  // Filter genres based on search query (only if query is > 3 characters)
+                  // Filter genres based on search query (only if query is > 2 characters)
                   const filteredGenres =
-                    genreSearchQuery.length > 3
+                    genreSearchQuery.length > 2
                       ? ALL_MUSIC_GENRES.filter(
                           (genre) =>
                             genre.label.toLowerCase().includes(genreSearchQuery.toLowerCase()) ||
