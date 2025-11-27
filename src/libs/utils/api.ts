@@ -1,6 +1,7 @@
 import { DISABLE_AI_REMIX_FEATURES, LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
 import { CACHE_DURATION_2_MIN, CACHE_DURATION_60_MIN, CACHE_DURATION_FIVE_SECONDS, CACHE_DURATION_HALF_MIN } from "./constant";
-import { AiRemixLaunch, PaymentLog } from "../types/common";
+import { AiRemixLaunch, PaymentLog, LaunchpadData } from "../types/common";
+import { getMockLaunchpadData } from "./launchpadMockData";
 
 interface CacheEntry_DataWithTimestamp {
   data: boolean | [] | Record<string, any> | number | null;
@@ -1794,5 +1795,41 @@ export const logAssetRatingToAPI = async ({ assetId, rating, address }: { assetI
   } catch (error) {
     console.error("Error saving asset rating data:", error);
     throw error;
+  }
+};
+
+const cache_launchpadData: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const getLaunchpadDataViaAPI = async (artistId: string, albumId?: string): Promise<LaunchpadData | null> => {
+  const now = Date.now();
+  const cacheKey = `${artistId}-${albumId || "default"}`;
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_launchpadData[cacheKey];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
+      console.log(`getLaunchpadDataViaAPI: Getting launchpad data for artistId: ${artistId} from cache`);
+      return cacheEntry.data as LaunchpadData | null;
+    }
+
+    // TODO: Replace with actual API call when backend is ready
+    // For now, use mock data
+    const mockData = getMockLaunchpadData(artistId, albumId || "");
+
+    // Update cache
+    cache_launchpadData[cacheKey] = {
+      data: mockData,
+      timestamp: now,
+    };
+
+    return mockData;
+  } catch (error) {
+    console.error("getLaunchpadDataViaAPI: Error fetching launchpad data:", error);
+    // Update cache (with null as data)
+    cache_launchpadData[cacheKey] = {
+      data: null,
+      timestamp: now,
+    };
+    return null;
   }
 };

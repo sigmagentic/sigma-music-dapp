@@ -354,3 +354,38 @@ export interface SalesSummary {
   last30Days: { count: number; amount: number };
   last3Months: { count: number; amount: number };
 }
+
+export type FreeStreamingType = "Full Album" | "First X tracks";
+export type PurchaseType = "Platform Membership" | "Buy Album or Tracks" | "Buy Full Album" | "Buy Seperate Tracks";
+export type PurchaseOption = "Digital Album" | "Merch" | "Limited Edition Digital Collectible" | "AI Remix License" | "AI Training License";
+export type MerchType = "Vinyl" | "Clothing" | "Other";
+export type PriceValue = number | "n/a";
+
+export interface LaunchPlatform {
+  platform: string;
+  premiere: boolean; // Only one platform can have premiere: true
+  directLink: string; // Opens in a new window
+  freeStreaming: FreeStreamingType;
+  freeStreamingTrackCount?: number; // Required when freeStreaming is "First X tracks"
+  purchaseOptions: PurchaseOption[]; // Array of available purchase options
+  purchaseType: PurchaseType;
+  usdPriceAlbum: PriceValue;
+  usdPriceTrack: PriceValue;
+  payMoreSupported: boolean;
+  releaseDate: string; // Format: "1 Dec 2025"
+}
+
+export interface MerchItem {
+  type: MerchType;
+  directLink: string;
+  releaseDate: string; // Format: "1 Dec 2025"
+}
+
+export interface LaunchpadData {
+  artistId: string;
+  albumId: string;
+  isEnabled: boolean; // Toggle to show/hide launchpad tab
+  launchPlatforms: LaunchPlatform[];
+  merch: MerchItem[];
+  teaserVideoLink: string | "N/A"; // YouTube Premier link or "N/A"
+}
