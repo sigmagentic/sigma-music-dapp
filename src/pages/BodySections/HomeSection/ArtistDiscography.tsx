@@ -982,6 +982,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               onClick={() => {
                 navigateToDeepAppView({
                   toSection: "profile",
+                  toView: "artistProfile",
                 });
               }}>
               2. Edit Albums and Artist Profile

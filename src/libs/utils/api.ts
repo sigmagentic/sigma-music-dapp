@@ -1833,3 +1833,25 @@ export const getLaunchpadDataViaAPI = async (artistId: string, albumId?: string)
     return null;
   }
 };
+
+/**
+ * Clear launchpad data cache for a specific artist/album or all data
+ */
+export const clearLaunchpadDataCache = (artistId?: string, albumId?: string): void => {
+  if (artistId && albumId) {
+    const cacheKey = `${artistId}-${albumId}`;
+    delete cache_launchpadData[cacheKey];
+  } else if (artistId) {
+    // Clear all cache entries for this artist
+    Object.keys(cache_launchpadData).forEach((key) => {
+      if (key.startsWith(`${artistId}-`)) {
+        delete cache_launchpadData[key];
+      }
+    });
+  } else {
+    // Clear all cache
+    Object.keys(cache_launchpadData).forEach((key) => {
+      delete cache_launchpadData[key];
+    });
+  }
+};

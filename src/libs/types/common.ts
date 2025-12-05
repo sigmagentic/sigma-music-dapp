@@ -372,13 +372,13 @@ export interface LaunchPlatform {
   usdPriceAlbum: PriceValue;
   usdPriceTrack: PriceValue;
   payMoreSupported: boolean;
-  releaseDate: string; // Format: "1 Dec 2025"
+  releaseDate: string; // Format: "YYYY-MM-DD" (ISO date format)
 }
 
 export interface MerchItem {
   type: MerchType;
   directLink: string;
-  releaseDate: string; // Format: "1 Dec 2025"
+  releaseDate: string; // Format: "YYYY-MM-DD" (ISO date format)
 }
 
 export interface LaunchpadData {

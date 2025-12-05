@@ -47,29 +47,26 @@ const extractYouTubeVideoId = (url: string): string | null => {
 };
 
 /**
- * Parses date string in format "1 Dec 2025" to Date object for sorting
+ * Parses date string in ISO format "YYYY-MM-DD" to Date object for sorting
  */
 const parseReleaseDate = (dateStr: string): Date => {
-  // Try parsing the date string directly first
-  let date = new Date(dateStr);
-
-  // If that fails, try parsing with a more specific format
-  if (isNaN(date.getTime())) {
-    // Format: "1 Dec 2025" -> try to parse manually
-    const parts = dateStr.trim().split(/\s+/);
-    if (parts.length === 3) {
-      const day = parseInt(parts[0], 10);
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const month = monthNames.indexOf(parts[1]);
-      const year = parseInt(parts[2], 10);
-
-      if (!isNaN(day) && month !== -1 && !isNaN(year)) {
-        date = new Date(year, month, day);
-      }
-    }
-  }
-
+  const date = new Date(dateStr);
   return isNaN(date.getTime()) ? new Date(0) : date;
+};
+
+/**
+ * Formats date from ISO format "YYYY-MM-DD" to display format "1 Dec 2025"
+ */
+const formatReleaseDate = (dateStr: string): string => {
+  const date = parseReleaseDate(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  
+  const day = date.getDate();
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day} ${month} ${year}`;
 };
 
 /**
@@ -144,7 +141,7 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
             className={`relative z-10 rounded-lg px-4 py-2 min-w-[120px] text-center ${
               platform.premiere ? "bg-gradient-to-r from-yellow-300 to-orange-500 text-black font-bold" : "bg-gray-700 text-white"
             }`}>
-            <div className="!text-sm font-semibold">{platform.releaseDate}</div>
+            <div className="!text-sm font-semibold">{formatReleaseDate(platform.releaseDate)}</div>
             {platform.premiere && (
               <div className="flex items-center justify-center gap-1 !text-xs mt-1">
                 <Star className="w-3 h-3" />
@@ -264,7 +261,7 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
             </div>
             <div className="flex items-center gap-2 !text-sm text-gray-300">
               <Calendar className="w-4 h-4" />
-              <span>Release Date: {merch.releaseDate}</span>
+              <span>Release Date: {formatReleaseDate(merch.releaseDate)}</span>
             </div>
           </div>
           <a

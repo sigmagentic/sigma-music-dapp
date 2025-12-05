@@ -1,20 +1,19 @@
 import { LaunchpadData } from "libs/types/common";
 
 /**
- * Mock launchpad data for testing
+ * Mutable mock data store for launchpad data
  * This will be replaced with actual API calls later
- * Currently only returns data for artistId: ar142 and albumId: ar142_a1
  */
-export const getMockLaunchpadData = (artistId: string, albumId: string): LaunchpadData | null => {
-  // Only return mock data for the specific artist and album
-  if (artistId !== "ar142" || albumId !== "ar142_a1") {
-    return null;
-  }
+let mockLaunchpadStore: { [key: string]: LaunchpadData } = {};
 
+/**
+ * Initialize default mock data for specific artist/album
+ */
+const initializeDefaultMockData = (artistId: string, albumId: string): LaunchpadData => {
   return {
     artistId,
     albumId,
-    isEnabled: true,
+    isEnabled: false,
     launchPlatforms: [
       {
         platform: "Sigma Music",
@@ -26,7 +25,7 @@ export const getMockLaunchpadData = (artistId: string, albumId: string): Launchp
         usdPriceAlbum: 5,
         usdPriceTrack: "n/a",
         payMoreSupported: false,
-        releaseDate: "1 Dec 2025",
+        releaseDate: "2025-12-01",
       },
       {
         platform: "BandCamp",
@@ -39,7 +38,7 @@ export const getMockLaunchpadData = (artistId: string, albumId: string): Launchp
         usdPriceAlbum: 6,
         usdPriceTrack: 1.5,
         payMoreSupported: true,
-        releaseDate: "9 Dec 2025",
+        releaseDate: "2025-12-09",
       },
       {
         platform: "SoundCloud",
@@ -51,7 +50,7 @@ export const getMockLaunchpadData = (artistId: string, albumId: string): Launchp
         usdPriceAlbum: "n/a",
         usdPriceTrack: "n/a",
         payMoreSupported: false,
-        releaseDate: "15 Dec 2025",
+        releaseDate: "2025-12-15",
       },
       {
         platform: "Spotify",
@@ -63,16 +62,53 @@ export const getMockLaunchpadData = (artistId: string, albumId: string): Launchp
         usdPriceAlbum: "n/a",
         usdPriceTrack: "n/a",
         payMoreSupported: false,
-        releaseDate: "30 Dec 2025",
+        releaseDate: "2025-12-30",
       },
     ],
     merch: [
       {
         type: "Vinyl",
         directLink: "https://ionazajac.bandcamp.com/merch",
-        releaseDate: "1 Dec 2025",
+        releaseDate: "2025-12-01",
       },
     ],
     teaserVideoLink: "https://www.youtube.com/watch?v=BRA14k7qQEA",
   };
+};
+
+/**
+ * Get mock launchpad data for an artist/album
+ */
+export const getMockLaunchpadData = (artistId: string, albumId: string): LaunchpadData | null => {
+  const key = `${artistId}-${albumId}`;
+
+  // If data exists in store, return it
+  if (mockLaunchpadStore[key]) {
+    return mockLaunchpadStore[key];
+  }
+
+  // For ar141-ar141_a2, initialize with default data
+  if (artistId === "ar141" && albumId === "ar141_a2") {
+    const defaultData = initializeDefaultMockData(artistId, albumId);
+    defaultData.isEnabled = true;
+    mockLaunchpadStore[key] = defaultData;
+    return defaultData;
+  }
+
+  return null;
+};
+
+/**
+ * Update mock launchpad data
+ */
+export const updateMockLaunchpadData = (data: LaunchpadData): void => {
+  const key = `${data.artistId}-${data.albumId}`;
+  mockLaunchpadStore[key] = { ...data };
+};
+
+/**
+ * Get all launchpad data for an artist (to check for live albums)
+ */
+export const getAllMockLaunchpadDataForArtist = (artistId: string): LaunchpadData[] => {
+  return Object.values(mockLaunchpadStore).filter((data) => data.artistId === artistId);
 };

@@ -308,6 +308,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
         const data = await getLaunchpadDataViaAPI(selDataItem.artistId, albumIdToUse);
         setLaunchpadData(data);
 
+        // Check if there's a tab parameter in URL
+        const jumpToTab = searchParams.get("tab");
+
         // Update tabsOrdered based on launchpad data
         if (data && data.isEnabled) {
           const campaignCode = searchParams.get("campaign") || "";
@@ -316,12 +319,20 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
           } else {
             setTabsOrdered(["launchpad", "discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
           }
+          // If launchpad is enabled and no specific tab is requested, set launchpad as active
+          if (!jumpToTab) {
+            setActiveTab("launchpad");
+          }
         } else {
           const campaignCode = searchParams.get("campaign") || "";
           if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
             setTabsOrdered(["fan", "leaderboard", "artistStats", "aiRemixes"]);
           } else {
             setTabsOrdered(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
+          }
+          // If launchpad is disabled and no specific tab is requested, set discography as active
+          if (!jumpToTab) {
+            setActiveTab("discography");
           }
         }
       } catch (error) {

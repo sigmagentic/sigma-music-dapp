@@ -17,9 +17,11 @@ import { Badge } from "libComponents/Badge";
 import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
 import { TrackListModal } from "pages/MUI/components/TrackListModal";
+import { LaunchpadModal } from "pages/MUI/components/LaunchpadModal";
 import { useAppStore } from "store/app";
 import ratingE from "assets/img/icons/rating-E.png";
 import { showSuccessConfetti } from "libs/utils/uiShared";
+import { getMockLaunchpadData } from "libs/utils/launchpadMockData";
 
 type ArtistProfileProps = {
   navigateToDeepAppView: (logicParams: any) => void;
@@ -55,6 +57,8 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
   const [showVerificationInfoModal, setShowVerificationInfoModal] = useState<boolean>(false);
   const [artistSales, setArtistSales] = useState<PaymentLog[]>([]);
   const [isLoadingSales, setIsLoadingSales] = useState<boolean>(false);
+  const [showLaunchpadModal, setShowLaunchpadModal] = useState<boolean>(false);
+  const [selectedAlbumForLaunchpad, setSelectedAlbumForLaunchpad] = useState<Album | null>(null);
 
   const [payoutClaimStatus, setPayoutClaimStatus] = useState<"idle" | "processing" | "failed" | "confirmed">("idle");
   const [activePayoutClaim, setActivePayoutClaim] = useState<any>(null);
@@ -477,6 +481,11 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
               onEditAlbum={handleEditAlbum}
               onAddNewAlbum={handleAddNewAlbum}
               onViewCurrentTracks={handleViewCurrentTracks}
+              onOpenLaunchpad={(album) => {
+                setSelectedAlbumForLaunchpad(album);
+                setShowLaunchpadModal(true);
+              }}
+              liveAlbumId={userArtistProfile.artistLaunchpadLiveAlbumId}
               navigateToDeepAppView={navigateToDeepAppView}
             />
           )
@@ -936,6 +945,22 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
         }}
       />
 
+      {/* Launchpad Modal */}
+      {selectedAlbumForLaunchpad && (
+        <LaunchpadModal
+          isOpen={showLaunchpadModal}
+          onClose={() => {
+            setShowLaunchpadModal(false);
+            setSelectedAlbumForLaunchpad(null);
+          }}
+          artistId={userArtistProfile.artistId}
+          albumId={selectedAlbumForLaunchpad.albumId}
+          albumTitle={selectedAlbumForLaunchpad.title}
+          initialData={getMockLaunchpadData(userArtistProfile.artistId, selectedAlbumForLaunchpad.albumId)}
+          liveAlbumId={userArtistProfile.artistLaunchpadLiveAlbumId}
+        />
+      )}
+
       {/* Verification Info Modal */}
       {showVerificationInfoModal && (
         <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
@@ -1102,8 +1127,10 @@ const ArtistAlbumList: React.FC<{
     albumImg: string;
     albumIsPublished?: string;
   }) => void;
+  onOpenLaunchpad: (album: Album) => void;
+  liveAlbumId: string | null | undefined;
   navigateToDeepAppView: (logicParams: any) => void;
-}> = ({ albums, isLoadingTracks, isLoadingTracksForAlbumId, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, navigateToDeepAppView }) => {
+}> = ({ albums, isLoadingTracks, isLoadingTracksForAlbumId, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, onOpenLaunchpad, liveAlbumId, navigateToDeepAppView }) => {
   const { artistLookupEverything } = useAppStore();
 
   return (
@@ -1116,7 +1143,12 @@ const ArtistAlbumList: React.FC<{
               className={`p-6 hover:shadow-lg flex flex-col border rounded-lg w-[100%]  border-2 ${album.isPublished === "1" ? "bg-yellow-500/10 border-yellow-500 " : "bg-yellow-500/5 border-yellow-800"}`}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="!text-md font-semibold text-gray-200 mb-1">{album.title}</h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="!text-md font-semibold text-gray-200">{album.title}</h3>
+                    {liveAlbumId === album.albumId && (
+                      <Badge className="bg-green-500 text-white !text-xs px-2 py-0.5">Launch In Progress</Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-600 mb-1">id: {album.albumId}</p>
                   {album.bountyId && <p className="mb-1 text-xs text-gray-600">Bounty ID: {album.bountyId}</p>}
                   <p className="text-xs text-gray-400 mb-1">
@@ -1160,6 +1192,12 @@ const ArtistAlbumList: React.FC<{
                   }
                   disabled={isLoadingTracks}>
                   Edit Tracks {isLoadingTracks && isLoadingTracksForAlbumId === album.albumId ? <Loader className="animate-spin ml-2" size={16} /> : null}
+                </Button>
+
+                <Button
+                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
+                  onClick={() => onOpenLaunchpad(album)}>
+                  Launchpad
                 </Button>
               </div>
             </Card>
