@@ -60,12 +60,12 @@ const parseReleaseDate = (dateStr: string): Date => {
 const formatReleaseDate = (dateStr: string): string => {
   const date = parseReleaseDate(dateStr);
   if (isNaN(date.getTime())) return dateStr;
-  
+
   const day = date.getDate();
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const month = monthNames[date.getMonth()];
   const year = date.getFullYear();
-  
+
   return `${day} ${month} ${year}`;
 };
 
@@ -152,9 +152,9 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
 
           {/* Connecting Line with Days Difference Label */}
           {!isLast && (
-            <div className="flex flex-col items-center mt-3 relative">
+            <div className="flex flex-col items-center mt-3 relative h-full">
               {/* Vertical Line */}
-              <div className={`w-0.5 ${platform.premiere ? "bg-yellow-500/50" : "bg-gray-600"}`} style={{ height: "80px" }} />
+              <div className={`w-0.5 ${platform.premiere ? "bg-yellow-500/50" : "bg-gray-600"}`} style={{ height: "100%" }} />
 
               {/* Days Difference Label - positioned on the line */}
               {!isLast && daysDifference > 0 && (

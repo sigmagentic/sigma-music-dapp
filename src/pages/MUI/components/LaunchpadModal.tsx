@@ -6,8 +6,7 @@ import { Button } from "libComponents/Button";
 import { Input } from "libComponents/Input";
 import { Switch } from "libComponents/Switch";
 import { Card } from "libComponents/Card";
-import { updateMockLaunchpadData, getAllMockLaunchpadDataForArtist } from "libs/utils/launchpadMockData";
-import { toastError, toastSuccess, clearLaunchpadDataCache } from "libs/utils";
+import { toastError, toastSuccess, clearLaunchpadDataCache, updateLaunchpadDataViaAPI } from "libs/utils";
 
 interface LaunchpadModalProps {
   isOpen: boolean;
@@ -17,6 +16,7 @@ interface LaunchpadModalProps {
   albumTitle: string;
   initialData: LaunchpadData | null;
   liveAlbumId: string | null | undefined; // artistLaunchpadLiveAlbumId from userArtistProfile
+  onUpdateLaunchpadLiveAlbumId?: (albumId: string | "na") => Promise<void>; // Callback to update launchpadLiveOnAlbumId in artist profile
 }
 
 interface ValidationErrors {
@@ -25,13 +25,7 @@ interface ValidationErrors {
   [key: string]: string | undefined;
 }
 
-const PURCHASE_OPTIONS: PurchaseOption[] = [
-  "Digital Album",
-  "Merch",
-  "Limited Edition Digital Collectible",
-  "AI Remix License",
-  "AI Training License",
-];
+const PURCHASE_OPTIONS: PurchaseOption[] = ["Digital Album", "Merch", "Limited Edition Digital Collectible", "AI Remix License", "AI Training License"];
 
 const PURCHASE_TYPES: PurchaseType[] = ["Platform Membership", "Buy Album or Tracks", "Buy Full Album", "Buy Seperate Tracks"];
 
@@ -47,6 +41,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
   albumTitle,
   initialData,
   liveAlbumId,
+  onUpdateLaunchpadLiveAlbumId,
 }) => {
   const [formData, setFormData] = useState<LaunchpadData>(() => {
     if (initialData) {
@@ -83,6 +78,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     releaseDate: "",
   });
   const [showMerchForm, setShowMerchForm] = useState<boolean>(false);
+  const [initialIsEnabled, setInitialIsEnabled] = useState<boolean>(false);
 
   // Check if another album is live
   const isAnotherAlbumLive = liveAlbumId && liveAlbumId !== albumId && liveAlbumId !== "";
@@ -91,6 +87,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
   useEffect(() => {
     if (initialData) {
       setFormData({ ...initialData });
+      setInitialIsEnabled(initialData.isEnabled);
     } else {
       setFormData({
         artistId,
@@ -100,6 +97,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
         merch: [],
         teaserVideoLink: "N/A",
       });
+      setInitialIsEnabled(false);
     }
     setErrors({});
   }, [initialData, artistId, albumId]);
@@ -147,7 +145,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       return;
     }
@@ -161,18 +159,26 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Console log the mock object for review
+      // Console log the data for review
       console.log("Launchpad data to save:", JSON.stringify(formData, null, 2));
 
-      // Update mock data store
-      updateMockLaunchpadData(formData);
+      // Update via API
+      await updateLaunchpadDataViaAPI(formData, artistId, albumId);
 
       // Clear cache to force refresh
       clearLaunchpadDataCache(artistId, albumId);
 
-      // TODO: Replace with actual API call when backend is ready
-      // await updateLaunchpadDataViaAPI(formData);
-      // After API call, update userArtistProfile.artistLaunchpadLiveAlbumId if isEnabled changed
+      // Update artist profile if isEnabled changed
+      const isEnabledChanged = formData.isEnabled !== initialIsEnabled;
+      if (isEnabledChanged && onUpdateLaunchpadLiveAlbumId) {
+        try {
+          await onUpdateLaunchpadLiveAlbumId(formData.isEnabled ? albumId : "na");
+        } catch (error) {
+          console.error("Error updating artist profile with launchpadLiveOnAlbumId:", error);
+          // Don't throw here - the launchpad data was saved successfully
+          // Just log the error
+        }
+      }
 
       toastSuccess("Launchpad data saved successfully");
       onClose();
@@ -320,9 +326,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     setFormData((prev) => {
       const updated = [...prev.launchPlatforms];
       const currentOptions = updated[platformIndex].purchaseOptions || [];
-      const newOptions = currentOptions.includes(option)
-        ? currentOptions.filter((o) => o !== option)
-        : [...currentOptions, option];
+      const newOptions = currentOptions.includes(option) ? currentOptions.filter((o) => o !== option) : [...currentOptions, option];
       updated[platformIndex] = { ...updated[platformIndex], purchaseOptions: newOptions };
       return { ...prev, launchPlatforms: updated };
     });
@@ -332,7 +336,9 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title={`Launchpad: ${albumTitle}`} size="xl" isWorking={isSubmitting}>
       <div className="space-y-6">
         {/* Subtitle */}
-        <p className="!text-sm text-gray-400 mb-4">Launching a new album on multiple platforms? Use the launchpad to showcase the launch timeline to your fans</p>
+        <p className="!text-sm text-gray-400 mb-4">
+          Launching a new album on multiple platforms? Use the launchpad to showcase the launch timeline to your fans
+        </p>
 
         {/* Enabled/Disabled Toggle */}
         <div className="flex items-center justify-between p-4 bg-gray-800/30 rounded-lg border border-gray-700">
@@ -350,7 +356,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
               setFormData((prev) => ({ ...prev, isEnabled: checked }));
               setErrors({});
             }}
-            disabled={isAnotherAlbumLive && !formData.isEnabled}
+            disabled={isAnotherAlbumLive && !formData.isEnabled ? true : false}
           />
         </div>
 
@@ -389,7 +395,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   <Input
                     value={platform.platform}
                     onChange={(e) => handleUpdatePlatform(index, "platform", e.target.value)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="bg-gray-800 border-gray-600 text-white"
                   />
                   {errors[`platform_${index}_name`] && <p className="!text-xs text-red-400 mt-1">{errors[`platform_${index}_name`]}</p>}
@@ -400,7 +406,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   <Input
                     value={platform.directLink}
                     onChange={(e) => handleUpdatePlatform(index, "directLink", e.target.value)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     placeholder="https://..."
                     className="bg-gray-800 border-gray-600 text-white"
                   />
@@ -413,7 +419,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                     type="date"
                     value={platform.releaseDate}
                     onChange={(e) => handleUpdatePlatform(index, "releaseDate", e.target.value)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="bg-gray-800 border-gray-600 text-white"
                   />
                   {errors[`platform_${index}_date`] && <p className="!text-xs text-red-400 mt-1">{errors[`platform_${index}_date`]}</p>}
@@ -424,7 +430,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                     type="checkbox"
                     checked={platform.premiere}
                     onChange={(e) => handleUpdatePlatform(index, "premiere", e.target.checked)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-yellow-500 focus:ring-yellow-500"
                   />
                   <span className="!text-xs text-gray-300">Premiere Platform</span>
@@ -435,7 +441,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   <select
                     value={platform.freeStreaming}
                     onChange={(e) => handleUpdatePlatform(index, "freeStreaming", e.target.value as FreeStreamingType)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled || !formData.isEnabled}
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white !text-sm">
                     {FREE_STREAMING_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -452,7 +458,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                       type="number"
                       value={platform.freeStreamingTrackCount || ""}
                       onChange={(e) => handleUpdatePlatform(index, "freeStreamingTrackCount", parseInt(e.target.value) || 0)}
-                      disabled={isFormDisabled}
+                      disabled={isFormDisabled ? true : false}
                       min="1"
                       className="bg-gray-800 border-gray-600 text-white"
                     />
@@ -469,7 +475,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                           type="checkbox"
                           checked={platform.purchaseOptions?.includes(option) || false}
                           onChange={() => togglePurchaseOption(index, option)}
-                          disabled={isFormDisabled}
+                          disabled={isFormDisabled ? true : false}
                           className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-yellow-500 focus:ring-yellow-500"
                         />
                         <span className="!text-xs text-gray-300">{option}</span>
@@ -483,7 +489,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   <select
                     value={platform.purchaseType}
                     onChange={(e) => handleUpdatePlatform(index, "purchaseType", e.target.value as PurchaseType)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white !text-sm">
                     {PURCHASE_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -500,7 +506,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                       type="number"
                       value={platform.usdPriceAlbum === "n/a" ? "" : platform.usdPriceAlbum}
                       onChange={(e) => handleUpdatePlatform(index, "usdPriceAlbum", e.target.value === "" ? "n/a" : parseFloat(e.target.value))}
-                      disabled={isFormDisabled}
+                      disabled={isFormDisabled ? true : false}
                       placeholder="n/a"
                       step="0.01"
                       className="bg-gray-800 border-gray-600 text-white"
@@ -512,7 +518,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                       type="number"
                       value={platform.usdPriceTrack === "n/a" ? "" : platform.usdPriceTrack}
                       onChange={(e) => handleUpdatePlatform(index, "usdPriceTrack", e.target.value === "" ? "n/a" : parseFloat(e.target.value))}
-                      disabled={isFormDisabled}
+                      disabled={isFormDisabled ? true : false}
                       placeholder="n/a"
                       step="0.01"
                       className="bg-gray-800 border-gray-600 text-white"
@@ -525,7 +531,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                     type="checkbox"
                     checked={platform.payMoreSupported}
                     onChange={(e) => handleUpdatePlatform(index, "payMoreSupported", e.target.checked)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-yellow-500 focus:ring-yellow-500"
                   />
                   <span className="!text-xs text-gray-300">Pay More Supported</span>
@@ -544,7 +550,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   <Input
                     value={newPlatformForm.platform || ""}
                     onChange={(e) => setNewPlatformForm({ ...newPlatformForm, platform: e.target.value })}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="bg-gray-800 border-gray-600 text-white"
                   />
                 </div>
@@ -553,7 +559,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   <Input
                     value={newPlatformForm.directLink || ""}
                     onChange={(e) => setNewPlatformForm({ ...newPlatformForm, directLink: e.target.value })}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     placeholder="https://..."
                     className="bg-gray-800 border-gray-600 text-white"
                   />
@@ -565,13 +571,13 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   type="date"
                   value={newPlatformForm.releaseDate || ""}
                   onChange={(e) => setNewPlatformForm({ ...newPlatformForm, releaseDate: e.target.value })}
-                  disabled={isFormDisabled}
+                  disabled={isFormDisabled ? true : false}
                   className="bg-gray-800 border-gray-600 text-white"
                 />
               </div>
               <Button
                 onClick={handleAddPlatform}
-                disabled={isFormDisabled}
+                disabled={isFormDisabled ? true : false}
                 className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-4 py-2 !text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Platform
@@ -604,7 +610,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   <select
                     value={merch.type}
                     onChange={(e) => handleUpdateMerch(index, "type", e.target.value as MerchType)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white !text-sm">
                     {MERCH_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -618,7 +624,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   <Input
                     value={merch.directLink}
                     onChange={(e) => handleUpdateMerch(index, "directLink", e.target.value)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     placeholder="https://..."
                     className="bg-gray-800 border-gray-600 text-white"
                   />
@@ -630,7 +636,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                     type="date"
                     value={merch.releaseDate}
                     onChange={(e) => handleUpdateMerch(index, "releaseDate", e.target.value)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="bg-gray-800 border-gray-600 text-white"
                   />
                   {errors[`merch_${index}_date`] && <p className="!text-xs text-red-400 mt-1">{errors[`merch_${index}_date`]}</p>}
@@ -644,7 +650,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
             <div className="flex justify-start">
               <Button
                 onClick={() => setShowMerchForm(true)}
-                disabled={isFormDisabled}
+                disabled={isFormDisabled ? true : false}
                 className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-4 py-2 !text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Merch Item
@@ -660,7 +666,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                     <select
                       value={newMerchForm.type || "Vinyl"}
                       onChange={(e) => setNewMerchForm({ ...newMerchForm, type: e.target.value as MerchType })}
-                      disabled={isFormDisabled}
+                      disabled={isFormDisabled ? true : false}
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white !text-sm">
                       {MERCH_TYPES.map((type) => (
                         <option key={type} value={type}>
@@ -674,7 +680,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                     <Input
                       value={newMerchForm.directLink || ""}
                       onChange={(e) => setNewMerchForm({ ...newMerchForm, directLink: e.target.value })}
-                      disabled={isFormDisabled}
+                      disabled={isFormDisabled ? true : false}
                       placeholder="https://..."
                       className="bg-gray-800 border-gray-600 text-white"
                     />
@@ -686,14 +692,14 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                     type="date"
                     value={newMerchForm.releaseDate || ""}
                     onChange={(e) => setNewMerchForm({ ...newMerchForm, releaseDate: e.target.value })}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="bg-gray-800 border-gray-600 text-white"
                   />
                 </div>
                 <div className="flex gap-2">
                   <Button
                     onClick={handleAddMerch}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-4 py-2 !text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Merch Item
@@ -704,7 +710,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                       setShowMerchForm(false);
                     }}
                     variant="outline"
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled ? true : false}
                     className="border-gray-600 text-white hover:bg-gray-800 px-4 py-2 !text-sm">
                     Cancel
                   </Button>
@@ -720,7 +726,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
           <Input
             value={formData.teaserVideoLink === "N/A" ? "" : formData.teaserVideoLink}
             onChange={(e) => setFormData({ ...formData, teaserVideoLink: e.target.value || "N/A" })}
-            disabled={isFormDisabled}
+            disabled={isFormDisabled ? true : false}
             placeholder="https://www.youtube.com/watch?v=..."
             className="bg-gray-800 border-gray-600 text-white"
           />
@@ -741,16 +747,12 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">
-          <Button
-            onClick={onClose}
-            variant="outline"
-            disabled={isSubmitting}
-            className="border-gray-600 text-white hover:bg-gray-800">
+          <Button onClick={onClose} variant="outline" disabled={isSubmitting} className="border-gray-600 text-white hover:bg-gray-800">
             Cancel
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isSubmitting || isFormDisabled}
+            disabled={isSubmitting || isFormDisabled ? true : false}
             className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-8 py-2 rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600">
             {isSubmitting ? "Saving..." : "Save Launchpad"}
           </Button>
@@ -759,4 +761,3 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     </Modal>
   );
 };
-
