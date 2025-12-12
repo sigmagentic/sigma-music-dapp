@@ -1870,7 +1870,6 @@ export const updateLaunchpadDataViaAPI = async (launchpadData: LaunchpadData, ar
       artistId: artistId,
       assetId: albumId,
       payload: {
-        isEnabled: launchpadData.isEnabled,
         launchPlatforms: launchpadData.launchPlatforms,
         merch: launchpadData.merch,
         teaserVideoLink: launchpadData.teaserVideoLink,

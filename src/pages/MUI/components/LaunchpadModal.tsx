@@ -78,29 +78,35 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     releaseDate: "",
   });
   const [showMerchForm, setShowMerchForm] = useState<boolean>(false);
-  const [initialIsEnabled, setInitialIsEnabled] = useState<boolean>(false);
+  const [desiredEnabledState, setDesiredEnabledState] = useState<boolean | null>(null);
+
+  // Determine if this album is currently live based on liveAlbumId prop
+  const isCurrentlyEnabled = liveAlbumId === albumId && liveAlbumId !== "" && liveAlbumId !== "na" && liveAlbumId !== null && liveAlbumId !== undefined;
+  const initialIsEnabled = isCurrentlyEnabled;
+
+  // Use desired state if set, otherwise use current state
+  const effectiveEnabledState = desiredEnabledState !== null ? desiredEnabledState : isCurrentlyEnabled;
 
   // Check if another album is live
-  const isAnotherAlbumLive = liveAlbumId && liveAlbumId !== albumId && liveAlbumId !== "";
-  const isFormDisabled = isAnotherAlbumLive && !formData.isEnabled;
+  const isAnotherAlbumLive = liveAlbumId && liveAlbumId !== albumId && liveAlbumId !== "" && liveAlbumId !== "na";
+  const isFormDisabled = isAnotherAlbumLive && !effectiveEnabledState;
 
   useEffect(() => {
     if (initialData) {
       setFormData({ ...initialData });
-      setInitialIsEnabled(initialData.isEnabled);
     } else {
       setFormData({
         artistId,
         albumId,
-        isEnabled: false,
+        isEnabled: false, // This is kept for type compatibility but not used
         launchPlatforms: [],
         merch: [],
         teaserVideoLink: "N/A",
       });
-      setInitialIsEnabled(false);
     }
+    setDesiredEnabledState(null); // Reset desired state when data changes
     setErrors({});
-  }, [initialData, artistId, albumId]);
+  }, [initialData, artistId, albumId, liveAlbumId]);
 
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
@@ -115,8 +121,12 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
       if (!platform.platform.trim()) {
         newErrors[`platform_${index}_name`] = "Platform name is required";
       }
-      if (!platform.directLink.trim() || !platform.directLink.startsWith("https://")) {
-        newErrors[`platform_${index}_link`] = "Direct link must start with https://";
+      // Direct link validation - not required for "Sigma Music"
+      const isSigmaMusic = platform.platform.trim().toLowerCase() === "sigma music";
+      if (!isSigmaMusic) {
+        if (!platform.directLink.trim() || !platform.directLink.startsWith("https://")) {
+          newErrors[`platform_${index}_link`] = "Direct link must start with https://";
+        }
       }
       if (!platform.releaseDate) {
         newErrors[`platform_${index}_date`] = "Release date is required";
@@ -150,9 +160,10 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
       return;
     }
 
-    // If enabling, check if another album is live
-    if (formData.isEnabled && isAnotherAlbumLive) {
-      setErrors({ general: "Another album is currently live on the launchpad. Please disable that album launchpad first." });
+    // Check if trying to enable without platforms
+    const newEnabledState = desiredEnabledState !== null ? desiredEnabledState : isCurrentlyEnabled;
+    if (newEnabledState && formData.launchPlatforms.length === 0) {
+      setErrors({ general: "Please add at least one launch platform before enabling the launchpad." });
       return;
     }
 
@@ -162,17 +173,24 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
       // Console log the data for review
       console.log("Launchpad data to save:", JSON.stringify(formData, null, 2));
 
-      // Update via API
-      await updateLaunchpadDataViaAPI(formData, artistId, albumId);
+      // Update via API (without isEnabled - it's not saved in the launchpad data)
+      const launchpadDataToSave = {
+        ...formData,
+        isEnabled: false, // Not used, but required for type
+      };
+      await updateLaunchpadDataViaAPI(launchpadDataToSave, artistId, albumId);
 
       // Clear cache to force refresh
       clearLaunchpadDataCache(artistId, albumId);
 
-      // Update artist profile if isEnabled changed
-      const isEnabledChanged = formData.isEnabled !== initialIsEnabled;
+      // Update artist profile if enabled state changed
+      // Use desiredEnabledState if set (user toggled), otherwise use current state
+      const newEnabledState = desiredEnabledState !== null ? desiredEnabledState : isCurrentlyEnabled;
+      const isEnabledChanged = newEnabledState !== initialIsEnabled;
+
       if (isEnabledChanged && onUpdateLaunchpadLiveAlbumId) {
         try {
-          await onUpdateLaunchpadLiveAlbumId(formData.isEnabled ? albumId : "na");
+          await onUpdateLaunchpadLiveAlbumId(newEnabledState ? albumId : "na");
         } catch (error) {
           console.error("Error updating artist profile with launchpadLiveOnAlbumId:", error);
           // Don't throw here - the launchpad data was saved successfully
@@ -191,14 +209,22 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
   };
 
   const handleAddPlatform = () => {
-    if (!newPlatformForm.platform || !newPlatformForm.directLink || !newPlatformForm.releaseDate) {
+    if (!newPlatformForm.platform || !newPlatformForm.releaseDate) {
       setErrors({ general: "Please fill in all required platform fields" });
       return;
     }
 
-    if (!newPlatformForm.directLink.startsWith("https://")) {
-      setErrors({ general: "Direct link must start with https://" });
-      return;
+    // Direct link is not required for "Sigma Music"
+    const isSigmaMusicPlatform = newPlatformForm.platform.trim().toLowerCase() === "sigma music";
+    if (!isSigmaMusicPlatform) {
+      if (!newPlatformForm.directLink) {
+        setErrors({ general: "Direct link is required for this platform" });
+        return;
+      }
+      if (!newPlatformForm.directLink.startsWith("https://")) {
+        setErrors({ general: "Direct link must start with https://" });
+        return;
+      }
     }
 
     if (newPlatformForm.freeStreaming === "First X tracks" && (!newPlatformForm.freeStreamingTrackCount || newPlatformForm.freeStreamingTrackCount <= 0)) {
@@ -209,7 +235,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     const platform: LaunchPlatform = {
       platform: newPlatformForm.platform!,
       premiere: newPlatformForm.premiere || false,
-      directLink: newPlatformForm.directLink!,
+      directLink: isSigmaMusicPlatform ? "https://sigmamusic.fm" : newPlatformForm.directLink!, // Use placeholder for Sigma Music
       freeStreaming: newPlatformForm.freeStreaming || "Full Album",
       freeStreamingTrackCount: newPlatformForm.freeStreamingTrackCount,
       purchaseOptions: newPlatformForm.purchaseOptions || [],
@@ -249,6 +275,18 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     });
     setErrors({});
   };
+
+  const handleAddSigmaMusic = () => {
+    setNewPlatformForm({
+      ...newPlatformForm,
+      platform: "Sigma Music",
+      directLink: "", // Not needed for Sigma Music
+    });
+    setErrors({});
+  };
+
+  // Check if Sigma Music already exists
+  const hasSigmaMusic = formData.launchPlatforms.some((p) => p.platform.trim().toLowerCase() === "sigma music");
 
   const handleRemovePlatform = (index: number) => {
     setFormData((prev) => ({
@@ -336,9 +374,12 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title={`Launchpad: ${albumTitle}`} size="xl" isWorking={isSubmitting}>
       <div className="space-y-6">
         {/* Subtitle */}
-        <p className="!text-sm text-gray-400 mb-4">
-          Launching a new album on multiple platforms? Use the launchpad to showcase the launch timeline to your fans
-        </p>
+        <div className="flex items-center gap-2 mb-4">
+          <p className="!text-sm text-gray-400">Launching a new album on multiple platforms? Use the launchpad to showcase the launch timeline to your fans</p>
+          <a href="/faq#what-is-launchpad" target="_blank" rel="noopener noreferrer" className="!text-sm text-yellow-400 hover:text-yellow-300 underline">
+            Learn More
+          </a>
+        </div>
 
         {/* Enabled/Disabled Toggle */}
         <div className="flex items-center justify-between p-4 bg-gray-800/30 rounded-lg border border-gray-700">
@@ -347,16 +388,21 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
             <p className="!text-xs text-gray-400 mt-1">Toggle to show/hide the launchpad tab on your artist profile</p>
           </div>
           <Switch
-            checked={formData.isEnabled}
+            checked={effectiveEnabledState}
             onCheckedChange={(checked) => {
               if (checked && isAnotherAlbumLive) {
                 setErrors({ general: "Another album is currently live on the launchpad. Please disable that album launchpad first." });
                 return;
               }
-              setFormData((prev) => ({ ...prev, isEnabled: checked }));
+              if (checked && formData.launchPlatforms.length === 0) {
+                setErrors({ general: "Please add at least one launch platform before enabling the launchpad." });
+                return;
+              }
+              // Track the desired state - we'll use this on save
+              setDesiredEnabledState(checked);
               setErrors({});
             }}
-            disabled={isAnotherAlbumLive && !formData.isEnabled ? true : false}
+            disabled={(isAnotherAlbumLive && !isCurrentlyEnabled) || formData.launchPlatforms.length === 0}
           />
         </div>
 
@@ -367,6 +413,17 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
             <div className="flex-1">
               <p className="!text-sm font-medium text-red-400">Another album is currently live on the launchpad</p>
               <p className="!text-xs text-red-300 mt-1">Please disable that album launchpad first before enabling this one.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Warning if no launch platforms */}
+        {formData.launchPlatforms.length === 0 && (
+          <div className="flex items-start gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+            <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="!text-sm font-medium text-yellow-400">No launch platforms configured</p>
+              <p className="!text-xs text-yellow-300 mt-1">Please add at least one launch platform before enabling the launchpad.</p>
             </div>
           </div>
         )}
@@ -401,17 +458,19 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   {errors[`platform_${index}_name`] && <p className="!text-xs text-red-400 mt-1">{errors[`platform_${index}_name`]}</p>}
                 </div>
 
-                <div>
-                  <label className="block !text-xs text-gray-300 mb-1">Direct Link *</label>
-                  <Input
-                    value={platform.directLink}
-                    onChange={(e) => handleUpdatePlatform(index, "directLink", e.target.value)}
-                    disabled={isFormDisabled ? true : false}
-                    placeholder="https://..."
-                    className="bg-gray-800 border-gray-600 text-white"
-                  />
-                  {errors[`platform_${index}_link`] && <p className="!text-xs text-red-400 mt-1">{errors[`platform_${index}_link`]}</p>}
-                </div>
+                {platform.platform.trim().toLowerCase() !== "sigma music" && (
+                  <div>
+                    <label className="block !text-xs text-gray-300 mb-1">Direct Link *</label>
+                    <Input
+                      value={platform.directLink}
+                      onChange={(e) => handleUpdatePlatform(index, "directLink", e.target.value)}
+                      disabled={isFormDisabled ? true : false}
+                      placeholder="https://..."
+                      className="bg-gray-800 border-gray-600 text-white"
+                    />
+                    {errors[`platform_${index}_link`] && <p className="!text-xs text-red-400 mt-1">{errors[`platform_${index}_link`]}</p>}
+                  </div>
+                )}
 
                 <div>
                   <label className="block !text-xs text-gray-300 mb-1">Release Date *</label>
@@ -441,7 +500,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                   <select
                     value={platform.freeStreaming}
                     onChange={(e) => handleUpdatePlatform(index, "freeStreaming", e.target.value as FreeStreamingType)}
-                    disabled={isFormDisabled || !formData.isEnabled}
+                    disabled={isFormDisabled || !effectiveEnabledState}
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white !text-sm">
                     {FREE_STREAMING_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -545,8 +604,15 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
             <h4 className="!text-sm font-semibold text-white mb-3">Add New Platform</h4>
             <div className="space-y-3 !text-sm">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block !text-xs text-gray-300 mb-1">Platform Name *</label>
+                <div className={newPlatformForm.platform?.trim().toLowerCase() === "sigma music" ? "col-span-2" : ""}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <label className="block !text-xs text-gray-300">Platform Name *</label>
+                    {!hasSigmaMusic && (
+                      <button type="button" onClick={handleAddSigmaMusic} className="!text-xs text-yellow-400 hover:text-yellow-300 underline">
+                        Add Sigma Music?
+                      </button>
+                    )}
+                  </div>
                   <Input
                     value={newPlatformForm.platform || ""}
                     onChange={(e) => setNewPlatformForm({ ...newPlatformForm, platform: e.target.value })}
@@ -554,16 +620,18 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
                     className="bg-gray-800 border-gray-600 text-white"
                   />
                 </div>
-                <div>
-                  <label className="block !text-xs text-gray-300 mb-1">Direct Link *</label>
-                  <Input
-                    value={newPlatformForm.directLink || ""}
-                    onChange={(e) => setNewPlatformForm({ ...newPlatformForm, directLink: e.target.value })}
-                    disabled={isFormDisabled ? true : false}
-                    placeholder="https://..."
-                    className="bg-gray-800 border-gray-600 text-white"
-                  />
-                </div>
+                {newPlatformForm.platform?.trim().toLowerCase() !== "sigma music" && (
+                  <div>
+                    <label className="block !text-xs text-gray-300 mb-1">Direct Link *</label>
+                    <Input
+                      value={newPlatformForm.directLink || ""}
+                      onChange={(e) => setNewPlatformForm({ ...newPlatformForm, directLink: e.target.value })}
+                      disabled={isFormDisabled ? true : false}
+                      placeholder="https://..."
+                      className="bg-gray-800 border-gray-600 text-white"
+                    />
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block !text-xs text-gray-300 mb-1">Release Date *</label>

@@ -539,7 +539,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
               }}
               isLoadingLaunchpad={isLoadingLaunchpad}
               isLoadingLaunchpadForAlbumId={isLoadingLaunchpadForAlbumId}
-              liveAlbumId={null}
+              liveAlbumId={userArtistProfile.launchpadLiveOnAlbumId}
               navigateToDeepAppView={navigateToDeepAppView}
             />
           )
@@ -1012,7 +1012,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
           albumId={selectedAlbumForLaunchpad.albumId}
           albumTitle={selectedAlbumForLaunchpad.title}
           initialData={launchpadInitialData}
-          liveAlbumId={null}
+          liveAlbumId={userArtistProfile.launchpadLiveOnAlbumId}
           onUpdateLaunchpadLiveAlbumId={handleUpdateLaunchpadLiveAlbumId}
         />
       )}
@@ -1215,7 +1215,7 @@ const ArtistAlbumList: React.FC<{
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="!text-md font-semibold text-gray-200">{album.title}</h3>
-                    {liveAlbumId === album.albumId && <Badge className="bg-green-500 text-white !text-xs px-2 py-0.5">Launch In Progress</Badge>}
+                    {liveAlbumId === album.albumId && <Badge className="bg-yellow-500 text-black !text-xs px-2 py-0.5">Launchpad Live!</Badge>}
                   </div>
                   <p className="text-xs text-gray-600 mb-1">id: {album.albumId}</p>
                   {album.bountyId && <p className="mb-1 text-xs text-gray-600">Bounty ID: {album.bountyId}</p>}
@@ -1263,10 +1263,11 @@ const ArtistAlbumList: React.FC<{
                 </Button>
 
                 <Button
-                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 text-sm rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
+                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 text-xs rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
                   onClick={() => onOpenLaunchpad(album)}
-                  disabled={isLoadingLaunchpad}>
-                  Launchpad {isLoadingLaunchpad && isLoadingLaunchpadForAlbumId === album.albumId ? <Loader className="animate-spin ml-2" size={16} /> : null}
+                  disabled={isLoadingLaunchpad || album.isPublished !== "1"}>
+                  Setup Launchpad
+                  {isLoadingLaunchpad && isLoadingLaunchpadForAlbumId === album.albumId ? <Loader className="animate-spin ml-2" size={16} /> : null}
                 </Button>
               </div>
             </Card>

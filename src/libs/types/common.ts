@@ -122,6 +122,7 @@ export interface Artist {
   isVerifiedArtist?: boolean;
   lastIndexOn?: number;
   albums: Album[];
+  launchpadLiveOnAlbumId?: string; // The albumId of the currently live launchpad, or "na" if none
 }
 
 export interface AlbumWithArtist extends Album {

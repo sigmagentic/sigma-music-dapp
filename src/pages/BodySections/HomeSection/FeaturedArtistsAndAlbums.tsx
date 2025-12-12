@@ -297,54 +297,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     setArtistProfile(selDataItem);
 
-    // Fetch launchpad data for this artist
-    const fetchLaunchpadData = async () => {
-      if (!selDataItem) return;
-
-      setLaunchpadLoading(true);
-      try {
-        // Get the first album ID if available, or use empty string
-        const albumIdToUse = selAlbumId || (selDataItem.albums && selDataItem.albums.length > 0 ? selDataItem.albums[0].albumId : "");
-        const data = await getLaunchpadDataViaAPI(selDataItem.artistId, albumIdToUse);
-        setLaunchpadData(data);
-
-        // Check if there's a tab parameter in URL
-        const jumpToTab = searchParams.get("tab");
-
-        // Update tabsOrdered based on launchpad data
-        if (data && data.isEnabled) {
-          const campaignCode = searchParams.get("campaign") || "";
-          if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
-            setTabsOrdered(["launchpad", "fan", "leaderboard", "artistStats", "aiRemixes"]);
-          } else {
-            setTabsOrdered(["launchpad", "discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
-          }
-          // If launchpad is enabled and no specific tab is requested, set launchpad as active
-          if (!jumpToTab) {
-            setActiveTab("launchpad");
-          }
-        } else {
-          const campaignCode = searchParams.get("campaign") || "";
-          if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
-            setTabsOrdered(["fan", "leaderboard", "artistStats", "aiRemixes"]);
-          } else {
-            setTabsOrdered(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
-          }
-          // If launchpad is disabled and no specific tab is requested, set discography as active
-          if (!jumpToTab) {
-            setActiveTab("discography");
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching launchpad data:", error);
-        setLaunchpadData(null);
-      } finally {
-        setLaunchpadLoading(false);
-      }
-    };
-
-    fetchLaunchpadData();
-
     // if we don't do the userInteractedWithTabs, then even on page load, we go update the url with artist which we don't want
     if (selDataItem && (userInteractedWithTabs || (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== ""))) {
       // update the deep link param
@@ -389,6 +341,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       );
 
       setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(tweetMsg)}`);
+    }
+
+    // if the artist has a launchpadLiveOnAlbumId, then we need to fetch the launchpad data for that album (it will be na if a artist set and unset something)
+    if (artistProfile?.launchpadLiveOnAlbumId && artistProfile?.launchpadLiveOnAlbumId !== "na") {
+      fetchLaunchpadData();
     }
   }, [artistProfile]);
 
@@ -506,6 +463,58 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setSelectedFilter(searchParams.get("view") as string);
     }
   }, [searchParams]);
+
+  // Fetch launchpad data for this artist
+  const fetchLaunchpadData = async () => {
+    // Check if there's a live launchpad album
+    const liveAlbumId = artistProfile?.launchpadLiveOnAlbumId;
+    const hasLiveLaunchpad = liveAlbumId && liveAlbumId !== "" && liveAlbumId !== "na" && liveAlbumId !== null && liveAlbumId !== undefined;
+
+    if (!hasLiveLaunchpad) {
+      setLaunchpadData(null);
+      return;
+    }
+
+    setLaunchpadLoading(true);
+    try {
+      // Get launchpad data for the live album
+      const data = await getLaunchpadDataViaAPI(artistProfile?.artistId!, liveAlbumId);
+      setLaunchpadData(data);
+
+      // Check if there's a tab parameter in URL
+      const jumpToTab = searchParams.get("tab");
+
+      // Update tabsOrdered based on launchpad data
+      if (data) {
+        const campaignCode = searchParams.get("campaign") || "";
+        if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
+          setTabsOrdered(["launchpad", "fan", "leaderboard", "artistStats", "aiRemixes"]);
+        } else {
+          setTabsOrdered(["launchpad", "discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
+        }
+        // If launchpad is enabled and no specific tab is requested, set launchpad as active
+        if (!jumpToTab) {
+          setActiveTab("launchpad");
+        }
+      } else {
+        const campaignCode = searchParams.get("campaign") || "";
+        if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
+          setTabsOrdered(["fan", "leaderboard", "artistStats", "aiRemixes"]);
+        } else {
+          setTabsOrdered(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
+        }
+        // If launchpad is disabled and no specific tab is requested, set discography as active
+        if (!jumpToTab) {
+          setActiveTab("discography");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching launchpad data:", error);
+      setLaunchpadData(null);
+    } finally {
+      setLaunchpadLoading(false);
+    }
+  };
 
   function updateUrlWithSelectedFilter(newFilter: string) {
     const currentParams = Object.fromEntries(searchParams.entries());
@@ -1180,7 +1189,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         {/* Tabs Navigation */}
                         <div className="tabs-menu w-full border-b border-gray-800 overflow-x-auto pb-5 md:pb-0">
                           <div className="flex space-x-8 whitespace-nowrap min-w-max">
-                            {tabsOrdered.includes("launchpad") && launchpadData && launchpadData.isEnabled && (
+                            {tabsOrdered.includes("launchpad") && launchpadData && (
                               <button
                                 onClick={() => {
                                   setActiveTab("launchpad");
@@ -1296,7 +1305,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           </div>
                         </div>
                         {/* Tabs Content */}
-                        {tabsOrdered.includes("launchpad") && activeTab === "launchpad" && launchpadData && launchpadData.isEnabled && (
+                        {tabsOrdered.includes("launchpad") && activeTab === "launchpad" && launchpadData && (
                           <div className="artist-launchpad w-full">
                             {launchpadLoading ? (
                               <div className="flex items-center justify-center py-12">

@@ -201,6 +201,20 @@ const faqSections: FAQSection[] = [
           </div>
         ),
       },
+      {
+        id: "what-is-launchpad",
+        question: "What is a Sigma Music Launchpad?",
+        answer: (
+          <div>
+            <p>
+              Most artists launch new albums or EPs on multiple platforms (SoundCloud, Bandcamp, Spotify, etc.) but do it on different dates and at different sale prices or with different perks. For example, they may premiere an album launch on Bandcamp for one week with it being on direct sale for a discount to their die-hard fans before launching it on DSPs (e.g., Spotify). This allows artists to earn more and provide better perks to their die-hard fans.
+            </p>
+            <p className="mt-4">
+              Sigma Music Launchpad allows artists to list the launch schedule of new album launches so their fans can see all the launch timeline, perks, discounts, etc. at a single place! This provides a single point of access for fans to know how and when new launches are happening and how best to engage with them!
+            </p>
+          </div>
+        ),
+      },
     ],
   },
   {
