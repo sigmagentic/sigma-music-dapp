@@ -5,110 +5,10 @@ import { LaunchpadData, LaunchPlatform, MerchItem, Album } from "libs/types/comm
 type LaunchpadProps = {
   launchpadData: LaunchpadData;
   album?: Album | null;
-  onViewTracklist?: () => void;
+  onViewLaunchpadAsset?: () => void;
 };
 
-/**
- * Detects if a URL is a YouTube Premier link
- * YouTube Premier links typically have the format:
- * https://www.youtube.com/watch?v=VIDEO_ID or
- * https://youtu.be/VIDEO_ID with premiere parameter
- */
-const isYouTubePremierLink = (url: string): boolean => {
-  if (!url || url === "N/A") return false;
-
-  // Regex pattern to match YouTube URLs
-  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/i;
-
-  if (!youtubeRegex.test(url)) return false;
-
-  // Check for premiere indicators in URL
-  const premiereIndicators = [/premiere/i, /premiere=true/i, /premiere=1/i, /watch\?v=.*&.*premiere/i];
-
-  return premiereIndicators.some((pattern) => pattern.test(url));
-};
-
-/**
- * Extracts YouTube video ID from URL for embedding
- */
-const extractYouTubeVideoId = (url: string): string | null => {
-  if (!url || url === "N/A") return null;
-
-  const patterns = [/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/, /youtube\.com\/embed\/([^&\n?#]+)/];
-
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match && match[1]) {
-      return match[1];
-    }
-  }
-
-  return null;
-};
-
-/**
- * Parses date string in ISO format "YYYY-MM-DD" to Date object for sorting
- */
-const parseReleaseDate = (dateStr: string): Date => {
-  const date = new Date(dateStr);
-  return isNaN(date.getTime()) ? new Date(0) : date;
-};
-
-/**
- * Formats date from ISO format "YYYY-MM-DD" to display format "1 Dec 2025"
- */
-const formatReleaseDate = (dateStr: string): string => {
-  const date = parseReleaseDate(dateStr);
-  if (isNaN(date.getTime())) return dateStr;
-
-  const day = date.getDate();
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const month = monthNames[date.getMonth()];
-  const year = date.getFullYear();
-
-  return `${day} ${month} ${year}`;
-};
-
-/**
- * Formats price value for display
- */
-const formatPrice = (price: number | "n/a"): string => {
-  if (price === "n/a") return "N/A";
-  return typeof price === "number" ? `$${price.toFixed(2)}` : price;
-};
-
-/**
- * Calculates the number of days between two dates
- */
-const getDaysDifference = (date1: Date, date2: Date): number => {
-  const diffTime = Math.abs(date2.getTime() - date1.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-};
-
-/**
- * Formats days difference as a human-readable string
- */
-const formatDaysDifference = (days: number): string => {
-  if (days === 0) return "Same day";
-  if (days === 1) return "1 day later";
-  return `${days} days later`;
-};
-
-/**
- * Calculates days until a future date (returns negative if date is in the past)
- */
-const getDaysUntil = (date: Date): number => {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0); // Reset to start of day for accurate comparison
-  const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0);
-  const diffTime = targetDate.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-};
-
-export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onViewTracklist }) => {
+export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onViewLaunchpadAsset }) => {
   // Sort platforms by release date (earliest first)
   const sortedPlatforms = useMemo(() => {
     return [...launchpadData.launchPlatforms].sort((a, b) => {
@@ -233,17 +133,28 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
               </div>
             </div>
 
-            {/* Direct Link Button */}
-            <div className="flex-shrink-0">
-              <a
-                href={platform.directLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 !text-sm bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-yellow-400 hover:to-orange-600 text-black font-medium rounded-md transition-all">
-                <ExternalLink className="w-3.5 h-3.5" />
-                Visit Platform
-              </a>
-            </div>
+            {/* Direct Link Button if NOT Sigma Music or show the View Album button */}
+            {platform.platform.trim().toLowerCase() !== "sigma music" ? (
+              <div className="flex-shrink-0">
+                <a
+                  href={platform.directLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 !text-sm bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-yellow-400 hover:to-orange-600 text-black font-medium rounded-md transition-all">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Visit Platform
+                </a>
+              </div>
+            ) : (
+              <div className="flex-shrink-0">
+                <button
+                  onClick={onViewLaunchpadAsset}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 !text-sm bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-yellow-400 hover:to-orange-600 text-black font-medium rounded-md transition-all">
+                  <Music className="w-3.5 h-3.5" />
+                  View Album
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -289,11 +200,12 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
               <h2 className="!text-lg font-bold text-white mb-2">{album.title}</h2>
               {album.desc && <p className="text-gray-400 !text-sm line-clamp-2">{album.desc}</p>}
             </div>
-            {onViewTracklist && (
+            {onViewLaunchpadAsset && (
               <button
-                onClick={onViewTracklist}
-                className="px-4 py-2 !text-sm bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-yellow-400 hover:to-orange-600 text-black font-medium rounded-md transition-all whitespace-nowrap">
-                View Tracklist
+                onClick={onViewLaunchpadAsset}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 !text-sm bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-yellow-400 hover:to-orange-600 text-black font-medium rounded-md transition-all">
+                <Music className="w-3.5 h-3.5" />
+                <span>View Album</span>
               </button>
             )}
           </div>
@@ -386,4 +298,104 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
       </div>
     </div>
   );
+};
+
+/**
+ * Detects if a URL is a YouTube Premier link
+ * YouTube Premier links typically have the format:
+ * https://www.youtube.com/watch?v=VIDEO_ID or
+ * https://youtu.be/VIDEO_ID with premiere parameter
+ */
+const isYouTubePremierLink = (url: string): boolean => {
+  if (!url || url === "N/A") return false;
+
+  // Regex pattern to match YouTube URLs
+  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/i;
+
+  if (!youtubeRegex.test(url)) return false;
+
+  // Check for premiere indicators in URL
+  const premiereIndicators = [/premiere/i, /premiere=true/i, /premiere=1/i, /watch\?v=.*&.*premiere/i];
+
+  return premiereIndicators.some((pattern) => pattern.test(url));
+};
+
+/**
+ * Extracts YouTube video ID from URL for embedding
+ */
+const extractYouTubeVideoId = (url: string): string | null => {
+  if (!url || url === "N/A") return null;
+
+  const patterns = [/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/, /youtube\.com\/embed\/([^&\n?#]+)/];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Parses date string in ISO format "YYYY-MM-DD" to Date object for sorting
+ */
+const parseReleaseDate = (dateStr: string): Date => {
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? new Date(0) : date;
+};
+
+/**
+ * Formats date from ISO format "YYYY-MM-DD" to display format "1 Dec 2025"
+ */
+const formatReleaseDate = (dateStr: string): string => {
+  const date = parseReleaseDate(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+
+  const day = date.getDate();
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
+};
+
+/**
+ * Formats price value for display
+ */
+const formatPrice = (price: number | "n/a"): string => {
+  if (price === "n/a") return "N/A";
+  return typeof price === "number" ? `$${price.toFixed(2)}` : price;
+};
+
+/**
+ * Calculates the number of days between two dates
+ */
+const getDaysDifference = (date1: Date, date2: Date): number => {
+  const diffTime = Math.abs(date2.getTime() - date1.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
+
+/**
+ * Formats days difference as a human-readable string
+ */
+const formatDaysDifference = (days: number): string => {
+  if (days === 0) return "Same day";
+  if (days === 1) return "1 day later";
+  return `${days} days later`;
+};
+
+/**
+ * Calculates days until a future date (returns negative if date is in the past)
+ */
+const getDaysUntil = (date: Date): number => {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0); // Reset to start of day for accurate comparison
+  const targetDate = new Date(date);
+  targetDate.setHours(0, 0, 0, 0);
+  const diffTime = targetDate.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
 };
