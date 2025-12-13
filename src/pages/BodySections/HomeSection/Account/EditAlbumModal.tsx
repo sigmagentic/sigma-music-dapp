@@ -216,7 +216,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-yellow-400 bg-opacity-30 p-4">
-      <div className="w-full max-w-4xl max-h-[90vh] bg-black rounded-lg shadow-xl flex flex-col">
+      <div className="w-full max-w-4xl max-h-[75vh] bg-black rounded-lg shadow-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <h2 className="!text-2xl font-bold !text-yellow-300">{isNewAlbum ? "Create New Album" : `Edit Album: ${albumTitle || "Untitled"}`}</h2>
@@ -565,7 +565,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
           {/* Pricing Disclaimer Modal */}
           {showPricingDisclaimerModal && (
             <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
-              <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="bg-[#1A1A1A] rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[75vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-bold text-white">Album Pricing Options - Important Information</h3>
                   <button onClick={() => setShowPricingDisclaimerModal(false)} className="text-gray-400 hover:text-white">

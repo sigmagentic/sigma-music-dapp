@@ -116,6 +116,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const [tweetText, setTweetText] = useState<string>("");
   const [isArtistLookingAtTheirOwnPage, setIsArtistLookingAtTheirOwnPage] = useState(false);
   const [isArtistFeatureLoading, setIsArtistFeatureLoading] = useState(false);
+  const [userSelectedAlbumForTrackList, setUserSelectedAlbumForTrackList] = useState(false);
 
   useEffect(() => {
     if (artistProfile && albums.length > 0) {
@@ -190,7 +191,22 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     if (artistProfile && albumsWithCanBeMintedFlags.length > 0 && searchParams && highlightAlbumId) {
       // is there action=tracklist in the url? if so, we dive into the track list view
       if (searchParams.get("action") === "tracklist") {
-        setSelectedAlbumForTrackList(albumsWithCanBeMintedFlags.find((album) => album.albumId === highlightAlbumId) || null);
+        const albumToSelect = albumsWithCanBeMintedFlags.find((album) => album.albumId === highlightAlbumId);
+
+        // Only update from URL if user hasn't manually selected an album
+        // or if the URL albumId matches what user selected
+        if (!userSelectedAlbumForTrackList || (albumToSelect && selectedAlbumForTrackList?.albumId === albumToSelect.albumId)) {
+          setSelectedAlbumForTrackList(albumToSelect || null);
+          if (albumToSelect) {
+            setUserSelectedAlbumForTrackList(false); // Reset flag after URL-driven selection
+          }
+        }
+      } else {
+        // If action is not tracklist, clear the selection and reset flag
+        if (searchParams.get("action") !== "tracklist") {
+          setSelectedAlbumForTrackList(null);
+          setUserSelectedAlbumForTrackList(false);
+        }
       }
     }
   }, [artistProfile, albumsWithCanBeMintedFlags, highlightAlbumId, searchParams]);
@@ -483,6 +499,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             artistSlug={artistProfile.slug}
             onBack={() => {
               setSelectedAlbumForTrackList(null);
+              setUserSelectedAlbumForTrackList(false); // Reset flag
 
               // revert back only to the artist slug
               appendAlbumIdToArtistSlug(artistProfile.slug, "", true);
@@ -611,6 +628,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     } else if (album._albumCanBeFastStreamed && !inCollectedAlbumsView) {
                       // load the track list for the album if we dont have a collectible img to show
                       setSelectedAlbumForTrackList(album);
+                      setUserSelectedAlbumForTrackList(true);
 
                       appendAlbumIdToArtistSlug(artistProfile.slug, album.albumId);
                     }
@@ -732,6 +750,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     className="text-sm px-3 py-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
                     onClick={() => {
                       setSelectedAlbumForTrackList(album);
+                      setUserSelectedAlbumForTrackList(true);
 
                       appendAlbumIdToArtistSlug(artistProfile.slug, album.albumId);
                     }}>
@@ -982,6 +1001,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               onClick={() => {
                 navigateToDeepAppView({
                   toSection: "profile",
+                  toView: "artistProfile",
                 });
               }}>
               2. Edit Albums and Artist Profile

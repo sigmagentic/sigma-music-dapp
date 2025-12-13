@@ -250,7 +250,7 @@ export const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({ isOp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-yellow-400 bg-opacity-30 p-4">
-      <div className="w-full max-w-4xl max-h-[90vh] bg-black rounded-lg shadow-xl flex flex-col">
+      <div className="w-full max-w-4xl max-h-[75vh] bg-black rounded-lg shadow-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <h2 className="!text-2xl font-semibold !text-yellow-500">Edit Profile Information</h2>

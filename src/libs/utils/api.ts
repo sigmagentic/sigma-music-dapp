@@ -1,6 +1,6 @@
 import { DISABLE_AI_REMIX_FEATURES, LOG_STREAM_EVENT_METRIC_EVERY_SECONDS } from "config";
 import { CACHE_DURATION_2_MIN, CACHE_DURATION_60_MIN, CACHE_DURATION_FIVE_SECONDS, CACHE_DURATION_HALF_MIN } from "./constant";
-import { AiRemixLaunch, PaymentLog } from "../types/common";
+import { AiRemixLaunch, PaymentLog, LaunchpadData } from "../types/common";
 
 interface CacheEntry_DataWithTimestamp {
   data: boolean | [] | Record<string, any> | number | null;
@@ -1794,5 +1794,143 @@ export const logAssetRatingToAPI = async ({ assetId, rating, address }: { assetI
   } catch (error) {
     console.error("Error saving asset rating data:", error);
     throw error;
+  }
+};
+
+const cache_launchpadData: { [key: string]: CacheEntry_DataWithTimestamp } = {};
+
+export const getLaunchpadDataViaAPI = async (artistId: string, albumId?: string): Promise<LaunchpadData | null> => {
+  const now = Date.now();
+  const cacheKey = `${artistId}-${albumId || "default"}`;
+
+  try {
+    // Check if we have a valid cache entry
+    const cacheEntry = cache_launchpadData[cacheKey];
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_DURATION_60_MIN) {
+      console.log(`getLaunchpadDataViaAPI: Getting launchpad data for artistId: ${artistId} from cache`);
+      return cacheEntry.data as LaunchpadData | null;
+    }
+
+    // Make actual API call
+    if (!albumId || albumId === "") {
+      // If no albumId provided, return null
+      return null;
+    }
+
+    const response = await fetch(
+      `${getApiWeb2Apps()}/datadexapi/sigma/artistAssetLaunchpad?artistId=${encodeURIComponent(artistId)}&assetId=${encodeURIComponent(albumId)}`
+    );
+
+    if (response.status === 404) {
+      // No launchpad data found
+      cache_launchpadData[cacheKey] = {
+        data: null,
+        timestamp: now,
+      };
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.errorMessage || "Error fetching launchpad data");
+    }
+
+    // Extract payload from response
+    const launchpadData: LaunchpadData = data.payload;
+
+    // Update cache
+    cache_launchpadData[cacheKey] = {
+      data: launchpadData,
+      timestamp: now,
+    };
+
+    return launchpadData;
+  } catch (error) {
+    console.error("getLaunchpadDataViaAPI: Error fetching launchpad data:", error);
+    // Update cache (with null as data)
+    cache_launchpadData[cacheKey] = {
+      data: null,
+      timestamp: now,
+    };
+    return null;
+  }
+};
+
+/**
+ * Update launchpad data via API (POST)
+ */
+export const updateLaunchpadDataViaAPI = async (launchpadData: LaunchpadData, artistId: string, albumId: string): Promise<void> => {
+  try {
+    const requestBody = {
+      artistId: artistId,
+      assetId: albumId,
+      payload: {
+        launchPlatforms: launchpadData.launchPlatforms,
+        merch: launchpadData.merch,
+        teaserVideoLink: launchpadData.teaserVideoLink,
+      },
+    };
+
+    // Log the request body for debugging
+    console.log("updateLaunchpadDataViaAPI: Request body:", JSON.stringify(requestBody, null, 2));
+
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/artistAssetLaunchpad`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const responseText = await response.text();
+    let data: any = {};
+
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("updateLaunchpadDataViaAPI: Failed to parse response:", responseText);
+      throw new Error(`Invalid JSON response: ${responseText}`);
+    }
+
+    if (!response.ok) {
+      throw new Error(data.errorMessage || `HTTP error! status: ${response.status}`);
+    }
+
+    if (data.error) {
+      throw new Error(data.errorMessage || "Error updating launchpad data");
+    }
+
+    // Clear cache for this artist/album to force refresh
+    clearLaunchpadDataCache(launchpadData.artistId, launchpadData.albumId);
+  } catch (error) {
+    console.error("updateLaunchpadDataViaAPI: Error updating launchpad data:", error);
+    throw error;
+  }
+};
+
+/**
+ * Clear launchpad data cache for a specific artist/album or all data
+ */
+export const clearLaunchpadDataCache = (artistId?: string, albumId?: string): void => {
+  if (artistId && albumId) {
+    const cacheKey = `${artistId}-${albumId}`;
+    delete cache_launchpadData[cacheKey];
+  } else if (artistId) {
+    // Clear all cache entries for this artist
+    Object.keys(cache_launchpadData).forEach((key) => {
+      if (key.startsWith(`${artistId}-`)) {
+        delete cache_launchpadData[key];
+      }
+    });
+  } else {
+    // Clear all cache
+    Object.keys(cache_launchpadData).forEach((key) => {
+      delete cache_launchpadData[key];
+    });
   }
 };

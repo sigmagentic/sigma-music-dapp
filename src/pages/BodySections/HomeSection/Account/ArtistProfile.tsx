@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Loader, Music, Plus } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { Album, Artist, MusicTrack, PaymentLog } from "libs/types";
+import { Album, Artist, MusicTrack, PaymentLog, LaunchpadData } from "libs/types";
 import { fetchArtistSalesViaAPI, getAlbumTracksFromDBViaAPI, getPayoutLogsViaAPI, claimPayoutViaAPI } from "libs/utils";
 import { isUserArtistType } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
@@ -17,9 +17,11 @@ import { Badge } from "libComponents/Badge";
 import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
 import { TrackListModal } from "pages/MUI/components/TrackListModal";
+import { LaunchpadModal } from "pages/MUI/components/LaunchpadModal";
 import { useAppStore } from "store/app";
 import ratingE from "assets/img/icons/rating-E.png";
 import { showSuccessConfetti } from "libs/utils/uiShared";
+import { getLaunchpadDataViaAPI } from "libs/utils";
 
 type ArtistProfileProps = {
   navigateToDeepAppView: (logicParams: any) => void;
@@ -55,6 +57,11 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
   const [showVerificationInfoModal, setShowVerificationInfoModal] = useState<boolean>(false);
   const [artistSales, setArtistSales] = useState<PaymentLog[]>([]);
   const [isLoadingSales, setIsLoadingSales] = useState<boolean>(false);
+  const [showLaunchpadModal, setShowLaunchpadModal] = useState<boolean>(false);
+  const [selectedAlbumForLaunchpad, setSelectedAlbumForLaunchpad] = useState<Album | null>(null);
+  const [launchpadInitialData, setLaunchpadInitialData] = useState<LaunchpadData | null>(null);
+  const [isLoadingLaunchpad, setIsLoadingLaunchpad] = useState<boolean>(false);
+  const [isLoadingLaunchpadForAlbumId, setIsLoadingLaunchpadForAlbumId] = useState<string>("");
 
   const [payoutClaimStatus, setPayoutClaimStatus] = useState<"idle" | "processing" | "failed" | "confirmed">("idle");
   const [activePayoutClaim, setActivePayoutClaim] = useState<any>(null);
@@ -249,6 +256,43 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
       console.error("Error saving album:", error);
       toastError("Error saving album - " + (error as Error).message);
       return false;
+    }
+  };
+
+  const handleUpdateLaunchpadLiveAlbumId = async (albumId: string | "na"): Promise<void> => {
+    try {
+      // Get the pre-access nonce and signature
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
+        publicKey: publicKeySol,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
+      if (!usedPreAccessNonce || !usedPreAccessSignature) {
+        throw new Error("Failed to get valid signature to prove account ownership");
+      }
+
+      const artistProfileDataToSave = {
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
+        callerAsCreatorWallet: displayPublicKey,
+        artistId: userArtistProfile.artistId,
+        artistFieldsObject: {
+          launchpadLiveOnAlbumId: albumId,
+        },
+      };
+
+      const response = await updateArtistProfileOnBackEndAPI(artistProfileDataToSave);
+
+      updateUserArtistProfile(response.fullArtistData as Artist);
+    } catch (error) {
+      console.error("Error updating launchpadLiveOnAlbumId:", error);
+      throw error;
     }
   };
 
@@ -477,6 +521,25 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
               onEditAlbum={handleEditAlbum}
               onAddNewAlbum={handleAddNewAlbum}
               onViewCurrentTracks={handleViewCurrentTracks}
+              onOpenLaunchpad={async (album) => {
+                setIsLoadingLaunchpad(true);
+                setIsLoadingLaunchpadForAlbumId(album.albumId);
+                try {
+                  setSelectedAlbumForLaunchpad(album);
+                  // Fetch launchpad data for this album
+                  const data = await getLaunchpadDataViaAPI(userArtistProfile.artistId, album.albumId);
+                  setLaunchpadInitialData(data);
+                  setShowLaunchpadModal(true);
+                } catch (error) {
+                  console.error("Error loading launchpad data:", error);
+                } finally {
+                  setIsLoadingLaunchpad(false);
+                  setIsLoadingLaunchpadForAlbumId("");
+                }
+              }}
+              isLoadingLaunchpad={isLoadingLaunchpad}
+              isLoadingLaunchpadForAlbumId={isLoadingLaunchpadForAlbumId}
+              liveAlbumId={userArtistProfile.launchpadLiveOnAlbumId}
               navigateToDeepAppView={navigateToDeepAppView}
             />
           )
@@ -936,6 +999,24 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
         }}
       />
 
+      {/* Launchpad Modal */}
+      {selectedAlbumForLaunchpad && (
+        <LaunchpadModal
+          isOpen={showLaunchpadModal}
+          onClose={() => {
+            setShowLaunchpadModal(false);
+            setSelectedAlbumForLaunchpad(null);
+            setLaunchpadInitialData(null);
+          }}
+          artistId={userArtistProfile.artistId}
+          albumId={selectedAlbumForLaunchpad.albumId}
+          albumTitle={selectedAlbumForLaunchpad.title}
+          initialData={launchpadInitialData}
+          liveAlbumId={userArtistProfile.launchpadLiveOnAlbumId}
+          onUpdateLaunchpadLiveAlbumId={handleUpdateLaunchpadLiveAlbumId}
+        />
+      )}
+
       {/* Verification Info Modal */}
       {showVerificationInfoModal && (
         <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
@@ -1102,8 +1183,24 @@ const ArtistAlbumList: React.FC<{
     albumImg: string;
     albumIsPublished?: string;
   }) => void;
+  onOpenLaunchpad: (album: Album) => void;
+  liveAlbumId: string | null | undefined;
+  isLoadingLaunchpad: boolean;
+  isLoadingLaunchpadForAlbumId: string;
   navigateToDeepAppView: (logicParams: any) => void;
-}> = ({ albums, isLoadingTracks, isLoadingTracksForAlbumId, onEditAlbum, onAddNewAlbum, onViewCurrentTracks, navigateToDeepAppView }) => {
+}> = ({
+  albums,
+  isLoadingTracks,
+  isLoadingTracksForAlbumId,
+  onEditAlbum,
+  onAddNewAlbum,
+  onViewCurrentTracks,
+  onOpenLaunchpad,
+  liveAlbumId,
+  isLoadingLaunchpad,
+  isLoadingLaunchpadForAlbumId,
+  navigateToDeepAppView,
+}) => {
   const { artistLookupEverything } = useAppStore();
 
   return (
@@ -1116,7 +1213,10 @@ const ArtistAlbumList: React.FC<{
               className={`p-6 hover:shadow-lg flex flex-col border rounded-lg w-[100%]  border-2 ${album.isPublished === "1" ? "bg-yellow-500/10 border-yellow-500 " : "bg-yellow-500/5 border-yellow-800"}`}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="!text-md font-semibold text-gray-200 mb-1">{album.title}</h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="!text-md font-semibold text-gray-200">{album.title}</h3>
+                    {liveAlbumId === album.albumId && <Badge className="bg-yellow-500 text-black !text-xs px-2 py-0.5">Launchpad Live!</Badge>}
+                  </div>
                   <p className="text-xs text-gray-600 mb-1">id: {album.albumId}</p>
                   {album.bountyId && <p className="mb-1 text-xs text-gray-600">Bounty ID: {album.bountyId}</p>}
                   <p className="text-xs text-gray-400 mb-1">
@@ -1160,6 +1260,14 @@ const ArtistAlbumList: React.FC<{
                   }
                   disabled={isLoadingTracks}>
                   Edit Tracks {isLoadingTracks && isLoadingTracksForAlbumId === album.albumId ? <Loader className="animate-spin ml-2" size={16} /> : null}
+                </Button>
+
+                <Button
+                  className="bg-gradient-to-r from-yellow-300 to-orange-500 text-black px-6 py-2 text-xs rounded-lg font-medium hover:from-yellow-400 hover:to-orange-600 transition-all duration-200"
+                  onClick={() => onOpenLaunchpad(album)}
+                  disabled={isLoadingLaunchpad || album.isPublished !== "1"}>
+                  Setup Launchpad
+                  {isLoadingLaunchpad && isLoadingLaunchpadForAlbumId === album.albumId ? <Loader className="animate-spin ml-2" size={16} /> : null}
                 </Button>
               </div>
             </Card>

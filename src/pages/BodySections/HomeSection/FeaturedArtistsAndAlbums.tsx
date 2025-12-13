@@ -8,12 +8,13 @@ import ArtistAiRemixes from "components/ArtistAiRemixes/ArtistAiRemixes";
 import { ArtistInnerCircle } from "components/ArtistInnerCircle/ArtistInnerCircle";
 import ArtistStats from "components/ArtistStats/ArtistStats";
 import { ArtistXPLeaderboard } from "components/ArtistXPLeaderboard/ArtistXPLeaderboard";
+import { Launchpad } from "components/Launchpad/Launchpad";
 import { DEFAULT_BITZ_COLLECTION_SOL, DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "libComponents/DropdownMenu";
-import { Artist, Album, AlbumWithArtist, GiftBitzToArtistMeta, BountyBitzSumMapping } from "libs/types";
-import { sleep, scrollToTopOnMainContentArea, isMostLikelyMobile, injectXUserNameIntoTweet } from "libs/utils";
+import { Artist, Album, AlbumWithArtist, GiftBitzToArtistMeta, BountyBitzSumMapping, LaunchpadData } from "libs/types";
+import { sleep, scrollToTopOnMainContentArea, isMostLikelyMobile, injectXUserNameIntoTweet, getLaunchpadDataViaAPI } from "libs/utils";
 import { getArtistsAlbumsData, fetchBitzPowerUpsAndLikesForSelectedArtist } from "pages/BodySections/HomeSection/shared/utils";
 import { routeNames } from "routes";
 import { useAppStore } from "store/app";
@@ -86,7 +87,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const addressSol = publicKeySol?.toBase58();
   const [searchParams, setSearchParams] = useSearchParams();
   const { solBitzNfts } = useNftsStore();
-  const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress } = useAppStore();
+  const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress, artistLookup } = useAppStore();
   const { trackPlayIsQueued, assetPlayIsQueued, updateAssetPlayIsQueued, artistIdBeingPlayedInPlaylist } = useAudioPlayerStore();
 
   const [previewTrackAudio] = useState(new Audio());
@@ -109,6 +110,8 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [selectedLargeSizeTokenImg, setSelectedLargeSizeTokenImg] = useState<string | null>(null);
   const [tweetText, setTweetText] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("recent_added");
+  const [launchpadData, setLaunchpadData] = useState<LaunchpadData | null>(null);
+  const [launchpadLoading, setLaunchpadLoading] = useState<boolean>(false);
 
   const prevIsAllAlbumsModeRef = useRef<boolean | undefined>(isAllAlbumsMode);
 
@@ -157,6 +160,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
 
     if (jumpToTab && jumpToTab === "ai-remixes") {
       setActiveTab("aiRemixes");
+    }
+
+    if (jumpToTab && jumpToTab === "launchpad") {
+      setActiveTab("launchpad");
     }
 
     previewTrackAudio.addEventListener("ended", eventToAttachEnded);
@@ -218,15 +225,24 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     if (featuredArtistDeepLinkSlug && featuredArtistDeepLinkSlug !== "") {
       console.log("SLUG CHANGED", featuredArtistDeepLinkSlug);
 
+      let tabsOrdered = [];
+
       const campaignCode = searchParams.get("campaign") || "";
 
       if (campaignCode && campaignCode !== "" && campaignCode !== "wir") {
         // for campiagns, we jump to the fan tab
         setActiveTab("fan");
-        setTabsOrdered(["fan", "leaderboard", "artistStats", "aiRemixes"]);
+
+        tabsOrdered = ["fan", "leaderboard", "artistStats", "aiRemixes"];
       } else {
-        setTabsOrdered(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
+        if (launchpadData) {
+          tabsOrdered = ["launchpad", "discography", "leaderboard", "artistStats", "fan", "aiRemixes"];
+        } else {
+          tabsOrdered = ["discography", "leaderboard", "artistStats", "fan", "aiRemixes"];
+        }
       }
+
+      setTabsOrdered(tabsOrdered);
 
       // on mobile, we scroll to the top of the page as the user navigates to the various artist profile pages
       if (isMostLikelyMobile())
@@ -324,6 +340,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       );
 
       setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(tweetMsg)}`);
+    }
+
+    // if the artist has a launchpadLiveOnAlbumId, then we need to fetch the launchpad data for that album (it will be na if a artist set and unset something)
+    if (artistProfile?.launchpadLiveOnAlbumId && artistProfile?.launchpadLiveOnAlbumId !== "na") {
+      fetchLaunchpadData();
     }
   }, [artistProfile]);
 
@@ -441,6 +462,54 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setSelectedFilter(searchParams.get("view") as string);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (activeTab) {
+      adjustUrlParamsAfterActiveTabChange(activeTab);
+    }
+  }, [activeTab]);
+
+  // Fetch album launchpad data for this artist
+  const fetchLaunchpadData = async () => {
+    // Check if there's a live launchpad album
+    const liveAlbumId = artistProfile?.launchpadLiveOnAlbumId;
+    const hasLiveLaunchpad = liveAlbumId && liveAlbumId !== "" && liveAlbumId !== "na" && liveAlbumId !== null && liveAlbumId !== undefined;
+
+    if (!hasLiveLaunchpad) {
+      setLaunchpadData(null);
+      return;
+    }
+
+    setLaunchpadLoading(true);
+
+    try {
+      // Get launchpad data for the live album
+      const data = await getLaunchpadDataViaAPI(artistProfile?.artistId!, liveAlbumId);
+
+      // append artistId and albumId
+      setLaunchpadData({ ...data, artistId: artistProfile?.artistId!, albumId: liveAlbumId } as LaunchpadData);
+
+      // Check if there's a tab parameter in URL
+      const jumpToTab = searchParams.get("tab");
+
+      // Update tabsOrdered based on launchpad data
+      if (data) {
+        setTabsOrdered(["launchpad", "discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
+      } else {
+        setTabsOrdered(["discography", "leaderboard", "artistStats", "fan", "aiRemixes"]);
+
+        // If launchpad is disabled and no specific tab is requested, set discography as active
+        if (!jumpToTab) {
+          setActiveTab("discography");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching launchpad data:", error);
+      setLaunchpadData(null);
+    } finally {
+      setLaunchpadLoading(false);
+    }
+  };
 
   function updateUrlWithSelectedFilter(newFilter: string) {
     const currentParams = Object.fromEntries(searchParams.entries());
@@ -628,6 +697,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setActiveTab("discography");
     setSelAlbumId(undefined);
     setSelArtistId(undefined);
+    setLaunchpadData(null);
   }
 
   function handleArtistPlaylistPlay() {
@@ -647,6 +717,22 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setLaunchPlaylistPlayer(true);
       updateAssetPlayIsQueued(false);
     }
+  }
+
+  function adjustUrlParamsAfterActiveTabChange(tab: string) {
+    const currentParams = Object.fromEntries(searchParams.entries());
+    delete currentParams["action"];
+
+    // adjust tab names for some tabs
+    if (tab === "aiRemixes") {
+      currentParams["tab"] = "ai-remixes";
+    } else if (tab === "artistStats") {
+      currentParams["tab"] = "artist-stats";
+    } else {
+      currentParams["tab"] = tab;
+    }
+
+    setSearchParams(currentParams);
   }
 
   const xpCollectionIdToUse = !addressSol || solBitzNfts.length === 0 ? DEFAULT_BITZ_COLLECTION_SOL : solBitzNfts[0].grouping[0].group_value;
@@ -1115,14 +1201,27 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                         {/* Tabs Navigation */}
                         <div className="tabs-menu w-full border-b border-gray-800 overflow-x-auto pb-5 md:pb-0">
                           <div className="flex space-x-8 whitespace-nowrap min-w-max">
+                            {tabsOrdered.includes("launchpad") && launchpadData && (
+                              <button
+                                onClick={() => {
+                                  setActiveTab("launchpad");
+                                  setUserInteractedWithTabs(true);
+                                }}
+                                className={`py-4 px-1 border-b-2 font-semibold text-sm transition-colors relative animate-pulse 
+                                  ${
+                                    activeTab === "launchpad"
+                                      ? "border-orange-500 text-orange-500"
+                                      : "border-transparent text-yellow-300 hover:text-orange-400 hover:border-orange-400"
+                                  }
+                                `}>
+                                Launchpad: LIVE!
+                              </button>
+                            )}
                             {tabsOrdered.includes("discography") && (
                               <button
                                 onClick={() => {
                                   setActiveTab("discography");
-                                  const currentParams = Object.fromEntries(searchParams.entries());
-                                  delete currentParams["tab"];
-                                  delete currentParams["action"];
-                                  setSearchParams(currentParams);
+                                  setUserInteractedWithTabs(true);
                                 }}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors relative
                                   ${
@@ -1138,9 +1237,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               <button
                                 onClick={() => {
                                   setActiveTab("fan");
-                                  const currentParams = Object.fromEntries(searchParams.entries());
-                                  currentParams["tab"] = "fan";
-                                  setSearchParams(currentParams);
+                                  setUserInteractedWithTabs(true);
                                 }}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors relative
                                   ${
@@ -1156,10 +1253,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               <button
                                 onClick={() => {
                                   setActiveTab("leaderboard");
-                                  const currentParams = Object.fromEntries(searchParams.entries());
-                                  delete currentParams["tab"];
-                                  delete currentParams["action"];
-                                  setSearchParams(currentParams);
+                                  setUserInteractedWithTabs(true);
                                 }}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors relative
                                   ${
@@ -1175,10 +1269,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               <button
                                 onClick={() => {
                                   setActiveTab("artistStats");
-                                  const currentParams = Object.fromEntries(searchParams.entries());
-                                  delete currentParams["tab"];
-                                  delete currentParams["action"];
-                                  setSearchParams(currentParams);
+                                  setUserInteractedWithTabs(true);
                                 }}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors relative
                                   ${
@@ -1194,8 +1285,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               <button
                                 onClick={() => {
                                   setActiveTab("aiRemixes");
+                                  setUserInteractedWithTabs(true);
                                   const currentParams = Object.fromEntries(searchParams.entries());
                                   currentParams["tab"] = "ai-remixes";
+
                                   delete currentParams["action"];
                                   setSearchParams(currentParams);
                                 }}
@@ -1212,6 +1305,35 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                           </div>
                         </div>
                         {/* Tabs Content */}
+                        {tabsOrdered.includes("launchpad") && activeTab === "launchpad" && launchpadData && (
+                          <div className="artist-launchpad w-full">
+                            {launchpadLoading ? (
+                              <div className="flex items-center justify-center py-12">
+                                <Loader className="animate-spin text-orange-500" size={24} />
+                              </div>
+                            ) : (
+                              <Launchpad
+                                launchpadData={launchpadData}
+                                album={
+                                  artistProfile && artistProfile.albums
+                                    ? artistProfile.albums.find((a) => a.albumId === launchpadData.albumId) || artistProfile.albums[0] || null
+                                    : null
+                                }
+                                onViewLaunchpadAsset={() => {
+                                  setActiveTab("discography");
+                                  setUserInteractedWithTabs(true);
+
+                                  const artistSlug = artistLookup[launchpadData.artistId].slug;
+                                  const albumId = launchpadData.albumId;
+
+                                  navigateToDeepAppView({
+                                    artistSlug: `${artistSlug}~${albumId}`,
+                                  });
+                                }}
+                              />
+                            )}
+                          </div>
+                        )}
                         {tabsOrdered.includes("discography") && activeTab === "discography" && (
                           <div className="artist-discography w-full">
                             <ArtistDiscography

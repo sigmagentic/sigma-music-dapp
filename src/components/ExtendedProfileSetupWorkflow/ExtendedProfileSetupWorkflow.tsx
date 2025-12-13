@@ -1095,7 +1095,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
   return (
     <>
       <div className="fixed inset-0 z-10 flex items-center justify-center bg-yellow-400 bg-opacity-30 p-4">
-        <div className="bg-black rounded-lg p-6 max-w-4xl w-full mx-4 relative max-h-[90vh] overflow-y-auto">
+        <div className="bg-black rounded-lg p-6 max-w-4xl w-full mx-4 relative max-h-[75vh] overflow-y-auto">
           {currentStep !== "saving" && currentStep !== "success" && currentStep !== "error" && (
             <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
               <X size={24} />
