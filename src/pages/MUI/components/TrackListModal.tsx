@@ -702,7 +702,10 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
           {/* Bonus Track Toggle */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bonus Track</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Bonus Track </label>
+            <div className="text-xs text-gray-400 mb-2">
+              (If enabled, this track wont play publicly and fans will need to buy a digital copy of the album to listen to it.)
+            </div>
             <div className="flex items-center space-x-2">
               <Switch checked={formData.bonus === 1} onCheckedChange={(checked) => handleFormChange("bonus", checked ? 1 : 0)} />
               <span className="text-sm text-gray-600">{formData.bonus === 1 ? "Yes" : "No"}</span>
@@ -920,7 +923,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
                       <div className="flex-1 max-w-[200px]">
                         <h3 className="!text-sm font-semibold text-gray-900 truncate">{track.title}</h3>
                         <p className="text-xs text-gray-500 mt-1">Track #{index + 1}</p>
-                        <div className="flex items-center space-x-2 mt-2">
+                        <div className="flex items-center space-x-2 mt-2 flex-wrap">
                           <div className="flex items-center space-x-1">
                             <Music className="w-3 h-3 text-gray-400" />
                             <span className="text-xs text-gray-600 truncate">{track.category}</span>
