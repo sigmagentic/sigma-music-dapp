@@ -371,7 +371,7 @@ export const LaunchpadModal: React.FC<LaunchpadModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Launchpad: ${albumTitle}`} size="xl" isWorking={isSubmitting}>
+    <Modal isOpen={isOpen} onClose={onClose} title={`Launchpad: ${albumTitle}`} size="lg" isWorking={isSubmitting}>
       <div className="space-y-6">
         {/* Subtitle */}
         <div className="flex items-center gap-2 mb-4">
