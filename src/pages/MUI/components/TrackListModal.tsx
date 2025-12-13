@@ -130,9 +130,9 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
     setErrors({});
     setIsEditing(false);
+    setAgreeToTermsOfLaunchMusic(false);
     setNewSelectedTrackCoverArtFile(null);
     setNewSelectedAudioFile(null);
-    setAgreeToTermsOfLaunchMusic(false);
     setIsReorderView(false);
     setGenreSearchQuery("");
 
@@ -191,6 +191,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
 
   const handleEditTrack = (track: FastStreamTrack) => {
     setIsEditing(true);
+    setAgreeToTermsOfLaunchMusic(true);
     setFormData({
       idx: track.idx,
       displayidx: track.displayidx,
@@ -289,6 +290,7 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     setIsFormView(false);
     setIsReorderView(false);
     setIsEditing(false);
+    setAgreeToTermsOfLaunchMusic(false);
     setIsSubmitting(false);
     setFormData({
       idx: trackIdxNextGuess > 0 ? trackIdxNextGuess : 1,
@@ -306,7 +308,6 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
     setErrors({});
     setNewSelectedTrackCoverArtFile(null);
     setNewSelectedAudioFile(null);
-    setAgreeToTermsOfLaunchMusic(false);
     setGenreSearchQuery("");
   };
 
@@ -701,10 +702,10 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
           </div>
 
           {/* Bonus Track Toggle */}
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Bonus Track </label>
             <div className="text-xs text-gray-400 mb-2">
-              (If enabled, this track wont play publicly and fans will need to buy a digital copy of the album to listen to it.)
+              (If enabled, this track wont play publicly and fans will need to buy a digital copy of the album to listen to it)
             </div>
             <div className="flex items-center space-x-2">
               <Switch checked={formData.bonus === 1} onCheckedChange={(checked) => handleFormChange("bonus", checked ? 1 : 0)} />

@@ -1215,17 +1215,22 @@ const ArtistAlbumList: React.FC<{
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="!text-md font-semibold text-gray-200">{album.title}</h3>
-                    {liveAlbumId === album.albumId && <Badge className="bg-yellow-500 text-black !text-xs px-2 py-0.5">Launchpad Live!</Badge>}
                   </div>
                   <p className="text-xs text-gray-600 mb-1">id: {album.albumId}</p>
                   {album.bountyId && <p className="mb-1 text-xs text-gray-600">Bounty ID: {album.bountyId}</p>}
                   <p className="text-xs text-gray-400 mb-1">
-                    Status:{" "}
-                    {album?.isPublished === "1" ? (
-                      <span className="text-yellow-400 font-medium">Published</span>
-                    ) : (
-                      <span className="text-gray-400 font-medium">Draft</span>
-                    )}
+                    <span>
+                      Status:{" "}
+                      {album?.isPublished === "1" ? (
+                        <span className="text-yellow-400 font-medium">Published</span>
+                      ) : (
+                        <span className="text-gray-400 font-medium">Draft</span>
+                      )}
+                    </span>
+
+                    <span className="ml-2">
+                      {liveAlbumId === album.albumId && <Badge className="bg-yellow-500 text-black !text-xs px-2 py-0.5">Launchpad Live!</Badge>}
+                    </span>
                   </p>
                   <div className="flex items-center space-x-4 text-sm text-gray-400">
                     {album?.isExplicit === "1" && <img src={ratingE} alt="Explicit" title="Explicit" className="w-3 h-3 text-gray-400" />}

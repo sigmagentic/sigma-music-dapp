@@ -18,8 +18,8 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
     });
   }, [launchpadData.launchPlatforms]);
 
-  const isYouTubePremier = useMemo(() => {
-    return isYouTubePremierLink(launchpadData.teaserVideoLink);
+  const isYouTubeVideo = useMemo(() => {
+    return isYouTubeVideoLink(launchpadData.teaserVideoLink);
   }, [launchpadData.teaserVideoLink]);
 
   const youtubeVideoId = useMemo(() => {
@@ -265,14 +265,14 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
         </h2>
         <div className="space-y-4">
           {launchpadData.teaserVideoLink && launchpadData.teaserVideoLink !== "N/A" ? (
-            isYouTubePremier && youtubeVideoId ? (
+            isYouTubeVideo && youtubeVideoId ? (
               <div className="border border-gray-700 rounded-lg p-4 bg-gray-800/30">
                 <h3 className="!text-base font-semibold text-white mb-4">Teaser / Premier Video</h3>
                 <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
                   <iframe
                     className="absolute top-0 left-0 w-full h-full rounded-lg"
                     src={`https://www.youtube.com/embed/${youtubeVideoId}`}
-                    title="YouTube Premier Video"
+                    title="YouTube Video"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
@@ -280,7 +280,7 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
               </div>
             ) : (
               <div className="border border-gray-700 rounded-lg p-4 bg-gray-800/30">
-                <h3 className="!text-base font-semibold text-white mb-2">Teaser / Premier Video Link</h3>
+                <h3 className="!text-base font-semibold text-white mb-2">Teaser / Premier Video</h3>
                 <a
                   href={launchpadData.teaserVideoLink}
                   target="_blank"
@@ -298,6 +298,21 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
       </div>
     </div>
   );
+};
+
+/**
+ * Detects if a URL is a YouTube video link (any YouTube video, not just premieres)
+ * Supports formats:
+ * - https://www.youtube.com/watch?v=VIDEO_ID
+ * - https://youtu.be/VIDEO_ID
+ */
+const isYouTubeVideoLink = (url: string): boolean => {
+  if (!url || url === "N/A") return false;
+
+  // Regex pattern to match YouTube URLs
+  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)/i;
+
+  return youtubeRegex.test(url);
 };
 
 /**

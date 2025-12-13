@@ -59,7 +59,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
   const [showPricingDisclaimerModal, setShowPricingDisclaimerModal] = useState(false);
   const [showPricingInfoModal, setShowPricingInfoModal] = useState(false);
   const [currentPricingInfo, setCurrentPricingInfo] = useState<{ title: string; content: string }>({ title: "", content: "" });
-  const [agreeToTermsOfLaunchMusic, setAgreeToTermsOfLaunchMusic] = useState(false);
+  const [agreeToTermsOfLaunchMusic, setAgreeToTermsOfLaunchMusic] = useState(isNewAlbum ? false : true); // if it's edit, then we can default to agree to terms of launch music
 
   usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
@@ -77,7 +77,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
       setFormData(defaultPricingData);
       setErrors({});
       setNewSelectedAlbumImageFile(null);
-      setAgreeToTermsOfLaunchMusic(false);
+      setAgreeToTermsOfLaunchMusic(isNewAlbum ? false : true);
     }
   }, [isOpen, initialData]);
 
