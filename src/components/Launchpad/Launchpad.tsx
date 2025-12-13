@@ -1,6 +1,8 @@
-import React, { useMemo } from "react";
-import { ExternalLink, Calendar, Music, ShoppingBag, Video, Star } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { ExternalLink, Calendar, Music, ShoppingBag, Video, Star, Rocket } from "lucide-react";
 import { LaunchpadData, LaunchPlatform, MerchItem, Album } from "libs/types/common";
+import { injectXUserNameIntoTweet } from "libs/utils/ui";
+import { useAppStore } from "store/app";
 
 type LaunchpadProps = {
   launchpadData: LaunchpadData;
@@ -9,6 +11,23 @@ type LaunchpadProps = {
 };
 
 export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onViewLaunchpadAsset }) => {
+  const [tweetText, setTweetText] = useState<string>("");
+  const { artistLookup, albumMasterLookup } = useAppStore();
+
+  useEffect(() => {
+    if (launchpadData && artistLookup && albumMasterLookup) {
+      const artistProfile = artistLookup[launchpadData.artistId];
+      const album = albumMasterLookup[launchpadData.albumId];
+
+      const tweetMsg = injectXUserNameIntoTweet(
+        `${artistProfile.name}'s _(xUsername)_LAUNCHPAD for ${album.title} is live on Sigma Music (@SigmaXMusic)! Be the first to know when it drops! 👀`,
+        artistProfile.xLink
+      );
+
+      setTweetText(`url=${encodeURIComponent(`https://sigmamusic.fm${location.search}`)}&text=${encodeURIComponent(tweetMsg)}`);
+    }
+  }, [launchpadData, artistLookup, albumMasterLookup]);
+
   // Sort platforms by release date (earliest first)
   const sortedPlatforms = useMemo(() => {
     return [...launchpadData.launchPlatforms].sort((a, b) => {
@@ -191,25 +210,48 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
   return (
     <div className="w-full space-y-8 mt-5">
       {/* Header Section */}
-      <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30 mb-8">
-        <h1 className="!text-lg font-bold text-white mb-6">Album launch in progress!</h1>
-        {album && (
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-            <img src={album.img} alt={album.title} className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover" />
-            <div className="flex-1">
-              <h2 className="!text-lg font-bold text-white mb-2">{album.title}</h2>
-              {album.desc && <p className="text-gray-400 !text-sm line-clamp-2">{album.desc}</p>}
+      <div>
+        <h2 className="!text-lg font-bold text-white mb-3 flex items-center gap-2">
+          <Rocket className="w-5 h-5 text-yellow-400" />
+          Album Launch in Progress!
+        </h2>
+        <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30 mb-8">
+          {album && (
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+              <img src={album.img} alt={album.title} className="w-24 h-24 md:w-32 md:h-32 rounded-lg object-cover" />
+              <div className="flex-1">
+                <h2 className="!text-lg font-bold text-white mb-2">{album.title}</h2>
+                {album.desc && <p className="text-gray-400 !text-sm line-clamp-2">{album.desc}</p>}
+              </div>
+              <div className="flex md:flex-col md:items-end">
+                {onViewLaunchpadAsset && (
+                  <button
+                    onClick={onViewLaunchpadAsset}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 !text-lg bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-yellow-400 hover:to-orange-600 text-black font-medium rounded-md transition-all">
+                    <Music className="w-3.5 h-3.5" />
+                    <span>View Album</span>
+                  </button>
+                )}
+
+                <div className="border border-yellow-600 rounded-full p-[10px] -z-1 mt-3 ml-2 md:ml-0">
+                  <a
+                    className="z-1 text-white text-xs rounded-3xl gap-2 flex flex-row justify-center items-center"
+                    href={"https://twitter.com/intent/tweet?" + tweetText}
+                    data-size="large"
+                    target="_blank"
+                    rel="noreferrer">
+                    <span className=" [&>svg]:h-4 [&>svg]:w-4 z-10">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+                        <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                      </svg>
+                    </span>
+                    <p className="z-10 text-xs">Share this on X</p>
+                  </a>
+                </div>
+              </div>
             </div>
-            {onViewLaunchpadAsset && (
-              <button
-                onClick={onViewLaunchpadAsset}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 !text-sm bg-gradient-to-r from-yellow-300 to-orange-500 hover:from-yellow-400 hover:to-orange-600 text-black font-medium rounded-md transition-all">
-                <Music className="w-3.5 h-3.5" />
-                <span>View Album</span>
-              </button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Launch Platforms Section */}
@@ -227,7 +269,7 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
 
             if (daysUntil > 0) {
               return (
-                <div className="mb-6 p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg text-center">
+                <div className="mb-3 p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg text-center">
                   <div className="!text-xl font-bold text-yellow-400">
                     {daysUntil} More {daysUntil === 1 ? "Day" : "Days"} for official Launch!
                   </div>
@@ -257,11 +299,11 @@ export const Launchpad: React.FC<LaunchpadProps> = ({ launchpadData, album, onVi
         </div>
       )}
 
-      {/* Other Links Section */}
+      {/* Other Media Links Section */}
       <div>
         <h2 className="!text-lg font-bold text-white mb-6 flex items-center gap-2">
           <Video className="w-5 h-5 text-yellow-400" />
-          Other Links
+          Other Media Links
         </h2>
         <div className="space-y-4">
           {launchpadData.teaserVideoLink && launchpadData.teaserVideoLink !== "N/A" ? (
