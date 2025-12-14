@@ -903,9 +903,6 @@ export const HomeSection = (props: HomeSectionProps) => {
     updateJumpToTrackIndexInAlbumBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
   }
 
-  console.log("artistLookupEverything", artistLookupEverything);
-  console.log("artistLookup", artistLookup);
-
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full">

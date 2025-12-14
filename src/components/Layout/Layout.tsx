@@ -130,13 +130,15 @@ export const Layout = ({
                       {!isMenuCollapsed && <span className="hidden md:inline text-sm">Home</span>}
                     </button>
                   </Tooltip>
-                  <Tooltip text="Artists">
-                    <button
-                      onClick={() => {
-                        removeDeepSectionParamsFromUrl();
-                        setHomeMode(`artists-${new Date().getTime()}`);
-                      }}
-                      className={`
+                  {!isMenuCollapsed && (
+                    <>
+                      <Tooltip text="Artists">
+                        <button
+                          onClick={() => {
+                            removeDeepSectionParamsFromUrl();
+                            setHomeMode(`artists-${new Date().getTime()}`);
+                          }}
+                          className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
                       py-3 px-4 rounded-lg transition-colors text-lg 
@@ -144,18 +146,18 @@ export const Layout = ({
                       hover:text-orange-500
                       peer
                     `}>
-                      <UserGroupIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">Artists</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Artists</span>}
-                    </button>
-                  </Tooltip>
-                  <Tooltip text="Albums">
-                    <button
-                      onClick={() => {
-                        removeDeepSectionParamsFromUrl();
-                        setHomeMode(`albums-${new Date().getTime()}`);
-                      }}
-                      className={`
+                          <UserGroupIcon className="h-6 w-6 mr-1 md:mr-0" />
+                          <span className="md:hidden w-max">Artists</span>
+                          {!isMenuCollapsed && <span className="hidden md:inline text-sm">Artists</span>}
+                        </button>
+                      </Tooltip>
+                      <Tooltip text="Albums">
+                        <button
+                          onClick={() => {
+                            removeDeepSectionParamsFromUrl();
+                            setHomeMode(`albums-${new Date().getTime()}`);
+                          }}
+                          className={`
                       flex items-center flex-shrink-0
                       ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
                       py-3 px-4 rounded-lg transition-colors text-lg 
@@ -163,29 +165,13 @@ export const Layout = ({
                       hover:text-orange-500
                       peer
                     `}>
-                      <Square3Stack3DIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">Albums</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Albums</span>}
-                    </button>
-                  </Tooltip>
-                  {/* <Tooltip text="Sigma: AI Music Agent">
-                    <button
-                      onClick={() => {
-                        window.open("https://x.com/sigmaXMusic", "_blank");
-                      }}
-                      className={`
-                      flex items-center flex-shrink-0
-                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                      py-3 px-4 rounded-lg transition-colors text-lg 
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                      hover:text-orange-500
-                      peer
-                    `}>
-                      <ChatBubbleOvalLeftEllipsisIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">AI Agent</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">AI Agent</span>}
-                    </button>
-                  </Tooltip> */}
+                          <Square3Stack3DIcon className="h-6 w-6 mr-1 md:mr-0" />
+                          <span className="md:hidden w-max">Albums</span>
+                          {!isMenuCollapsed && <span className="hidden md:inline text-sm">Albums</span>}
+                        </button>
+                      </Tooltip>
+                    </>
+                  )}
                   {DISABLE_AI_REMIX_FEATURES === "0" && (
                     <Tooltip text="Sigma AI REMiX">
                       <button
@@ -208,49 +194,6 @@ export const Layout = ({
                       </button>
                     </Tooltip>
                   )}
-                  {/* <Tooltip text="Play Music Mini-Games">
-                    <button
-                      onClick={() => {
-                        setHomeMode(`games`);
-
-                        // need to put it on a timer for some reason (otherwise seems the params come back to the url)
-                        setTimeout(() => {
-                          removeDeepSectionParamsFromUrl();
-                        }, 1000);
-                      }}
-                      disabled={homeMode === "games"}
-                      className={`
-                      flex items-center flex-shrink-0
-                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                      py-3 px-4 rounded-lg transition-colors text-lg 
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                      hover:text-orange-500
-                      peer
-                    `}>
-                      <PuzzlePieceIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">Games</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Games</span>}
-                    </button>
-                  </Tooltip> */}
-                  {/* <Tooltip text="Reward Pools">
-                    <button
-                      onClick={() => {
-                        setHomeMode(`reward-pools-${new Date().getTime()}`);
-                      }}
-                      disabled={homeMode.includes("reward-pools")}
-                      className={`
-                      flex items-center flex-shrink-0
-                      ${isMenuCollapsed ? "md:justify-center" : "space-x-3"} 
-                      py-3 px-4 rounded-lg transition-colors text-lg 
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                      hover:text-orange-500
-                      peer
-                    `}>
-                      <CurrencyDollarIcon className="h-6 w-6 mr-1 md:mr-0" />
-                      <span className="md:hidden w-max">Reward Pools</span>
-                      {!isMenuCollapsed && <span className="hidden md:inline text-sm">Rewards</span>}
-                    </button>
-                  </Tooltip> */}
                   <Tooltip text="XP Leaderboards">
                     <button
                       onClick={() => {

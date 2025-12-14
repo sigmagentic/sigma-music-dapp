@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ALL_MUSIC_GENRES, GenreTier } from "config";
 import { Button } from "libComponents/Button";
-import { StreamMetricData } from "libs/types/common";
+import { Artist, StreamMetricData } from "libs/types/common";
 import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestCollectiblesAvailableViaAPI } from "libs/utils/api";
 import { convertTokenImageUrl } from "libs/utils/ui";
 import { useAppStore } from "store/app";
@@ -66,6 +66,8 @@ export const FeaturedBanners = ({
   const [streamMetricData, setStreamMetricData] = useState<any[]>([]);
   const [isLoadingMostStreamedTracks, setIsLoadingMostStreamedTracks] = useState(true);
   const [featuredArtists, setFeaturedArtists] = useState<FeaturedArtist[]>([]);
+  const [latestArtists, setLatestArtists] = useState<FeaturedArtist[]>([]);
+  const [recentlyUpdatedArtists, setRecentlyUpdatedArtists] = useState<FeaturedArtist[]>([]);
   const [featuredAlbums, setFeaturedAlbums] = useState<FeaturedAlbum[]>([]);
   const [latestAlbums, setLatestAlbums] = useState<FeaturedAlbum[]>([]);
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
@@ -84,7 +86,7 @@ export const FeaturedBanners = ({
     }
 
     // Process featured artists
-    const artists = Object.entries(artistLookup)
+    const featuredArtists = Object.entries(artistLookup)
       .filter(([_, artist]) => artist.isArtistFeatured === "1")
       .map(([artistId, artist]) => ({
         name: artist.name,
@@ -93,7 +95,35 @@ export const FeaturedBanners = ({
         slug: artist.slug,
       }));
 
-    setFeaturedArtists(artists);
+    // top 30 latest artists
+    const latestArtists = Object.entries(artistLookup)
+      .sort((a, b) => {
+        const aCreatedOn = parseInt(a[1].createdOn?.toString() || "0");
+        const bCreatedOn = parseInt(b[1].createdOn?.toString() || "0");
+        return bCreatedOn - aCreatedOn;
+      })
+      .slice(0, 30)
+      .map(([artistId, artist]) => ({
+        artistId,
+        name: artist.name,
+        img: artist.img,
+        slug: artist.slug,
+      }));
+
+    // top 30 recently updated artists
+    const recentlyUpdatedArtists = Object.entries(artistLookup)
+      .sort((a, b) => {
+        const aLastIndexOn = parseInt(a[1].lastIndexOn?.toString() || "0");
+        const bLastIndexOn = parseInt(b[1].lastIndexOn?.toString() || "0");
+        return bLastIndexOn - aLastIndexOn;
+      })
+      .slice(0, 30)
+      .map(([artistId, artist]) => ({
+        artistId,
+        name: artist.name,
+        img: artist.img,
+        slug: artist.slug,
+      }));
 
     // Process featured albums
     const featuredAlbums = Object.entries(albumLookup)
@@ -106,7 +136,7 @@ export const FeaturedBanners = ({
         title: album.title,
       }));
 
-    // Process latest albums
+    // top 30 latest albums
     const latestAlbums = Object.entries(albumLookup)
       .filter(([_, album]) => album.createdOn && album.createdOn !== "0" && album.isPublished === "1")
       .sort((a, b) => {
@@ -114,6 +144,7 @@ export const FeaturedBanners = ({
         const bTimestamp = parseInt(b[1].createdOn || "0");
         return bTimestamp - aTimestamp;
       })
+      .slice(0, 30)
       .map(([albumId, album]) => ({
         albumId,
         artistSlug: artistLookup[albumId.split("_")[0]].slug,
@@ -122,10 +153,12 @@ export const FeaturedBanners = ({
         title: album.title,
       }));
 
+    setFeaturedArtists(featuredArtists);
+    setLatestArtists(latestArtists);
     setFeaturedAlbums(featuredAlbums);
     setLatestAlbums(latestAlbums);
-
     handleLatestAlbumsReceived(latestAlbums);
+    setRecentlyUpdatedArtists(recentlyUpdatedArtists);
 
     setTimeout(() => {
       setIsLoadingFeaturedAlbumsAndArtists(false);
@@ -191,14 +224,6 @@ export const FeaturedBanners = ({
       setLastClickedGenreForPlaylist(""); // we only use it as a "loading" state until the debounce logic kicks in so we can clear it here
     }
   }, [selectedCodeForPlaylist]);
-
-  const handleOpenAlbum = (alId: string) => {
-    // Extract album ID from alId (e.g., "ar24_a1-1" -> "ar24_a1")
-    const albumId = alId.split("-")[0];
-    const artistId = albumId.split("_")[0];
-    const artistSlug = artistLookup[artistId].slug;
-    onFeaturedArtistDeepLinkSlug(`${artistSlug}~${albumId}`);
-  };
 
   const LoadingSkeleton = () => (
     <div className="relative w-full">
@@ -291,7 +316,7 @@ export const FeaturedBanners = ({
         {isLoadingMostStreamedTracks || Object.keys(musicTrackLookup).length === 0 ? (
           <LoadingSkeleton />
         ) : streamMetricData.length === 0 ? (
-          <p className="mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
         ) : (
           <div className="relative w-full">
             <div
@@ -351,6 +376,156 @@ export const FeaturedBanners = ({
         )}
       </div>
 
+      {/* Latest artists */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="text-lg text-white/70">Latest Artists</span>
+        </div>
+        {isLoadingFeaturedAlbumsAndArtists ? (
+          <LoadingSkeleton />
+        ) : latestArtists.length === 0 ? (
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No latest artists data yet</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-1
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {latestArtists.map((artist, index) => (
+                  <div
+                    key={artist.artistId}
+                    className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                    style={{
+                      backgroundImage: `url(${artist.img})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundBlendMode: "multiply",
+                      backgroundColor: "#161616a3",
+                      backgroundRepeat: "no-repeat",
+                    }}>
+                    <div className="text-center mt-4">
+                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{artist.name}</div>
+                      <Button
+                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
+                        onClick={() => {
+                          onFeaturedArtistDeepLinkSlug(artist.slug);
+                        }}>
+                        Profile
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {latestArtists.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Recently updated artists */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="text-lg text-white/70">Recently Active Artists</span>
+        </div>
+        {isLoadingFeaturedAlbumsAndArtists ? (
+          <LoadingSkeleton />
+        ) : recentlyUpdatedArtists.length === 0 ? (
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No recently active artists data yet</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-1
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {recentlyUpdatedArtists.map((artist, index) => (
+                  <div
+                    key={artist.artistId}
+                    className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                    style={{
+                      backgroundImage: `url(${artist.img})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundBlendMode: "multiply",
+                      backgroundColor: "#161616a3",
+                      backgroundRepeat: "no-repeat",
+                    }}>
+                    <div className="text-center mt-4">
+                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{artist.name}</div>
+                      <Button
+                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
+                        onClick={() => {
+                          onFeaturedArtistDeepLinkSlug(artist.slug);
+                        }}>
+                        Profile
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {recentlyUpdatedArtists.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Featured artists */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="text-lg text-white/70">Featured Artists</span>
+        </div>
+        {isLoadingFeaturedAlbumsAndArtists ? (
+          <LoadingSkeleton />
+        ) : featuredArtists.length === 0 ? (
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No featured artists data yet</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-1
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {featuredArtists.map((artist, index) => (
+                  <div
+                    key={artist.artistId}
+                    className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                    style={{
+                      backgroundImage: `url(${artist.img})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundBlendMode: "multiply",
+                      backgroundColor: "#161616a3",
+                      backgroundRepeat: "no-repeat",
+                    }}>
+                    <div className="text-center mt-4">
+                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{artist.name}</div>
+                      <Button
+                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
+                        onClick={() => {
+                          onFeaturedArtistDeepLinkSlug(artist.slug);
+                        }}>
+                        Profile
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {featuredArtists.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Latest albums */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
@@ -359,7 +534,7 @@ export const FeaturedBanners = ({
         {isLoadingFeaturedAlbumsAndArtists ? (
           <LoadingSkeleton />
         ) : latestAlbums.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No latest albums data yet</p>
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No latest albums data yet</p>
         ) : (
           <div className="relative w-full">
             <div
@@ -405,6 +580,57 @@ export const FeaturedBanners = ({
         )}
       </div>
 
+      {/* Featured albums */}
+      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
+        <div className="text-xl cursor-pointer w-full">
+          <span className="text-lg text-white/70">Featured Albums</span>
+        </div>
+        {isLoadingFeaturedAlbumsAndArtists ? (
+          <LoadingSkeleton />
+        ) : featuredAlbums.length === 0 ? (
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No featured albums data yet</p>
+        ) : (
+          <div className="relative w-full">
+            <div
+              className="overflow-x-auto pb-4 mt-1
+              [&::-webkit-scrollbar]:h-2
+              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
+              <div className="flex space-x-4 min-w-max">
+                {featuredAlbums.map((album, index) => (
+                  <div
+                    key={album.albumId}
+                    className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                    style={{
+                      backgroundImage: `url(${album.img})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundBlendMode: "multiply",
+                      backgroundColor: "#161616d4",
+                      backgroundRepeat: "no-repeat",
+                    }}>
+                    <div className="text-center mt-4">
+                      <div className="text-lg font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
+                      <div className="text-xs text-white/70 mb-1">By {album.artistName}</div>
+                      <Button
+                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
+                        onClick={() => {
+                          onFeaturedArtistDeepLinkSlug(`${album.artistSlug}~${album.albumId}`);
+                        }}>
+                        Listen
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {featuredAlbums.length > 3 && (
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+            )}
+          </div>
+        )}
+      </div>
+
       {/* AI Remix Ready Albums */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
@@ -413,7 +639,7 @@ export const FeaturedBanners = ({
         {isLoadingLatestAlbumOptions ? (
           <LoadingSkeleton />
         ) : aiRemixReadyAlbums.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No AI remix ready albums available</p>
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No AI remix ready albums available</p>
         ) : (
           <div className="relative w-full">
             <div
@@ -469,116 +695,15 @@ export const FeaturedBanners = ({
         )}
       </div>
 
-      {/* Featured albums */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
-        <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">Featured Albums</span>
-        </div>
-        {isLoadingFeaturedAlbumsAndArtists ? (
-          <LoadingSkeleton />
-        ) : featuredAlbums.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No featured albums data yet</p>
-        ) : (
-          <div className="relative w-full">
-            <div
-              className="overflow-x-auto pb-4 mt-1
-              [&::-webkit-scrollbar]:h-2
-              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-              <div className="flex space-x-4 min-w-max">
-                {featuredAlbums.map((album, index) => (
-                  <div
-                    key={album.albumId}
-                    className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
-                    style={{
-                      backgroundImage: `url(${album.img})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      backgroundBlendMode: "multiply",
-                      backgroundColor: "#161616d4",
-                      backgroundRepeat: "no-repeat",
-                    }}>
-                    <div className="text-center mt-4">
-                      <div className="text-lg font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap">{album.title}</div>
-                      <div className="text-xs text-white/70 mb-1">By {album.artistName}</div>
-                      <Button
-                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
-                        onClick={() => {
-                          onFeaturedArtistDeepLinkSlug(`${album.artistSlug}~${album.albumId}`);
-                        }}>
-                        Listen
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {featuredAlbums.length > 3 && (
-              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Featured artists */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
-        <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">Featured Artists</span>
-        </div>
-        {isLoadingFeaturedAlbumsAndArtists ? (
-          <LoadingSkeleton />
-        ) : featuredArtists.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No featured artists data yet</p>
-        ) : (
-          <div className="relative w-full">
-            <div
-              className="overflow-x-auto pb-4 mt-1
-              [&::-webkit-scrollbar]:h-2
-              dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-              dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-              <div className="flex space-x-4 min-w-max">
-                {featuredArtists.map((artist, index) => (
-                  <div
-                    key={artist.artistId}
-                    className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
-                    style={{
-                      backgroundImage: `url(${artist.img})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      backgroundBlendMode: "multiply",
-                      backgroundColor: "#161616a3",
-                      backgroundRepeat: "no-repeat",
-                    }}>
-                    <div className="text-center mt-4">
-                      <div className="text-lg font-semibold mb-4 text-white text-ellipsis overflow-hidden text-nowrap">{artist.name}</div>
-                      <Button
-                        className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
-                        onClick={() => {
-                          onFeaturedArtistDeepLinkSlug(artist.slug);
-                        }}>
-                        Profile
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {featuredArtists.length > 3 && (
-              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-            )}
-          </div>
-        )}
-      </div>
-
       {/* Latest Music Collectible For Sale */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">Latest Music Collectibles For Sale</span>
+          <span className="text-lg text-white/70">Featured Music Collectibles</span>
         </div>
         {isLoadingLatestAlbumOptions ? (
           <LoadingSkeleton />
         ) : latestAlbumOptions.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new music collectibles available</p>
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No new music collectibles available</p>
         ) : (
           <div className="relative w-full">
             <div
@@ -635,12 +760,12 @@ export const FeaturedBanners = ({
       {/* Latest Artist Fan Clubs */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">Latest Artist Fan Clubs</span>
+          <span className="text-lg text-white/70">Featured Artist Fan Clubs</span>
         </div>
         {isLoadingLatestInnerCircleOptions ? (
           <LoadingSkeleton />
         ) : latestInnerCircleOptions.length === 0 ? (
-          <p className="text-xl mb-10 text-center md:text-left opacity-50">No new Inner Circle collectible available</p>
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No new Inner Circle collectible available</p>
         ) : (
           <div className="relative w-full">
             <div
@@ -708,100 +833,3 @@ export const FeaturedBanners = ({
     </div>
   );
 };
-
-{
-  /* Most sold collectibles */
-}
-// {mintsLeaderboard.length > 0 && (
-//   <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-10">
-//     <div className="text-xl cursor-pointer w-full">
-//       <span className="">Most Sold Collectibles</span>
-//     </div>
-//     {isLoadingLatestInnerCircleOptions ? (
-//       <LoadingSkeleton />
-//     ) : mintsLeaderboard.length === 0 ? (
-//       <p className="text-xl mb-10 text-center md:text-left opacity-50">No collectibles purchased yet</p>
-//     ) : (
-//       <div className="relative w-full">
-//         <div
-//           className="overflow-x-auto pb-4 mt-2
-//           [&::-webkit-scrollbar]:h-2
-//           dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-//           dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-//           <div className="flex space-x-4 min-w-max">
-//             {mintsLeaderboard.map((item, idx) => {
-//               const artistInfo = artistLookupEverything[item.arId];
-//               return (
-//                 <div
-//                   key={item.mintTemplatePrefix}
-//                   className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
-//                   style={{
-//                     backgroundImage: `url(${item.nftType === "fan" && artistInfo?.fanToken3DGifTeaser && artistInfo.fanToken3DGifTeaser !== "" ? `https://api.itheumcloud.com/app_nftunes/assets/token_img/${artistInfo.fanToken3DGifTeaser}.gif` : artistInfo?.img})`,
-//                     backgroundSize: "contain",
-//                     backgroundPosition: "center",
-//                     backgroundBlendMode: "multiply",
-//                     backgroundColor: "#161616d4",
-//                     backgroundRepeat: "no-repeat",
-//                   }}>
-//                   {/* NFT type label, rotated on the left */}
-//                   <div className="absolute left-0 top-10 flex items-center" style={{ height: "100%" }}>
-//                     <span
-//                       className="text-xs font-bold text-orange-500 bg-black/40 px-2 py-1 rounded-r-lg"
-//                       style={{
-//                         writingMode: "vertical-rl",
-//                         transform: "rotate(-180deg)",
-//                         letterSpacing: "0.1em",
-//                         marginLeft: "-0.5rem",
-//                         opacity: 0.8,
-//                       }}>
-//                       {item.nftType === "fan" ? "Fan Collectible" : "Album Collectible"}
-//                     </span>
-//                   </div>
-//                   {/* Ranking and Medal */}
-//                   <div className="absolute top-2 left-4 text-2xl font-bold text-orange-500">#{idx + 1}</div>
-//                   <div className="absolute top-2 right-4 text-4xl">
-//                     {idx === 0 && <span>🥇</span>}
-//                     {idx === 1 && <span>🥈</span>}
-//                     {idx === 2 && <span>🥉</span>}
-//                   </div>
-//                   <div className="text-center">
-//                     <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
-//                       {artistInfo?.name || "Unknown Artist"}
-//                     </div>
-//                     <div className="text-3xl font-bold text-orange-500">{item.mints}</div>
-//                     <div className="text-sm text-white/70 mb-2">Sold</div>
-//                     <Button
-//                       className="mt-2 px-3 py-1 text-sm bg-orange-500/50 hover:bg-orange-500/30 text-orange-200 rounded-full transition-colors"
-//                       onClick={() => {
-//                         if (artistInfo?.slug) {
-//                           if (item.nftType === "album") {
-//                             onFeaturedArtistDeepLinkSlug(artistInfo.slug);
-//                           } else {
-//                             const campaign = artistInfo?.artistCampaignCode;
-//                             const country = artistInfo?.artistSubGroup1Code;
-//                             const team = artistInfo?.artistSubGroup2Code;
-
-//                             navigateToDeepAppView({
-//                               artistCampaignCode: campaign,
-//                               artistSubGroup1Code: country,
-//                               artistSubGroup2Code: team,
-//                               artistSlug: artistInfo?.slug,
-//                             });
-//                           }
-//                         }
-//                       }}>
-//                       View
-//                     </Button>
-//                   </div>
-//                 </div>
-//               );
-//             })}
-//           </div>
-//         </div>
-//         {mintsLeaderboard.length > 3 && (
-//           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-//         )}
-//       </div>
-//     )}
-//   </div>
-// )}
