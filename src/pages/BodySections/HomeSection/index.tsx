@@ -58,7 +58,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const { solBitzNfts, solMusicAssetNfts } = useNftsStore();
-  const { artistLookupEverything, updateArtistLookupEverything, updateArtistLookup, updateAlbumLookup } = useAppStore();
+  const { artistLookupEverything, artistLookup, updateArtistLookupEverything, updateArtistLookup, updateAlbumLookup } = useAppStore();
 
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
@@ -902,6 +902,9 @@ export const HomeSection = (props: HomeSectionProps) => {
     updatePlaylistTrackIndexBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
     updateJumpToTrackIndexInAlbumBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
   }
+
+  console.log("artistLookupEverything", artistLookupEverything);
+  console.log("artistLookup", artistLookup);
 
   return (
     <>

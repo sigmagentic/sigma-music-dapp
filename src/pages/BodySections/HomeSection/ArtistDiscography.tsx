@@ -42,6 +42,8 @@ import { routeNames } from "routes";
 import { useAccountStore } from "store/account";
 import { useAudioPlayerStore } from "store/audioPlayer";
 import { useNftsStore } from "store/nfts";
+import { useAppStore } from "store/app";
+import { AlbumCollaborators } from "components/AlbumCollaborators";
 import { BuyAndMintAlbumUsingCC } from "./BuyAlbum/BuyAndMintAlbumUsingCC";
 import { BuyAndMintAlbumUsingSOL } from "./BuyAlbum/BuyAndMintAlbumUsingSOL";
 import { TrackList } from "./components/TrackList";
@@ -100,6 +102,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const userLoggedInWithWallet = publicKeySol;
   const { updateAssetPlayIsQueued, trackPlayIsQueued, assetPlayIsQueued, albumIdBeingPlayed } = useAudioPlayerStore();
   const { updateMyRawPaymentLogs, myMusicAssetPurchases, myAlbumMintLogs, updateMyAlbumMintLogs, userArtistProfile } = useAccountStore();
+  const { artistLookup } = useAppStore();
 
   const [queueAlbumPlay, setQueueAlbumPlay] = useState(false);
   const [albumToBuyAndMint, setAlbumToBuyAndMint] = useState<Album | undefined>();
@@ -695,6 +698,8 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                     <div
                       className={`absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t ${highlightAlbumId === album.albumId ? "from-bg-yellow-500/10" : "from-[#171717]"}  to-transparent pointer-events-none`}></div>
                   </div>
+                  {/* Collaborators */}
+                  <AlbumCollaborators collaborators={album?.collaborators} />
                 </div>
 
                 {!DISABLE_BITZ_FEATURES && (

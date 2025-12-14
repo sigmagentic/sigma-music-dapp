@@ -232,6 +232,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
           albumPriceOption2: albumData.albumPriceOption2,
           albumPriceOption3: albumData.albumPriceOption3,
           albumPriceOption4: albumData.albumPriceOption4,
+          collaborators: albumData.collaborators,
         },
       };
 
@@ -955,6 +956,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
             albumPriceOption2: selectedAlbumForEdit.albumPriceOption2 || "",
             albumPriceOption3: selectedAlbumForEdit.albumPriceOption3 || "",
             albumPriceOption4: selectedAlbumForEdit.albumPriceOption4 || "",
+            collaborators: selectedAlbumForEdit.collaborators || [],
           }}
           albumTitle={selectedAlbumForEdit.title || ""}
           isNewAlbum={!selectedAlbumForEdit.title} // If no title, it's a new album

@@ -14,6 +14,7 @@ import { useTrackVoting } from "hooks/useTrackVoting";
 import { useSearchParams } from "react-router-dom";
 import { useAppStore } from "store/app";
 import { Artist } from "libs/types";
+import { AlbumCollaborators } from "components/AlbumCollaborators";
 
 interface TrackListProps {
   album: Album;
@@ -218,6 +219,9 @@ export const TrackList: React.FC<TrackListProps> = ({
               <p className="text-gray-400">{artistName}</p>
               <div className="text-gray-400 text-xs mt-1">
                 {tracks.length} {tracks.length === 1 ? "song" : "songs"}
+              </div>
+              <div>
+                <AlbumCollaborators collaborators={album?.collaborators} />
               </div>
             </div>
           </div>

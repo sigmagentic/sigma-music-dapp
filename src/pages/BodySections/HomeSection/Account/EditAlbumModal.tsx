@@ -13,6 +13,8 @@ import { useAccountStore } from "store/account";
 import { InfoTooltip } from "libComponents/Tooltip";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { usePreventScroll } from "hooks";
+import { useAppStore } from "store/app";
+import { AlbumCollaborator } from "libs/types";
 
 export interface AlbumFormData {
   albumId: string;
@@ -26,6 +28,7 @@ export interface AlbumFormData {
   albumPriceOption2: string; // Album + Fan Collectible (NFT)
   albumPriceOption3: string; // Album + Fan Collectible + Commercial AI Remix License
   albumPriceOption4: string; // Album + Commercial AI Remix License
+  collaborators: AlbumCollaborator[];
 }
 
 interface EditAlbumModalProps {
@@ -51,6 +54,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
     updateSolSignedPreaccess,
     userArtistProfile,
   } = useAccountStore();
+  const { artistLookup } = useAppStore();
 
   const [formData, setFormData] = useState<AlbumFormData>({ ...initialData });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,6 +64,14 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
   const [showPricingInfoModal, setShowPricingInfoModal] = useState(false);
   const [currentPricingInfo, setCurrentPricingInfo] = useState<{ title: string; content: string }>({ title: "", content: "" });
   const [agreeToTermsOfLaunchMusic, setAgreeToTermsOfLaunchMusic] = useState(isNewAlbum ? false : true); // if it's edit, then we can default to agree to terms of launch music
+
+  const [collaborators, setCollaborators] = useState<AlbumCollaborator[]>([]);
+  const [showAddCollaboratorForm, setShowAddCollaboratorForm] = useState(false);
+  const [newCollaboratorArtistName, setNewCollaboratorArtistName] = useState("");
+  const [newCollaboratorRevenueSplit, setNewCollaboratorRevenueSplit] = useState("0");
+  const [artistNameSuggestions, setArtistNameSuggestions] = useState<Array<{ artistId: string; name: string }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [collaboratorError, setCollaboratorError] = useState<string>("");
 
   usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
@@ -78,6 +90,25 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
       setErrors({});
       setNewSelectedAlbumImageFile(null);
       setAgreeToTermsOfLaunchMusic(isNewAlbum ? false : true);
+
+      // Initialize collaborators from initialData if it exists
+      if ((initialData as any).collaborators && Array.isArray((initialData as any).collaborators)) {
+        const parsedCollaborators: AlbumCollaborator[] = (initialData as any).collaborators.map((collab: Record<string, string>) => {
+          const [artistId, revenueSplit] = Object.entries(collab)[0];
+          return { artistId, revenueSplit };
+        });
+        setCollaborators(parsedCollaborators);
+      } else {
+        setCollaborators([]);
+      }
+
+      // Reset collaborator form
+      setShowAddCollaboratorForm(false);
+      setNewCollaboratorArtistName("");
+      setNewCollaboratorRevenueSplit("0");
+      setArtistNameSuggestions([]);
+      setShowSuggestions(false);
+      setCollaboratorError("");
     }
   }, [isOpen, initialData]);
 
@@ -183,6 +214,15 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
         albumPriceOption4: formData.albumPriceOption4,
       };
 
+      // Add collaborators data in the required format
+      if (collaborators.length > 0) {
+        (changedFormData as any).collaborators = collaborators.map((collab) => ({
+          [collab.artistId]: collab.revenueSplit,
+        }));
+      } else {
+        (changedFormData as any).collaborators = [];
+      }
+
       const success = await onSave(changedFormData as AlbumFormData);
 
       if (success) {
@@ -210,6 +250,120 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
   const showPricingInfo = (title: string, content: string) => {
     setCurrentPricingInfo({ title, content });
     setShowPricingInfoModal(true);
+  };
+
+  // Collaborator handlers
+  const handleArtistNameInput = (value: string) => {
+    setNewCollaboratorArtistName(value);
+    // Clear error when user starts typing
+    if (collaboratorError) {
+      setCollaboratorError("");
+    }
+
+    if (value.length >= 2) {
+      const searchTerm = value.toLowerCase();
+      const matches = Object.entries(artistLookup)
+        .filter(([artistId, artist]) => {
+          const artistName = (artist as any)?.name?.toLowerCase() || "";
+          return artistName.includes(searchTerm);
+        })
+        .map(([artistId, artist]) => ({
+          artistId,
+          name: (artist as any)?.name || "",
+        }))
+        .slice(0, 10); // Limit to 10 suggestions
+
+      setArtistNameSuggestions(matches);
+      setShowSuggestions(matches.length > 0);
+    } else {
+      setArtistNameSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSelectArtist = (artistId: string, artistName: string) => {
+    setNewCollaboratorArtistName(artistName);
+    setShowSuggestions(false);
+  };
+
+  const handleAddCollaborator = () => {
+    // Clear any previous errors
+    setCollaboratorError("");
+
+    if (!newCollaboratorArtistName.trim()) {
+      return;
+    }
+
+    // Calculate the new revenue split value
+    const newRevenueSplit = Math.max(0, Math.min(100, parseInt(newCollaboratorRevenueSplit) || 0));
+
+    // Calculate current total revenue split
+    const currentTotal = collaborators.reduce((sum, collab) => sum + parseInt(collab.revenueSplit || "0"), 0);
+
+    // Check if adding this collaborator would exceed 100%
+    if (currentTotal + newRevenueSplit > 100) {
+      setCollaboratorError("The total Revenue Split value is exceeding 100%, which is not allowed");
+      return;
+    }
+
+    // Find the artistId from the artist name (exact match)
+    const selectedArtist = Object.entries(artistLookup).find(([_, artist]) => (artist as any)?.name?.trim() === newCollaboratorArtistName.trim());
+
+    if (!selectedArtist) {
+      // If no exact match, try to find from suggestions
+      const suggestionMatch = artistNameSuggestions.find((s) => s.name.trim() === newCollaboratorArtistName.trim());
+      if (!suggestionMatch) {
+        return;
+      }
+      const artistId = suggestionMatch.artistId;
+      const revenueSplit = newRevenueSplit.toString();
+
+      // Check if already added
+      if (collaborators.some((c) => c.artistId === artistId)) {
+        return;
+      }
+
+      // Check if we've reached the limit
+      if (collaborators.length >= 5) {
+        return;
+      }
+
+      setCollaborators([...collaborators, { artistId, revenueSplit }]);
+      setNewCollaboratorArtistName("");
+      setNewCollaboratorRevenueSplit("0");
+      setShowAddCollaboratorForm(false);
+      setShowSuggestions(false);
+      setCollaboratorError("");
+      return;
+    }
+
+    const artistId = selectedArtist[0];
+    const revenueSplit = newRevenueSplit.toString();
+
+    // Check if already added
+    if (collaborators.some((c) => c.artistId === artistId)) {
+      return;
+    }
+
+    // Check if we've reached the limit
+    if (collaborators.length >= 5) {
+      return;
+    }
+
+    setCollaborators([...collaborators, { artistId, revenueSplit }]);
+    setNewCollaboratorArtistName("");
+    setNewCollaboratorRevenueSplit("0");
+    setShowAddCollaboratorForm(false);
+    setShowSuggestions(false);
+    setCollaboratorError("");
+  };
+
+  const handleRemoveCollaborator = (artistId: string) => {
+    setCollaborators(collaborators.filter((c) => c.artistId !== artistId));
+  };
+
+  const getArtistName = (artistId: string): string => {
+    return (artistLookup[artistId] as any)?.name || artistId;
   };
 
   if (!isOpen) return null;
@@ -560,6 +714,134 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Collaborators */}
+          <div className="space-y-2 bg-gray-800 border border-gray-600 rounded-lg p-4">
+            <div className="">
+              <div className="flex items-start space-x-3">
+                <div className="flex-1">
+                  <h3 className="!text-lg font-semibold text-white mb-2">Add Collaborators</h3>
+                  <p className="text-gray-300 text-sm mb-4">
+                    List up to 5 collaborators on this album and also include optional revenue splits with them for all sales related to this album.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Existing Collaborators */}
+            {collaborators.length > 0 && (
+              <div className="space-y-2 mb-4">
+                {collaborators.map((collab) => (
+                  <div key={collab.artistId} className="bg-black border border-gray-600 rounded-lg p-3 flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-white font-medium">{getArtistName(collab.artistId)}</p>
+                      <p className="text-gray-400 text-sm">Revenue Split: {collab.revenueSplit}%</p>
+                    </div>
+                    <button type="button" onClick={() => handleRemoveCollaborator(collab.artistId)} className="hover:text-red-300 transition-colors p-1">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add Collaborator Button */}
+            {!showAddCollaboratorForm && collaborators.length < 5 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAddCollaboratorForm(true)}
+                className="text-xs text-gray-300 border-gray-600 hover:bg-gray-700">
+                Add Collaborator
+              </Button>
+            )}
+
+            {/* Add Collaborator Form */}
+            {showAddCollaboratorForm && (
+              <div className="bg-black border border-gray-600 rounded-lg p-4 space-y-4">
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Artist Name</label>
+                  <Input
+                    type="text"
+                    value={newCollaboratorArtistName}
+                    onChange={(e) => handleArtistNameInput(e.target.value)}
+                    placeholder="Type to search for an artist..."
+                    className="w-full"
+                    onFocus={() => {
+                      if (newCollaboratorArtistName.length >= 2) {
+                        setShowSuggestions(true);
+                      }
+                    }}
+                    onBlur={() => {
+                      // Delay to allow click on suggestion
+                      setTimeout(() => setShowSuggestions(false), 200);
+                    }}
+                  />
+                  {showSuggestions && artistNameSuggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {artistNameSuggestions.map((suggestion) => (
+                        <button
+                          key={suggestion.artistId}
+                          type="button"
+                          onClick={() => handleSelectArtist(suggestion.artistId, suggestion.name)}
+                          className="w-full text-left px-4 py-2 text-white hover:bg-gray-700 transition-colors">
+                          {suggestion.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Revenue Split %</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={newCollaboratorRevenueSplit}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || (!isNaN(parseInt(value)) && parseInt(value) >= 0 && parseInt(value) <= 100)) {
+                        setNewCollaboratorRevenueSplit(value);
+                        // Clear error when user changes the value
+                        if (collaboratorError) {
+                          setCollaboratorError("");
+                        }
+                      }
+                    }}
+                    placeholder="0"
+                    className={`w-full ${collaboratorError ? "border-red-500" : ""}`}
+                  />
+                  <p className="text-gray-400 text-xs mt-1">Enter a value between 0 and 100</p>
+                  {collaboratorError && <p className="text-red-400 text-sm mt-1">{collaboratorError}</p>}
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowAddCollaboratorForm(false);
+                      setNewCollaboratorArtistName("");
+                      setNewCollaboratorRevenueSplit("0");
+                      setShowSuggestions(false);
+                    }}
+                    className="text-xs text-gray-300 border-gray-600 hover:bg-gray-700">
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleAddCollaborator}
+                    disabled={!newCollaboratorArtistName.trim()}
+                    className="text-xs bg-gradient-to-r from-yellow-300 to-orange-500 text-black hover:from-yellow-400 hover:to-orange-600">
+                    Add
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {collaborators.length >= 5 && <p className="text-gray-400 text-sm">Maximum of 5 collaborators reached.</p>}
           </div>
 
           {/* Pricing Disclaimer Modal */}
