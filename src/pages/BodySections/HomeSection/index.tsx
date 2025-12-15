@@ -511,6 +511,9 @@ export const HomeSection = (props: HomeSectionProps) => {
     [playlistUpdateTimeout]
   );
 
+  /*
+  @TODO: this funcion call the API multiple times. EVEN IF the user never clicked on the radio tile. This is not good! We should have a radio API
+  */
   async function fetchAndLoadDefaultPersonalizedPlaylistTracks() {
     try {
       setDefaultPlaylistTrackListLoading(true);

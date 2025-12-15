@@ -916,17 +916,9 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                     <ChevronDown className="w-6 h-6" />
                   </button>
                 )}
-                <h4 className="flex justify-center select-none font-semibold text-foreground !text-xl">{`Track List ${trackList.length} songs`}</h4>
 
-                {trackListFromDb && (
-                  <div className="flex justify-center items-center gap-2">
-                    <div className="flex items-center gap-2 text-yellow-300">
-                      <div className="flex items-center gap-1">
-                        <Zap className="w-4 h-4" />
-                        <span className="text-[10px]">This album supports fast streaming</span>
-                      </div>
-                    </div>
-                  </div>
+                {!isPlaylistPlayer && (
+                  <h4 className="flex justify-center select-none font-semibold text-foreground !text-xl">{`Track List ${trackList.length} songs`}</h4>
                 )}
 
                 {isFullScreen ? (
@@ -994,8 +986,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                               />
                             </div>
                             <div className="xl:w-[60%] flex flex-col justify-center text-center">
-                              <h6 className="!text-xs md:!text-sm !text-muted-foreground truncate text-left">{song.title}</h6>
-                              <p className="text-xs md:text-sm text-white truncate text-left">{song.artist}</p>
+                              <h6 className="!text-xs md:!text-sm !text-muted-foreground max-w-[200px] truncate text-left">{song.title}</h6>
+                              <p className="text-xs md:text-sm text-white max-w-[200px] truncate text-left">{song.artist}</p>
                               <div className="flex flex-row gap-2">
                                 {song?.bonus === 1 && <p className="text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black">Bonus Track</p>}
                                 {currentTrackIndex === index && <p className="text-[10px] border border-yellow-500 text-white rounded-md p-1 w-fit">Playing</p>}
@@ -1101,7 +1093,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   }
                 }}>
                 <div className="flex items-center">
-                  <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"} max-w-[200px] truncate m-auto`}>
+                  <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"} max-w-[200px] truncate ${isFullScreen ? "m-auto" : ""}`}>
                     {trackList[currentTrackIndex]?.title}
                   </span>
                   {trackList[currentTrackIndex]?.isExplicit && trackList[currentTrackIndex]?.isExplicit === "1" && (
@@ -1115,7 +1107,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 </div>
 
                 <span className={`text-white ${isFullScreen ? "text-lg" : "text-sm"}`}>{trackList[currentTrackIndex]?.artist}</span>
-                <span className="text-xs text-muted-foreground">Track {currentTrackIndex + 1}</span>
+
+                {!isPlaylistPlayer && <span className="text-[10px] text-muted-foreground">Track {currentTrackIndex + 1}</span>}
               </div>
             </div>
             <div
