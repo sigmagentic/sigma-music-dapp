@@ -575,10 +575,12 @@ export const HomeSection = (props: HomeSectionProps) => {
         // Step 8: remove any items that have "isExplicit" set to "1", note that isExplicit sometime wont be present, in which case we can assume it's not explicit
         // ... also remove any items that have "hideOrDelete" set to "1" or "2"
         // ... also remove any that have bonus set to 1
+        // ... also remove items that have stream set to undefined (which are bonus tracks)
         const finalDefaultPlaylistTracks = augmentedTracks
           .filter((track: any) => track.isExplicit !== "1")
           .filter((track: any) => track.hideOrDelete !== "1" && track.hideOrDelete !== "2")
-          .filter((track: any) => track.bonus !== 1); // this will be numeric field
+          .filter((track: any) => track.bonus !== 1) // this will be numeric field
+          .filter((track: any) => track.stream !== undefined);
 
         console.log("finalDefaultPlaylistTracks >>>", finalDefaultPlaylistTracks);
 
