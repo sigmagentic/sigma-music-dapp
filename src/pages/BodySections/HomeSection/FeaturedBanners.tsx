@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ALL_MUSIC_GENRES, GenreTier } from "config";
 import { Button } from "libComponents/Button";
-import { Artist, StreamMetricData } from "libs/types/common";
+import { StreamMetricData } from "libs/types/common";
 import { fetchStreamsLeaderboardAllTracksByMonthViaAPI, fetchLatestCollectiblesAvailableViaAPI } from "libs/utils/api";
 import { convertTokenImageUrl } from "libs/utils/ui";
 import { useAppStore } from "store/app";

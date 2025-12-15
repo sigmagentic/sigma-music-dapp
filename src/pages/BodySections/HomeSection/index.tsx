@@ -1030,7 +1030,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                         if (dynamicHeroContentAdded) return;
 
                         const currentHeroSlideshowContent = [...heroSlideshowContent];
-                        const mostRecentLatestAlbums = latestAlbums.slice(0, 3).map((album) => ({
+                        const mostRecentLatestAlbums = latestAlbums.slice(0, 5).map((album) => ({
                           image: album.img,
                           alt: album.title,
                           buttonText: "New Music by " + album.artistName + " just dropped!",
@@ -1043,7 +1043,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                         setHeroSlideshowContent([...mostRecentLatestAlbums, ...currentHeroSlideshowContent]);
 
                         // no need to save the following data in state, as it is only received once every for app session
-                        MOST_RECENT_ALBUMS_DATA = latestAlbums.slice(0, 3);
+                        MOST_RECENT_ALBUMS_DATA = latestAlbums.slice(0, 5);
                         setMostRecentAlbumsFetched(true);
 
                         setDynamicHeroContentAdded(true); // if we dont do this, it keep addign content each time we come back to this view
