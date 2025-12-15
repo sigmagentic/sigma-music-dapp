@@ -548,12 +548,18 @@ export const HomeSection = (props: HomeSectionProps) => {
         // Step 6: Find latest 3 albums and get their tracks and give them the higest priority (for now)
         console.log("MOST_RECENT_ALBUMS_DATA >>>>", MOST_RECENT_ALBUMS_DATA);
 
-        const mostRecentAlbumTracks = [];
+        let mostRecentAlbumTracks = [];
         for (const album of MOST_RECENT_ALBUMS_DATA) {
           const albumTracks = await getAlbumTracksFromDBViaAPI(album.albumId.split("_")[0], album.albumId);
           mostRecentAlbumTracks.push(...albumTracks);
         }
         console.log("mostRecentAlbumTracks >>>>", mostRecentAlbumTracks);
+
+        // shuffle the most recent album tracks using Fisher-Yates algorithm
+        for (let i = mostRecentAlbumTracks.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [mostRecentAlbumTracks[i], mostRecentAlbumTracks[j]] = [mostRecentAlbumTracks[j], mostRecentAlbumTracks[i]];
+        }
 
         mergedTracks = [...mostRecentAlbumTracks, ...mergedTracks];
 
