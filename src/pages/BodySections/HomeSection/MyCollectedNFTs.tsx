@@ -13,12 +13,6 @@ import { useNftsStore } from "store/nfts";
 import { ArtistDiscography } from "./ArtistDiscography";
 
 type MyCollectedNFTsProps = {
-  isFetchingDataMarshal: boolean;
-  viewDataRes: any;
-  currentDataNftIndex: any;
-  dataMarshalResponse: any;
-  firstSongBlobUrl: any;
-  setStopPreviewPlaying: any;
   setBitzGiftingMeta: any;
   onSendBitzForMusicBounty: any;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;

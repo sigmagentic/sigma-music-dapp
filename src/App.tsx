@@ -232,6 +232,7 @@ export const App = () => {
                       setFeaturedArtistDeepLinkSlug={setFeaturedArtistDeepLinkSlug}
                       setCampaignCodeFilter={setCampaignCodeFilter}
                       navigateToDeepAppView={navigateToDeepAppView}
+                      removeDeepSectionParamsFromUrl={removeDeepSectionParamsFromUrl}
                     />
                   }
                 />

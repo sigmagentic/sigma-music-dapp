@@ -34,7 +34,6 @@ const filterNames = {
 };
 
 type FeaturedArtistsAndAlbumsProps = {
-  stopPreviewPlayingNow?: boolean;
   featuredArtistDeepLinkSlug?: string;
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   setMusicBountyBitzSumGlobalMapping: any;
@@ -56,11 +55,11 @@ type FeaturedArtistsAndAlbumsProps = {
   setLaunchPlaylistPlayerWithDefaultTracks: (launchPlaylistPlayerWithDefaultTracks: boolean) => void;
   setLaunchPlaylistPlayer: (launchPlaylistPlayer: boolean) => void;
   onPlaylistUpdate: (playlistCode: string) => void;
+  returnBackToHomeMode: () => void;
 };
 
 export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) => {
   const {
-    stopPreviewPlayingNow,
     featuredArtistDeepLinkSlug,
     bountyBitzSumGlobalMapping,
     setMusicBountyBitzSumGlobalMapping,
@@ -82,6 +81,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setLaunchPlaylistPlayerWithDefaultTracks,
     setLaunchPlaylistPlayer,
     onPlaylistUpdate,
+    returnBackToHomeMode,
   } = props;
   const { publicKey: publicKeySol } = useSolanaWallet();
   const addressSol = publicKeySol?.toBase58();
@@ -90,18 +90,11 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const { updateAlbumMasterLookup, updateTileDataCollectionLoadingInProgress, artistLookup } = useAppStore();
   const { trackPlayIsQueued, assetPlayIsQueued, updateAssetPlayIsQueued, artistIdBeingPlayedInPlaylist } = useAudioPlayerStore();
 
-  const [previewTrackAudio] = useState(new Audio());
-  const [isPreviewPlaying, setIsPreviewPlaying] = useState<boolean>(false);
-  const [previewPlayingForAlbumId, setPreviewPlayingForAlbumId] = useState<string | undefined>();
-  const [previewIsReadyToPlay, setPreviewIsReadyToPlay] = useState(false);
   const [selArtistId, setSelArtistId] = useState<string | undefined>();
   const [selAlbumId, setSelAlbumId] = useState<string | undefined>();
   const [userInteractedWithTabs, setUserInteractedWithTabs] = useState<boolean>(false);
   const [artistProfile, setArtistProfile] = useState<Artist | null>(null);
   const [inArtistProfileView, setInArtistProfileView] = useState<boolean>(false);
-  const [currentTime, setCurrentTime] = useState("00:00");
-  const [duration, setDuration] = useState("00:00");
-  const [progress, setProgress] = useState(0);
   const [artistAlbumDataset, setArtistAlbumDataset] = useState<Artist[]>([]);
   const [albumsDataset, setAlbumsDataset] = useState<AlbumWithArtist[]>([]);
   const [artistAlbumDataLoading, setArtistAlbumDataLoading] = useState<boolean>(true);
@@ -114,28 +107,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   const [launchpadLoading, setLaunchpadLoading] = useState<boolean>(false);
 
   const prevIsAllAlbumsModeRef = useRef<boolean | undefined>(isAllAlbumsMode);
-
-  function eventToAttachEnded() {
-    previewTrackAudio.src = "";
-    previewTrackAudio.currentTime = 0;
-    previewTrackAudio.pause();
-    setPreviewIsReadyToPlay(false);
-    setIsPreviewPlaying(false);
-    setPreviewPlayingForAlbumId(undefined);
-  }
-
-  function eventToAttachTimeUpdate() {
-    updateProgress();
-  }
-
-  function eventToAttachCanPlayThrough() {
-    // Audio is ready to be played
-    setPreviewIsReadyToPlay(true);
-    // play the song
-    if (previewTrackAudio.currentTime == 0) {
-      previewTrackAudio.play();
-    }
-  }
 
   const debounced_fetchBitzPowerUpsAndLikesForSelectedArtist = useDebouncedCallback((giftBitzToArtistMeta: GiftBitzToArtistMeta) => {
     fetchBitzPowerUpsAndLikesForSelectedArtist({
@@ -166,27 +137,15 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       setActiveTab("launchpad");
     }
 
-    previewTrackAudio.addEventListener("ended", eventToAttachEnded);
-    previewTrackAudio.addEventListener("timeupdate", eventToAttachTimeUpdate);
-    previewTrackAudio.addEventListener("canplaythrough", eventToAttachCanPlayThrough);
-
     fetchAndUpdateArtistAlbumDataIntoView();
 
     return () => {
-      previewTrackAudio.pause();
-      previewTrackAudio.removeEventListener("ended", eventToAttachEnded);
-      previewTrackAudio.removeEventListener("timeupdate", eventToAttachTimeUpdate);
-      previewTrackAudio.removeEventListener("canplaythrough", eventToAttachCanPlayThrough);
-
       handleBackToArtistTileView(); // user is leaving the page so we need to reset the view to prestine tile for the next entry
     };
   }, []);
 
   useEffect(
     () => () => {
-      // on unmount we have to stp playing as for some reason the play continues always otherwise
-      playPausePreview(); // with no params wil always go into the stop logic
-
       // remove the artist param from the url
       const currentParams = Object.fromEntries(searchParams.entries());
       delete currentParams["artist"];
@@ -286,8 +245,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       return;
     }
 
-    playPausePreview(); // with no params wil always go into the stop logic
-
     const selDataItem: Artist | undefined = artistAlbumDataset.find((i) => i.artistId === selArtistId);
 
     if (!selDataItem) {
@@ -319,12 +276,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     // we debounce this, so that - if the user is jumping tabs.. it wait until they stop at a tab for 2.5 S before running the complex logic
     debounced_fetchBitzPowerUpsAndLikesForSelectedArtist({ ...selDataItem });
   }, [selArtistId, selAlbumId, artistAlbumDataset]);
-
-  useEffect(() => {
-    if (stopPreviewPlayingNow) {
-      playPausePreview(); // with no params wil always go into the stop logic
-    }
-  }, [stopPreviewPlayingNow]);
 
   useEffect(() => {
     if (loadIntoTileView && inArtistProfileView) {
@@ -469,7 +420,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     }
   }, [activeTab]);
 
-  // Fetch album launchpad data for this artist
   const fetchLaunchpadData = async () => {
     // Check if there's a live launchpad album
     const liveAlbumId = artistProfile?.launchpadLiveOnAlbumId;
@@ -554,7 +504,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
       )
     );
 
-    // in some views, we make directly be ina  profile page and then we move out (e.g. "Back to Countries" in WSB camoaign).
+    // in some views, we make directly be in a profile page and then we move out (e.g. "Back to Countries" in WSB campaign).
     // In this situation it's best we double check if we are in a profile view and if so, we go back to the tile view
     if (inArtistProfileView) {
       handleBackToArtistTileView();
@@ -581,62 +531,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setArtistAlbumDataLoading(false);
     updateTileDataCollectionLoadingInProgress(false);
   }
-
-  async function playPausePreview(previewStreamUrl?: string, albumId?: string) {
-    if (previewStreamUrl && albumId && (!isPreviewPlaying || previewPlayingForAlbumId !== albumId)) {
-      onPlayHappened(); // inform parent to stop any other playing streams on its ui
-
-      resetPreviewPlaying();
-      // await sleep(0.1); // this seems to help when some previews overlapped (took it out as it did not seem to do much when testing)
-
-      setPreviewIsReadyToPlay(false);
-      setIsPreviewPlaying(true);
-      setPreviewPlayingForAlbumId(albumId);
-
-      try {
-        const blob = await fetch(previewStreamUrl).then((r) => r.blob());
-        let blobUrl = URL.createObjectURL(blob);
-
-        // ios safari seems to not play the music so tried to use blobs like in the other Audio component like Playlist Player
-        // but still does not play -- need to debug more (see https://corevo.io/the-weird-case-of-video-streaming-in-safari/)
-        previewTrackAudio.src = blobUrl;
-      } catch (e) {
-        previewTrackAudio.src = previewStreamUrl; // this fetches the data, but it may not be ready to play yet until canplaythrough fires
-      }
-
-      previewTrackAudio.load();
-      updateProgress();
-      previewTrackAudio.currentTime = 0;
-    } else {
-      resetPreviewPlaying();
-    }
-  }
-
-  function resetPreviewPlaying() {
-    previewTrackAudio.src = "";
-    previewTrackAudio.currentTime = 0;
-    previewTrackAudio.pause();
-    setPreviewIsReadyToPlay(false);
-    setIsPreviewPlaying(false);
-    setPreviewPlayingForAlbumId(undefined);
-  }
-
-  const updateProgress = () => {
-    setCurrentTime(previewTrackAudio.currentTime ? formatTime(previewTrackAudio.currentTime) : "00:00");
-    setDuration(previewTrackAudio.duration ? formatTime(previewTrackAudio.duration) : "00:00");
-    let _percentage = (previewTrackAudio.currentTime / previewTrackAudio.duration) * 100;
-    if (isNaN(_percentage)) _percentage = 0;
-    setProgress(_percentage);
-  };
-
-  const formatTime = (_seconds: number) => {
-    const minutes = Math.floor(_seconds / 60);
-    const remainingSeconds = Math.floor(_seconds % 60);
-    const formattedMinutes = String(minutes).padStart(2, "0"); // Ensure two digits
-    const formattedSeconds = String(remainingSeconds).padStart(2, "0");
-
-    return `${formattedMinutes}:${formattedSeconds}`;
-  };
 
   function getImagePositionMeta(imageUrl: string, metaKey: string): string {
     try {
@@ -673,8 +567,6 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
   }
 
   function handleBackToArtistTileView() {
-    playPausePreview(); // with no params wil always go into the stop logic
-
     setInArtistProfileView(false);
 
     // remove the artist param from the url
@@ -698,6 +590,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setSelAlbumId(undefined);
     setSelArtistId(undefined);
     setLaunchpadData(null);
+
+    // in Dec 2025, we updated the app to not show the artist and album tiles view. So we still keep the above code to handle the reset to tile view, but we just return to home again
+    returnBackToHomeMode();
   }
 
   function handleArtistPlaylistPlay() {
@@ -1340,15 +1235,10 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                               albums={artistProfile.albums}
                               artistProfile={artistProfile}
                               bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                              isPreviewPlaying={isPreviewPlaying}
-                              previewIsReadyToPlay={previewIsReadyToPlay}
-                              previewPlayingForAlbumId={previewPlayingForAlbumId}
-                              currentTime={currentTime}
                               dataNftPlayingOnMainPlayer={dataNftPlayingOnMainPlayer}
                               isMusicPlayerOpen={isMusicPlayerOpen}
                               highlightAlbumId={selAlbumId}
                               onSendBitzForMusicBounty={onSendBitzForMusicBounty}
-                              playPausePreview={playPausePreview}
                               checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                               viewSolData={viewSolData}
                               openActionFireLogic={openActionFireLogic}

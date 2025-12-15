@@ -97,6 +97,7 @@ export const FeaturedBanners = ({
 
     // top 30 latest artists
     const latestArtists = Object.entries(artistLookup)
+      .filter(([artistId]) => artistId !== "ar141") // filter out the demo artist account
       .sort((a, b) => {
         const aCreatedOn = parseInt(a[1].createdOn?.toString() || "0");
         const bCreatedOn = parseInt(b[1].createdOn?.toString() || "0");
@@ -112,6 +113,7 @@ export const FeaturedBanners = ({
 
     // top 30 recently updated artists
     const recentlyUpdatedArtists = Object.entries(artistLookup)
+      .filter(([artistId]) => artistId !== "ar141") // filter out the demo artist account
       .sort((a, b) => {
         const aLastIndexOn = parseInt(a[1].lastIndexOn?.toString() || "0");
         const bLastIndexOn = parseInt(b[1].lastIndexOn?.toString() || "0");
@@ -160,9 +162,7 @@ export const FeaturedBanners = ({
     handleLatestAlbumsReceived(latestAlbums);
     setRecentlyUpdatedArtists(recentlyUpdatedArtists);
 
-    setTimeout(() => {
-      setIsLoadingFeaturedAlbumsAndArtists(false);
-    }, 2000);
+    setIsLoadingFeaturedAlbumsAndArtists(false);
   }, [artistLookup, albumLookup]);
 
   useEffect(() => {
@@ -379,7 +379,7 @@ export const FeaturedBanners = ({
       {/* Latest artists */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">Latest Artists</span>
+          <span className="text-lg text-white/70">New Artists</span>
         </div>
         {isLoadingFeaturedAlbumsAndArtists ? (
           <LoadingSkeleton />

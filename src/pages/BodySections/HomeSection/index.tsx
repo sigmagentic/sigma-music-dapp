@@ -39,6 +39,7 @@ type HomeSectionProps = {
   setHomeMode: (homeMode: string) => void;
   setCampaignCodeFilter: (campaignCodeFilter: string | undefined) => void;
   navigateToDeepAppView: (logicParams: any) => void;
+  removeDeepSectionParamsFromUrl: () => void;
 };
 
 export const HomeSection = (props: HomeSectionProps) => {
@@ -51,6 +52,7 @@ export const HomeSection = (props: HomeSectionProps) => {
     navigateToDeepAppView,
     featuredArtistDeepLinkSlug,
     setFeaturedArtistDeepLinkSlug,
+    removeDeepSectionParamsFromUrl,
   } = props;
 
   const { web3auth, signMessageViaWeb3Auth } = useWeb3Auth();
@@ -58,13 +60,12 @@ export const HomeSection = (props: HomeSectionProps) => {
   const { signMessage } = useWallet();
   const { publicKey: publicKeySol, walletType } = useSolanaWallet();
   const { solBitzNfts, solMusicAssetNfts } = useNftsStore();
-  const { artistLookupEverything, artistLookup, updateArtistLookupEverything, updateArtistLookup, updateAlbumLookup } = useAppStore();
+  const { artistLookupEverything, updateArtistLookupEverything, updateArtistLookup, updateAlbumLookup } = useAppStore();
 
   const [isFetchingDataMarshal, setIsFetchingDataMarshal] = useState<boolean>(true);
   const [viewDataRes, setViewDataRes] = useState<ExtendedViewDataReturnType>();
-  const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
   const [dataMarshalResponse, setDataMarshalResponse] = useState({ "data_stream": {}, "data": [] });
-  const [stopPreviewPlaying, setStopPreviewPlaying] = useState<boolean>(false);
+  const [currentDataNftIndex, setCurrentDataNftIndex] = useState(-1);
   const [bitzGiftingMeta, setBitzGiftingMeta] = useState<{
     giveBitzToCampaignId: string;
     bountyBitzSum: number;
@@ -607,7 +608,6 @@ export const HomeSection = (props: HomeSectionProps) => {
         }
 
         setLaunchAlbumPlayer(true);
-        setStopPreviewPlaying(true);
         return;
       }
 
@@ -903,6 +903,11 @@ export const HomeSection = (props: HomeSectionProps) => {
     updateJumpToTrackIndexInAlbumBeingPlayed(undefined); // reset it here, but the index is actually set in the music player
   }
 
+  function returnBackToHomeMode() {
+    setHomeMode("home");
+    removeDeepSectionParamsFromUrl();
+  }
+
   return (
     <>
       <div className="flex flex-col justify-center items-center w-full">
@@ -1016,7 +1021,6 @@ export const HomeSection = (props: HomeSectionProps) => {
                 <div className={`w-full ${homeMode.includes("campaigns-wsb") ? "mt-0" : "mt-5"}`}>
                   <FeaturedArtistsAndAlbums
                     viewSolData={viewSolData}
-                    stopPreviewPlayingNow={stopPreviewPlaying}
                     featuredArtistDeepLinkSlug={featuredArtistDeepLinkSlug}
                     onFeaturedArtistDeepLinkSlug={(artistSlug: string, albumId?: string) => {
                       let slugToUse = artistSlug;
@@ -1028,15 +1032,12 @@ export const HomeSection = (props: HomeSectionProps) => {
                       setFeaturedArtistDeepLinkSlug(slugToUse);
                     }}
                     onPlayHappened={() => {
-                      // pause the preview tracks if playing
-                      setStopPreviewPlaying(false);
                       // pause the main player if playing
                       setMusicPlayerPauseInvokeIncrement(musicPlayerPauseInvokeIncrement + 1);
                     }}
                     checkOwnershipOfMusicAsset={checkOwnershipOfMusicAsset}
                     openActionFireLogic={(_bitzGiftingMeta?: any) => {
                       setLaunchAlbumPlayer(true);
-                      setStopPreviewPlaying(true);
 
                       if (_bitzGiftingMeta) {
                         setBitzGiftingMeta(_bitzGiftingMeta);
@@ -1060,6 +1061,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                       setSelectedCodeForPlaylist(""); // clear any previous playlist selection immediately
                       debouncedPlaylistUpdate(artistCode); // but debounce the actual logic in case the user is click spamming the playlist button
                     }}
+                    returnBackToHomeMode={returnBackToHomeMode}
                   />
                 </div>
               </>
@@ -1072,12 +1074,6 @@ export const HomeSection = (props: HomeSectionProps) => {
                   <div className="w-full mt-5">
                     <MyCollectedNFTs
                       viewSolData={viewSolData}
-                      isFetchingDataMarshal={isFetchingDataMarshal}
-                      viewDataRes={viewDataRes}
-                      currentDataNftIndex={currentDataNftIndex}
-                      dataMarshalResponse={dataMarshalResponse}
-                      firstSongBlobUrl={firstAlbumSongBlobUrl}
-                      setStopPreviewPlaying={setStopPreviewPlaying}
                       setBitzGiftingMeta={setBitzGiftingMeta}
                       onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                       bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
@@ -1089,7 +1085,6 @@ export const HomeSection = (props: HomeSectionProps) => {
                       }}
                       openActionFireLogic={(_bitzGiftingMeta?: any) => {
                         setLaunchAlbumPlayer(true);
-                        setStopPreviewPlaying(true);
 
                         if (_bitzGiftingMeta) {
                           setBitzGiftingMeta(_bitzGiftingMeta);
@@ -1154,10 +1149,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                 onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                 bitzGiftingMeta={bitzGiftingMeta}
                 bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                onPlayHappened={() => {
-                  // stop the preview playing
-                  setStopPreviewPlaying(true);
-                }}
+                onPlayHappened={() => {}}
                 onCloseMusicPlayer={resetMusicPlayerState}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
                 viewSolDataHasError={viewSolDataHasError}
@@ -1180,9 +1172,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                 onSendBitzForMusicBounty={handleSendBitzForMusicBounty}
                 bitzGiftingMeta={bitzGiftingMeta}
                 bountyBitzSumGlobalMapping={bountyBitzSumGlobalMapping}
-                onPlayHappened={() => {
-                  setStopPreviewPlaying(true);
-                }}
+                onPlayHappened={() => {}}
                 onCloseMusicPlayer={resetMusicPlayerState}
                 pauseAsOtherAudioPlaying={musicPlayerPauseInvokeIncrement}
                 viewSolDataHasError={false}

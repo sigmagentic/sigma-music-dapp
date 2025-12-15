@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { DasApiAsset } from "@metaplex-foundation/digital-asset-standard-api";
 import {
   Loader,
-  Pause,
   Play,
   ShoppingCart,
   WalletMinimal,
@@ -53,10 +52,6 @@ type ArtistDiscographyProps = {
   albums: Album[];
   bountyBitzSumGlobalMapping: BountyBitzSumMapping;
   artistProfile: Artist;
-  isPreviewPlaying?: boolean;
-  previewIsReadyToPlay?: boolean;
-  previewPlayingForAlbumId?: any;
-  currentTime?: string;
   inCollectedAlbumsView?: boolean;
   dataNftPlayingOnMainPlayer?: DasApiAsset;
   isMusicPlayerOpen?: boolean;
@@ -64,7 +59,6 @@ type ArtistDiscographyProps = {
   setHomeMode?: (e: any) => any;
   viewSolData: (e: number, f?: any, g?: boolean) => void;
   onSendBitzForMusicBounty: (e: any) => any;
-  playPausePreview?: (e: any, f: any) => any;
   checkOwnershipOfMusicAsset: (e: any, f?: boolean) => any;
   openActionFireLogic: (e: any) => any;
   setFeaturedArtistDeepLinkSlug?: (e: any) => any;
@@ -78,17 +72,12 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     albums,
     artistProfile,
     bountyBitzSumGlobalMapping,
-    isPreviewPlaying,
-    previewIsReadyToPlay,
-    previewPlayingForAlbumId,
-    currentTime,
     dataNftPlayingOnMainPlayer,
     isMusicPlayerOpen,
     highlightAlbumId,
     setHomeMode,
     viewSolData,
     onSendBitzForMusicBounty,
-    playPausePreview,
     checkOwnershipOfMusicAsset,
     openActionFireLogic,
     setFeaturedArtistDeepLinkSlug,
@@ -102,7 +91,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const userLoggedInWithWallet = publicKeySol;
   const { updateAssetPlayIsQueued, trackPlayIsQueued, assetPlayIsQueued, albumIdBeingPlayed } = useAudioPlayerStore();
   const { updateMyRawPaymentLogs, myMusicAssetPurchases, myAlbumMintLogs, updateMyAlbumMintLogs, userArtistProfile } = useAccountStore();
-  const { artistLookup } = useAppStore();
 
   const [queueAlbumPlay, setQueueAlbumPlay] = useState(false);
   const [albumToBuyAndMint, setAlbumToBuyAndMint] = useState<Album | undefined>();
@@ -764,32 +752,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   </Button>
                 )}
 
-                {!album._albumCanBeFastStreamed && album.ctaPreviewStream && !inCollectedAlbumsView && checkOwnershipOfMusicAsset(album) === -1 && (
-                  <div>
-                    <Button
-                      disabled={(isPreviewPlaying && !previewIsReadyToPlay) || trackPlayIsQueued || assetPlayIsQueued}
-                      className="text-sm mr-2 cursor-pointer !text-orange-500 dark:!text-yellow-300"
-                      variant="outline"
-                      onClick={() => {
-                        if (playPausePreview) {
-                          playPausePreview(album.ctaPreviewStream, album.albumId);
-                        }
-                      }}>
-                      {isPreviewPlaying && previewPlayingForAlbumId === album.albumId ? (
-                        <>
-                          {!previewIsReadyToPlay ? <Loader className="animate-spin" /> : <Pause />}
-                          <span className="ml-2"> {currentTime} - Stop Playing </span>
-                        </>
-                      ) : (
-                        <>
-                          {trackPlayIsQueued || assetPlayIsQueued ? <Hourglass /> : <Play />}
-                          <span className="ml-2">Play Preview</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-
                 {/* when not logged in, show this to convert the wallet into user account */}
                 {!publicKeySol && !album._buyNowMeta?.priceOption1 && (
                   <div className="relative w-full md:w-auto">
@@ -811,13 +773,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                   <>
                     <div className="relative group">
                       <Button
-                        disabled={
-                          (isPreviewPlaying && !previewIsReadyToPlay) ||
-                          thisIsPlayingOnMusicPlayer(album) ||
-                          queueAlbumPlay ||
-                          trackPlayIsQueued ||
-                          assetPlayIsQueued
-                        }
+                        disabled={thisIsPlayingOnMusicPlayer(album) || queueAlbumPlay || trackPlayIsQueued || assetPlayIsQueued}
                         variant="outline"
                         className={`!text-black text-sm px-[2.35rem] bg-gradient-to-r ${checkOwnershipOfMusicAsset(album) === -1 ? "from-yellow-300 to-orange-500 hover:bg-gradient-to-l" : "from-green-300 to-orange-500 hover:from-orange-500 hover:to-green-300"} transition ease-in-out delay-150 duration-300 cursor-pointer`}
                         onClick={() => {
