@@ -144,7 +144,7 @@ export const Navbar = ({
 
   return (
     <>
-      <div className="flex flex-row justify-between items-center mx-[1rem] h-full bg-[#171717] border-b border-transparent animate-breathing-border">
+      <div className="flex flex-row justify-between items-center mx-[1rem] h-full bg-[#171717]">
         <div className="flex mb-0 flex-col items-left text-xl">
           <div
             className="flex flex-row leading-none cursor-pointer"

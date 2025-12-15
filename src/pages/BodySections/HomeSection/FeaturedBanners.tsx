@@ -631,15 +631,15 @@ export const FeaturedBanners = ({
         )}
       </div>
 
-      {/* AI Remix Ready Albums */}
+      {/* AI Remix Ready Music */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">AI Remix Ready Albums</span>
+          <span className="text-lg text-white/70">AI Remix-Ready Music (IP-Licensed)</span>
         </div>
         {isLoadingLatestAlbumOptions ? (
           <LoadingSkeleton />
         ) : aiRemixReadyAlbums.length === 0 ? (
-          <p className="text-md mb-10 text-center md:text-left opacity-50">No AI remix ready albums available</p>
+          <p className="text-md mb-10 text-center md:text-left opacity-50">No AI remix ready music available</p>
         ) : (
           <div className="relative w-full">
             <div
@@ -760,7 +760,7 @@ export const FeaturedBanners = ({
       {/* Latest Artist Fan Clubs */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">Featured Artist Fan Clubs</span>
+          <span className="text-lg text-white/70">Featured Artist Fan Club Collectibles</span>
         </div>
         {isLoadingLatestInnerCircleOptions ? (
           <LoadingSkeleton />
