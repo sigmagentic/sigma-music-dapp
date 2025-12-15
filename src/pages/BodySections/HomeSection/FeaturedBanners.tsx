@@ -46,6 +46,7 @@ export const FeaturedBanners = ({
   onFeaturedArtistDeepLinkSlug,
   selectedCodeForPlaylist,
   isMusicPlayerOpen,
+  defaultPlaylistTrackListLoading,
   onPlaylistUpdate,
   navigateToDeepAppView,
   onCloseMusicPlayer,
@@ -56,6 +57,7 @@ export const FeaturedBanners = ({
   onFeaturedArtistDeepLinkSlug: (slug: string) => void;
   selectedCodeForPlaylist: string;
   isMusicPlayerOpen: boolean;
+  defaultPlaylistTrackListLoading: boolean;
   onPlaylistUpdate: (genre: string) => void;
   navigateToDeepAppView: (logicParams: any) => void;
   onCloseMusicPlayer: () => void;
@@ -280,6 +282,7 @@ export const FeaturedBanners = ({
                 onPlaylistUpdate={onPlaylistUpdate}
                 setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
                 setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
+                preLoadedMediaListLoading={defaultPlaylistTrackListLoading}
               />
               {tier1Genres.map((genreCode, idx) => {
                 const genreObj = ALL_MUSIC_GENRES.find((g) => g.code === genreCode);

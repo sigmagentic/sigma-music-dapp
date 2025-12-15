@@ -955,7 +955,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                           }}
                         />
                         <div className={`ml-4 flex flex-col ${!isFullScreen ? "ml-2" : ""}`}>
-                          <h6 className="!text-lg !text-muted-foreground">{song.title}</h6>
+                          <h6 className="!text-lg !text-muted-foreground max-w-[200px] truncate">{song.title}</h6>
                           <p className="text-md text-white">{song.artist}</p>
                           <div className="flex flex-row gap-2">
                             {song?.bonus === 1 && <p className="text-[10px] bg-yellow-500 rounded-md p-1 w-fit text-black">Bonus Track</p>}
@@ -987,7 +987,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                               <img
                                 src={song.cover_art_url}
                                 alt="Album Cover"
-                                className="h-20 p-2 rounded-lg m-auto"
+                                className="h-20 w-20 p-2 rounded-lg m-auto"
                                 onError={({ currentTarget }) => {
                                   currentTarget.src = theme === "light" ? DEFAULT_SONG_LIGHT_IMAGE : DEFAULT_SONG_IMAGE;
                                 }}
@@ -1101,7 +1101,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                   }
                 }}>
                 <div className="flex items-center">
-                  <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"} max-w-[200px] truncate`}>
+                  <span className={`text-muted-foreground ${isFullScreen ? "text-xl" : "text-sm"} max-w-[200px] truncate m-auto`}>
                     {trackList[currentTrackIndex]?.title}
                   </span>
                   {trackList[currentTrackIndex]?.isExplicit && trackList[currentTrackIndex]?.isExplicit === "1" && (

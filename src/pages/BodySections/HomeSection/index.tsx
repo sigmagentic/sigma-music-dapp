@@ -42,6 +42,16 @@ type HomeSectionProps = {
   removeDeepSectionParamsFromUrl: () => void;
 };
 
+type MostRecentAlbum = {
+  albumId: string;
+  artistSlug: string;
+  artistName: string;
+  img: string;
+  title: string;
+};
+
+let MOST_RECENT_ALBUMS_DATA: MostRecentAlbum[] = [];
+
 export const HomeSection = (props: HomeSectionProps) => {
   const {
     homeMode,
@@ -86,6 +96,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [ownedSolDataNftNameAndIndexMap, setOwnedSolDataNftNameAndIndexMap] = useState<any>(null);
   const [playlistUpdateTimeout, setPlaylistUpdateTimeout] = useState<NodeJS.Timeout | null>(null);
   const [heroSlideshowContent, setHeroSlideshowContent] = useState<any[]>([]);
+  const [mostRecentAlbumsFetched, setMostRecentAlbumsFetched] = useState<boolean>(false);
   const [dynamicHeroContentAdded, setDynamicHeroContentAdded] = useState<boolean>(false);
 
   // Animated text rotation words
@@ -150,6 +161,7 @@ export const HomeSection = (props: HomeSectionProps) => {
   const [jumpToPlaylistTrackIndex, setJumpToPlaylistTrackIndex] = useState<number | undefined>(undefined);
   const [musicPlayerPlaylistTrackList, setMusicPlayerPlaylistTrackList] = useState<MusicTrack[]>([]);
   const [musicPlayerDefaultPlaylistTrackList, setMusicPlayerDefaultPlaylistTrackList] = useState<MusicTrack[]>([]);
+  const [defaultPlaylistTrackListLoading, setDefaultPlaylistTrackListLoading] = useState<boolean>(true);
   const [launchPlaylistPlayer, setLaunchPlaylistPlayer] = useState(false); // control the visibility base music player in PLAYLIST play mode
   const [launchPlaylistPlayerWithDefaultTracks, setLaunchPlaylistPlayerWithDefaultTracks] = useState(false); // if we need to recover the default playlist tracks
   const [launchAlbumPlayer, setLaunchAlbumPlayer] = useState<boolean>(false); // control the visibility base music player in ALBUM play mode
@@ -362,11 +374,17 @@ export const HomeSection = (props: HomeSectionProps) => {
 
   useEffect(() => {
     // we do this here as if we dont, when the user is in a deep link and come back home, the playlist player is stuck in a loading state
-    // ... but only do it if playlist is not already playing
-    if (homeMode === "home" && !launchPlaylistPlayer && Object.keys(artistLookupEverything).length > 0) {
+    // ... but only do it if playlist is not already playing and only do this once for the app session
+    if (
+      homeMode === "home" &&
+      !launchPlaylistPlayer &&
+      Object.keys(artistLookupEverything).length > 0 &&
+      mostRecentAlbumsFetched &&
+      musicPlayerDefaultPlaylistTrackList.length === 0
+    ) {
       fetchAndLoadDefaultPersonalizedPlaylistTracks();
     }
-  }, [homeMode, artistLookupEverything, launchPlaylistPlayer]);
+  }, [homeMode, artistLookupEverything, launchPlaylistPlayer, mostRecentAlbumsFetched]);
 
   // user has requested a specific playlist
   useEffect(() => {
@@ -495,23 +513,24 @@ export const HomeSection = (props: HomeSectionProps) => {
 
   async function fetchAndLoadDefaultPersonalizedPlaylistTracks() {
     try {
+      setDefaultPlaylistTrackListLoading(true);
       // if we already have playlist tracks, dont fetch them again
       if (musicPlayerDefaultPlaylistTrackList.length === 0) {
         // Step 1: Get saved genres from session storage
-        const savedGenres = localStorage.getItem("sig-pref-genres");
-        let userSelectedGenre: string;
+        const userPreferenceGenres = localStorage.getItem("sig-pref-genres");
+        let userPreferenceGenre: string;
 
-        if (savedGenres) {
-          const parsedGenres = JSON.parse(savedGenres) as string[];
+        if (userPreferenceGenres) {
+          const parsedGenres = JSON.parse(userPreferenceGenres) as string[];
           // console.log("Saved genres:", parsedGenres);
 
           // Get a random genre from the saved genres
-          userSelectedGenre = parsedGenres[Math.floor(Math.random() * parsedGenres.length)];
-          // console.log("Random selected genre from saved genres:", userSelectedGenre);
+          userPreferenceGenre = parsedGenres[Math.floor(Math.random() * parsedGenres.length)];
+          // console.log("Random selected genre from saved genres:", userPreferenceGenre);
         } else {
           // Step 2: If no saved genres, get random genre from Tier1 of ALL_MUSIC_GENRES
           const tier1Genres = ALL_MUSIC_GENRES.filter((genre) => genre.tier === GenreTier.TIER1);
-          userSelectedGenre = tier1Genres[Math.floor(Math.random() * tier1Genres.length)].code;
+          userPreferenceGenre = tier1Genres[Math.floor(Math.random() * tier1Genres.length)].code;
         }
 
         // Step 3: Get all tracks
@@ -519,27 +538,55 @@ export const HomeSection = (props: HomeSectionProps) => {
         const allTracks = allTracksRes.tracks || [];
 
         // Step 4: Get tracks for selected genre
-        const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: userSelectedGenre, pageSize: 20 });
+        const genreTracksRes = await getMusicTracksByGenreViaAPI({ genre: userPreferenceGenre, pageSize: 20 });
         const genreTracks = genreTracksRes.tracks || [];
 
         // Step 5: Merge tracks with genre tracks having priority
-        const mergedTracks = [...genreTracks, ...allTracks.filter((track: any) => !genreTracks.some((genreTrack: any) => genreTrack.alId === track.alId))];
+        let mergedTracks = [...genreTracks, ...allTracks.filter((track: any) => !genreTracks.some((genreTrack: any) => genreTrack.alId === track.alId))];
+        console.log("mergedTracks A >>>>", mergedTracks);
 
-        // Step 6: Augment tracks with artist data
+        // Step 6: Find latest 3 albums and get their tracks and give them the higest priority (for now)
+        console.log("MOST_RECENT_ALBUMS_DATA >>>>", MOST_RECENT_ALBUMS_DATA);
+
+        const mostRecentAlbumTracks = [];
+        for (const album of MOST_RECENT_ALBUMS_DATA) {
+          const albumTracks = await getAlbumTracksFromDBViaAPI(album.albumId.split("_")[0], album.albumId);
+          mostRecentAlbumTracks.push(...albumTracks);
+        }
+        console.log("mostRecentAlbumTracks >>>>", mostRecentAlbumTracks);
+
+        mergedTracks = [...mostRecentAlbumTracks, ...mergedTracks];
+
+        console.log("mergedTracks B >>>>", mergedTracks);
+
+        // Step 7: Augment tracks with artist data
         const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(mergedTracks);
 
-        // Set the tracks and cache the first track
-        if (augmentedTracks.length > 0) {
-          setMusicPlayerDefaultPlaylistTrackList([...augmentedTracks]); // keep a copy of the tracks for the default playlist (so we can go back to it if needed)
-          setMusicPlayerPlaylistTrackList(augmentedTracks);
+        console.log("augmentedTracks >>>", augmentedTracks);
+        // Step 8: remove any items that have "isExplicit" set to "1", note that isExplicit sometime wont be present, in which case we can assume it's not explicit
+        // ... also remove any items that have "hideOrDelete" set to "1" or "2"
+        // ... also remove any that have bonus set to 1
+        const finalDefaultPlaylistTracks = augmentedTracks
+          .filter((track: any) => track.isExplicit !== "1")
+          .filter((track: any) => track.hideOrDelete !== "1" && track.hideOrDelete !== "2")
+          .filter((track: any) => track.bonus !== 1); // this will be numeric field
 
-          const blobUrl = await getFirstTrackBlobData(augmentedTracks[0]);
+        console.log("finalDefaultPlaylistTracks >>>", finalDefaultPlaylistTracks);
+
+        // Set the tracks and cache the first track
+        if (finalDefaultPlaylistTracks.length > 0) {
+          setMusicPlayerDefaultPlaylistTrackList([...finalDefaultPlaylistTracks]); // keep a copy of the tracks for the default playlist (so we can go back to it if needed)
+          setMusicPlayerPlaylistTrackList(finalDefaultPlaylistTracks);
+
+          const blobUrl = await getFirstTrackBlobData(finalDefaultPlaylistTracks[0]);
           setFirstPlaylistSongBlobUrl(blobUrl);
           setFirstDefaultPlaylistSongBlobUrl(blobUrl);
         }
       }
     } catch (error) {
       console.error("Error fetching playlist tracks:", error);
+    } finally {
+      setDefaultPlaylistTrackListLoading(false);
     }
   }
 
@@ -957,6 +1004,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                     <FeaturedBanners
                       selectedCodeForPlaylist={selectedCodeForPlaylist}
                       isMusicPlayerOpen={launchAlbumPlayer || launchPlaylistPlayer}
+                      defaultPlaylistTrackListLoading={defaultPlaylistTrackListLoading}
                       onCloseMusicPlayer={resetMusicPlayerState}
                       setLaunchPlaylistPlayer={setLaunchPlaylistPlayer}
                       setLaunchPlaylistPlayerWithDefaultTracks={setLaunchPlaylistPlayerWithDefaultTracks}
@@ -973,7 +1021,7 @@ export const HomeSection = (props: HomeSectionProps) => {
                         if (dynamicHeroContentAdded) return;
 
                         const currentHeroSlideshowContent = [...heroSlideshowContent];
-                        const topAlbums = latestAlbums.slice(0, 3).map((album) => ({
+                        const mostRecentLatestAlbums = latestAlbums.slice(0, 3).map((album) => ({
                           image: album.img,
                           alt: album.title,
                           buttonText: "New Music by " + album.artistName + " just dropped!",
@@ -983,7 +1031,12 @@ export const HomeSection = (props: HomeSectionProps) => {
                         }));
 
                         // push the top 3 albums to the hero slideshow content
-                        setHeroSlideshowContent([...topAlbums, ...currentHeroSlideshowContent]);
+                        setHeroSlideshowContent([...mostRecentLatestAlbums, ...currentHeroSlideshowContent]);
+
+                        // no need to save the following data in state, as it is only received once every for app session
+                        MOST_RECENT_ALBUMS_DATA = latestAlbums.slice(0, 3);
+                        setMostRecentAlbumsFetched(true);
+
                         setDynamicHeroContentAdded(true); // if we dont do this, it keep addign content each time we come back to this view
                       }}
                     />

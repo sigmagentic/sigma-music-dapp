@@ -16,6 +16,7 @@ interface PlaylistTileProps {
   isMusicPlayerOpen: boolean;
   extendTileToFullWidth?: boolean;
   showClickToPlay?: boolean;
+  preLoadedMediaListLoading?: boolean;
   onCloseMusicPlayer: () => void;
   setLastClickedGenreForPlaylist: (genre: string) => void;
   updateAssetPlayIsQueued: (value: boolean) => void;
@@ -34,6 +35,7 @@ export const PlaylistTile = ({
   isMusicPlayerOpen,
   extendTileToFullWidth,
   showClickToPlay,
+  preLoadedMediaListLoading = false,
   onCloseMusicPlayer,
   setLastClickedGenreForPlaylist,
   updateAssetPlayIsQueued,
@@ -42,6 +44,10 @@ export const PlaylistTile = ({
   setLaunchPlaylistPlayer,
 }: PlaylistTileProps) => {
   const handleClick = () => {
+    if (preLoadedMediaListLoading) {
+      return;
+    }
+
     onCloseMusicPlayer();
     setLastClickedGenreForPlaylist(genre.code);
 
@@ -68,7 +74,7 @@ export const PlaylistTile = ({
       key={genre.code}
       onClick={handleClick}
       className={`flex-shrink-0 ${extendTileToFullWidth ? "w-full h-40" : "w-64 h-40"} bg-black rounded-sm p-0 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden group shadow-lg
-        ${assetPlayIsQueued ? "pointer-events-none cursor-not-allowed" : ""}
+        ${assetPlayIsQueued || preLoadedMediaListLoading ? "pointer-events-none cursor-not-allowed" : ""}
         ${selectedCodeForPlaylist === genre.code ? "ring-2 ring-yellow-300" : ""} hover:scale-105`}
       style={{ background: color }}>
       {/* Genre Title */}
@@ -78,7 +84,12 @@ export const PlaylistTile = ({
       {/* Loader/Playing indicator */}
       {selectedCodeForPlaylist === "" && lastClickedGenreForPlaylist === genre.code && (
         <div className="absolute top-4 right-5 z-5">
-          <Loader className="animate-spin text-yellow-300" size={20} />
+          <Loader className="animate-spin text-black" size={20} />
+        </div>
+      )}
+      {preLoadedMediaListLoading && (
+        <div className="absolute top-4 right-5 z-5">
+          <Loader className="animate-spin text-black" size={20} />
         </div>
       )}
       {selectedCodeForPlaylist === genre.code ? (
