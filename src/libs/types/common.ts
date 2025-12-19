@@ -89,6 +89,11 @@ export interface Album {
     };
   };
   _albumCanBeFastStreamed?: boolean;
+  _collectibleMetadataDraft?: {
+    collectibleImg: string;
+    collectibleRarity: string; // "common-5000", "rare-500", "legendary-50"
+    collectibleDeployed: number; // 0 = can edit, 1 = already generated, cannot edit
+  };
 }
 
 export interface Artist {

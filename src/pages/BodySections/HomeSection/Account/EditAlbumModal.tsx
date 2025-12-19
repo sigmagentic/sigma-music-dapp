@@ -6,7 +6,7 @@ import { Switch } from "libComponents/Switch";
 import { MediaUpdate } from "libComponents/MediaUpdate";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
 import { saveMediaToServerViaAPI } from "libs/utils/api";
-import { toastError } from "libs/utils/ui";
+import { looseIsMuiModeCheck, toastError } from "libs/utils/ui";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAccountStore } from "store/account";
@@ -73,6 +73,14 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [collaboratorError, setCollaboratorError] = useState<string>("");
 
+  // Collectible Metadata state
+  const [collectibleImg, setCollectibleImg] = useState<string>("");
+  const [collectibleRarity, setCollectibleRarity] = useState<string>("common-5000");
+  const [collectibleDeployed, setCollectibleDeployed] = useState<number>(0);
+  const [newSelectedCollectibleImageFile, setNewSelectedCollectibleImageFile] = useState<File | null>(null);
+  const [isUsingAlbumImageForCollectible, setIsUsingAlbumImageForCollectible] = useState<boolean>(false);
+  const [collectibleErrors, setCollectibleErrors] = useState<{ collectibleImg?: string; collectibleRarity?: string }>({});
+
   usePreventScroll(); // Prevent scrolling on non-mobile screens on view
 
   useEffect(() => {
@@ -109,11 +117,35 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
       setArtistNameSuggestions([]);
       setShowSuggestions(false);
       setCollaboratorError("");
+
+      // Initialize collectible metadata from initialData if it exists
+      if ((initialData as any)._collectibleMetadataDraft) {
+        const metadata = (initialData as any)._collectibleMetadataDraft;
+        const existingCollectibleImg = metadata.collectibleImg || "";
+        const albumImg = defaultPricingData.img || "";
+
+        // Check if collectible image is the same as album image
+        const isSameAsAlbumImage = existingCollectibleImg === albumImg && existingCollectibleImg !== "";
+
+        setCollectibleImg(existingCollectibleImg);
+        setCollectibleRarity(metadata.collectibleRarity || "common-5000");
+        setCollectibleDeployed(metadata.collectibleDeployed || 0);
+        setIsUsingAlbumImageForCollectible(isSameAsAlbumImage);
+        setNewSelectedCollectibleImageFile(null);
+      } else {
+        setCollectibleImg("");
+        setCollectibleRarity("common-5000");
+        setCollectibleDeployed(0);
+        setIsUsingAlbumImageForCollectible(false);
+        setNewSelectedCollectibleImageFile(null);
+      }
+      setCollectibleErrors({});
     }
   }, [isOpen, initialData]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<AlbumFormData> = {};
+    const newCollectibleErrors: { collectibleImg?: string; collectibleRarity?: string } = {};
 
     if (!formData.title.trim()) {
       newErrors.title = "Title is required";
@@ -147,8 +179,36 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
       }
     }
 
+    // Validate collectible metadata if required
+    if (shouldShowCollectibleMetadata() && collectibleDeployed === 0) {
+      if (!collectibleImg && !isUsingAlbumImageForCollectible && !newSelectedCollectibleImageFile) {
+        newCollectibleErrors.collectibleImg = "Collectible image is required";
+      }
+
+      if (!collectibleRarity) {
+        newCollectibleErrors.collectibleRarity = "Collectible rarity is required";
+      }
+
+      // Validate collectible image file if a new one is selected
+      if (newSelectedCollectibleImageFile) {
+        if (newSelectedCollectibleImageFile.size > 10 * 1024 * 1024) {
+          newCollectibleErrors.collectibleImg = "Collectible image must be less than 10MB";
+        }
+
+        // Validate file type
+        const fileName = newSelectedCollectibleImageFile.name.toLowerCase();
+        const validExtensions = [".gif", ".png", ".jpg", ".jpeg"];
+        const hasValidExtension = validExtensions.some((ext) => fileName.endsWith(ext));
+
+        if (!hasValidExtension) {
+          newCollectibleErrors.collectibleImg = "Collectible image must be a GIF, PNG, or JPG file";
+        }
+      }
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setCollectibleErrors(newCollectibleErrors);
+    return Object.keys(newErrors).length === 0 && Object.keys(newCollectibleErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -200,6 +260,50 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
       }
       // E: if a new file has been selected, we need to save it to the server to get back a https url for profileImage
 
+      // Handle collectible image upload if needed
+      let finalCollectibleImg = collectibleImg;
+      if (shouldShowCollectibleMetadata() && collectibleDeployed === 0) {
+        if (isUsingAlbumImageForCollectible) {
+          // Use the album image URL (either existing or newly uploaded)
+          finalCollectibleImg = formData.img;
+        } else if (newSelectedCollectibleImageFile && addressSol) {
+          // Upload new collectible image
+          const { usedPreAccessNonce: collectibleNonce, usedPreAccessSignature: collectibleSignature } = await getOrCacheAccessNonceAndSignature({
+            solPreaccessNonce,
+            solPreaccessSignature,
+            solPreaccessTimestamp,
+            signMessage: walletType === "web3auth" && web3auth?.provider ? signMessageViaWeb3Auth : signMessage,
+            publicKey: publicKeySol,
+            updateSolPreaccessNonce,
+            updateSolSignedPreaccess,
+            updateSolPreaccessTimestamp,
+          });
+
+          if (!collectibleNonce || !collectibleSignature) {
+            throw new Error("Failed to get valid signature to prove account ownership for collectible image");
+          }
+
+          try {
+            const collectibleFileUploadResponse = await saveMediaToServerViaAPI({
+              file: newSelectedCollectibleImageFile,
+              solSignature: collectibleSignature,
+              signatureNonce: collectibleNonce,
+              creatorWallet: addressSol,
+            });
+
+            if (collectibleFileUploadResponse) {
+              finalCollectibleImg = collectibleFileUploadResponse;
+            } else {
+              toastError("Error uploading collectible image. Please reupload and try again later.");
+              return;
+            }
+          } catch (error) {
+            toastError("Error uploading collectible image: " + (error as Error)?.message);
+            return;
+          }
+        }
+      }
+
       // we only send the changed form data to the server to save
       const changedFormData: Partial<AlbumFormData> = {
         title: formData.title.trim(),
@@ -221,6 +325,15 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
         }));
       } else {
         (changedFormData as any).collaborators = [];
+      }
+
+      // Add collectible metadata if required
+      if (shouldShowCollectibleMetadata() && collectibleDeployed === 0) {
+        (changedFormData as any)._collectibleMetadataDraft = {
+          collectibleImg: finalCollectibleImg,
+          collectibleRarity: collectibleRarity,
+          collectibleDeployed: 0,
+        };
       }
 
       const success = await onSave(changedFormData as AlbumFormData);
@@ -366,6 +479,20 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
     return (artistLookup[artistId] as any)?.name || artistId;
   };
 
+  // Check if collectible metadata section should be shown
+  const shouldShowCollectibleMetadata = (): boolean => {
+    // Only show if:
+    // 1. User has uploaded an album image (either existing or newly selected)
+    // 2. AND one of the collectible-related options is selected
+    const hasAlbumImage = formData.img || newSelectedAlbumImageFile;
+    const hasCollectibleOption =
+      formData.albumPriceOption2 !== "" || // Album + Fan Collectible (NFT)
+      formData.albumPriceOption3 !== "" || // Album + Fan Collectible + Commercial AI Remix License
+      formData.albumPriceOption4 !== ""; // Album + Commercial AI Remix License
+
+    return !!(hasAlbumImage && hasCollectibleOption);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -509,7 +636,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
 
             {/* Pricing Options */}
             <div className="relative">
-              {!userArtistProfile.isVerifiedArtist && (
+              {!userArtistProfile.isVerifiedArtist && !looseIsMuiModeCheck() && (
                 <p className="mb-2 absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-yellow-400 rounded-lg p-2 text-center text-black z-10">
                   Only Verified Artists can sell albums with pricing options. Find out how to get verified{" "}
                   <a href="/faq#get-verified-artist-status" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
@@ -518,7 +645,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 </p>
               )}
               <div
-                className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${userArtistProfile.isVerifiedArtist ? "" : "opacity-20 cursor-not-allowed pointer-events-none"}`}>
+                className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${userArtistProfile.isVerifiedArtist || looseIsMuiModeCheck() ? "" : "opacity-20 cursor-not-allowed pointer-events-none"}`}>
                 {/* Option 1: Digital Album + Bonus Tracks Only */}
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
@@ -669,6 +796,111 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
               </div>
             </div>
           </div>
+
+          {/* Collectible Metadata */}
+          {shouldShowCollectibleMetadata() && (
+            <div className="space-y-2 bg-gray-800 border border-gray-600 rounded-lg p-4">
+              <div className="">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-1">
+                    <h3 className="!text-lg font-semibold text-white mb-2">Collectible Metadata</h3>
+                    {collectibleDeployed === 1 && (
+                      <p className="text-yellow-400 text-sm mb-3">Collectible is already generated so you cannot edit this anymore</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className={`relative ${collectibleDeployed === 1 ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Collectible Image */}
+                  <div className="bg-black border border-gray-600 rounded-lg p-4">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Collectible Image (Max 10MB) <span className="text-red-400">*</span>
+                    </label>
+                    <div className="mb-3">
+                      {isUsingAlbumImageForCollectible ? (
+                        <div className="space-y-2">
+                          <div className="relative inline-block">
+                            <img src={formData.img || ""} alt="Album Image Preview" className="w-32 h-32 object-cover rounded-md border-2 border-gray-600" />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsUsingAlbumImageForCollectible(false);
+                              setCollectibleImg("");
+                              setNewSelectedCollectibleImageFile(null);
+                            }}
+                            className="text-xs text-yellow-400 hover:text-yellow-300 underline">
+                            Close and upload new collectible image
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <MediaUpdate
+                            imageUrl={collectibleImg}
+                            size="md"
+                            onFileSelect={(file) => {
+                              setNewSelectedCollectibleImageFile(file);
+                              setIsUsingAlbumImageForCollectible(false);
+                            }}
+                            onFileRevert={() => {
+                              setNewSelectedCollectibleImageFile(null);
+                            }}
+                            alt="Collectible Image"
+                            imgPlaceholder="image"
+                          />
+                          {formData.img && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsUsingAlbumImageForCollectible(true);
+                                setNewSelectedCollectibleImageFile(null);
+                                setCollectibleImg("");
+                              }}
+                              className="text-xs text-yellow-400 hover:text-yellow-300 underline">
+                              Use My Same Album Image
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {collectibleErrors.collectibleImg && <p className="text-red-400 text-sm mt-1">{collectibleErrors.collectibleImg}</p>}
+                    {looseIsMuiModeCheck() && (isUsingAlbumImageForCollectible ? formData.img : collectibleImg) && (
+                      <a
+                        href={isUsingAlbumImageForCollectible ? formData.img : collectibleImg}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-yellow-400 hover:text-yellow-300 underline mt-2 inline-block">
+                        Open in New Tab
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Collectible Rarity */}
+                  <div className="bg-black border border-gray-600 rounded-lg p-4">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      How rare is the collectible? <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={collectibleRarity}
+                      onChange={(e) => {
+                        setCollectibleRarity(e.target.value);
+                        if (collectibleErrors.collectibleRarity) {
+                          setCollectibleErrors((prev) => ({ ...prev, collectibleRarity: undefined }));
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="common-5000">Common - Only 5000 Sold</option>
+                      <option value="rare-500">Rare - Only 500 Sold</option>
+                      <option value="legendary-50">Legendary - Only 50 Sold</option>
+                    </select>
+                    {collectibleErrors.collectibleRarity && <p className="text-red-400 text-sm mt-1">{collectibleErrors.collectibleRarity}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Advanced Options */}
           <div className="space-y-2 bg-gray-800 border border-gray-600 rounded-lg p-4">

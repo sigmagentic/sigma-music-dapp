@@ -6,6 +6,7 @@ import { Card } from "libComponents/Card";
 import { Artist } from "libs/types/common";
 import { Album } from "libs/types/common";
 import ratingE from "assets/img/icons/rating-E.png";
+import { formatFriendlyDate } from "libs/utils/ui";
 
 interface AlbumWithSource extends Album {
   source: "db" | "indexed";
@@ -201,6 +202,9 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
           albumPriceOption3: albumData.albumPriceOption3,
           albumPriceOption4: albumData.albumPriceOption4,
           collaborators: albumData.collaborators,
+          ...((albumData as any)._collectibleMetadataDraft && {
+            _collectibleMetadataDraft: (albumData as any)._collectibleMetadataDraft,
+          }),
         },
       };
 
@@ -227,6 +231,8 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
       return false;
     }
   };
+
+  console.log("myAlbums", myAlbums);
 
   return (
     <>
@@ -262,6 +268,11 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">{album.title}</h3>
                     <p className="text-sm text-gray-500 mb-2">{album.albumId}</p>
+                    {album.source === "indexed" && (
+                      <p className="text-xs text-gray-500 mb-2 text-green-500">
+                        Last Index On: {album.lastIndexOn ? formatFriendlyDate(album.lastIndexOn) : "N/A"}
+                      </p>
+                    )}
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
                       {album?.isExplicit === "1" && <img src={ratingE} alt="Explicit" title="Explicit" className="w-3 h-3 text-gray-400" />}
                     </div>
@@ -281,33 +292,44 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
                   </div>
                 )}
 
-                <div className="flex flex-col space-y-2">
-                  <Button onClick={() => handleViewCurrentTracks(album.albumId, album.title, album.img, album.isPublished)} disabled={isLoadingTracks}>
-                    <Eye className="w-4 h-4 mr-2" />
-                    {isLoadingTracks ? "Loading..." : "Add/Edit Tracks"}
-                  </Button>
+                {album.source === "indexed" && !album.lastIndexOn && (
+                  <div className="text-xs text-gray-500 mb-2 bg-red-500 text-white px-2 py-1 rounded-md">LEGACY ALBUM</div>
+                )}
+                {album.source === "indexed" && <div className="text-xs text-gray-500 mb-2 bg-blue-500 text-white px-2 py-1 rounded-md">INDEXED ALBUM</div>}
+                {album.source === "db" && <div className="text-xs text-gray-500 mb-2 bg-green-500 text-white px-2 py-1 rounded-md">DB ALBUM</div>}
+                {album.source === "db" && album._collectibleMetadataDraft?.collectibleDeployed === 0 && (
+                  <div className="text-xs text-gray-500 mb-2 bg-red-500 text-white px-2 py-1 rounded-md">Collectible Requested by Artist</div>
+                )}
 
-                  {album.source === "db" && (
-                    <Button
-                      onClick={() => {
-                        setSelectedAlbumForEdit(album);
-                        setShowEditAlbumModal(true);
-                      }}>
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit Album
+                {album.source === "db" && (
+                  <div className="flex flex-col space-y-2">
+                    <Button onClick={() => handleViewCurrentTracks(album.albumId, album.title, album.img, album.isPublished)} disabled={isLoadingTracks}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      {isLoadingTracks ? "Loading..." : "Add/Edit Tracks"}
                     </Button>
-                  )}
 
-                  <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title)}>
-                    <Tag className="w-4 h-4 mr-2" />
-                    Non-Commercial Collectible Metadata
-                  </Button>
+                    {album.source === "db" && (
+                      <Button
+                        onClick={() => {
+                          setSelectedAlbumForEdit(album);
+                          setShowEditAlbumModal(true);
+                        }}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit Album
+                      </Button>
+                    )}
 
-                  <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title, "t2")}>
-                    <Tag className="w-4 h-4 mr-2" />
-                    Commercial Collectible Metadata
-                  </Button>
-                </div>
+                    <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title)}>
+                      <Tag className="w-4 h-4 mr-2" />
+                      Simple Collectible Metadata
+                    </Button>
+
+                    <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title, "t2")}>
+                      <Tag className="w-4 h-4 mr-2" />
+                      AI-License Collectible Metadata
+                    </Button>
+                  </div>
+                )}
               </Card>
             ))}
           </div>
@@ -359,20 +381,25 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
             setSelectedAlbumForEdit(null);
           }}
           onSave={handleAlbumSave}
-          initialData={{
-            albumId: selectedAlbumForEdit.albumId || "",
-            title: selectedAlbumForEdit.title || "",
-            desc: selectedAlbumForEdit.desc || "",
-            img: selectedAlbumForEdit.img || "",
-            isExplicit: selectedAlbumForEdit.isExplicit || "0",
-            isPodcast: selectedAlbumForEdit.isPodcast || "0",
-            isPublished: selectedAlbumForEdit.isPublished || "0",
-            albumPriceOption1: selectedAlbumForEdit.albumPriceOption1 || "",
-            albumPriceOption2: selectedAlbumForEdit.albumPriceOption2 || "",
-            albumPriceOption3: selectedAlbumForEdit.albumPriceOption3 || "",
-            albumPriceOption4: selectedAlbumForEdit.albumPriceOption4 || "",
-            collaborators: selectedAlbumForEdit.collaborators || [],
-          }}
+          initialData={
+            {
+              albumId: selectedAlbumForEdit.albumId || "",
+              title: selectedAlbumForEdit.title || "",
+              desc: selectedAlbumForEdit.desc || "",
+              img: selectedAlbumForEdit.img || "",
+              isExplicit: selectedAlbumForEdit.isExplicit || "0",
+              isPodcast: selectedAlbumForEdit.isPodcast || "0",
+              isPublished: selectedAlbumForEdit.isPublished || "0",
+              albumPriceOption1: selectedAlbumForEdit.albumPriceOption1 || "",
+              albumPriceOption2: selectedAlbumForEdit.albumPriceOption2 || "",
+              albumPriceOption3: selectedAlbumForEdit.albumPriceOption3 || "",
+              albumPriceOption4: selectedAlbumForEdit.albumPriceOption4 || "",
+              collaborators: selectedAlbumForEdit.collaborators || [],
+              ...(selectedAlbumForEdit._collectibleMetadataDraft && {
+                _collectibleMetadataDraft: selectedAlbumForEdit._collectibleMetadataDraft,
+              }),
+            } as any
+          }
           albumTitle={selectedAlbumForEdit.title || ""}
           isNewAlbum={!selectedAlbumForEdit.title} // If no title, it's a new album
         />

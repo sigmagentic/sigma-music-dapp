@@ -233,6 +233,9 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
           albumPriceOption3: albumData.albumPriceOption3,
           albumPriceOption4: albumData.albumPriceOption4,
           collaborators: albumData.collaborators,
+          ...((albumData as any)._collectibleMetadataDraft && {
+            _collectibleMetadataDraft: (albumData as any)._collectibleMetadataDraft,
+          }),
         },
       };
 
@@ -957,7 +960,10 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
             albumPriceOption3: selectedAlbumForEdit.albumPriceOption3 || "",
             albumPriceOption4: selectedAlbumForEdit.albumPriceOption4 || "",
             collaborators: selectedAlbumForEdit.collaborators || [],
-          }}
+            ...(selectedAlbumForEdit._collectibleMetadataDraft && {
+              _collectibleMetadataDraft: selectedAlbumForEdit._collectibleMetadataDraft,
+            }),
+          } as any}
           albumTitle={selectedAlbumForEdit.title || ""}
           isNewAlbum={!selectedAlbumForEdit.title} // If no title, it's a new album
         />
