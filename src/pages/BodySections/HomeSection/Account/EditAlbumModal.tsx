@@ -5,7 +5,7 @@ import { Input } from "libComponents/Input";
 import { Switch } from "libComponents/Switch";
 import { MediaUpdate } from "libComponents/MediaUpdate";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { saveMediaToServerViaAPI } from "libs/utils/api";
+import { saveLargerMediaToServerViaAPI, saveMediaToServerViaAPI } from "libs/utils/api";
 import { looseIsMuiModeCheck, toastError } from "libs/utils/ui";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -286,12 +286,27 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
           }
 
           try {
-            const collectibleFileUploadResponse = await saveMediaToServerViaAPI({
-              file: newSelectedCollectibleImageFile,
-              solSignature: collectibleSignature,
-              signatureNonce: collectibleNonce,
-              creatorWallet: addressSol,
-            });
+            // here we use the saveLargerMediaToServerViaAPI to save the collectible image as it is larger than 3MB
+            let collectibleFileUploadResponse = "";
+
+            if (newSelectedCollectibleImageFile.size > 3 * 1024 * 1024) {
+              collectibleFileUploadResponse = await saveLargerMediaToServerViaAPI({
+                file: newSelectedCollectibleImageFile,
+                solSignature: collectibleSignature,
+                signatureNonce: collectibleNonce,
+                creatorWallet: addressSol,
+                fileType: newSelectedCollectibleImageFile.type,
+                fileName: newSelectedCollectibleImageFile.name,
+                fileSize: newSelectedCollectibleImageFile.size,
+              });
+            } else {
+              collectibleFileUploadResponse = await saveMediaToServerViaAPI({
+                file: newSelectedCollectibleImageFile,
+                solSignature: collectibleSignature,
+                signatureNonce: collectibleNonce,
+                creatorWallet: addressSol,
+              });
+            }
 
             if (collectibleFileUploadResponse) {
               finalCollectibleImg = collectibleFileUploadResponse;
@@ -391,7 +406,12 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
     // Only allow whole numbers between 1 and 1000
     const numValue = parseInt(value, 10);
     if (value === "" || (numValue >= 1 && numValue <= 1000 && Number.isInteger(numValue))) {
-      setFormData((prev) => ({ ...prev, [option]: value }));
+      // if the user presses back and clears the value, we need to set the value to "1" as default or else the toggle gets called and disabled
+      if (value === "") {
+        setFormData((prev) => ({ ...prev, [option]: "1" }));
+      } else {
+        setFormData((prev) => ({ ...prev, [option]: value }));
+      }
     }
   };
 
