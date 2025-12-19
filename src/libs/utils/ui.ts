@@ -383,3 +383,7 @@ export function showArtistNameUsingAlId(alId: string, artistLookupEverything: an
     }
   }
 }
+
+export const looseIsMuiModeCheck = (): boolean => {
+  return window.location.pathname.includes("/mui");
+};

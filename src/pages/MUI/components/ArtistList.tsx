@@ -5,7 +5,7 @@ import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
 import { Artist } from "libs/types/common";
 import { CollectibleMetadataModal } from "./CollectibleMetadataModal";
-import { toastError, toastSuccess } from "libs/utils/ui";
+import { formatFriendlyDate, toastError, toastSuccess } from "libs/utils/ui";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useAccountStore } from "store/account";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -119,9 +119,12 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
                 <a href={`/?artist=${artist.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 mb-2 hover:underline">
                   <p className="text-sm text-gray-500 mb-2">@{artist.slug}</p>
                 </a>
+                {!artist.lastIndexOn && <div className="text-xs text-gray-500 mb-2 bg-red-500 text-white px-2 py-1 rounded-md">LEGACY ARTIST</div>}
                 <div className="flex items-center space-x-2">
                   <p className="text-sm text-gray-500 mb-2">{artist.artistId}</p>
-                  <p className="text-xs text-gray-500 mb-2">Last Index On: {artist.lastIndexOn ? new Date(artist.lastIndexOn).toLocaleString() : "N/A"}</p>
+                  <p className="text-xs text-gray-500 mb-2 text-green-500">
+                    Last Index On: {artist.lastIndexOn ? formatFriendlyDate(artist.lastIndexOn) : "N/A"}
+                  </p>
                 </div>
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   {artist.creatorPaymentsWallet && (
@@ -165,7 +168,7 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
             <div className="flex flex-col space-y-2">
               <Button onClick={() => handleViewCollectibleMetadata(artist.name, artist.artistId, artist.creatorPaymentsWallet, "t1")}>
                 <Tag className="w-4 h-4 mr-2" />
-                View Basic Fan Collectible Metadata
+                Fan Collectible Metadata
               </Button>
               <Button onClick={() => onArtistSelect(artist.artistId, artist.name)}>View Albums</Button>
 
@@ -177,7 +180,7 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
                   Promote to Verified Artist
                 </Button>
               ) : (
-                <p>Artist is Already Verified!</p>
+                <p className="text-xs text-gray-500 mb-2 bg-green-800 text-white px-2 py-1 rounded-md">Artist is Already Verified!</p>
               )}
             </div>
           </Card>

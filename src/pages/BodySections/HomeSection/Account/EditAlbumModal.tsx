@@ -28,6 +28,7 @@ export interface AlbumFormData {
   albumPriceOption2: string; // Album + Fan Collectible (NFT)
   albumPriceOption3: string; // Album + Fan Collectible + Commercial AI Remix License
   albumPriceOption4: string; // Album + Commercial AI Remix License
+  albumAllowPayMore: string; // "1" or "0" - let fans pay more if they want
   collaborators: AlbumCollaborator[];
 }
 
@@ -92,6 +93,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
         albumPriceOption2: initialData.albumPriceOption2 || "",
         albumPriceOption3: initialData.albumPriceOption3 || "",
         albumPriceOption4: initialData.albumPriceOption4 || "",
+        albumAllowPayMore: (initialData as any).albumAllowPayMore || "0",
       };
 
       setFormData(defaultPricingData);
@@ -316,6 +318,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
         albumPriceOption2: formData.albumPriceOption2,
         albumPriceOption3: formData.albumPriceOption3,
         albumPriceOption4: formData.albumPriceOption4,
+        albumAllowPayMore: formData.albumAllowPayMore || "0",
       };
 
       // Add collaborators data in the required format
@@ -358,6 +361,42 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
 
   const handleToggleChange = (field: "isExplicit" | "isPodcast" | "isPublished", checked: boolean) => {
     setFormData((prev) => ({ ...prev, [field]: checked ? "1" : "0" }));
+  };
+
+  const handlePricingOptionToggle = (option: "albumPriceOption1" | "albumPriceOption2" | "albumPriceOption3" | "albumPriceOption4", enabled: boolean) => {
+    setFormData((prev) => {
+      if (enabled) {
+        // Set to lowest recommended price when enabled
+        const defaultPrices: Record<string, string> = {
+          albumPriceOption1: "4", // Digital Album + Bonus Tracks Only: $4-$9
+          albumPriceOption2: "14", // Album + Fan Collectible (NFT): $14-$19
+          albumPriceOption3: "44", // Album + Fan Collectible + Commercial AI Remix License: $44-$49
+          albumPriceOption4: "34", // Album + Commercial AI Remix License: $34-$39
+        };
+        return {
+          ...prev,
+          [option]: defaultPrices[option] || "1",
+        };
+      } else {
+        // Clear the value when disabled
+        return {
+          ...prev,
+          [option]: "",
+        };
+      }
+    });
+  };
+
+  const handlePricingOptionValueChange = (option: "albumPriceOption1" | "albumPriceOption2" | "albumPriceOption3" | "albumPriceOption4", value: string) => {
+    // Only allow whole numbers between 1 and 1000
+    const numValue = parseInt(value, 10);
+    if (value === "" || (numValue >= 1 && numValue <= 1000 && Number.isInteger(numValue))) {
+      setFormData((prev) => ({ ...prev, [option]: value }));
+    }
+  };
+
+  const isAnyPricingOptionEnabled = (): boolean => {
+    return formData.albumPriceOption1 !== "" || formData.albumPriceOption2 !== "" || formData.albumPriceOption3 !== "" || formData.albumPriceOption4 !== "";
   };
 
   const showPricingInfo = (title: string, content: string) => {
@@ -668,19 +707,29 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                       </svg>
                     </button>
                   </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium text-gray-300">Enable this option</label>
+                    <Switch
+                      checked={formData.albumPriceOption1 !== ""}
+                      onCheckedChange={(checked) => handlePricingOptionToggle("albumPriceOption1", checked)}
+                    />
+                  </div>
                   {formData.albumPriceOption1 !== "" && (
-                    <div className="mb-2">
-                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
+                    <div className="mt-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Price ($)</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        step="1"
+                        value={formData.albumPriceOption1}
+                        onChange={(e) => handlePricingOptionValueChange("albumPriceOption1", e.target.value)}
+                        placeholder="Enter price (1-1000)"
+                        className="w-full"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Recommended: $4-$9</p>
                     </div>
                   )}
-                  <select
-                    value={formData.albumPriceOption1}
-                    onChange={(e) => handleInputChange("albumPriceOption1", e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Not Enabled</option>
-                    <option value="4">$4 (less than 6 tracks album)</option>
-                    <option value="9">$9 (more than 6 tracks in album)</option>
-                  </select>
                 </div>
 
                 {/* Option 4: Album + Commercial AI Remix License */}
@@ -705,19 +754,29 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                       </svg>
                     </button>
                   </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium text-gray-300">Enable this option</label>
+                    <Switch
+                      checked={formData.albumPriceOption4 !== ""}
+                      onCheckedChange={(checked) => handlePricingOptionToggle("albumPriceOption4", checked)}
+                    />
+                  </div>
                   {formData.albumPriceOption4 !== "" && (
-                    <div className="mb-2">
-                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
+                    <div className="mt-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Price ($)</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        step="1"
+                        value={formData.albumPriceOption4}
+                        onChange={(e) => handlePricingOptionValueChange("albumPriceOption4", e.target.value)}
+                        placeholder="Enter price (1-1000)"
+                        className="w-full"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Recommended: $34-$39</p>
                     </div>
                   )}
-                  <select
-                    value={formData.albumPriceOption4}
-                    onChange={(e) => handleInputChange("albumPriceOption4", e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Not Enabled</option>
-                    <option value="34">$34 (less than 6 tracks album)</option>
-                    <option value="39">$39 (more than 6 tracks in album)</option>
-                  </select>
                 </div>
 
                 {/* Option 2: Album + Fan Collectible (NFT) */}
@@ -742,19 +801,29 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                       </svg>
                     </button>
                   </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium text-gray-300">Enable this option</label>
+                    <Switch
+                      checked={formData.albumPriceOption2 !== ""}
+                      onCheckedChange={(checked) => handlePricingOptionToggle("albumPriceOption2", checked)}
+                    />
+                  </div>
                   {formData.albumPriceOption2 !== "" && (
-                    <div className="mb-2">
-                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
+                    <div className="mt-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Price ($)</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        step="1"
+                        value={formData.albumPriceOption2}
+                        onChange={(e) => handlePricingOptionValueChange("albumPriceOption2", e.target.value)}
+                        placeholder="Enter price (1-1000)"
+                        className="w-full"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Recommended: $14-$19</p>
                     </div>
                   )}
-                  <select
-                    value={formData.albumPriceOption2}
-                    onChange={(e) => handleInputChange("albumPriceOption2", e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Not Enabled</option>
-                    <option value="14">$14 (less than 6 tracks album)</option>
-                    <option value="19">$19 (more than 6 tracks in album)</option>
-                  </select>
                 </div>
 
                 {/* Option 3: Album + Fan Collectible + Commercial AI Remix License */}
@@ -779,22 +848,64 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                       </svg>
                     </button>
                   </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium text-gray-300">Enable this option</label>
+                    <Switch
+                      checked={formData.albumPriceOption3 !== ""}
+                      onCheckedChange={(checked) => handlePricingOptionToggle("albumPriceOption3", checked)}
+                    />
+                  </div>
                   {formData.albumPriceOption3 !== "" && (
-                    <div className="mb-2">
-                      <span className="px-2 py-1 text-xs font-semibold text-black bg-yellow-400 rounded">Enabled</span>
+                    <div className="mt-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Price ($)</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        step="1"
+                        value={formData.albumPriceOption3}
+                        onChange={(e) => handlePricingOptionValueChange("albumPriceOption3", e.target.value)}
+                        placeholder="Enter price (1-1000)"
+                        className="w-full"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Recommended: $44-$49</p>
                     </div>
                   )}
-                  <select
-                    value={formData.albumPriceOption3}
-                    onChange={(e) => handleInputChange("albumPriceOption3", e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Not Enabled</option>
-                    <option value="44">$44 (less than 6 tracks album)</option>
-                    <option value="49">$49 (more than 6 tracks in album)</option>
-                  </select>
                 </div>
               </div>
             </div>
+
+            {/* Let Fans Pay More Option */}
+            {isAnyPricingOptionEnabled() && (
+              <div className="mt-4 bg-black border border-gray-600 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <label className="text-sm font-medium text-gray-300">Let fans pay more if they want</label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        showPricingInfo(
+                          "Let fans pay more if they want",
+                          'This feature is not live yet but is very coming soon: once it\'s live it will use your selected pricing as the "minimum price" and allow fans to pay more if they want to support you!'
+                        )
+                      }
+                      className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <Switch
+                    checked={formData.albumAllowPayMore === "1"}
+                    onCheckedChange={(checked) => handleInputChange("albumAllowPayMore", checked ? "1" : "0")}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Collectible Metadata */}
@@ -815,12 +926,12 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Collectible Image */}
                   <div className="bg-black border border-gray-600 rounded-lg p-4">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2 text-center">
                       Collectible Image (Max 10MB) <span className="text-red-400">*</span>
                     </label>
                     <div className="mb-3">
                       {isUsingAlbumImageForCollectible ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2 flex-col flex items-center justify-between">
                           <div className="relative inline-block">
                             <img src={formData.img || ""} alt="Album Image Preview" className="w-32 h-32 object-cover rounded-md border-2 border-gray-600" />
                           </div>
@@ -836,7 +947,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                           </button>
                         </div>
                       ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-2 flex-col flex items-center justify-between">
                           <MediaUpdate
                             imageUrl={collectibleImg}
                             size="md"
@@ -865,7 +976,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                         </div>
                       )}
                     </div>
-                    {collectibleErrors.collectibleImg && <p className="text-red-400 text-sm mt-1">{collectibleErrors.collectibleImg}</p>}
+                    {collectibleErrors.collectibleImg && <p className="text-red-400 text-sm mt-1 text-center">{collectibleErrors.collectibleImg}</p>}
                     {looseIsMuiModeCheck() && (isUsingAlbumImageForCollectible ? formData.img : collectibleImg) && (
                       <a
                         href={isUsingAlbumImageForCollectible ? formData.img : collectibleImg}

@@ -232,6 +232,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
           albumPriceOption2: albumData.albumPriceOption2,
           albumPriceOption3: albumData.albumPriceOption3,
           albumPriceOption4: albumData.albumPriceOption4,
+          albumAllowPayMore: (albumData as any).albumAllowPayMore || "0",
           collaborators: albumData.collaborators,
           ...((albumData as any)._collectibleMetadataDraft && {
             _collectibleMetadataDraft: (albumData as any)._collectibleMetadataDraft,
@@ -947,23 +948,26 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
             setSelectedAlbumForEdit(null);
           }}
           onSave={handleAlbumSave}
-          initialData={{
-            albumId: selectedAlbumForEdit.albumId || "",
-            title: selectedAlbumForEdit.title || "",
-            desc: selectedAlbumForEdit.desc || "",
-            img: selectedAlbumForEdit.img || "",
-            isExplicit: selectedAlbumForEdit.isExplicit || "0",
-            isPodcast: selectedAlbumForEdit.isPodcast || "0",
-            isPublished: selectedAlbumForEdit.isPublished || "0",
-            albumPriceOption1: selectedAlbumForEdit.albumPriceOption1 || "",
-            albumPriceOption2: selectedAlbumForEdit.albumPriceOption2 || "",
-            albumPriceOption3: selectedAlbumForEdit.albumPriceOption3 || "",
-            albumPriceOption4: selectedAlbumForEdit.albumPriceOption4 || "",
-            collaborators: selectedAlbumForEdit.collaborators || [],
-            ...(selectedAlbumForEdit._collectibleMetadataDraft && {
-              _collectibleMetadataDraft: selectedAlbumForEdit._collectibleMetadataDraft,
-            }),
-          } as any}
+          initialData={
+            {
+              albumId: selectedAlbumForEdit.albumId || "",
+              title: selectedAlbumForEdit.title || "",
+              desc: selectedAlbumForEdit.desc || "",
+              img: selectedAlbumForEdit.img || "",
+              isExplicit: selectedAlbumForEdit.isExplicit || "0",
+              isPodcast: selectedAlbumForEdit.isPodcast || "0",
+              isPublished: selectedAlbumForEdit.isPublished || "0",
+              albumPriceOption1: selectedAlbumForEdit.albumPriceOption1 || "",
+              albumPriceOption2: selectedAlbumForEdit.albumPriceOption2 || "",
+              albumPriceOption3: selectedAlbumForEdit.albumPriceOption3 || "",
+              albumPriceOption4: selectedAlbumForEdit.albumPriceOption4 || "",
+              albumAllowPayMore: (selectedAlbumForEdit as any).albumAllowPayMore || "0",
+              collaborators: selectedAlbumForEdit.collaborators || [],
+              ...(selectedAlbumForEdit._collectibleMetadataDraft && {
+                _collectibleMetadataDraft: selectedAlbumForEdit._collectibleMetadataDraft,
+              }),
+            } as any
+          }
           albumTitle={selectedAlbumForEdit.title || ""}
           isNewAlbum={!selectedAlbumForEdit.title} // If no title, it's a new album
         />
@@ -1222,7 +1226,7 @@ const ArtistAlbumList: React.FC<{
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="!text-md font-semibold text-gray-200">{album.title}</h3>
+                    <h3 className="!text-md font-semibold text-gray-200 truncate max-w-[200px]">{album.title}</h3>
                   </div>
                   <p className="text-xs text-gray-600 mb-1">id: {album.albumId}</p>
                   {album.bountyId && <p className="mb-1 text-xs text-gray-600">Bounty ID: {album.bountyId}</p>}
