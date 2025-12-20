@@ -934,7 +934,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
               <div className="">
                 <div className="flex items-start space-x-3">
                   <div className="flex-1">
-                    <h3 className="!text-lg font-semibold text-white mb-2">Collectible Metadata</h3>
+                    <h3 className="!text-lg font-semibold text-white mb-2">Fan Collectible Metadata</h3>
                     {collectibleDeployed === 1 && (
                       <p className="text-yellow-400 text-sm mb-3">Collectible is already generated so you cannot edit this anymore</p>
                     )}
@@ -947,7 +947,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                   {/* Collectible Image */}
                   <div className="bg-black border border-gray-600 rounded-lg p-4">
                     <label className="block text-sm font-medium text-gray-300 mb-2 text-center">
-                      Collectible Image (Max 10MB) <span className="text-red-400">*</span>
+                      Collectible Image (Max 10MB. Only PNG & GIF files allowed) <span className="text-red-400">*</span>
                     </label>
                     <div className="mb-3">
                       {isUsingAlbumImageForCollectible ? (

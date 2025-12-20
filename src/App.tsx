@@ -75,17 +75,8 @@ export const App = () => {
           if (artistSubGroup1Code && artistSubGroup2Code) {
             // e.g. campaign=wsb&country=phl&team=mrw
 
-            const currentParams = Object.fromEntries(searchParams.entries());
-
-            // remove all other first
-            delete currentParams["artist"];
-            delete currentParams["tab"];
-            delete currentParams["action"];
-            delete currentParams["country"];
-            delete currentParams["team"];
-            delete currentParams["campaign"];
-            delete currentParams["section"];
-            delete currentParams["view"];
+            let currentParams = Object.fromEntries(searchParams.entries());
+            currentParams = centralDeletionOfAllDeepSearchParams(currentParams);
 
             currentParams["campaign"] = artistCampaignCode;
             currentParams["country"] = artistSubGroup1Code;
@@ -97,17 +88,8 @@ export const App = () => {
           } else if (artistSubGroup1Code) {
             // e.g. campaign=wsb&country=phl
 
-            const currentParams = Object.fromEntries(searchParams.entries());
-
-            // remove all other first
-            delete currentParams["artist"];
-            delete currentParams["tab"];
-            delete currentParams["action"];
-            delete currentParams["country"];
-            delete currentParams["team"];
-            delete currentParams["campaign"];
-            delete currentParams["section"];
-            delete currentParams["view"];
+            let currentParams = Object.fromEntries(searchParams.entries());
+            currentParams = centralDeletionOfAllDeepSearchParams(currentParams);
 
             currentParams["campaign"] = artistCampaignCode;
             currentParams["country"] = artistSubGroup1Code;
@@ -118,17 +100,8 @@ export const App = () => {
           } else {
             // e.g. campaign=wsb
 
-            const currentParams = Object.fromEntries(searchParams.entries());
-
-            // remove all other first
-            delete currentParams["artist"];
-            delete currentParams["tab"];
-            delete currentParams["action"];
-            delete currentParams["country"];
-            delete currentParams["team"];
-            delete currentParams["campaign"];
-            delete currentParams["section"];
-            delete currentParams["view"];
+            let currentParams = Object.fromEntries(searchParams.entries());
+            currentParams = centralDeletionOfAllDeepSearchParams(currentParams);
 
             currentParams["campaign"] = artistCampaignCode;
 
@@ -147,9 +120,9 @@ export const App = () => {
         }
       } else {
         if (artistSlug) {
-          const currentParams = Object.fromEntries(searchParams.entries());
-          delete currentParams["section"];
-          delete currentParams["view"];
+          let currentParams = Object.fromEntries(searchParams.entries());
+          currentParams = centralDeletionOfAllDeepSearchParams(currentParams);
+
           let slugToUse = artistSlug;
 
           if (albumId) {
@@ -164,30 +137,27 @@ export const App = () => {
 
           if (toAction) {
             currentParams["action"] = toAction;
-          } else {
-            delete currentParams["action"];
           }
 
           if (toTrackIdForDeepLink) {
             currentParams["alId"] = toTrackIdForDeepLink;
-          } else {
-            delete currentParams["alId"];
           }
 
           // setFeaturedArtistDeepLinkSlug(artistSlug); // removed this on 29 Sep as setSearchParams should do the work, not sure if it has any impact but seemed to now have any impact on the app
           setHomeMode(`artists-${new Date().getTime()}`);
           setSearchParams(currentParams);
         } else if (toSection) {
-          const currentParams = Object.fromEntries(searchParams.entries());
+          let currentParams = Object.fromEntries(searchParams.entries());
+          currentParams = centralDeletionOfAllDeepSearchParams(currentParams);
+
           currentParams["section"] = toSection;
 
           if (toView) {
             currentParams["view"] = toView;
-          } else {
-            delete currentParams["view"];
           }
 
           setSearchParams(currentParams);
+
           setHomeMode(toSection + "-" + new Date().getTime());
         }
       }
@@ -196,6 +166,10 @@ export const App = () => {
 
   const removeDeepSectionParamsFromUrl = () => {
     const currentParams = Object.fromEntries(searchParams.entries());
+    setSearchParams(centralDeletionOfAllDeepSearchParams(currentParams));
+  };
+
+  const centralDeletionOfAllDeepSearchParams = (currentParams: Record<string, string>) => {
     delete currentParams["artist"];
     delete currentParams["tab"];
     delete currentParams["action"];
@@ -205,7 +179,8 @@ export const App = () => {
     delete currentParams["section"];
     delete currentParams["view"];
     delete currentParams["alId"];
-    setSearchParams(currentParams);
+
+    return currentParams;
   };
 
   return (

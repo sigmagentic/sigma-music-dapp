@@ -584,7 +584,7 @@ export const FeaturedBanners = ({
       </div>
 
       {/* Featured albums */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
+      <div className="flex hidden flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
           <span className="text-lg text-white/70">Featured Albums</span>
         </div>
@@ -637,7 +637,7 @@ export const FeaturedBanners = ({
       {/* AI Remix Ready Music */}
       <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
-          <span className="text-lg text-white/70">AI Remix-Ready Music (IP-Licensed)</span>
+          <span className="text-lg text-white/70">AI Remix-Ready Music (IP-Cleared)</span>
         </div>
         {isLoadingLatestAlbumOptions ? (
           <LoadingSkeleton />
