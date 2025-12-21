@@ -1934,3 +1934,30 @@ export const clearLaunchpadDataCache = (artistId?: string, albumId?: string): vo
     });
   }
 };
+
+export const managementCreateStoryAccount = async (userData: any) => {
+  try {
+    const response = await fetch(`${getApiWeb2Apps()}/datadexapi/sigma/management/createStoryAccount`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      let someHttpErrorContext = `HTTP error! status: ${response.status}`;
+      if (data.error && data.errorMessage) {
+        someHttpErrorContext += ` - ${data.errorMessage}`;
+      }
+      throw new Error(someHttpErrorContext);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error creating story account:", error);
+    throw error;
+  }
+};

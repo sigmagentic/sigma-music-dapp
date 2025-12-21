@@ -13,6 +13,21 @@ export interface ExtendedViewDataReturnType extends ViewDataReturnType {
   blobDataType: BlobDataType;
 }
 
+// NOT used yet, we have to implement it but it may cause type errors across the app
+export interface UserAccount {
+  billingEmail: string;
+  chainId: string;
+  createdTS: number;
+  displayName: string;
+  lastLoginTS: number;
+  lastUpdatedTS: number;
+  normalizedAddr: string;
+  profileImage: string;
+  profileTypes: string[];
+  rawAddr: string;
+  storyProtocolAddress?: string;
+}
+
 export interface MusicTrack {
   idx: number;
   nftCollection?: string;
@@ -129,6 +144,7 @@ export interface Artist {
   lastIndexOn?: number;
   albums: Album[];
   launchpadLiveOnAlbumId?: string; // The albumId of the currently live launchpad, or "na" if none
+  _runtimeInjected_storyProtocolAddress?: string; // a value we can get from the user accout and attach to the artist profile (in future we can make it part of indexing)
 }
 
 export interface AlbumWithArtist extends Album {
@@ -285,7 +301,7 @@ export interface MyAlbumMintLog {
   storyProtocolLicenseMintingTxHash?: string;
 }
 
-// AI Remix based
+// S: AI Remix
 export interface AiRemixTrackVersion {
   bountyId: string;
   streamUrl: string;
@@ -331,6 +347,7 @@ export interface AiRemixRawTrack {
   refTrackWasFreeLicense?: string; // 0 or 1 indicated if the reference track was a free license track (i.e. sigma platform owns the rights to the remix)
   // isNewlyCreated?: boolean; // was the track just created during the current browser sessio (so we can mark it as newly created)
 }
+// E: AI Remix
 
 export interface FastStreamTrack {
   file: string;

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Plus, Music, Users, Tag } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Music, Users, Tag } from "lucide-react";
 import { Badge } from "libComponents/Badge";
 import { Button } from "libComponents/Button";
 import { Card } from "libComponents/Card";
@@ -10,7 +10,7 @@ import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useAccountStore } from "store/account";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
-import { updateArtistProfileOnBackEndAPI } from "libs/utils";
+import { managementCreateStoryAccount, updateArtistProfileOnBackEndAPI } from "libs/utils";
 
 interface ArtistListProps {
   artists: Artist[];
@@ -24,11 +24,24 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
   const [selectedCollectibleTier, setSelectedCollectibleTier] = useState<string>("");
   const [selectedArtistTitle, setSelectedArtistTitle] = useState<string>("");
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
+  const [sortedArtists, setSortedArtists] = useState<Artist[]>([]);
+  const [loadingStoryAccountForWallet, setLoadingStoryAccountForWallet] = useState<string | null>(null);
 
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
   const { signMessage } = useWallet();
   const { publicKey } = useSolanaWallet();
+
+  useEffect(() => {
+    console.log("artists", artists);
+    // lets move artists who a lastIndexOn value to the top of the list
+    const sortedArtists = artists.sort((a, b) => {
+      if (a.lastIndexOn && !b.lastIndexOn) return -1;
+      if (!a.lastIndexOn && b.lastIndexOn) return 1;
+      return 0;
+    });
+    setSortedArtists(sortedArtists);
+  }, [artists]);
 
   const handleViewCollectibleMetadata = async (artistName: string, artistId: string, creatorPaymentsWallet: string, tier: string) => {
     const collectibleId = `${creatorPaymentsWallet}-${artistId}-${tier}`;
@@ -36,7 +49,7 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
     setSelectedArtistTitle(artistName);
     setSelectedCollectibleTier(tier || "");
     setIsCollectibleModalOpen(true);
-    setSelectedArtist(artists.find((artist) => artist.artistId === artistId) || null);
+    setSelectedArtist(sortedArtists.find((artist) => artist.artistId === artistId) || null);
   };
 
   const handleCloseCollectibleModal = () => {
@@ -68,7 +81,7 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
       });
 
       if (!usedPreAccessNonce || !usedPreAccessSignature) {
-        throw new Error("Failed to valid signature to prove account ownership");
+        throw new Error("Failed to get valid signature to prove account ownership");
       }
 
       // only send the changed form data to the server to save
@@ -94,7 +107,98 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
     }
   };
 
-  console.log("artists", artists);
+  const getOrCreateStoryAccountForArtist = async (creatorWallet: string, onlyCheckIfAccountExists: boolean = false) => {
+    // Validation checks
+    if (!creatorWallet) {
+      toastError("Creator wallet address is required");
+      return;
+    }
+
+    if (!publicKey) {
+      toastError("Please connect your wallet first");
+      return;
+    }
+
+    // Prevent multiple simultaneous requests for the same wallet
+    if (loadingStoryAccountForWallet === creatorWallet) {
+      return;
+    }
+
+    setLoadingStoryAccountForWallet(creatorWallet);
+
+    try {
+      // Get the pre-access nonce and signature
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage,
+        publicKey,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
+      if (!usedPreAccessNonce || !usedPreAccessSignature) {
+        throw new Error("Failed to get valid signature to prove account ownership");
+      }
+
+      const storyAccountControlResponse = await managementCreateStoryAccount({
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
+        adminWallet: publicKey.toBase58(),
+        "userDefaultAddress": creatorWallet,
+        "onlyCheckIfAccountExists": onlyCheckIfAccountExists ? "1" : "0",
+      });
+
+      /*
+    a successful response will look like this:
+      {
+          "success": true,
+          "storyProtocolAddress": "0x9DfF03BE3f0eb7967F3DA78De0A1CF2De61d0D5d",
+          "wasNewAccountCreated": false
+      }
+
+    lets find the artist in the sortedArtists array and update the _runtimeInjected_storyProtocolAddress field
+    */
+
+      if (storyAccountControlResponse.success) {
+        if (storyAccountControlResponse.storyProtocolAddress === "") {
+          toastError("This user does not have a story account yet!");
+        } else {
+          // Find the artist and create a new object with the updated story protocol address
+          setSortedArtists((prevArtists) =>
+            prevArtists.map((artist) => {
+              if (artist.creatorWallet === creatorWallet) {
+                return {
+                  ...artist,
+                  _runtimeInjected_storyProtocolAddress: storyAccountControlResponse.storyProtocolAddress,
+                };
+              }
+              return artist;
+            })
+          );
+
+          if (!onlyCheckIfAccountExists) {
+            if (storyAccountControlResponse.wasNewAccountCreated) {
+              toastSuccess("New story account created successfully.");
+            } else {
+              toastSuccess("Story account already exists.");
+            }
+          } else {
+            toastSuccess("Story account found and displayed.");
+          }
+        }
+      } else {
+        toastError("Error creating story account: " + (storyAccountControlResponse.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error getting or creating story account: ", error);
+      toastError("Error getting or creating story account: " + (error as Error).message);
+    } finally {
+      setLoadingStoryAccountForWallet(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -105,13 +209,13 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
         </div>
         <div className="flex items-center space-x-2">
           <Badge variant="secondary" className="">
-            {artists.length} Artists
+            {sortedArtists.length} Artists
           </Badge>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {artists.map((artist) => (
+        {sortedArtists.map((artist) => (
           <Card key={artist.artistId} className="p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -126,17 +230,43 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
                     Last Index On: {artist.lastIndexOn ? formatFriendlyDate(artist.lastIndexOn) : "N/A"}
                   </p>
                 </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <div className="flex flex-col text-sm text-gray-600">
+                  {artist.creatorWallet && (
+                    <div className="flex items-center space-x-1">
+                      <Users className="w-4 h-4" />
+                      <span className="text-xs">Creator wallet:</span>
+                      <div className="relative group">
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(artist.creatorWallet);
+                              toastSuccess("Wallet copied to clipboard!");
+                            } catch (err) {
+                              console.error("Failed to copy: ", err);
+                              toastError("Failed to copy to clipboard");
+                            }
+                          }}
+                          className="text-gray-300 hover:text-gray-200 hover:underline cursor-pointer transition-colors">
+                          <span className="font-mono text-xs">
+                            {artist.creatorWallet.slice(0, 6)}...{artist.creatorWallet.slice(-4)}
+                          </span>
+                        </button>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                          Click to Copy
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {artist.creatorPaymentsWallet && (
                     <div className="flex items-center space-x-1">
                       <Users className="w-4 h-4" />
-
+                      <span className="text-xs">Creator payment wallet:</span>
                       <div className="relative group">
                         <button
                           onClick={async () => {
                             try {
                               await navigator.clipboard.writeText(artist.creatorPaymentsWallet);
-                              toastSuccess("Creator Payments Wallet copied to clipboard!");
+                              toastSuccess("Wallet copied to clipboard!");
                             } catch (err) {
                               console.error("Failed to copy: ", err);
                               toastError("Failed to copy to clipboard");
@@ -152,6 +282,34 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
                         </div>
                       </div>
                     </div>
+                  )}
+                  {artist.lastIndexOn && (
+                    <>
+                      {artist._runtimeInjected_storyProtocolAddress && (
+                        <div className="flex items-center space-x-1 mt-2">
+                          <span className="text-xs">Story Account:</span>
+                          <span className="text-xs">{artist._runtimeInjected_storyProtocolAddress}</span>
+                        </div>
+                      )}
+                      {!artist._runtimeInjected_storyProtocolAddress && artist.creatorWallet && (
+                        <div className="flex items-center space-x-1 mt-2">
+                          <Button
+                            variant="outline"
+                            className="text-xs"
+                            onClick={() => getOrCreateStoryAccountForArtist(artist.creatorWallet!, true)}
+                            disabled={loadingStoryAccountForWallet === artist.creatorWallet}>
+                            {loadingStoryAccountForWallet === artist.creatorWallet ? "Loading..." : "Get Story Account"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="text-xs"
+                            onClick={() => getOrCreateStoryAccountForArtist(artist.creatorWallet!)}
+                            disabled={loadingStoryAccountForWallet === artist.creatorWallet}>
+                            {loadingStoryAccountForWallet === artist.creatorWallet ? "Loading..." : "Create New Story Account"}
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -187,7 +345,7 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
         ))}
       </div>
 
-      {artists.length === 0 && (
+      {sortedArtists.length === 0 && (
         <div className="text-center py-12">
           <Music className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Artists Found</h3>
