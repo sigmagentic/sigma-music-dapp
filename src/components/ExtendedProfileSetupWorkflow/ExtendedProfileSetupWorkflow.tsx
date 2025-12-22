@@ -205,6 +205,7 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
 
   const handleArtistProfileChange = (field: keyof ArtistProfileData, value: string) => {
     setArtistProfileData((prev) => ({ ...prev, [field]: value }));
+
     if (artistErrors[field]) {
       setArtistErrors((prev) => {
         const newErrors = { ...prev };
@@ -218,11 +219,12 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
     handleArtistProfileChange("name", name);
     // Auto-generate slug when name changes
     const generatedSlug = generateSlug(name);
-    // handleArtistProfileChange("slug", generatedSlug);
 
     handleArtistProfileChange("slug", generatedSlug);
+
     // Reset availability status when slug changes
     setSlugAvailability("unchecked");
+
     // Clear any existing slug errors
     if (artistErrors.slug) {
       setArtistErrors((prev) => {
@@ -465,24 +467,22 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
         (userProfileData.profileTypes.includes("remixer") || userProfileData.profileTypes.includes("composer")) &&
         artistProfileData.name !== "" &&
         artistProfileData.bio !== "" &&
-        artistProfileData.img !== "" &&
-        artistProfileData.slug !== ""
+        artistProfileData.slug !== "" &&
+        newSelectedArtistProfileImageFile !== null
       ) {
         try {
-          if (newSelectedArtistProfileImageFile) {
-            const fileUploadResponse = await saveMediaToServerViaAPI({
-              file: newSelectedArtistProfileImageFile,
-              solSignature: usedPreAccessSignature,
-              signatureNonce: usedPreAccessNonce,
-              creatorWallet: addressSol,
-            });
+          const fileUploadResponse = await saveMediaToServerViaAPI({
+            file: newSelectedArtistProfileImageFile,
+            solSignature: usedPreAccessSignature,
+            signatureNonce: usedPreAccessNonce,
+            creatorWallet: addressSol,
+          });
 
-            if (fileUploadResponse) {
-              artistProfileData.img = fileUploadResponse;
-            } else {
-              toastError("Error uploading artist profile image but other artist profile data was saved. You can upload a profile image later.");
-              return;
-            }
+          if (fileUploadResponse) {
+            artistProfileData.img = fileUploadResponse;
+          } else {
+            toastError("Error uploading artist profile image but other artist profile data was saved. You can upload a profile image later.");
+            return;
           }
 
           const artistProfileDataToSave = {
