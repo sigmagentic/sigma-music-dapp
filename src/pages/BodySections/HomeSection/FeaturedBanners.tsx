@@ -74,7 +74,7 @@ export const FeaturedBanners = ({
   const [latestAlbums, setLatestAlbums] = useState<FeaturedAlbum[]>([]);
   const [isLoadingFeaturedAlbumsAndArtists, setIsLoadingFeaturedAlbumsAndArtists] = useState(true);
   const { musicTrackLookup, artistLookup, albumLookup, artistLookupEverything, mintsLeaderboard } = useAppStore();
-  const [latestInnerCircleOptions, setLatestInnerCircleOptions] = useState<LatestFanCollectibleOption[]>([]);
+  // const [latestInnerCircleOptions, setLatestInnerCircleOptions] = useState<LatestFanCollectibleOption[]>([]); // dont show for now as we dont have enough clubs
   const [latestAlbumOptions, setLatestAlbumOptions] = useState<LatestAlbumCollectibleOption[]>([]);
   const [aiRemixReadyAlbums, setAiRemixReadyAlbums] = useState<LatestAlbumCollectibleOption[]>([]);
   const [isLoadingLatestInnerCircleOptions, setIsLoadingLatestInnerCircleOptions] = useState(true);
@@ -194,8 +194,9 @@ export const FeaturedBanners = ({
   useEffect(() => {
     const loadInnerCircleOptions = async () => {
       try {
-        const latestInnerCircleOptionsData = await fetchLatestCollectiblesAvailableViaAPI("fan", 20);
-        setLatestInnerCircleOptions(latestInnerCircleOptionsData);
+        // dont show for now as we dont have enough clubs
+        // const latestInnerCircleOptionsData = await fetchLatestCollectiblesAvailableViaAPI("fan", 20);
+        // setLatestInnerCircleOptions(latestInnerCircleOptionsData);
 
         const latestAlbumOptionsData = await fetchLatestCollectiblesAvailableViaAPI("album", 20);
         const latestAlbumsFromEnv = await fetchLatestCollectiblesAvailableViaAPI("album", 100, false);
@@ -675,7 +676,7 @@ export const FeaturedBanners = ({
                           {albumInfo?.title || "Unknown Album"}
                         </div>
                         <div className="text-xs text-white/70 mb-1">By {artistInfo?.name || "Unknown Artist"}</div>
-                        <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
+                        {/* <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div> */}
                         <Button
                           className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                           onClick={() => {
@@ -737,7 +738,7 @@ export const FeaturedBanners = ({
                           {albumInfo?.title || "Unknown Album"}
                         </div>
                         <div className="text-xs text-white/70 mb-1">By {artistInfo?.name || "Unknown Artist"}</div>
-                        <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
+                        {/* <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div> */}
                         <Button
                           className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
                           onClick={() => {
@@ -760,8 +761,8 @@ export const FeaturedBanners = ({
         )}
       </div>
 
-      {/* Latest Artist Fan Clubs */}
-      <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
+      {/* Latest Artist Fan Clubs (don't show for now as we dont have enough clubs) */}
+      {/* <div className="flex flex-col justify-center w-[100%] items-center xl:items-start mt-7">
         <div className="text-xl cursor-pointer w-full">
           <span className="text-lg text-white/70">Featured Artist Fan Club Collectibles</span>
         </div>
@@ -794,7 +795,6 @@ export const FeaturedBanners = ({
                       <div className="text-center mt-4">
                         <div className="text-lg font-semibold mb-2 text-white text-ellipsis overflow-hidden text-nowrap">
                           {artistInfo?.name || "Unknown Artist"}
-                          <div className="text-sm text-orange-500 mb-2">${option.priceInUSD}</div>
                         </div>
                         <Button
                           className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors"
@@ -832,7 +832,7 @@ export const FeaturedBanners = ({
             )}
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };
