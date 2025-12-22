@@ -6,7 +6,7 @@ import { Card } from "libComponents/Card";
 import { Artist } from "libs/types/common";
 import { Album } from "libs/types/common";
 import ratingE from "assets/img/icons/rating-E.png";
-import { formatFriendlyDate } from "libs/utils/ui";
+import { formatFriendlyDate, injectXUserNameIntoTweet } from "libs/utils/ui";
 
 interface AlbumWithSource extends Album {
   source: "db" | "indexed";
@@ -51,6 +51,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
   const [isCollectibleModalOpen, setIsCollectibleModalOpen] = useState(false);
   const [selectedCollectibleId, setSelectedCollectibleId] = useState<string>("");
   const [selectedCollectibleTier, setSelectedCollectibleTier] = useState<string>("");
+  const [markingCollectibleAsGenerated, setMarkingCollectibleAsGenerated] = useState<boolean>(false);
 
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
@@ -233,7 +234,86 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
     }
   };
 
-  console.log("myAlbums", myAlbums);
+  const handleAlbumSavePartialAlbumFieldsOnly = async (albumId: string, albumFieldsObject: any): Promise<boolean> => {
+    try {
+      // Get the pre-access nonce and signature
+      const { usedPreAccessNonce, usedPreAccessSignature } = await getOrCacheAccessNonceAndSignature({
+        solPreaccessNonce,
+        solPreaccessSignature,
+        solPreaccessTimestamp,
+        signMessage,
+        publicKey,
+        updateSolPreaccessNonce,
+        updateSolSignedPreaccess,
+        updateSolPreaccessTimestamp,
+      });
+
+      if (!usedPreAccessNonce || !usedPreAccessSignature) {
+        throw new Error("Failed to get valid signature to prove account ownership");
+      }
+
+      const albumDataToSave = {
+        solSignature: usedPreAccessSignature,
+        signatureNonce: usedPreAccessNonce,
+        adminWallet: publicKey?.toBase58() || "",
+        artistId: artistId,
+        albumId: albumId,
+        albumFieldsObject: { ...albumFieldsObject },
+      };
+
+      const response = await updateAlbumOnBackEndAPI(albumDataToSave);
+
+      if (response.updated && response.fullAlbumData) {
+        // Update existing album locally in myAlbums
+        setMyAlbums((prevAlbums) => prevAlbums.map((album) => (album.albumId === albumId ? { ...album, ...response.fullAlbumData } : album)));
+        toastSuccess("Album updated successfully");
+      } else {
+        throw new Error("Failed to save album");
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error saving album:", error);
+      toastError("Error saving album - " + (error as Error).message);
+      return false;
+    }
+  };
+
+  const markCollectibleAsGenerated = async (tier: string, album: Album) => {
+    setMarkingCollectibleAsGenerated(true);
+    try {
+      const updatedCollectibleMetadataDraft: any = album._collectibleMetadataDraft;
+
+      if (tier === "T1" && updatedCollectibleMetadataDraft.collectibleDeployedT1 === 0) {
+        updatedCollectibleMetadataDraft.collectibleDeployedT1 = 1;
+      } else if (tier === "T2" && updatedCollectibleMetadataDraft.collectibleDeployedT2 === 0) {
+        updatedCollectibleMetadataDraft.collectibleDeployedT2 = 1;
+      } else {
+        throw new Error("Collectible already generated");
+      }
+
+      await handleAlbumSavePartialAlbumFieldsOnly(album.albumId, {
+        title: album.title, // mandatory for the route to work
+        desc: album.desc, // mandatory for the route to work
+        img: album.img, // mandatory for the route to work
+        _collectibleMetadataDraft: updatedCollectibleMetadataDraft,
+      });
+    } catch (error) {
+      console.error("Error marking collectible as generated:", error);
+    } finally {
+      setMarkingCollectibleAsGenerated(false);
+    }
+  };
+
+  const generateArtistTweetAboutCollectiblesReady = async (tier: string, album: Album) => {
+    const tweetTextT1 = `⭐ Hi _(xUsername)_, your fans can now purchase a "limited edition music collectible" for your album ${album.title} on @SigmaXMusic!\n\nIt's a unique way to monetize your music and it's ONLY possible on Sigma Music!`;
+    const tweetTextT2 = `🌟 Hi _(xUsername)_, your fans can now purchase a "blockchain-powered AI Remix or AI Training license" for your album ${album.title} on @SigmaXMusic!\n\nIt's a unique way to monetize your music and it's ONLY possible on Sigma Music!`;
+    const tweetTextToUse = tier === "T1" ? tweetTextT1 : tweetTextT2;
+    const tweetMsg = injectXUserNameIntoTweet(tweetTextToUse, selectedArtist?.xLink, true);
+    const urlToUse = `https://sigmamusic.fm/?section=artists&artist=${selectedArtist.slug}~${album.albumId}`;
+
+    window.open(`https://x.com/intent/tweet?url=${encodeURIComponent(urlToUse)}&text=${encodeURIComponent(tweetMsg)}`, "_blank");
+  };
 
   return (
     <>
@@ -298,9 +378,6 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
                 )}
                 {album.source === "indexed" && <div className="text-xs text-gray-500 mb-2 bg-blue-500 text-white px-2 py-1 rounded-md">INDEXED ALBUM</div>}
                 {album.source === "db" && <div className="text-xs text-gray-500 mb-2 bg-green-500 text-white px-2 py-1 rounded-md">DB ALBUM</div>}
-                {album.source === "db" && album._collectibleMetadataDraft?.collectibleDeployed === 0 && (
-                  <div className="text-xs text-gray-500 mb-2 bg-red-500 text-white px-2 py-1 rounded-md">Collectible Requested by Artist</div>
-                )}
 
                 {album.source === "db" && (
                   <div className="flex flex-col space-y-2">
@@ -320,15 +397,68 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
                       </Button>
                     )}
 
-                    <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title)}>
-                      <Tag className="w-4 h-4 mr-2" />
-                      Simple Collectible Metadata
-                    </Button>
+                    <div className="flex flex-col space-y-2 !mt-5">
+                      <p className="text-xs text-gray-500">Collectible Metadata</p>
 
-                    <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title, "t2")}>
-                      <Tag className="w-4 h-4 mr-2" />
-                      AI-License Collectible Metadata
-                    </Button>
+                      {album.source === "db" && album._collectibleMetadataDraft?.collectibleDeployedT1 === 0 && (
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2 bg-red-500 text-white px-2 py-1 rounded-md">
+                            T1 - Simple Collectible Requested by Artist
+                          </div>
+                          <Button
+                            variant="outline"
+                            className="text-xs"
+                            disabled={markingCollectibleAsGenerated}
+                            onClick={() => markCollectibleAsGenerated("T1", album)}>
+                            {markingCollectibleAsGenerated ? "Loading..." : "Mark T1 As Generated"}
+                          </Button>
+                        </div>
+                      )}
+                      {album.source === "db" && album._collectibleMetadataDraft?.collectibleDeployedT1 === 1 && (
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2 bg-green-500 text-white px-2 py-1 rounded-md">
+                            T1 - Simple Collectible Already Generated
+                          </div>
+                          <p className="text-xs text-blue-500 mb-2 cursor-pointer" onClick={() => generateArtistTweetAboutCollectiblesReady("T1", album)}>
+                            Generate Public Alert Tweet
+                          </p>
+                        </div>
+                      )}
+                      {album.source === "db" && album._collectibleMetadataDraft?.collectibleDeployedT2 === 0 && (
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2 bg-red-500 text-white px-2 py-1 rounded-md">
+                            T2 - IP License Collectible Requested by Artist
+                          </div>
+                          <Button
+                            variant="outline"
+                            className="text-xs"
+                            disabled={markingCollectibleAsGenerated}
+                            onClick={() => markCollectibleAsGenerated("T2", album)}>
+                            {markingCollectibleAsGenerated ? "Loading..." : "Mark T2 As Generated"}
+                          </Button>
+                        </div>
+                      )}
+                      {album.source === "db" && album._collectibleMetadataDraft?.collectibleDeployedT2 === 1 && (
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2 bg-green-500 text-white px-2 py-1 rounded-md">
+                            T2 - IP License Collectible Already Generated
+                          </div>
+                          <p className="text-xs text-blue-500 mb-2 cursor-pointer" onClick={() => generateArtistTweetAboutCollectiblesReady("T2", album)}>
+                            Generate Public Alert Tweet
+                          </p>
+                        </div>
+                      )}
+
+                      <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title)}>
+                        <Tag className="w-4 h-4 mr-2" />
+                        Simple Collectible Metadata (T1)
+                      </Button>
+
+                      <Button onClick={() => handleViewCollectibleMetadata(album.albumId, album.title, "t2")}>
+                        <Tag className="w-4 h-4 mr-2" />
+                        AI-License Collectible Metadata (T2)
+                      </Button>
+                    </div>
                   </div>
                 )}
               </Card>

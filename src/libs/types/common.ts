@@ -107,7 +107,8 @@ export interface Album {
   _collectibleMetadataDraft?: {
     collectibleImg: string;
     collectibleRarity: string; // "common-5000", "rare-500", "legendary-50"
-    collectibleDeployed: number; // 0 = can edit, 1 = already generated, cannot edit
+    collectibleDeployedT1: number; // 0 = can edit, 1 = already generated, cannot edit (the simple T1 collectible)
+    collectibleDeployedT2: number; // as above (the Ip License T2 collectible)
   };
 }
 

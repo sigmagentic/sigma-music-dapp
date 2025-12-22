@@ -77,7 +77,8 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
   // Collectible Metadata state
   const [collectibleImg, setCollectibleImg] = useState<string>("");
   const [collectibleRarity, setCollectibleRarity] = useState<string>("common-5000");
-  const [collectibleDeployed, setCollectibleDeployed] = useState<number>(0);
+  const [collectibleDeployedT1, setCollectibleDeployedT1] = useState<number>(0);
+  const [collectibleDeployedT2, setCollectibleDeployedT2] = useState<number>(0);
   const [newSelectedCollectibleImageFile, setNewSelectedCollectibleImageFile] = useState<File | null>(null);
   const [isUsingAlbumImageForCollectible, setIsUsingAlbumImageForCollectible] = useState<boolean>(false);
   const [collectibleErrors, setCollectibleErrors] = useState<{ collectibleImg?: string; collectibleRarity?: string }>({});
@@ -131,13 +132,15 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
 
         setCollectibleImg(existingCollectibleImg);
         setCollectibleRarity(metadata.collectibleRarity || "common-5000");
-        setCollectibleDeployed(metadata.collectibleDeployed || 0);
+        setCollectibleDeployedT1(metadata.collectibleDeployedT1 || 0);
+        setCollectibleDeployedT2(metadata.collectibleDeployedT2 || 0);
         setIsUsingAlbumImageForCollectible(isSameAsAlbumImage);
         setNewSelectedCollectibleImageFile(null);
       } else {
         setCollectibleImg("");
         setCollectibleRarity("common-5000");
-        setCollectibleDeployed(0);
+        setCollectibleDeployedT1(0);
+        setCollectibleDeployedT2(0);
         setIsUsingAlbumImageForCollectible(false);
         setNewSelectedCollectibleImageFile(null);
       }
@@ -181,8 +184,8 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
       }
     }
 
-    // Validate collectible metadata if required
-    if (shouldShowCollectibleMetadata() && collectibleDeployed === 0) {
+    // Validate collectible metadata if required (either T1 or T2 is not deployed yet)
+    if (shouldShowCollectibleMetadata() && (collectibleDeployedT1 === 0 || collectibleDeployedT2 === 0)) {
       if (!collectibleImg && !isUsingAlbumImageForCollectible && !newSelectedCollectibleImageFile) {
         newCollectibleErrors.collectibleImg = "Collectible image is required";
       }
@@ -264,7 +267,8 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
 
       // Handle collectible image upload if needed
       let finalCollectibleImg = collectibleImg;
-      if (shouldShowCollectibleMetadata() && collectibleDeployed === 0) {
+
+      if (shouldShowCollectibleMetadata() && collectibleImg !== "" && (collectibleDeployedT1 === 0 || collectibleDeployedT2 === 0)) {
         if (isUsingAlbumImageForCollectible) {
           // Use the album image URL (either existing or newly uploaded)
           finalCollectibleImg = formData.img;
@@ -346,12 +350,31 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
       }
 
       // Add collectible metadata if required
-      if (shouldShowCollectibleMetadata() && collectibleDeployed === 0) {
+      if (shouldShowCollectibleMetadata()) {
         (changedFormData as any)._collectibleMetadataDraft = {
           collectibleImg: finalCollectibleImg,
           collectibleRarity: collectibleRarity,
-          collectibleDeployed: 0,
         };
+
+        if (collectibleDeployedT1 === 1) {
+          // its already been set up
+          (changedFormData as any)._collectibleMetadataDraft.collectibleDeployedT1 = 1;
+        } else {
+          // user has requested a simple collectible for the first time
+          if (formData.albumPriceOption2 !== "") {
+            (changedFormData as any)._collectibleMetadataDraft.collectibleDeployedT1 = 0;
+          }
+        }
+
+        if (collectibleDeployedT2 === 1) {
+          // its already been set up
+          (changedFormData as any)._collectibleMetadataDraft.collectibleDeployedT2 = 1;
+        } else {
+          // user has requested a IP license collectible for the first time
+          if (formData.albumPriceOption3 !== "" || formData.albumPriceOption4 !== "") {
+            (changedFormData as any)._collectibleMetadataDraft.collectibleDeployedT2 = 0;
+          }
+        }
       }
 
       const success = await onSave(changedFormData as AlbumFormData);
@@ -935,14 +958,15 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 <div className="flex items-start space-x-3">
                   <div className="flex-1">
                     <h3 className="!text-lg font-semibold text-white mb-2">Fan Collectible Metadata</h3>
-                    {collectibleDeployed === 1 && (
-                      <p className="text-yellow-400 text-sm mb-3">Collectible is already generated so you cannot edit this anymore</p>
+                    {(collectibleDeployedT1 === 1 || collectibleDeployedT2 === 1) && (
+                      <p className="text-yellow-400 text-sm mb-3">⚠️ Collectible is already generated so you cannot edit this anymore</p>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className={`relative ${collectibleDeployed === 1 ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}>
+              <div
+                className={`relative ${collectibleDeployedT1 === 1 || collectibleDeployedT2 === 1 ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Collectible Image */}
                   <div className="bg-black border border-gray-600 rounded-lg p-4">
@@ -1002,7 +1026,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                         href={isUsingAlbumImageForCollectible ? formData.img : collectibleImg}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-yellow-400 hover:text-yellow-300 underline mt-2 inline-block">
+                        className="text-xs underline mt-2 inline-block bg-blue-500 text-white px-2 py-1 rounded-md">
                         Open in New Tab
                       </a>
                     )}
