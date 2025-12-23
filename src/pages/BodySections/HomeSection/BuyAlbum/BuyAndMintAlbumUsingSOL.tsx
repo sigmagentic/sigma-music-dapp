@@ -3,7 +3,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, SystemProgram, Commitment, TransactionConfirmationStrategy } from "@solana/web3.js";
 import { Loader } from "lucide-react";
-import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS, ONE_USD_IN_XP } from "config";
+import { SIGMA_SERVICE_PAYMENT_WALLET_ADDRESS, ENABLE_SOL_PAYMENTS, ONE_USD_IN_XP, ONE_USD_IN_XP_FOR_ARTIST } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Button } from "libComponents/Button";
 import { getOrCacheAccessNonceAndSignature } from "libs/sol/SolViewData";
@@ -25,6 +25,7 @@ export const BuyAndMintAlbumUsingSOL = ({
   inDebugModeForMultiPurchaseFeatureLaunch,
   artistProfile,
   albumToBuyAndMint,
+  isArtistLookingAtTheirOwnPage,
   onCloseModal,
 }: {
   fullEntitlementsForSelectedAlbum: {
@@ -34,6 +35,7 @@ export const BuyAndMintAlbumUsingSOL = ({
   inDebugModeForMultiPurchaseFeatureLaunch: boolean;
   artistProfile: Artist;
   albumToBuyAndMint: Album;
+  isArtistLookingAtTheirOwnPage: boolean;
   onCloseModal: (isMintingSuccess: boolean) => void;
 }) => {
   const { connection } = useConnection();
@@ -572,7 +574,7 @@ export const BuyAndMintAlbumUsingSOL = ({
       return typeof priceOption === "object" && priceOption !== null && "priceInUSD" in priceOption ? priceOption.priceInUSD : null;
     })();
 
-    const priceInXP = Number(priceInUSD) * ONE_USD_IN_XP;
+    const priceInXP = isArtistLookingAtTheirOwnPage ? Number(priceInUSD) * ONE_USD_IN_XP_FOR_ARTIST : Number(priceInUSD) * ONE_USD_IN_XP;
     const notEnoughXP = priceInXP > solBitzBalance;
 
     return (
@@ -745,6 +747,7 @@ export const BuyAndMintAlbumUsingSOL = ({
                 albumSaleTypeOption={albumSaleTypeOption || ""}
                 fullEntitlementsForSelectedAlbum={fullEntitlementsForSelectedAlbum}
                 inDebugModeForMultiPurchaseFeatureLaunch={inDebugModeForMultiPurchaseFeatureLaunch}
+                isArtistLookingAtTheirOwnPage={isArtistLookingAtTheirOwnPage}
                 handlePaymentAndMint={handlePaymentAndMint}
                 handleShowLargeSizeTokenImg={(tokenImg: string | null) => {
                   setHoveredLargeSizeTokenImg(tokenImg);
@@ -791,7 +794,7 @@ export const BuyAndMintAlbumUsingSOL = ({
           <>
             <div className="space-y-4 flex flex-col items-center w-full">
               <h2 className={`!text-2xl text-center font-bold`}>
-                Success! You can now stream <span className="text-yellow-300">{albumToBuyAndMint.title}</span> by{" "}
+                Success! You now own <span className="text-yellow-300">{albumToBuyAndMint.title}</span> by{" "}
                 <span className="text-yellow-300">{artistProfile.name}</span>!
               </h2>
 

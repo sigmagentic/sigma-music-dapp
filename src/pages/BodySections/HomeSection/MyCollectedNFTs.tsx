@@ -57,6 +57,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   const { myAlbumMintLogs, updateMyAlbumMintLogs } = useAccountStore();
   const [isLoadingStoryLicenses, setIsLoadingStoryLicenses] = useState(false);
   const [myStoryProtocolLicenses, setMyStoryProtocolLicenses] = useState<any[]>([]);
+  const [mostLikelyHaveMultipleCopiesOfTheSameAlbum, setMostLikelyHaveMultipleCopiesOfTheSameAlbum] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -166,6 +167,13 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             });
 
             setAllOwnedFanMemberships(fanMembershipsWithAttributedSlugAndArtistCampaignCode);
+          }
+
+          console.log("_allOwnedAlbums", _allOwnedAlbums);
+          console.log("solMusicAssetNfts", solMusicAssetNfts);
+
+          if (_allOwnedAlbums.length !== solMusicAssetNfts.length) {
+            setMostLikelyHaveMultipleCopiesOfTheSameAlbum(true);
           }
 
           setMyCollectedArtistsAlbums([...filteredArtists]);
@@ -293,9 +301,18 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                               {allOwnedAlbums.length} {allOwnedAlbums.length > 1 ? `albums` : `album`}
                             </span>
                           </div>
-                          <p className="text-[10px] text-gray-300 mb-5">
-                            You could have multiple copies of each collectible if you bought more, we are only showing one of each here.
-                          </p>
+                          {mostLikelyHaveMultipleCopiesOfTheSameAlbum && addressSol && (
+                            <p className="text-sm text-gray-300 mb-5">
+                              Note: You could have multiple copies of each collectible if you had bought more and we are only showing one of each here. To view
+                              all your collectibles, check your{" "}
+                              <a
+                                href={`https://solana.fm/address/${addressSol}/nfts?cluster=mainnet-alpha`}
+                                target="_blank"
+                                className="text-yellow-300 hover:underline transition-colors">
+                                blockchain wallet here
+                              </a>
+                            </p>
+                          )}
                           {myCollectedArtistsAlbums.map((artist: any, index: number) => {
                             return (
                               <div key={index} className="w-[100%]">

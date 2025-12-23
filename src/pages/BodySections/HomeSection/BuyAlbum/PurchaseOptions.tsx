@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { Loader } from "lucide-react";
 import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
-import { APP_NETWORK, LICENSE_TERMS_MAP, DISABLE_COMMERCIAL_LICENSE_BUY_OPTION, ONE_USD_IN_XP } from "config";
+import {
+  APP_NETWORK,
+  LICENSE_TERMS_MAP,
+  DISABLE_COMMERCIAL_LICENSE_BUY_OPTION,
+  ONE_USD_IN_XP,
+  ONE_USD_IN_XP_FOR_ARTIST,
+  checkIfBetaFeaturesEnabled,
+} from "config";
 import { Button } from "libComponents/Button";
 import { Switch } from "libComponents/Switch";
 import { Album, AlbumSaleTypeOption, EntitlementForMusicAsset } from "libs/types";
@@ -17,6 +24,7 @@ interface PurchaseOptionsProps {
     ownedStoryProtocolCommercialLicense: any | null;
   };
   inDebugModeForMultiPurchaseFeatureLaunch: boolean;
+  isArtistLookingAtTheirOwnPage: boolean;
   handlePaymentAndMint: (albumSaleTypeOption: string) => void;
   handleShowLargeSizeTokenImg: (tokenImg: string | null) => void;
   handlePayWithXP: (payWithXP: boolean) => void;
@@ -30,6 +38,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
   albumSaleTypeOption,
   fullEntitlementsForSelectedAlbum,
   inDebugModeForMultiPurchaseFeatureLaunch,
+  isArtistLookingAtTheirOwnPage,
   handlePaymentAndMint,
   handleShowLargeSizeTokenImg,
   handlePayWithXP,
@@ -154,15 +163,23 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
             {/* Price & Button (right) */}
             <div className="flex flex-col items-end min-w-[110px] md:pl-4">
               {price && !payWithXP && <span className="text-3xl font-extrabold text-yellow-300 mb-2">${price}</span>}
+
               {price && payWithXP && (
-                <span className="text-3xl font-extrabold text-yellow-300 mb-2">{(Number(price) * ONE_USD_IN_XP).toLocaleString()} XP</span>
+                <span className="text-xl font-extrabold text-yellow-300 mb-2">
+                  {isArtistLookingAtTheirOwnPage ? (
+                    <>{(Number(price) * ONE_USD_IN_XP_FOR_ARTIST).toLocaleString()}</>
+                  ) : (
+                    <>{(Number(price) * ONE_USD_IN_XP).toLocaleString()}</>
+                  )}
+                  {" XP"}
+                </span>
               )}
 
               {doesUserAlreadyOwnThis && !preventRepurchaseIfTheyAlreadyOwnThis && (
-                <span className="text-yellow-300 text-[10px] font-bold mb-2 max-w-[110px] text-center mt-2">Upgrade/Buy To This Option (Coming Soon)</span>
+                <span className="text-yellow-300 text-[8px] font-bold mb-2 max-w-[110px] text-right mt-2">Upgrade/Buy (Coming Soon)</span>
               )}
 
-              {!inDebugModeForMultiPurchaseFeatureLaunch && (
+              {(!inDebugModeForMultiPurchaseFeatureLaunch || checkIfBetaFeaturesEnabled()) && (
                 <Button
                   onClick={() => handlePaymentAndMint(option)}
                   className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-6 rounded-lg hover:opacity-90 transition-opacity"
@@ -193,7 +210,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
   console.log("entitlementsForSelectedAlbum_B (fullEntitlementsForSelectedAlbum)", fullEntitlementsForSelectedAlbum);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex flex-row gap-2 justify-between">
         <h3 className="!text-xl font-bold hidden md:block">Purchase Options</h3>
 
@@ -204,6 +221,10 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
           </div>
         </div>
       </div>
+
+      {isArtistLookingAtTheirOwnPage && (
+        <div className="text-xs bg-yellow-500/20 text-yellow-500 p-2 rounded-lg">Buying your own content? You get a discount if you pay with XP!</div>
+      )}
 
       {isPaymentsDisabled && (
         <div className="flex gap-4 bg-red-500 p-4 rounded-lg text-sm">

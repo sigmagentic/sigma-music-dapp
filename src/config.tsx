@@ -473,5 +473,15 @@ export const LICENSE_TERMS_MAP = {
 };
 
 export const ONE_USD_IN_XP = 1000; // conversion rate from USD to XP
+export const ONE_USD_IN_XP_FOR_ARTIST = 100; // discounted rate IF the artist is buying their own content
 
 export const ARTIST_EARNINGS_SPLIT_PERCENTAGE = 80; // 80% of the earnings go to the artist, 20% goes to the platform
+
+export const checkIfBetaFeaturesEnabled = function () {
+  debugger;
+  const betaFeaturesEnabled = localStorage.getItem("sig-beta-features-enabled");
+  if (betaFeaturesEnabled && betaFeaturesEnabled == "1") {
+    return true;
+  }
+  return false;
+};

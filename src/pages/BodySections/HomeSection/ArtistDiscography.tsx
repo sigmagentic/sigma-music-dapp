@@ -237,6 +237,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       // Does the user have the nft collectible/s?
       console.log("solMusicAssetNfts", solMusicAssetNfts);
       console.log("selectedAlbumToShowEntitlements", selectedAlbumToShowEntitlements);
+
       const findMusicNfts = solMusicAssetNfts.filter((nft) => {
         const nftPrefix = nft.content.metadata.name.split(/[-\s]/)[0];
         const albumPrefix = selectedAlbumToShowEntitlements?.solNftName?.split(/[-\s]/)[0] || "";
@@ -1089,6 +1090,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               inDebugModeForMultiPurchaseFeatureLaunch={checkOwnershipOfMusicAsset(albumToBuyAndMint) > -1}
               artistProfile={artistProfile}
               albumToBuyAndMint={albumToBuyAndMint}
+              isArtistLookingAtTheirOwnPage={isArtistLookingAtTheirOwnPage}
               onCloseModal={(isMintingSuccess: boolean) => {
                 setAlbumToBuyAndMint(undefined);
                 setSelectedAlbumToShowEntitlements(null);
@@ -1116,6 +1118,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
               inDebugModeForMultiPurchaseFeatureLaunch={checkOwnershipOfMusicAsset(albumToBuyAndMint) > -1}
               artistProfile={artistProfile}
               albumToBuyAndMint={albumToBuyAndMint}
+              isArtistLookingAtTheirOwnPage={isArtistLookingAtTheirOwnPage}
               onCloseModal={(isMintingSuccess: boolean) => {
                 setAlbumToBuyAndMint(undefined);
                 setSelectedAlbumToShowEntitlements(null);
@@ -1171,7 +1174,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
             </div>
 
             <p className="text-gray-300 mb-4">
-              You can now stream the full version and enjoy any other entitltements (e.g. download files, view collectible, view commercial license etc.)
+              You can now stream the full version and enjoy any other entitlements (e.g. download files, view collectible, view commercial license etc.)
             </p>
 
             <div className="space-y-4 flex flex-col items-center">

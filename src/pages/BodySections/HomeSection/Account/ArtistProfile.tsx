@@ -488,6 +488,21 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
     // setActivePayoutClaim(null);
   };
 
+  const didArtistBuyOwnContentWithXP = (payer: string | undefined, isXP: boolean) => {
+    if (!payer) {
+      return false;
+    }
+
+    console.log("payer", payer);
+    console.log("userArtistProfile.creatorPaymentsWallet", userArtistProfile.creatorPaymentsWallet);
+
+    if (payer === userArtistProfile.creatorPaymentsWallet && isXP) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
   return (
     <>
       {/* Music Catalog Section */}
@@ -833,6 +848,11 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                             {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
                             {log.albumSaleTypeOption === "3" && "Digital Album + Commercial-Use License + Download + Collectible (NFT)"}
                             {log.albumSaleTypeOption === "4" && "Digital Album + Commercial-Use License + Download"}
+                          </div>
+                          <div className="text-[10px] max-w-[200px] text-gray-400 mt-2">
+                            {didArtistBuyOwnContentWithXP(log.payer, log.type === "xp")
+                              ? "⚠️ Discounted XP purchases on own content does not count towards earnings as it's intended for testing purposes only"
+                              : ""}
                           </div>
                         </>
                       )}

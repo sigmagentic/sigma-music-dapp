@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { Loader } from "lucide-react";
-import { STRIPE_PUBLISHABLE_KEY, ENABLE_CC_PAYMENTS, ONE_USD_IN_XP } from "config";
+import { STRIPE_PUBLISHABLE_KEY, ENABLE_CC_PAYMENTS, ONE_USD_IN_XP, ONE_USD_IN_XP_FOR_ARTIST } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import StripeCheckoutFormAlbum from "libs/stripe/StripeCheckoutFormAlbum";
@@ -32,6 +32,7 @@ export const BuyAndMintAlbumUsingCC = ({
   inDebugModeForMultiPurchaseFeatureLaunch,
   artistProfile,
   albumToBuyAndMint,
+  isArtistLookingAtTheirOwnPage,
   onCloseModal,
 }: {
   fullEntitlementsForSelectedAlbum: {
@@ -41,6 +42,7 @@ export const BuyAndMintAlbumUsingCC = ({
   inDebugModeForMultiPurchaseFeatureLaunch: boolean;
   artistProfile: Artist;
   albumToBuyAndMint: Album;
+  isArtistLookingAtTheirOwnPage: boolean;
   onCloseModal: (isMintingSuccess: boolean) => void;
 }) => {
   const { publicKey, walletType } = useSolanaWallet();
@@ -210,7 +212,7 @@ export const BuyAndMintAlbumUsingCC = ({
       return typeof priceOption === "object" && priceOption !== null && "priceInUSD" in priceOption ? priceOption.priceInUSD : null;
     })();
 
-    const priceInXP = Number(priceInUSD) * ONE_USD_IN_XP;
+    const priceInXP = isArtistLookingAtTheirOwnPage ? Number(priceInUSD) * ONE_USD_IN_XP_FOR_ARTIST : Number(priceInUSD) * ONE_USD_IN_XP;
     const notEnoughXP = priceInXP > solBitzBalance;
 
     return (
@@ -581,6 +583,7 @@ export const BuyAndMintAlbumUsingCC = ({
                   albumSaleTypeOption={albumSaleTypeOption || ""}
                   fullEntitlementsForSelectedAlbum={fullEntitlementsForSelectedAlbum}
                   inDebugModeForMultiPurchaseFeatureLaunch={inDebugModeForMultiPurchaseFeatureLaunch}
+                  isArtistLookingAtTheirOwnPage={isArtistLookingAtTheirOwnPage}
                   handlePaymentAndMint={(_albumSaleTypeOption: string) => {
                     if (!publicKey?.toBase58()) {
                       return;
@@ -650,7 +653,7 @@ export const BuyAndMintAlbumUsingCC = ({
             <>
               <div className="space-y-4 flex flex-col items-center w-full">
                 <h2 className={`!text-2xl text-center font-bold`}>
-                  Success! You can now stream <span className="text-yellow-300">{albumToBuyAndMint.title}</span> by{" "}
+                  Success! You now own <span className="text-yellow-300">{albumToBuyAndMint.title}</span> by{" "}
                   <span className="text-yellow-300">{artistProfile.name}</span>!
                 </h2>
 
