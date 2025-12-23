@@ -147,7 +147,9 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
                     className="w-[112px] h-[25px] rounded-md overflow-hidden mt-2 hover:scale-105 transition-all duration-300"
                     onClick={() => {
                       window.open(
-                        APP_NETWORK === "devnet" ? `https://aeneid.explorer.story.foundation/ipa/${ipTokenId}` : `https://www.ipontop.com/ip/${ipTokenId}`,
+                        APP_NETWORK === "devnet"
+                          ? `https://aeneid.explorer.story.foundation/ipa/${ipTokenId}`
+                          : `https://explorer.story.foundation/ipa/${ipTokenId}`,
                         "_blank"
                       );
                     }}
