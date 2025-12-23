@@ -104,6 +104,8 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                 })
               );
 
+              // @TODO: we need to add the number of copies of the album to the album object
+
               // we need the creatorWallet from the album level on the album so the bitz can be fetched
               filteredAlbums.forEach((album: any) => {
                 album.creatorWallet = artist.creatorWallet;
@@ -285,12 +287,15 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                     <>
                       {myCollectedArtistsAlbums.length > 0 ? (
                         <>
-                          <div className="font-bold text-xl mb-5">
+                          <div className="font-bold text-xl">
                             You have collected{" "}
                             <span className="text-xl bg-clip-text bg-gradient-to-r  from-yellow-300 to-orange-500 text-transparent font-bold">
                               {allOwnedAlbums.length} {allOwnedAlbums.length > 1 ? `albums` : `album`}
                             </span>
                           </div>
+                          <p className="text-[10px] text-gray-300 mb-5">
+                            You could have multiple copies of each collectible if you bought more, we are only showing one of each here.
+                          </p>
                           {myCollectedArtistsAlbums.map((artist: any, index: number) => {
                             return (
                               <div key={index} className="w-[100%]">

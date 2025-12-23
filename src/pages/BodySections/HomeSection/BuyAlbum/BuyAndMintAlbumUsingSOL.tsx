@@ -18,15 +18,23 @@ import { sendPowerUpSol, SendPowerUpSolResult } from "../SendBitzPowerUp";
 import { useNftsStore } from "store/nfts";
 import { showSuccessConfetti } from "libs/utils/uiShared";
 import { usePreventScroll } from "hooks";
+import { EntitlementForMusicAsset } from "libs/types";
 
 export const BuyAndMintAlbumUsingSOL = ({
-  onCloseModal,
+  fullEntitlementsForSelectedAlbum,
+  inDebugModeForMultiPurchaseFeatureLaunch,
   artistProfile,
   albumToBuyAndMint,
+  onCloseModal,
 }: {
-  onCloseModal: (isMintingSuccess: boolean) => void;
+  fullEntitlementsForSelectedAlbum: {
+    entitlementsForSelectedAlbum: EntitlementForMusicAsset | null;
+    ownedStoryProtocolCommercialLicense: any | null;
+  };
+  inDebugModeForMultiPurchaseFeatureLaunch: boolean;
   artistProfile: Artist;
   albumToBuyAndMint: Album;
+  onCloseModal: (isMintingSuccess: boolean) => void;
 }) => {
   const { connection } = useConnection();
   const { sendTransaction, signMessage } = useWallet();
@@ -630,6 +638,8 @@ export const BuyAndMintAlbumUsingSOL = ({
     AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4 ||
     AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption3;
 
+  console.log("entitlementsForSelectedAlbum_A (fullEntitlementsForSelectedAlbum)", fullEntitlementsForSelectedAlbum);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-start md:items-center md:justify-center z-50">
       {showPaymentConfirmation && (payWithXP ? <PaymentConfirmationPopup_XP /> : <PaymentConfirmationPopup />)}
@@ -721,18 +731,27 @@ export const BuyAndMintAlbumUsingSOL = ({
             </div>
 
             {/* Right Column - Purchase Options */}
-            <PurchaseOptions
-              isPaymentsDisabled={isSolPaymentsDisabled}
-              buyNowMeta={albumToBuyAndMint._buyNowMeta}
-              disableActions={mintingStatus === "processing" || digitalAlbumOnlyPurchaseStatus === "processing"}
-              payWithXP={payWithXP}
-              handlePaymentAndMint={handlePaymentAndMint}
-              handleShowLargeSizeTokenImg={(tokenImg: string | null) => {
-                setHoveredLargeSizeTokenImg(tokenImg);
-              }}
-              handlePayWithXP={setPayWithXP}
-              albumSaleTypeOption={albumSaleTypeOption || ""}
-            />
+            {!fullEntitlementsForSelectedAlbum.entitlementsForSelectedAlbum ? (
+              <div className="flex flex-col items-center justify-center h-full p-2">
+                <Loader className="animate-spin text-yellow-300" size={30} />
+                <p className="text-yellow-300 text-sm font-bold mt-2">Loading purchase options...</p>
+              </div>
+            ) : (
+              <PurchaseOptions
+                isPaymentsDisabled={isSolPaymentsDisabled}
+                buyNowMeta={albumToBuyAndMint._buyNowMeta}
+                disableActions={mintingStatus === "processing" || digitalAlbumOnlyPurchaseStatus === "processing"}
+                payWithXP={payWithXP}
+                albumSaleTypeOption={albumSaleTypeOption || ""}
+                fullEntitlementsForSelectedAlbum={fullEntitlementsForSelectedAlbum}
+                inDebugModeForMultiPurchaseFeatureLaunch={inDebugModeForMultiPurchaseFeatureLaunch}
+                handlePaymentAndMint={handlePaymentAndMint}
+                handleShowLargeSizeTokenImg={(tokenImg: string | null) => {
+                  setHoveredLargeSizeTokenImg(tokenImg);
+                }}
+                handlePayWithXP={setPayWithXP}
+              />
+            )}
 
             <div className="flex flex-col md:flex-row gap-2 col-span-2">
               {backendErrorMessage && (

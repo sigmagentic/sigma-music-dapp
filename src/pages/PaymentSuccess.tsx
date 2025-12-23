@@ -433,7 +433,7 @@ export const PaymentSuccess = () => {
                       {" "}
                       {purchaseType === "album"
                         ? mintingIsInCommercialLicensePathway
-                          ? "Registering Commercial AI Remix License"
+                          ? "Registering Commercial-Use License"
                           : "Minting Music Collectible"
                         : "Minting Fan Membership Collectible"}{" "}
                       on the blockchain

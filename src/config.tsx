@@ -447,8 +447,8 @@ export const LICENSE_BLURBS: any = {
     link: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
   },
   "CC BY 4.0": {
-    blurb: "Attribution Only. Commercial Use, Derivatives and Distribution allowed",
-    oneLinerBlurb: "Commercial Use allowed. Only Attribution Needed",
+    blurb: "Attribution Only. Commercial Use, Derivatives and Distribution allowed. AI Remix + AI Training Allowed",
+    oneLinerBlurb: "Commercial Use allowed. Only Attribution Needed + AI Remix + AI Training Allowed",
     link: "https://creativecommons.org/licenses/by/4.0/",
   },
 };

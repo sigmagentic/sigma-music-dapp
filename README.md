@@ -116,7 +116,7 @@ I want to buy a Music Album Collectible with my Credit Card / SOL / XP
 To support my favorite artist and also stream/download the full album with bonus tracks
 
 - Digital Album Only - (SOL / XP pass)
-- Album + Commercial AI Remix License - [used Cereals SOL -- PASS] [used TKO for XP -- PASS]
+- Album + Commercial-Use License - [used Cereals SOL -- PASS] [used TKO for XP -- PASS]
 - NFT + Digital Album - (SOL - Manu's elements - PASS) [Problem Child EP by LLLUNA01 for XP -- PASS]
 
 - Ultimate Package

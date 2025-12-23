@@ -1445,7 +1445,7 @@ export const LaunchAiMusicTrack = ({ renderInline, onCloseModal, navigateToDeepA
                             )}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">{license.albumName || "Unknown Album"}</p>
-                              <p className="text-xs text-gray-400">Commercial AI Remix License</p>
+                              <p className="text-xs text-gray-400">Commercial-Use License</p>
                             </div>
                           </div>
                         ))}

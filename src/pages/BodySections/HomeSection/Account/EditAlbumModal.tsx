@@ -26,8 +26,8 @@ export interface AlbumFormData {
   isPublished: string;
   albumPriceOption1: string; // Digital Album + Bonus Tracks Only
   albumPriceOption2: string; // Album + Fan Collectible (NFT)
-  albumPriceOption3: string; // Album + Fan Collectible + Commercial AI Remix License
-  albumPriceOption4: string; // Album + Commercial AI Remix License
+  albumPriceOption3: string; // Album + Fan Collectible + Commercial-Use License
+  albumPriceOption4: string; // Album + Commercial-Use License
   albumAllowPayMore: string; // "1" or "0" - let fans pay more if they want
   collaborators: AlbumCollaborator[];
 }
@@ -408,8 +408,8 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
         const defaultPrices: Record<string, string> = {
           albumPriceOption1: "4", // Digital Album + Bonus Tracks Only: $4-$9
           albumPriceOption2: "14", // Album + Fan Collectible (NFT): $14-$19
-          albumPriceOption3: "44", // Album + Fan Collectible + Commercial AI Remix License: $44-$49
-          albumPriceOption4: "34", // Album + Commercial AI Remix License: $34-$39
+          albumPriceOption3: "44", // Album + Fan Collectible + Commercial-Use License: $44-$49
+          albumPriceOption4: "34", // Album + Commercial-Use License: $34-$39
         };
         return {
           ...prev,
@@ -569,8 +569,8 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
     const hasAlbumImage = formData.img || newSelectedAlbumImageFile;
     const hasCollectibleOption =
       formData.albumPriceOption2 !== "" || // Album + Fan Collectible (NFT)
-      formData.albumPriceOption3 !== "" || // Album + Fan Collectible + Commercial AI Remix License
-      formData.albumPriceOption4 !== ""; // Album + Commercial AI Remix License
+      formData.albumPriceOption3 !== "" || // Album + Fan Collectible + Commercial-Use License
+      formData.albumPriceOption4 !== ""; // Album + Commercial-Use License
 
     return !!(hasAlbumImage && hasCollectibleOption);
   };
@@ -775,16 +775,16 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                   )}
                 </div>
 
-                {/* Option 4: Album + Commercial AI Remix License */}
+                {/* Option 4: Album + Commercial-Use License */}
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="!text-lg font-medium text-white">Album + Commercial AI Remix License</h4>
+                    <h4 className="!text-lg font-medium text-white">Album + Commercial-Use License</h4>
                     <button
                       type="button"
                       onClick={() =>
                         showPricingInfo(
-                          "Album + Commercial AI Remix License",
-                          "Buyer gets full digital Album + commercial use license. Takes a few days to setup and be enabled.\n\nLicense: CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license"
+                          "Album + Commercial-Use License",
+                          "Buyer gets full digital Album + commercial use license. Takes a few days to setup and be enabled.\n\nLicense: CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. AI Remix + AI Training Allowed. Also includes on-chain Story Protocol license"
                         )
                       }
                       className="text-gray-400 hover:text-yellow-400 transition-colors p-1">
@@ -869,16 +869,16 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                   )}
                 </div>
 
-                {/* Option 3: Album + Fan Collectible + Commercial AI Remix License */}
+                {/* Option 3: Album + Fan Collectible + Commercial-Use License */}
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="!text-lg font-medium text-white">Album + Fan Collectible + Commercial AI Remix License</h4>
+                    <h4 className="!text-lg font-medium text-white">Album + Fan Collectible + Commercial-Use License</h4>
                     <button
                       type="button"
                       onClick={() =>
                         showPricingInfo(
-                          "Album + Fan Collectible + Commercial AI Remix License",
-                          "Buyer gets full digital Album + fan collectible + commercial license. Ultimate web3 + AI Remix ready package! Takes a few days to setup and be enabled.\n\nLicense: CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. Also includes on-chain Story Protocol license"
+                          "Album + Fan Collectible + Commercial-Use License",
+                          "Buyer gets full digital Album + fan collectible + commercial license. Ultimate web3 + AI Remix ready package! Takes a few days to setup and be enabled.\n\nLicense: CC BY 4.0: Attribution Only. Commercial Use + Derivatives + Redistribution. AI Remix + AI Training Allowed. Also includes on-chain Story Protocol license"
                         )
                       }
                       className="text-gray-400 hover:text-yellow-400 transition-colors p-1">

@@ -861,9 +861,10 @@ export const HomeSection = (props: HomeSectionProps) => {
     let doesUserOwnMusicAsset = -1; // -1 is no and anything more is yes
 
     // 1. the album id is in myMusicAssetPurchases from the store (IF NOT.. move to next)
-    const assetPurchaseThatMatches = myMusicAssetPurchases.find((assetPurchase) => assetPurchase.albumId === album.albumId);
+    // .. we now made a change where we can buy multiple formats of the same album, so we changed from find to filter (dec 25)
+    const assetPurchaseThatMatches = myMusicAssetPurchases.filter((assetPurchase) => assetPurchase.albumId === album.albumId);
 
-    if (assetPurchaseThatMatches && !onlyCheckInCollectibleNftHolding) {
+    if (assetPurchaseThatMatches.length > 0 && !onlyCheckInCollectibleNftHolding) {
       doesUserOwnMusicAsset = 0; // this means we own it
     } else {
       // 2. they own the collectible NFT in their wallet?

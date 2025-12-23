@@ -224,10 +224,10 @@ export interface MintLeaderboard {
 }
 
 export enum AlbumSaleTypeOption {
-  priceOption1 = "1", // Digital Album + Download Only
-  priceOption2 = "2", // Digital Album + Download + NFT
-  priceOption3 = "3", // Digital Album + Commercial AI Remix License + Download + NFT
-  priceOption4 = "4", // Digital Album + Commercial AI Remix License
+  priceOption1 = "1", // Digital Album (Download Only)
+  priceOption2 = "2", // Digital Album + NFT
+  priceOption3 = "3", // Digital Album + Commercial-Use License  + NFT
+  priceOption4 = "4", // Digital Album + Commercial-Use License
 }
 
 export interface PaymentLog {
@@ -285,7 +285,7 @@ export interface EntitlementForMusicAsset {
     urlToLicense: string | null;
     ipTokenId: string | null;
   };
-  nftAssetIdOnBlockchain: string | null;
+  nftAssetIdOnBlockchain: string[] | null;
 }
 
 export interface MyAlbumMintLog {

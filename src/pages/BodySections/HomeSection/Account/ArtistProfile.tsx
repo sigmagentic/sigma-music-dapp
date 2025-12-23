@@ -831,8 +831,8 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                           <div className="text-xs text-gray-400">
                             {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
                             {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
-                            {log.albumSaleTypeOption === "3" && "Digital Album + Commercial AI Remix License + Download + Collectible (NFT)"}
-                            {log.albumSaleTypeOption === "4" && "Digital Album + Commercial AI Remix License + Download"}
+                            {log.albumSaleTypeOption === "3" && "Digital Album + Commercial-Use License + Download + Collectible (NFT)"}
+                            {log.albumSaleTypeOption === "4" && "Digital Album + Commercial-Use License + Download"}
                           </div>
                         </>
                       )}

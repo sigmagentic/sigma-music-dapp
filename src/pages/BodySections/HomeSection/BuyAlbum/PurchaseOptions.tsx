@@ -4,7 +4,7 @@ import storyProtocolIpOpen from "assets/img/story-protocol-ip-open.png";
 import { APP_NETWORK, LICENSE_TERMS_MAP, DISABLE_COMMERCIAL_LICENSE_BUY_OPTION, ONE_USD_IN_XP } from "config";
 import { Button } from "libComponents/Button";
 import { Switch } from "libComponents/Switch";
-import { Album, AlbumSaleTypeOption } from "libs/types";
+import { Album, AlbumSaleTypeOption, EntitlementForMusicAsset } from "libs/types";
 
 interface PurchaseOptionsProps {
   isPaymentsDisabled?: boolean;
@@ -12,6 +12,11 @@ interface PurchaseOptionsProps {
   disableActions?: boolean;
   payWithXP: boolean;
   albumSaleTypeOption: string;
+  fullEntitlementsForSelectedAlbum: {
+    entitlementsForSelectedAlbum: EntitlementForMusicAsset | null;
+    ownedStoryProtocolCommercialLicense: any | null;
+  };
+  inDebugModeForMultiPurchaseFeatureLaunch: boolean;
   handlePaymentAndMint: (albumSaleTypeOption: string) => void;
   handleShowLargeSizeTokenImg: (tokenImg: string | null) => void;
   handlePayWithXP: (payWithXP: boolean) => void;
@@ -23,6 +28,8 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
   disableActions = false,
   payWithXP,
   albumSaleTypeOption,
+  fullEntitlementsForSelectedAlbum,
+  inDebugModeForMultiPurchaseFeatureLaunch,
   handlePaymentAndMint,
   handleShowLargeSizeTokenImg,
   handlePayWithXP,
@@ -52,6 +59,8 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
     price,
     ipTokenId,
     tokenImg,
+    preventRepurchaseIfTheyAlreadyOwnThis = false,
+    doesUserAlreadyOwnThis = false,
   }: {
     option: "priceOption1" | "priceOption2" | "priceOption3" | "priceOption4";
     title: string;
@@ -61,14 +70,22 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
     price: string | null;
     ipTokenId?: string | null;
     tokenImg?: string | null;
+    preventRepurchaseIfTheyAlreadyOwnThis: boolean;
+    doesUserAlreadyOwnThis: boolean;
   }) => {
     const available = isOptionAvailable(option);
 
     return (
       <div className="relative">
+        {/* <div className="debug text-xs bg-orange-500 p-2 rounded-lg">
+          <p>doesUserAlreadyOwnThis = {doesUserAlreadyOwnThis.toString()}</p>
+          <p>preventRepurchaseIfTheyAlreadyOwnThis = {preventRepurchaseIfTheyAlreadyOwnThis.toString()}</p>
+          <p>inDebugModeForMultiPurchaseFeatureLaunch = {inDebugModeForMultiPurchaseFeatureLaunch.toString()}</p>
+        </div> */}
+
         {!available && (
-          <div className="absolute inset-0 flex items-center justify-center z-20">
-            <span className="bg-white text-black px-4 py-2 rounded-lg font-semibold shadow-lg">
+          <div className="absolute inset-0 flex gap-2 items-center justify-center z-20">
+            <span className="bg-white text-black px-2 py-2 rounded-lg text-xs">
               {DISABLE_COMMERCIAL_LICENSE_BUY_OPTION === "1" && (option === "priceOption3" || option === "priceOption4")
                 ? "Currently Offline"
                 : "Currently Not Offered"}
@@ -92,6 +109,14 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
               </div>
             </div>
           )}
+
+          {/* Already Owned Badge */}
+          {doesUserAlreadyOwnThis && (
+            <div className="absolute top-[0.5px] right-[0.5px] z-10">
+              <div className="bg-green-400 text-black px-1 py-0.5 rounded-sm text-[9px] font-bold">You already own this!</div>
+            </div>
+          )}
+
           <div
             className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
             onMouseEnter={() => {
@@ -132,31 +157,40 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
               {price && payWithXP && (
                 <span className="text-3xl font-extrabold text-yellow-300 mb-2">{(Number(price) * ONE_USD_IN_XP).toLocaleString()} XP</span>
               )}
-              <Button
-                onClick={() => handlePaymentAndMint(option)}
-                className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-6 rounded-lg hover:opacity-90 transition-opacity"
-                disabled={isPaymentsDisabled || !available || disableActions}>
-                {disableActions ? (
-                  <>
-                    {albumSaleTypeOption === option ? (
-                      <>
-                        <Loader className="animate-spin mr-2" size={15} />
-                        Working
-                      </>
-                    ) : (
-                      "Please Wait"
-                    )}
-                  </>
-                ) : (
-                  "Buy Now"
-                )}
-              </Button>
+
+              {doesUserAlreadyOwnThis && !preventRepurchaseIfTheyAlreadyOwnThis && (
+                <span className="text-yellow-300 text-[10px] font-bold mb-2 max-w-[110px] text-center mt-2">Upgrade/Buy To This Option (Coming Soon)</span>
+              )}
+
+              {!inDebugModeForMultiPurchaseFeatureLaunch && (
+                <Button
+                  onClick={() => handlePaymentAndMint(option)}
+                  className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold py-2 px-6 rounded-lg hover:opacity-90 transition-opacity"
+                  disabled={isPaymentsDisabled || !available || disableActions}>
+                  {disableActions ? (
+                    <>
+                      {albumSaleTypeOption === option ? (
+                        <>
+                          <Loader className="animate-spin mr-2" size={15} />
+                          Working
+                        </>
+                      ) : (
+                        "Please Wait"
+                      )}
+                    </>
+                  ) : (
+                    "Buy Now"
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </div>
     );
   };
+
+  console.log("entitlementsForSelectedAlbum_B (fullEntitlementsForSelectedAlbum)", fullEntitlementsForSelectedAlbum);
 
   return (
     <div className="space-y-4">
@@ -185,37 +219,47 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
           license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].shortDescription,
           licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption1].urlToLicense,
           price: buyNowMeta?.priceOption1?.priceInUSD || null,
+          preventRepurchaseIfTheyAlreadyOwnThis: true,
+          doesUserAlreadyOwnThis: fullEntitlementsForSelectedAlbum.entitlementsForSelectedAlbum?.mp3TracksCanBeDownloaded || false,
         })}
 
         {renderOption({
           option: "priceOption4",
-          title: "Album + Commercial AI Remix License",
+          title: "Album + Commercial-Use License",
           description: "You Get: Digital Album + commercial use license",
           license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption4].shortDescription,
           licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption4].urlToLicense,
           price: buyNowMeta?.priceOption4?.priceInUSD || null,
           ipTokenId: buyNowMeta?.priceOption3?.IpTokenId || null,
+          preventRepurchaseIfTheyAlreadyOwnThis: false,
+          doesUserAlreadyOwnThis: Boolean(fullEntitlementsForSelectedAlbum.ownedStoryProtocolCommercialLicense),
         })}
 
         {renderOption({
           option: "priceOption2",
           title: "Album + Fan Collectible (NFT)",
-          description: "You Get: Everything above + limited edition digital collectible",
+          description: "You Get: Digital Album + limited edition digital collectible",
           license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption2].shortDescription,
           licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption2].urlToLicense,
           price: buyNowMeta?.priceOption2?.priceInUSD || null,
           tokenImg: buyNowMeta?.priceOption2?.tokenImg || null,
+          preventRepurchaseIfTheyAlreadyOwnThis: false,
+          doesUserAlreadyOwnThis: Boolean(fullEntitlementsForSelectedAlbum.entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain),
         })}
 
         {renderOption({
           option: "priceOption3",
-          title: "Album + Fan Collectible + Commercial AI Remix License",
+          title: "Album + Fan Collectible + Commercial-Use License",
           description: "You Get: Everything above + commercial use",
           license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption3].shortDescription,
           licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption3].urlToLicense,
           price: buyNowMeta?.priceOption3?.priceInUSD || null,
           ipTokenId: buyNowMeta?.priceOption3?.IpTokenId || null,
           tokenImg: buyNowMeta?.priceOption3?.tokenImg || null,
+          preventRepurchaseIfTheyAlreadyOwnThis: true,
+          doesUserAlreadyOwnThis:
+            Boolean(fullEntitlementsForSelectedAlbum.ownedStoryProtocolCommercialLicense) ||
+            Boolean(fullEntitlementsForSelectedAlbum.entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain),
         })}
       </div>
     </div>
