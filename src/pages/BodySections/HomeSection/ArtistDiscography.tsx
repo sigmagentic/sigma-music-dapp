@@ -92,6 +92,16 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   const [isArtistFeatureLoading, setIsArtistFeatureLoading] = useState(false);
   const [userSelectedAlbumForTrackList, setUserSelectedAlbumForTrackList] = useState(false);
 
+  const defaultEntitlementsForSelectedAlbum: EntitlementForMusicAsset = {
+    mp3TracksCanBeDownloaded: false, // user own the digital album! (any type of purchase gives you digital rights)
+    licenseTerms: {
+      shortDescription: null,
+      urlToLicense: null,
+      ipTokenId: null, // non null mean user owns IP License!
+    },
+    nftAssetIdOnBlockchain: null, // non null mean user owns NFT collectible!
+  };
+
   useEffect(() => {
     if (artistProfile && albums.length > 0) {
       // check and attach the _buyNowMeta to each album based on a realtime call to the backend
@@ -188,15 +198,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
   useEffect(() => {
     // this effect gets called 1st when user clicks on the show entitlements button OR when the user tries and buy an album
     if (selectedAlbumToShowEntitlements && (myMusicAssetPurchases.length > 0 || solMusicAssetNfts.length > 0)) {
-      const entitlementsMap: EntitlementForMusicAsset = {
-        mp3TracksCanBeDownloaded: false, // user own the digital album! (any type of purchase gives you digital rights)
-        licenseTerms: {
-          shortDescription: null,
-          urlToLicense: null,
-          ipTokenId: null, // non null mean user owns IP License!
-        },
-        nftAssetIdOnBlockchain: null, // non null mean user owns NFT collectible!
-      };
+      const entitlementsMap: EntitlementForMusicAsset = { ...defaultEntitlementsForSelectedAlbum } as EntitlementForMusicAsset;
 
       // we now made a change where we can buy multiple formats of the same album, so we changed from find to filter (dec 25)
       const assetPurchaseThatMatches = myMusicAssetPurchases.filter((assetPurchase) => assetPurchase.albumId === selectedAlbumToShowEntitlements.albumId);
@@ -256,6 +258,13 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
       setEntitlementsForSelectedAlbum(entitlementsMap);
       setShowEntitlementsModal(true);
+    }
+
+    // new users will have BOTH myMusicAssetPurchases and solMusicAssetNfts as empty, so we need to set entitlementsForSelectedAlbum to
+    // ... default state so it triggers the purchase options to show in child component BuyAndMintAlbumUsingCC
+    if (selectedAlbumToShowEntitlements && myMusicAssetPurchases.length === 0 && solMusicAssetNfts.length === 0) {
+      console.log("setting entitlementsForSelectedAlbum to default state as no purchases or nfts found");
+      setEntitlementsForSelectedAlbum({ ...defaultEntitlementsForSelectedAlbum } as EntitlementForMusicAsset);
     }
   }, [selectedAlbumToShowEntitlements, myMusicAssetPurchases, solMusicAssetNfts]);
 
