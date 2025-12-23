@@ -30,6 +30,8 @@ export interface AlbumFormData {
   albumPriceOption4: string; // Album + Commercial-Use License
   albumAllowPayMore: string; // "1" or "0" - let fans pay more if they want
   collaborators: AlbumCollaborator[];
+  solNftName: string;
+  solNftAltCodes: string;
 }
 
 interface EditAlbumModalProps {
@@ -375,6 +377,15 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
             (changedFormData as any)._collectibleMetadataDraft.collectibleDeployedT2 = 0;
           }
         }
+      }
+
+      // Add solNftName and solNftAltCodes if they are set
+      if (formData.solNftName) {
+        (changedFormData as any).solNftName = formData.solNftName.trim();
+      }
+
+      if (formData.solNftAltCodes) {
+        (changedFormData as any).solNftAltCodes = formData.solNftAltCodes.trim();
       }
 
       const success = await onSave(changedFormData as AlbumFormData);
@@ -1230,6 +1241,36 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
 
             {collaborators.length >= 5 && <p className="text-gray-400 text-sm">Maximum of 5 collaborators reached.</p>}
           </div>
+
+          {/* MUI Only: manage solNftName and solNftAltCodes */}
+          {looseIsMuiModeCheck() && (
+            <div className="space-y-2 bg-blue-500/20 border border-blue-500 rounded-lg p-4">
+              <h3 className="!text-lg font-semibold text-white mb-2">Manage SolNftName and SolNftAltCodes</h3>
+              <div className="flex items-center space-x-2">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">SolNftName</label>
+                  <Input
+                    type="text"
+                    value={formData.solNftName}
+                    onChange={(e) => handleInputChange("solNftName", e.target.value)}
+                    placeholder="MUSG28-TKO-Into My Mind"
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">SolNftAltCodes</label>
+                  <Input
+                    type="text"
+                    value={formData.solNftAltCodes}
+                    onChange={(e) => handleInputChange("solNftAltCodes", e.target.value)}
+                    placeholder="MUSSM1T1:MUSSM1T2"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Pricing Disclaimer Modal */}
           {showPricingDisclaimerModal && (

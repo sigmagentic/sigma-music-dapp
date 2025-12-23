@@ -185,29 +185,41 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
         throw new Error("Failed to get valid signature to prove account ownership");
       }
 
+      const fieldsToSave = {
+        title: albumData.title,
+        desc: albumData.desc,
+        img: albumData.img,
+        isExplicit: albumData.isExplicit,
+        isPodcast: albumData.isPodcast,
+        isPublished: albumData.isPublished,
+        albumPriceOption1: albumData.albumPriceOption1,
+        albumPriceOption2: albumData.albumPriceOption2,
+        albumPriceOption3: albumData.albumPriceOption3,
+        albumPriceOption4: albumData.albumPriceOption4,
+        albumAllowPayMore: (albumData as any).albumAllowPayMore || "0",
+        collaborators: albumData.collaborators,
+        ...((albumData as any)._collectibleMetadataDraft && {
+          _collectibleMetadataDraft: (albumData as any)._collectibleMetadataDraft,
+        }),
+      };
+
+      // S: dont save this unless it's there (BUT, then means that IF you have a value and want to clear it, you need to do that in the DB direct)
+      if (albumData.solNftName) {
+        fieldsToSave.solNftName = albumData.solNftName;
+      }
+
+      if (albumData.solNftAltCodes) {
+        fieldsToSave.solNftAltCodes = albumData.solNftAltCodes;
+      }
+      // E: dont save....
+
       const albumDataToSave = {
         solSignature: usedPreAccessSignature,
         signatureNonce: usedPreAccessNonce,
         adminWallet: publicKey?.toBase58() || "",
         artistId: artistId,
         albumId: selectedAlbumForEdit.albumId,
-        albumFieldsObject: {
-          title: albumData.title,
-          desc: albumData.desc,
-          img: albumData.img,
-          isExplicit: albumData.isExplicit,
-          isPodcast: albumData.isPodcast,
-          isPublished: albumData.isPublished,
-          albumPriceOption1: albumData.albumPriceOption1,
-          albumPriceOption2: albumData.albumPriceOption2,
-          albumPriceOption3: albumData.albumPriceOption3,
-          albumPriceOption4: albumData.albumPriceOption4,
-          albumAllowPayMore: (albumData as any).albumAllowPayMore || "0",
-          collaborators: albumData.collaborators,
-          ...((albumData as any)._collectibleMetadataDraft && {
-            _collectibleMetadataDraft: (albumData as any)._collectibleMetadataDraft,
-          }),
-        },
+        albumFieldsObject: fieldsToSave,
       };
 
       const response = await updateAlbumOnBackEndAPI(albumDataToSave);
@@ -530,6 +542,8 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
               ...(selectedAlbumForEdit._collectibleMetadataDraft && {
                 _collectibleMetadataDraft: selectedAlbumForEdit._collectibleMetadataDraft,
               }),
+              solNftName: selectedAlbumForEdit.solNftName || "",
+              solNftAltCodes: selectedAlbumForEdit.solNftAltCodes || "",
             } as any
           }
           albumTitle={selectedAlbumForEdit.title || ""}

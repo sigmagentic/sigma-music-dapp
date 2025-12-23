@@ -986,6 +986,8 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
               ...(selectedAlbumForEdit._collectibleMetadataDraft && {
                 _collectibleMetadataDraft: selectedAlbumForEdit._collectibleMetadataDraft,
               }),
+              solNftName: selectedAlbumForEdit.solNftName || "",
+              solNftAltCodes: selectedAlbumForEdit.solNftAltCodes || "",
             } as any
           }
           albumTitle={selectedAlbumForEdit.title || ""}
