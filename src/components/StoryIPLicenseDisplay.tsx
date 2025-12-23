@@ -15,7 +15,7 @@ export function StoryIPLicenseDisplay({ license, navigateToDeepAppView }: { lice
             window.open(
               APP_NETWORK === "devnet"
                 ? `https://aeneid.explorer.story.foundation/ipa/${license.ipTokenId}`
-                : `https://www.ipontop.com/ip/${license.ipTokenId}`,
+                : `https://explorer.story.foundation/ipa/${license.ipTokenId}`,
               "_blank"
             );
           }}
