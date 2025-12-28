@@ -319,7 +319,7 @@ export const AlbumList: React.FC<AlbumListProps> = ({ indexedAlbums, artistName,
 
   const generateArtistTweetAboutCollectiblesReady = async (tier: string, album: Album) => {
     const tweetTextT1 = `⭐ Hi _(xUsername)_, your fans can now purchase a "limited edition music collectible" for your album ${album.title} on @SigmaXMusic!\n\nIt's a unique way to monetize your music and it's ONLY possible on Sigma Music!`;
-    const tweetTextT2 = `🌟 Hi _(xUsername)_, your fans can now purchase a "blockchain-powered AI Remix or AI Training license" for your album ${album.title} on @SigmaXMusic!\n\nIt's a unique way to monetize your music and it's ONLY possible on Sigma Music!`;
+    const tweetTextT2 = `🌟 Hi _(xUsername)_, your fans can now purchase a @StoryProtocol "blockchain-powered AI Remix or AI Training license" for your album ${album.title} on @SigmaXMusic!\n\nIt's a unique way to monetize your music and it's ONLY possible on Sigma Music!`;
     const tweetTextToUse = tier === "T1" ? tweetTextT1 : tweetTextT2;
     const tweetMsg = injectXUserNameIntoTweet(tweetTextToUse, selectedArtist?.xLink, true);
     const urlToUse = `https://sigmamusic.fm/?section=artists&artist=${selectedArtist.slug}~${album.albumId}`;

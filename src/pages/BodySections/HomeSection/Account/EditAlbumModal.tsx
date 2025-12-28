@@ -1245,7 +1245,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
           {/* MUI Only: manage solNftName and solNftAltCodes */}
           {looseIsMuiModeCheck() && (
             <div className="space-y-2 bg-blue-500/20 border border-blue-500 rounded-lg p-4">
-              <h3 className="!text-lg font-semibold text-white mb-2">Manage SolNftName and SolNftAltCodes</h3>
+              <h3 className="!text-lg font-semibold text-white mb-2">Manage SolNftName and SolNftAltCodes (Other SolNftNames)</h3>
               <div className="flex items-center space-x-2">
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-300 mb-2">SolNftName</label>
@@ -1259,7 +1259,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                 </div>
 
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">SolNftAltCodes</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">SolNftAltCodes (Other SolNftNames)</label>
                   <Input
                     type="text"
                     value={formData.solNftAltCodes}
