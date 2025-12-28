@@ -284,6 +284,19 @@ h6 {
   }
 }
 
+@keyframes borderPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7), 0 0 0 0 rgba(234, 179, 8, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.3), 0 0 0 8px rgba(234, 179, 8, 0.1);
+  }
+}
+
+.animate-border-pulse {
+  animation: borderPulse 2s ease-in-out infinite;
+}
+
 /* S: Web3 Auth Overrides */
 body .w3a-parent-container #w3a-modal .w3a-modal__loader {
   background-color: #0a0a0a !important;
