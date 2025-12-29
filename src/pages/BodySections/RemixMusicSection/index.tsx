@@ -111,7 +111,7 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   const [checkingIfNewJobsHaveCompleted, setCheckingIfNewJobsHaveCompleted] = useState(false);
   const [weDetectedNewJobs, setWeDetectedNewJobs] = useState(false);
   const [appViewLoaded, setAppViewLoaded] = useState(false);
-  const [isRemixAlertBannerVisible, setIsRemixAlertBannerVisible] = useState(true);
+  const [isRemixAlertBannerVisible, setIsRemixAlertBannerVisible] = useState(false);
 
   // add track to album state params (from My Workspace)
   const [showEditTrackModal, setShowEditTrackModal] = useState<boolean>(false);

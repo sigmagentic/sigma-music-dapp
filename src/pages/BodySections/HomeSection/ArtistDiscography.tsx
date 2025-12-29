@@ -942,12 +942,12 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
 
                 {/* Album Links: Album ID and Copy Direct Link to Album Page */}
                 <>
-                  <span className="text-xs text-gray-700 ml-0 text-left mt-2 mb-[15px]">
+                  <span className="text-gray-700 ml-0 text-left mt-2 mb-[15px] text:[10px] md:text-xs">
                     id: {album.albumId} <span className="text-orange-500 ml-1">{album.isPublished === "0" ? "Draft" : ""}</span>
                   </span>
 
                   <button
-                    className="inline-flex items-center gap-1 text-xs text-gray-700 px-2 py-1 rounded transition-colors duration-200 mt-2 mb-[15px] hover:text-white"
+                    className="inline-flex items-center gap-1 text-gray-700 px-2 py-1 rounded transition-colors duration-200 mt-2 mb-[15px] hover:text-white text:[10px] md:text-xs"
                     title="Copy Direct Link to Album to Share"
                     onClick={async () => {
                       try {

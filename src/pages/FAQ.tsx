@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
-import howToDownloadTracksDemo from "assets/img/how-to-download-tracks-demo.png";
 import { routeNames } from "routes";
+import howToDownloadTracksDemo from "assets/img/screenshots/how-to-download-tracks-demo.png";
+import testBuyImg1 from "assets/img/screenshots/test-buy-own-set-to-1.png";
+import testBuyImg2 from "assets/img/screenshots/test-buy-own-xp-discount.png";
+import testBuyImg3 from "assets/img/screenshots/test-buy-own-in-wallet.png";
 
 interface FAQSection {
   title: string;
@@ -224,6 +227,94 @@ const faqSections: FAQSection[] = [
                 className="rounded-lg"
                 style={{ maxWidth: "60%" }}
               />
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: "how-to-test-music-collectibles-or-ip-licenses",
+        question: "How can I test buying my own music collectibles or IP Licenses without having to spend money?",
+        answer: (
+          <div className="space-y-4">
+            <p>
+              As you will know and see in the image below, Sigma Music allows you to sell Rare, Limited Edition Music Collectibles and Commercial IP Licenses
+              for AI remixing and AI training. These are new and unique ways for you to monetize your music catalog. What's super cool is that your fans will be
+              able to buy these using a credit card, Solana tokens, or via their XP.
+            </p>
+            <p>
+              <img
+                src={"https://api.itheumcloud.com/app_nftunes/assets/misc/monatize-music-in-many-ways.png"}
+                alt="Sigma Music Launchpad"
+                className="rounded-lg"
+                style={{ maxWidth: "50%" }}
+              />
+            </p>
+            <p>
+              The ability to monetize this way is only available to "Verified Artists", so make sure you follow the above instructions on how to get verified as
+              an artist.
+            </p>
+            <p>
+              Once you get verified and launch an album on Sigma Music, and enable the feature to sell your music as a collectible or IP license, you may want
+              to purchase it for yourself or just test it to make sure it all works fine before promoting it to your fans.
+            </p>
+            <p>
+              We allow for a way to do this by using a method to spend very little XP to self-purchase a few collectibles or IP licenses to test it out. Of
+              course, this is completely optional, but here is how we recommend you do this:
+            </p>
+            <p className="font-semibold">
+              Note that you can only do the below AFTER the collectibles and IP licenses have been enabled for your album. This may take a few days to set up
+              once you have enabled it on your album edit screen.
+            </p>
+            <p>
+              <span className="text-yellow-300 font-semibold">Step 1:</span> After the collectibles are enabled, edit your album and set the price of your Music
+              Collectibles and IP License to $1 USD (this is the lowest price you can set). Don't worry—you can always set it back to higher prices after you
+              have tested it out.
+            </p>
+            <p className="mb-4">
+              <img
+                src={testBuyImg1}
+                alt="Set the price of your Music Collectibles and IP License to $1 USD"
+                className="rounded-lg"
+                style={{ maxWidth: "40%" }}
+              />
+            </p>
+            <p>
+              <span className="text-yellow-300 font-semibold">Step 2:</span> Wait a few minutes and reload your artist page. You should now see the new $1 price
+              appearing on your Album's purchase screen.
+            </p>
+
+            <p>
+              <span className="text-yellow-300 font-semibold">Step 3:</span> Toggle the "Pay with XP" button at the top. As you are the artist, you will notice
+              that a significant discount is being applied.
+            </p>
+            <p className="mb-4">
+              <img
+                src={testBuyImg2}
+                alt="Reload your artist page and you should now see the new $1 price appearing."
+                className="rounded-lg"
+                style={{ maxWidth: "40%" }}
+              />
+            </p>
+            <p>
+              <span className="text-yellow-300 font-semibold">Step 4:</span> Hopefully you have enough XP to make the purchase. If not, you can play the XP game
+              on the top menu bar to earn free XP, buy some XP with a credit card, or just reach out to a Sigma Team member and we will send you some free XP as
+              we love our artists! :)
+            </p>
+            <p>
+              <span className="text-yellow-300 font-semibold">Step 5:</span> Buy your Collectibles and/or IP license. Head over to your Collectibles Wallet and
+              you should see your new collectibles and/or IP licenses listed there.
+            </p>
+            <p className="mb-4">
+              <img
+                src={testBuyImg3}
+                alt="Buy your Collectibles and/or IP license. Head over to your Collectibles Wallet and you should see your new collectibles and/or IP licenses listed there."
+                className="rounded-lg"
+                style={{ maxWidth: "40%" }}
+              />
+            </p>
+            <p>
+              <span className="text-yellow-300 font-semibold">Step 6:</span> Once you are happy with things, you can now increase the price back to your
+              original higher price before sharing it with your fans.
             </p>
           </div>
         ),

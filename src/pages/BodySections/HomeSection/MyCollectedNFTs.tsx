@@ -272,7 +272,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
   return (
     <div id="myCollectedAlbums" className="flex flex-col justify-center items-center w-full mt-3">
       <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
-        <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full">
+        <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-1 w-full">
           <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
             Music Collectibles
           </span>
@@ -338,9 +338,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                         </>
                       ) : (
                         <div className="text-lg">
-                          <span className="text-white/70 text-md">⚠️ You have not collected any albums.</span>{" "}
+                          <span className="text-white/70 text-sm">⚠️ You have not collected any albums.</span>{" "}
                           <span
-                            className="text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
+                            className="text-primary cursor-pointer text-yellow-300 hover:text-[#f97316] text-sm"
                             onClick={() => {
                               // setHomeMode(`artists-${new Date().getTime()}`);
 
@@ -445,7 +445,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
       )}
 
       <div className="flex flex-col mb-16 justify-center w-[100%] items-center xl:items-start">
-        <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-5 w-full items-center justify-between">
+        <div className="flex rounded-lg text-2xl xl:text-3xl cursor-pointer mb-1 w-full items-center justify-between">
           <span className="text-center md:text-left text-3xl bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 text-transparent font-bold">
             Commercial Licenses
           </span>
@@ -489,9 +489,9 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                       </>
                     ) : (
                       <div className="text-lg">
-                        <span className="text-white/70 text-md">⚠️ You have not purchased any commercial licenses yet.</span>
+                        <span className="text-white/70 text-sm">⚠️ You have not purchased any commercial licenses yet.</span>
                         <span
-                          className="ml-2 text-primary cursor-pointer text-yellow-300 hover:text-[#f97316]"
+                          className="ml-2 text-primary cursor-pointer text-yellow-300 hover:text-[#f97316] text-sm"
                           onClick={() => {
                             navigateToDeepAppView({
                               toSection: "albums",

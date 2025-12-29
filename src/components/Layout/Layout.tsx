@@ -63,6 +63,8 @@ export const Layout = ({
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
+      <div className="debug hidden bg-orange-500 text-white text-sm p-2 rounded-md absolute top-0 left-0 z-50">homeMode: {homeMode}</div>
+
       {ENABLE_APP_OFFLINE === "1" && (
         <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
           <div className="text-center">
@@ -71,6 +73,7 @@ export const Layout = ({
           </div>
         </div>
       )}
+
       <div className={`header ${paymentInProgress ? "opacity-50 cursor-progress pointer-events-none" : ""} md:fixed md:top-0 md:left-0 md:right-0 md:z-10`}>
         <Navbar
           setHomeMode={setHomeMode}

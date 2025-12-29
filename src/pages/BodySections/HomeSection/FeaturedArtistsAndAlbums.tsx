@@ -566,7 +566,7 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     }
   }
 
-  function handleBackToArtistTileView() {
+  function handleBackToArtistTileView(userClickedBackButton: boolean = false) {
     setInArtistProfileView(false);
 
     // remove the artist param from the url
@@ -591,8 +591,12 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
     setSelArtistId(undefined);
     setLaunchpadData(null);
 
-    // in Dec 2025, we updated the app to not show the artist and album tiles view. So we still keep the above code to handle the reset to tile view, but we just return to home again
-    returnBackToHomeMode();
+    // in Dec 2025, we updated the app to not show the artist and album tiles view.
+    // So we still keep the above code to handle the reset to tile view, but we just return to home again if the user clicked the back button
+    if (userClickedBackButton) {
+      // this logic should ONLY trigger if the user clicked the back button or else navigation is broken
+      returnBackToHomeMode();
+    }
   }
 
   function handleArtistPlaylistPlay() {
@@ -644,7 +648,9 @@ export const FeaturedArtistsAndAlbums = (props: FeaturedArtistsAndAlbumsProps) =
                 <Button
                   className={`bg-background text-foreground hover:bg-background/90 border-0 rounded-md font-medium tracking-wide !text-sm h-[46px] px-[10px]`}
                   variant="outline"
-                  onClick={handleBackToArtistTileView}>
+                  onClick={() => {
+                    handleBackToArtistTileView(true);
+                  }}>
                   <>
                     <CircleArrowLeft />
                   </>
