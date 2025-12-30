@@ -562,8 +562,6 @@ export const TrackListModal: React.FC<TrackListModalProps> = ({
         updatedDisplayIdx: track._displayIdxNew,
       }));
 
-    console.log("Update display order items to save:", itemsToSave);
-
     if (itemsToSave.length > 0) {
       setIsUpdatingOrder(true);
 

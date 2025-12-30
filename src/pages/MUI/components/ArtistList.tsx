@@ -33,7 +33,6 @@ export const ArtistList: React.FC<ArtistListProps> = ({ artists, onArtistSelect 
   const { publicKey } = useSolanaWallet();
 
   useEffect(() => {
-    console.log("artists", artists);
     // lets move artists who a lastIndexOn value to the top of the list
     const sortedArtists = artists.sort((a, b) => {
       if (a.lastIndexOn && !b.lastIndexOn) return -1;

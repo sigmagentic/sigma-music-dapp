@@ -21,9 +21,9 @@ export const MUI = () => {
     currentView: "main",
   });
 
-  useEffect(() => {
-    console.log("artistLookup", artistLookup);
-  }, [artistLookup]);
+  // useEffect(() => {
+  //   console.log("artistLookup", artistLookup);
+  // }, [artistLookup]);
 
   const handleNavigateToArtists = () => {
     setMuiState({

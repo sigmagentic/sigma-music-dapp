@@ -159,7 +159,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       try {
         setIsSwimLaneDataLoading(true);
 
-        console.log("___ calgetRemixLaunchesViaAPI A");
         const responseA = await getRemixLaunchesViaAPI({ launchStatus: "new", addressSol: addressSol || null });
         setNewLaunchesData(responseA);
 
@@ -255,8 +254,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
   useEffect(() => {
     if (showAllMusic === null) return;
 
-    console.log("___ fetchDataAllSwimLaneData showAllMusic", showAllMusic);
-
     if (showAllMusic) {
       fetchDataAllSwimLaneData({ showMyMusicOnly: false });
     } else {
@@ -271,7 +268,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
       setShowPublicVotingArea(false);
       setShowPublicVotingAreaUI(false);
 
-      console.log("___ setShowAllMusic(false) call");
       setShowAllMusic(false);
       setShowAllMusicUI(false);
 
@@ -279,7 +275,6 @@ export const RemixMusicSectionContent = (props: RemixMusicSectionContentProps) =
     } else {
       setShowPublicVotingArea(true);
       setShowPublicVotingAreaUI(true);
-      console.log("___ setShowAllMusic(true) call");
       setShowAllMusic(true);
       setShowAllMusicUI(true);
 

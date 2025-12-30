@@ -525,11 +525,9 @@ export const HomeSection = (props: HomeSectionProps) => {
 
         if (userPreferenceGenres) {
           const parsedGenres = JSON.parse(userPreferenceGenres) as string[];
-          // console.log("Saved genres:", parsedGenres);
 
           // Get a random genre from the saved genres
           userPreferenceGenre = parsedGenres[Math.floor(Math.random() * parsedGenres.length)];
-          // console.log("Random selected genre from saved genres:", userPreferenceGenre);
         } else {
           // Step 2: If no saved genres, get random genre from Tier1 of ALL_MUSIC_GENRES
           const tier1Genres = ALL_MUSIC_GENRES.filter((genre) => genre.tier === GenreTier.TIER1);
@@ -546,17 +544,13 @@ export const HomeSection = (props: HomeSectionProps) => {
 
         // Step 5: Merge tracks with genre tracks having priority
         let mergedTracks = [...genreTracks, ...allTracks.filter((track: any) => !genreTracks.some((genreTrack: any) => genreTrack.alId === track.alId))];
-        console.log("mergedTracks A >>>>", mergedTracks);
 
         // Step 6: Find latest 3 albums and get their tracks and give them the higest priority (for now)
-        console.log("MOST_RECENT_ALBUMS_DATA >>>>", MOST_RECENT_ALBUMS_DATA);
-
         let mostRecentAlbumTracks = [];
         for (const album of MOST_RECENT_ALBUMS_DATA) {
           const albumTracks = await getAlbumTracksFromDBViaAPI(album.albumId.split("_")[0], album.albumId);
           mostRecentAlbumTracks.push(...albumTracks);
         }
-        console.log("mostRecentAlbumTracks >>>>", mostRecentAlbumTracks);
 
         // shuffle the most recent album tracks using Fisher-Yates algorithm
         for (let i = mostRecentAlbumTracks.length - 1; i > 0; i--) {
@@ -566,12 +560,9 @@ export const HomeSection = (props: HomeSectionProps) => {
 
         mergedTracks = [...mostRecentAlbumTracks, ...mergedTracks];
 
-        console.log("mergedTracks B >>>>", mergedTracks);
-
         // Step 7: Augment tracks with artist data
         const augmentedTracks = augmentRawPlaylistTracksWithArtistAndAlbumData(mergedTracks);
 
-        console.log("augmentedTracks >>>", augmentedTracks);
         // Step 8: remove any items that have "isExplicit" set to "1", note that isExplicit sometime wont be present, in which case we can assume it's not explicit
         // ... also remove any items that have "hideOrDelete" set to "1" or "2"
         // ... also remove any that have bonus set to 1
@@ -581,8 +572,6 @@ export const HomeSection = (props: HomeSectionProps) => {
           .filter((track: any) => track.hideOrDelete !== "1" && track.hideOrDelete !== "2")
           .filter((track: any) => track.bonus !== 1) // this will be numeric field
           .filter((track: any) => track.stream !== undefined);
-
-        console.log("finalDefaultPlaylistTracks >>>", finalDefaultPlaylistTracks);
 
         // Set the tracks and cache the first track
         if (finalDefaultPlaylistTracks.length > 0) {
@@ -1327,12 +1316,10 @@ const useAnimatedTextRotation = (words: string[], intervalMs: number = 3000) => 
     if (!isRunning) return;
 
     intervalRef.current = setInterval(() => {
-      // console.log("Starting transition...");
       setIsTransitioning(true);
 
       // Wait for transition animation to complete before changing word
       setTimeout(() => {
-        // console.log("Changing word from", words[currentIndex], "to", words[(currentIndex + 1) % words.length]);
         setCurrentIndex((prevIndex) => (prevIndex + 1) % words.length);
         setIsTransitioning(false);
       }, 800); // Longer transition to make it more visible
@@ -1340,7 +1327,6 @@ const useAnimatedTextRotation = (words: string[], intervalMs: number = 3000) => 
 
     return () => {
       if (intervalRef.current) {
-        // console.log("Clearing animated text rotation interval");
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }

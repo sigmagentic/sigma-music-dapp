@@ -112,9 +112,6 @@ export const TrackList: React.FC<TrackListProps> = ({
             albumCoverImg: album.img || "",
           } as TrackWithKeyAlbumInfo);
         }
-
-        console.log("show track deep link modal: album", album);
-        console.log("show track deep link modal: tracks", tracks);
       }
     }
   }, [album, artistId, tracks, searchParams]);

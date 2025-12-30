@@ -209,8 +209,6 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
     );
   };
 
-  console.log("entitlementsForSelectedAlbum_B (fullEntitlementsForSelectedAlbum)", fullEntitlementsForSelectedAlbum);
-
   return (
     <div className="space-y-3">
       <div className="flex flex-row gap-2 justify-between">

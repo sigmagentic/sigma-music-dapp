@@ -476,8 +476,6 @@ export const BuyAndMintAlbumUsingCC = ({
     AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption4 ||
     AlbumSaleTypeOption[albumSaleTypeOption as keyof typeof AlbumSaleTypeOption] === AlbumSaleTypeOption.priceOption3;
 
-  console.log("entitlementsForSelectedAlbum_A (fullEntitlementsForSelectedAlbum)", fullEntitlementsForSelectedAlbum);
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-start md:items-center md:justify-center z-50">
       <>

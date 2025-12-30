@@ -703,7 +703,6 @@ export const ExtendedProfileSetupWorkflow: React.FC<ExtendedProfileSetupWorkflow
                 setNewSelectedProfileImageFile(file);
               }}
               onFileRevert={() => {
-                console.log("File reverted");
                 setNewSelectedProfileImageFile(null);
               }}
               alt="Profile"

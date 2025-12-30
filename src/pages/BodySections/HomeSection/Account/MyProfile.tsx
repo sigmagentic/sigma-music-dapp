@@ -76,8 +76,6 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
   const handleProfileSave = async (data: ProfileFormData) => {
     try {
       // Here you would typically make an API call to update the user's profile
-      console.log("Saving profile data:", data);
-
       if (Object.keys(data).length === 0) {
         toastError("Nothing changed so skipped saving");
         return true;

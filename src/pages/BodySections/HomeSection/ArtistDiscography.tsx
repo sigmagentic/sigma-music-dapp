@@ -215,9 +215,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       // we now made a change where we can buy multiple formats of the same album, so we changed from find to filter (dec 25)
       const assetPurchaseThatMatches = myMusicAssetPurchases.filter((assetPurchase) => assetPurchase.albumId === selectedAlbumToShowEntitlements.albumId);
 
-      console.log("myMusicAssetPurchases", myMusicAssetPurchases);
-      console.log("assetPurchaseThatMatches", assetPurchaseThatMatches);
-
       // .. at least one of these have a albumSaleTypeOption
       const atLeastOneHasAlbumSaleTypeOption = assetPurchaseThatMatches.some((assetPurchase) => assetPurchase.albumSaleTypeOption);
 
@@ -228,8 +225,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
         const highestAlbumSaleTypeOption = assetPurchaseThatMatches.reduce((max, assetPurchase) => {
           return Math.max(max, parseInt(assetPurchase.albumSaleTypeOption || "0"));
         }, 0);
-
-        console.log("highestAlbumSaleTypeOption", highestAlbumSaleTypeOption);
 
         entitlementsMap.licenseTerms.shortDescription =
           LICENSE_TERMS_MAP[highestAlbumSaleTypeOption.toString() as keyof typeof LICENSE_TERMS_MAP].shortDescription;
@@ -249,22 +244,9 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       }
 
       // Does the user have the nft collectible/s?
-      console.log("solMusicAssetNfts", solMusicAssetNfts);
-      console.log("selectedAlbumToShowEntitlements", selectedAlbumToShowEntitlements);
-
       const findMusicNfts = solMusicAssetNfts.filter((nft) => {
         return checkIfUserOwnsAlbumBasedOnNft(nft, selectedAlbumToShowEntitlements);
-
-        // const nftPrefix = nft.content.metadata.name.split(/[-\s]/)[0];
-        // const albumPrefix = selectedAlbumToShowEntitlements?.solNftName?.split(/[-\s]/)[0] || "";
-        // // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2)
-        // return (
-        //   nftPrefix.toLowerCase() === albumPrefix.toLowerCase() ||
-        //   (selectedAlbumToShowEntitlements.solNftAltCodes !== "" && selectedAlbumToShowEntitlements.solNftAltCodes?.includes(nftPrefix))
-        // );
       });
-
-      console.log("findMusicNfts", findMusicNfts);
 
       if (findMusicNfts.length > 0) {
         entitlementsMap.nftAssetIdOnBlockchain = findMusicNfts.map((nft) => nft.id);

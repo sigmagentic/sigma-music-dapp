@@ -94,35 +94,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
               const filteredAlbumsBasedOnMyNfts = artist.albums.filter((album: Album) =>
                 solMusicAssetNfts.some((ownedNft: DasApiAsset) => {
                   return checkIfUserOwnsAlbumBasedOnNft(ownedNft, album);
-                  // /*
-                  //   this should match:
-                  //   Old Format: "MUSG20 - Olly'G - MonaLisa Rap" (nftNamePrefix) should match (albumNamePrefix) "MUSG20-Olly'G-MonaLisa Rap" or "MUSG20 - Olly'G-MonaLisa Rap"
-                  //   New format From Dec 2025: "MUSSM-MP-Frequency-ar140_a4" (we made this change so that the name looks better in the actual crypto wallet and we dont have dont codes like MUSSMar140_a4,
-                  //   but this breaks the matching as eveything now gets matched via the MUSSM code). so we have to handle both cases). so we have to handle both cases -- T2 looks like MUSSM-MP-Frequency-ar140_a4-T2
-
-                  //   this should NOT match:
-                  //   Old Format: "MUSG20 - Olly'G - MonaLisa Rap" (nftNamePrefix) should not match (albumNamePrefix) "MUSG19-Olly'G-MonaLisa Rap" or "MUSG21 - Olly'G-MonaLisa Rap"
-                  //   New formats From Dec 2025: "MUSSM-MP-Frequency-ar140_a4" (nftNamePrefix) should not match (albumNamePrefix) "MUSM20-FooBar Rap"
-                  // */
-
-                  // // Get the prefix before first "-" or space from both strings
-                  // let nftNamePrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0]; // e.g. we get: MUSG20 (old), MUSSM (new)
-
-                  // if (nftNamePrefix === "MUSSM") {
-                  //   nftNamePrefix = extractCorrectPrefixForNewNamingFormat(ownedNft.content.metadata.name);
-                  // }
-
-                  // let albumNamePrefix = !album.solNftName ? "" : album.solNftName.split(/[-\s]/)[0]; // e.g.we get:  MUSG20 (old), MUSSM (new)
-
-                  // if (albumNamePrefix === "MUSSM") {
-                  //   albumNamePrefix = extractCorrectPrefixForNewNamingFormat(album.solNftName);
-                  // }
-
-                  // // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2) or for new format, MUSSM-ar140_a4-T2:MUSSM-ar140_a4-T3
-                  // return (
-                  //   nftNamePrefix.toLowerCase() === albumNamePrefix.toLowerCase() ||
-                  //   (album.solNftAltCodes !== "" && album.solNftAltCodes?.includes(nftNamePrefix))
-                  // );
                 })
               );
 
@@ -189,9 +160,6 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
 
             setAllOwnedFanMemberships(fanMembershipsWithAttributedSlugAndArtistCampaignCode);
           }
-
-          console.log("&&&&& _allOwnedAlbums", _allOwnedAlbums);
-          console.log("&&&&& solMusicAssetNfts", solMusicAssetNfts);
 
           if (_allOwnedAlbums.length !== solMusicAssetNfts.length) {
             setMostLikelyHaveMultipleCopiesOfTheSameAlbum(true);
