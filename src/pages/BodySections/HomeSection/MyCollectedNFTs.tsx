@@ -5,7 +5,7 @@ import { StoryIPLicenseDisplay } from "components/StoryIPLicenseDisplay";
 import { DISABLE_BITZ_FEATURES } from "config";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { Album, BountyBitzSumMapping } from "libs/types";
-import { fetchMyAlbumsFromMintLogsViaAPI, sleep } from "libs/utils";
+import { checkIfUserOwnsAlbumBasedOnNft, fetchMyAlbumsFromMintLogsViaAPI, sleep } from "libs/utils";
 import { fetchBitzPowerUpsAndLikesForSelectedArtist, getArtistsAlbumsData } from "pages/BodySections/HomeSection/shared/utils";
 import { useAccountStore } from "store/account";
 import { useAppStore } from "store/app";
@@ -84,70 +84,61 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
         (async () => {
           setDataLoaded(false);
           let _allOwnedAlbums: any[] = [];
-          debugger;
 
-          const filteredArtists = artistAlbumDataset
+          /*
+          we go over all the artists and their albums, and create a filtered list based on the ownerships of my NFTs. i.e. this list will only hold a collection of artists>albums based on the NFTs I own.
+          */
+          const filteredArtistAlbumsBasedOnMyNfts = artistAlbumDataset
             .map((artist) => {
               // Filter the albums array for each artist
-              const filteredAlbums = artist.albums.filter((album: any) =>
+              const filteredAlbumsBasedOnMyNfts = artist.albums.filter((album: Album) =>
                 solMusicAssetNfts.some((ownedNft: DasApiAsset) => {
-                  /*
-                    this should match:
-                    Old Format: "MUSG20 - Olly'G - MonaLisa Rap" (nftPrefix) should match (albumPrefix) "MUSG20-Olly'G-MonaLisa Rap" or "MUSG20 - Olly'G-MonaLisa Rap"
-                    New format From Dec 2025: "MUSSM-MP-Frequency-ar140_a4" (we made this change so that the name looks better in the actual crypto wallet and we dont have dont codes like MUSSMar140_a4, but this breaks the matching as eveything now gets matched via the MUSSM code). so we have to handle both cases
-                    -- T2  look like MUSSM-MP-Frequency-ar140_a4-T2
+                  return checkIfUserOwnsAlbumBasedOnNft(ownedNft, album);
+                  // /*
+                  //   this should match:
+                  //   Old Format: "MUSG20 - Olly'G - MonaLisa Rap" (nftNamePrefix) should match (albumNamePrefix) "MUSG20-Olly'G-MonaLisa Rap" or "MUSG20 - Olly'G-MonaLisa Rap"
+                  //   New format From Dec 2025: "MUSSM-MP-Frequency-ar140_a4" (we made this change so that the name looks better in the actual crypto wallet and we dont have dont codes like MUSSMar140_a4,
+                  //   but this breaks the matching as eveything now gets matched via the MUSSM code). so we have to handle both cases). so we have to handle both cases -- T2 looks like MUSSM-MP-Frequency-ar140_a4-T2
 
-                    this should NOT match:
-                    Old Format: "MUSG20 - Olly'G - MonaLisa Rap" (nftPrefix) should not match (albumPrefix) "MUSG19-Olly'G-MonaLisa Rap" or "MUSG21 - Olly'G-MonaLisa Rap"
-                    New formats From Dec 2025: "MUSSM-MP-Frequency-ar140_a4" (nftPrefix) should not match (albumPrefix) (albumPrefix) "MUSG19-Olly'G-MonaLisa Rap" or "MUSG21 - Olly'G-MonaLisa Rap"
-                  */
+                  //   this should NOT match:
+                  //   Old Format: "MUSG20 - Olly'G - MonaLisa Rap" (nftNamePrefix) should not match (albumNamePrefix) "MUSG19-Olly'G-MonaLisa Rap" or "MUSG21 - Olly'G-MonaLisa Rap"
+                  //   New formats From Dec 2025: "MUSSM-MP-Frequency-ar140_a4" (nftNamePrefix) should not match (albumNamePrefix) "MUSM20-FooBar Rap"
+                  // */
 
-                  // Get the prefix before first "-" or space from both strings
-                  let nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0]; // e.g. MUSG20 (old), MUSSM (new)
+                  // // Get the prefix before first "-" or space from both strings
+                  // let nftNamePrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0]; // e.g. we get: MUSG20 (old), MUSSM (new)
 
-                  if (nftPrefix === "MUSSM") {
-                    // this means it's the NEW format, so we have to move the last part after splitting the - (i.e. ar140_a4) to the nftPrefix
-                    const splitsByDash = ownedNft.content.metadata.name.split("-");
+                  // if (nftNamePrefix === "MUSSM") {
+                  //   nftNamePrefix = extractCorrectPrefixForNewNamingFormat(ownedNft.content.metadata.name);
+                  // }
 
-                    if (ownedNft.content.metadata.name.includes("-T")) {
-                      // need to also accomodate the T case (i.e. T2, T3 etc)
-                      nftPrefix = `${nftPrefix}-${splitsByDash[splitsByDash.length - 2]}-{${splitsByDash[splitsByDash.length - 1]}}`; // originally it was MUSSM and now we get MUSSM-ar140_a4-T2
-                    } else {
-                      nftPrefix = `${nftPrefix}-${splitsByDash[splitsByDash.length - 1]}`; // originally it was MUSSM and now we get MUSSM-ar140_a4
-                    }
-                  }
+                  // let albumNamePrefix = !album.solNftName ? "" : album.solNftName.split(/[-\s]/)[0]; // e.g.we get:  MUSG20 (old), MUSSM (new)
 
-                  let albumPrefix = !album.solNftName ? "" : album.solNftName.split(/[-\s]/)[0]; // e.g. MUSG20 (old), MUSSM (new)
+                  // if (albumNamePrefix === "MUSSM") {
+                  //   albumNamePrefix = extractCorrectPrefixForNewNamingFormat(album.solNftName);
+                  // }
 
-                  if (albumPrefix === "MUSSM") {
-                    const splitsByDash = album.solNftName.split("-");
-
-                    if (album.solNftName.includes("-T")) {
-                      // need to also accomodate the T case (i.e. T2, T3 etc)
-                      albumPrefix = `${albumPrefix}-${splitsByDash[splitsByDash.length - 2]}-{${splitsByDash[splitsByDash.length - 1]}}`; // originally it was MUSSM and now we get MUSSM-ar140_a4-T2
-                    } else {
-                      albumPrefix = `${albumPrefix}-${splitsByDash[splitsByDash.length - 1]}`; // originally it was MUSSM and now we get MUSSM-ar140_a4
-                    }
-                  }
-
-                  // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2) or for new format, MUSSM-ar140_a4-T2:MUSSM-ar140_a4-T3
-                  return nftPrefix.toLowerCase() === albumPrefix.toLowerCase() || (album.solNftAltCodes !== "" && album.solNftAltCodes?.includes(nftPrefix));
+                  // // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2) or for new format, MUSSM-ar140_a4-T2:MUSSM-ar140_a4-T3
+                  // return (
+                  //   nftNamePrefix.toLowerCase() === albumNamePrefix.toLowerCase() ||
+                  //   (album.solNftAltCodes !== "" && album.solNftAltCodes?.includes(nftNamePrefix))
+                  // );
                 })
               );
 
               // @TODO: we need to add the number of copies of the album to the album object
 
               // we need the creatorWallet from the album level on the album so the bitz can be fetched
-              filteredAlbums.forEach((album: any) => {
+              filteredAlbumsBasedOnMyNfts.forEach((album: any) => {
                 album.creatorWallet = artist.creatorWallet;
               });
 
-              _allOwnedAlbums = [..._allOwnedAlbums, ...filteredAlbums];
+              _allOwnedAlbums = [..._allOwnedAlbums, ...filteredAlbumsBasedOnMyNfts];
 
               // Return artist data with only the filtered albums
               return {
                 ...artist,
-                albums: filteredAlbums,
+                albums: filteredAlbumsBasedOnMyNfts,
               };
             })
             .filter((artist) => artist.albums.length > 0); // Only keep artists that have matching albums
@@ -206,7 +197,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             setMostLikelyHaveMultipleCopiesOfTheSameAlbum(true);
           }
 
-          setMyCollectedArtistsAlbums([...filteredArtists]);
+          setMyCollectedArtistsAlbums([...filteredArtistAlbumsBasedOnMyNfts]);
           setAllOwnedAlbums(_allOwnedAlbums);
           setDataLoaded(true);
         })();

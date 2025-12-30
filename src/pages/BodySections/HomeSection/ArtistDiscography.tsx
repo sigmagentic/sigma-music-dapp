@@ -12,6 +12,7 @@ import { AlbumSaleTypeOption, BountyBitzSumMapping } from "libs/types";
 import { Artist, Album, EntitlementForMusicAsset } from "libs/types";
 import {
   checkIfAlbumCanBeMintedViaAPI,
+  checkIfUserOwnsAlbumBasedOnNft,
   doFastStreamOnAlbumCheckViaAPI,
   fetchMyAlbumsFromMintLogsViaAPI,
   getAlbumFromDBViaAPI,
@@ -252,13 +253,15 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
       console.log("selectedAlbumToShowEntitlements", selectedAlbumToShowEntitlements);
 
       const findMusicNfts = solMusicAssetNfts.filter((nft) => {
-        const nftPrefix = nft.content.metadata.name.split(/[-\s]/)[0];
-        const albumPrefix = selectedAlbumToShowEntitlements?.solNftName?.split(/[-\s]/)[0] || "";
-        // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2)
-        return (
-          nftPrefix.toLowerCase() === albumPrefix.toLowerCase() ||
-          (selectedAlbumToShowEntitlements.solNftAltCodes !== "" && selectedAlbumToShowEntitlements.solNftAltCodes?.includes(nftPrefix))
-        );
+        return checkIfUserOwnsAlbumBasedOnNft(nft, selectedAlbumToShowEntitlements);
+
+        // const nftPrefix = nft.content.metadata.name.split(/[-\s]/)[0];
+        // const albumPrefix = selectedAlbumToShowEntitlements?.solNftName?.split(/[-\s]/)[0] || "";
+        // // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2)
+        // return (
+        //   nftPrefix.toLowerCase() === albumPrefix.toLowerCase() ||
+        //   (selectedAlbumToShowEntitlements.solNftAltCodes !== "" && selectedAlbumToShowEntitlements.solNftAltCodes?.includes(nftPrefix))
+        // );
       });
 
       console.log("findMusicNfts", findMusicNfts);
