@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Loader, Music, Plus } from "lucide-react";
 import { useSolanaWallet } from "contexts/sol/useSolanaWallet";
 import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
-import { Album, Artist, MusicTrack, PaymentLog, LaunchpadData } from "libs/types";
+import { Album, Artist, MusicTrack, PaymentLog, LaunchpadData, AlbumCollaborator } from "libs/types";
 import { fetchArtistSalesViaAPI, getAlbumTracksFromDBViaAPI, getPayoutLogsViaAPI, claimPayoutViaAPI } from "libs/utils";
 import { isUserArtistType } from "libs/utils/ui";
 import { useAccountStore } from "store/account";
@@ -38,7 +38,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
   const { solPreaccessNonce, solPreaccessSignature, solPreaccessTimestamp, updateSolPreaccessNonce, updateSolPreaccessTimestamp, updateSolSignedPreaccess } =
     useAccountStore();
   const { signMessage } = useWallet();
-  const { albumLookup } = useAppStore();
+  const { albumLookup, artistLookup } = useAppStore();
 
   const [payoutLogs, setPayoutLogs] = useState<any[]>([]);
   const [loadingPayouts, setLoadingPayouts] = useState<boolean>(false);
@@ -116,13 +116,16 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
           }),
         ]);
 
-        console.log("albumLookup", albumLookup);
-
         // append _albumName to the salesData
         salesData.forEach((sale: any) => {
           if (sale.task === "buyAlbum") {
             console.log("albumLookup[sale.albumId]", albumLookup[sale.albumId]);
             sale._albumName = albumLookup[sale.albumId]?.title;
+
+            // add collaborators to the sale
+            if (albumLookup[sale.albumId]?.collaborators && albumLookup[sale.albumId]?.collaborators.length > 0) {
+              sale._collaborators = albumLookup[sale.albumId]?.collaborators;
+            }
           }
         });
 
@@ -438,8 +441,30 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
     }
   };
 
-  const calculateArtistEarningSplit = (totalAmount: number) => {
-    return Math.round(totalAmount * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100));
+  const calculateArtistEarningSplit = (totalAmount: number, collaborators: any[] | null) => {
+    if (!collaborators || collaborators.length === 0) {
+      return `$${Math.round(totalAmount * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100))}`;
+    } else {
+      const totalPoolToSplit = Math.round(totalAmount * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100));
+
+      // calculate the earnings for the artist and the collaborators
+      // return a string like so:
+      // If totalPoolToSplit was 10$ and there was one more collaborator with 30% revenue split, then
+      // return the string: "Artist: 7$ (80%), Collaborator: 3$ (30%)"
+      let returnStringSplits = "";
+      let totalMoneyToCollaborators = 0;
+
+      collaborators.forEach((collaborator: AlbumCollaborator) => {
+        const collaboratorEarnings = Math.round(totalPoolToSplit * (parseInt(collaborator.revenueSplit) / 100));
+        returnStringSplits += `${artistLookup[collaborator.artistId]?.name}: $${collaboratorEarnings} (${collaborator.revenueSplit}%), `;
+        totalMoneyToCollaborators += collaboratorEarnings;
+      });
+
+      const artistEarnings = Math.round(totalPoolToSplit - totalMoneyToCollaborators);
+      returnStringSplits += `Artist: $${artistEarnings}, Collaborators: ${returnStringSplits}`;
+
+      return returnStringSplits;
+    }
   };
 
   const handleClaimPayout = async ({ receiverAddr, paymentTS }: { receiverAddr: string; paymentTS: string }) => {
@@ -854,6 +879,14 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                               ? "⚠️ Discounted XP purchases on own content does not count towards earnings as it's intended for testing purposes only"
                               : ""}
                           </div>
+                          {log._collaborators && log._collaborators.length > 0 && (
+                            <div className="text-[10px] max-w-[200px] text-gray-400 mt-2">
+                              Collaborators (Revenue Split):{" "}
+                              {log._collaborators
+                                .map((collaborator: AlbumCollaborator) => `${artistLookup[collaborator.artistId]?.name} - ${collaborator.revenueSplit}%`)
+                                .join(", ")}
+                            </div>
+                          )}
                         </>
                       )}
 
@@ -875,7 +908,10 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                     <td className="text-xs py-3">{log.type === "cc" ? `$${log.amount}` : log.type === "xp" ? `${log.amount} XP` : `${log.amount} SOL`}</td>
                     <td className="text-xs py-3">{log.type === "cc" ? `$${log.amount}` : log.priceInUSD ? `$${log.priceInUSD}` : "N/A"}</td>
                     <td className="text-xs py-3">
-                      ${calculateArtistEarningSplit(log.type === "cc" ? parseFloat(log.amount) : log.priceInUSD ? parseFloat(log.priceInUSD) : 0)}
+                      {calculateArtistEarningSplit(
+                        log.type === "cc" ? parseFloat(log.amount) : log.priceInUSD ? parseFloat(log.priceInUSD) : 0,
+                        log._collaborators || null
+                      )}
                     </td>
                   </tr>
                 ))}

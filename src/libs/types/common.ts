@@ -251,6 +251,7 @@ export interface PaymentLog {
   _artistCampaignCode?: string; // we add this inside the app
   _artistSubGroup1Code?: string; // we add this inside the app
   _artistSubGroup2Code?: string; // we add this inside the app
+  _collaborators?: AlbumCollaborator[]; // we add this inside the app
   asyncTaskJobTraceId?: string; // the SQS message ID of the job that processed the payment
   promptParams?: {
     songTitle: string;
