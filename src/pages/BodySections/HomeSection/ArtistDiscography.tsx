@@ -487,8 +487,6 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
     setSearchParams(currentParams);
   }
 
-  console.log("entitlementsForSelectedAlbum_X", entitlementsForSelectedAlbum);
-
   return (
     <>
       {albums.length === 0 && (
@@ -1087,7 +1085,7 @@ export const ArtistDiscography = (props: ArtistDiscographyProps) => {
                       window.open(
                         APP_NETWORK === "devnet"
                           ? `https://solscan.io/token/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}?cluster=devnet`
-                          : `https://solana.fm/address/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}/transactions?cluster=mainnet-alpha`,
+                          : `https://solscan.io/token/${entitlementsForSelectedAlbum?.nftAssetIdOnBlockchain}`,
                         "_blank"
                       );
                     }}>

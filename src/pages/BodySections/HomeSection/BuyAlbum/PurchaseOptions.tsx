@@ -260,7 +260,7 @@ export const PurchaseOptions: React.FC<PurchaseOptionsProps> = ({
 
         {renderOption({
           option: "priceOption2",
-          title: "Album + Fan Collectible (NFT)",
+          title: "Album + Fan Collectible",
           description: "You Get: Digital Album + limited edition digital collectible",
           license: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption2].shortDescription,
           licenseUrl: LICENSE_TERMS_MAP[AlbumSaleTypeOption.priceOption2].urlToLicense,

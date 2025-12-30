@@ -169,8 +169,8 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
             setAllOwnedFanMemberships(fanMembershipsWithAttributedSlugAndArtistCampaignCode);
           }
 
-          console.log("_allOwnedAlbums", _allOwnedAlbums);
-          console.log("solMusicAssetNfts", solMusicAssetNfts);
+          console.log("&&&&& _allOwnedAlbums", _allOwnedAlbums);
+          console.log("&&&&& solMusicAssetNfts", solMusicAssetNfts);
 
           if (_allOwnedAlbums.length !== solMusicAssetNfts.length) {
             setMostLikelyHaveMultipleCopiesOfTheSameAlbum(true);
@@ -306,7 +306,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                               Note: You could have multiple copies of each collectible if you had bought more and we are only showing one of each here. To view
                               all your collectibles, check your{" "}
                               <a
-                                href={`https://solana.fm/address/${addressSol}/nfts?cluster=mainnet-alpha`}
+                                href={`https://solscan.io/account/${addressSol}#portfolio_nfts`}
                                 target="_blank"
                                 className="text-yellow-300 hover:underline transition-colors">
                                 blockchain wallet here

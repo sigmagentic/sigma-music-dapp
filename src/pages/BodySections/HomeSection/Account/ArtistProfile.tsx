@@ -493,9 +493,6 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
       return false;
     }
 
-    console.log("payer", payer);
-    console.log("userArtistProfile.creatorPaymentsWallet", userArtistProfile.creatorPaymentsWallet);
-
     if (payer === userArtistProfile.creatorPaymentsWallet && isXP) {
       return true;
     } else {

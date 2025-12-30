@@ -88,180 +88,182 @@ export default function ArtistStats({ creatorPaymentsWallet, showAmounts = false
         </div>
       ) : (
         <>
-          <div className="streams-leaderboard-container">
-            <h1 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
-              Most Streamed Songs
-            </h1>
-            {streamMetricData.length === 0 ? (
-              <p className="mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
-            ) : (
-              <div className="relative w-full">
-                <div
-                  className="overflow-x-auto pb-4 mt-5 max-w-[calc(3*16rem)] 2xl:max-w-full
+          <div className="max-w-4xl mx-auto md:m-[initial] p-6 flex flex-col">
+            <div className="streams-leaderboard-container">
+              <h1 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
+                Most Streamed Songs
+              </h1>
+              {streamMetricData.length === 0 ? (
+                <p className="mb-10 text-center md:text-left opacity-50">No music streams data yet</p>
+              ) : (
+                <div className="relative w-full">
+                  <div
+                    className="overflow-x-auto pb-4 mt-5 max-w-[calc(3*16rem)] 2xl:max-w-full
                   [&::-webkit-scrollbar]:h-2
                 dark:[&::-webkit-scrollbar-track]:bg-neutral-700
                 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-                  <div className="flex space-x-4 min-w-max">
-                    {streamMetricData.map((stream, index) => (
-                      <div
-                        key={stream.alId}
-                        className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
-                        style={{
-                          backgroundImage: `url(${stream.coverArtUrl})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          backgroundBlendMode: "multiply",
-                          backgroundColor: "#161616d4",
-                        }}>
-                        <div className="absolute top-2 left-4 text-2xl font-bold text-yellow-500">#{index + 1}</div>
-                        <div className="absolute top-2 right-4 text-4xl">
-                          {index === 0 && <span>🥇</span>}
-                          {index === 1 && <span>🥈</span>}
-                          {index === 2 && <span>🥉</span>}
-                        </div>
-                        <div className="text-center mt-5">
-                          <div className="text-md font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap">
-                            {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alId}
+                    <div className="flex space-x-4 min-w-max">
+                      {streamMetricData.map((stream, index) => (
+                        <div
+                          key={stream.alId}
+                          className="flex-shrink-0 w-64 h-48 rounded-lg p-6 flex flex-col justify-between relative overflow-hidden"
+                          style={{
+                            backgroundImage: `url(${stream.coverArtUrl})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            backgroundBlendMode: "multiply",
+                            backgroundColor: "#161616d4",
+                          }}>
+                          <div className="absolute top-2 left-4 text-2xl font-bold text-yellow-500">#{index + 1}</div>
+                          <div className="absolute top-2 right-4 text-4xl">
+                            {index === 0 && <span>🥇</span>}
+                            {index === 1 && <span>🥈</span>}
+                            {index === 2 && <span>🥉</span>}
                           </div>
-                          {/* <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
+                          <div className="text-center mt-5">
+                            <div className="text-md font-semibold mb-1 text-white text-ellipsis overflow-hidden text-nowrap">
+                              {stream.songTitle && stream.songTitle.length > 0 ? stream.songTitle : stream.alId}
+                            </div>
+                            {/* <div className="text-3xl font-bold text-orange-500">{stream.streams}</div>
                           <div className="text-sm text-white/70 mb-2">Streams</div> */}
-                          <Button
-                            onClick={() => {
-                              setActiveTab("discography");
+                            <Button
+                              onClick={() => {
+                                setActiveTab("discography");
 
-                              const artistId = stream.alId.split("_")[0];
-                              const albumId = stream.alId.split("-")[0];
+                                const artistId = stream.alId.split("_")[0];
+                                const albumId = stream.alId.split("-")[0];
 
-                              navigateToDeepAppView({
-                                artistSlug: `${artistLookup[artistId].slug}~${albumId}`,
-                                toAction: "tracklist",
-                                toTrackIdForDeepLink: stream.alId,
-                              });
-                            }}
-                            className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors">
-                            Open Track
-                          </Button>
+                                navigateToDeepAppView({
+                                  artistSlug: `${artistLookup[artistId].slug}~${albumId}`,
+                                  toAction: "tracklist",
+                                  toTrackIdForDeepLink: stream.alId,
+                                });
+                              }}
+                              className="mt-2 px-3 py-1 text-sm bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-full transition-colors">
+                              Open Track
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {streamMetricData.length > 3 && (
+                    <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="sales-insights-container">
+              <h1 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
+                Sales Insights
+              </h1>
+              {artistSales.length === 0 && <p className="mb-10 text-center md:text-left opacity-50">No sales data yet</p>}
+              {artistSales.length > 0 && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mt-5">
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <h3 className="!text-lg font-semibold mb-3 text-orange-500">Album Sales Summary</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm">Total Sales:</span>
+                          <span className="text-sm font-medium">
+                            {albumSalesSummary.totalCount}
+                            {showAmounts && ` (${albumSalesSummary.totalAmount.toFixed(2)} SOL)`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Last 7 Days:</span>
+                          <span className="text-sm font-medium">
+                            {albumSalesSummary.last7Days.count}
+                            {showAmounts && ` (${albumSalesSummary.last7Days.amount.toFixed(2)} SOL)`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Last 30 Days:</span>
+                          <span className="text-sm font-medium">
+                            {albumSalesSummary.last30Days.count}
+                            {showAmounts && ` (${albumSalesSummary.last30Days.amount.toFixed(2)} SOL)`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Last 3 Months:</span>
+                          <span className="text-sm font-medium">
+                            {albumSalesSummary.last3Months.count}
+                            {showAmounts && ` (${albumSalesSummary.last3Months.amount.toFixed(2)} SOL)`}
+                          </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-                {streamMetricData.length > 3 && (
-                  <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="sales-insights-container">
-            <h1 className="!text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-center md:text-left mt-5">
-              Sales Insights
-            </h1>
-            {artistSales.length === 0 && <p className="mb-10 text-center md:text-left opacity-50">No sales data yet</p>}
-            {artistSales.length > 0 && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 mt-5">
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h3 className="!text-lg font-semibold mb-3 text-orange-500">Album Sales Summary</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm">Total Sales:</span>
-                        <span className="text-sm font-medium">
-                          {albumSalesSummary.totalCount}
-                          {showAmounts && ` (${albumSalesSummary.totalAmount.toFixed(2)} SOL)`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Last 7 Days:</span>
-                        <span className="text-sm font-medium">
-                          {albumSalesSummary.last7Days.count}
-                          {showAmounts && ` (${albumSalesSummary.last7Days.amount.toFixed(2)} SOL)`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Last 30 Days:</span>
-                        <span className="text-sm font-medium">
-                          {albumSalesSummary.last30Days.count}
-                          {showAmounts && ` (${albumSalesSummary.last30Days.amount.toFixed(2)} SOL)`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Last 3 Months:</span>
-                        <span className="text-sm font-medium">
-                          {albumSalesSummary.last3Months.count}
-                          {showAmounts && ` (${albumSalesSummary.last3Months.amount.toFixed(2)} SOL)`}
-                        </span>
+                    </div>
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <h3 className="!text-lg font-semibold mb-3 text-orange-500">Fan Club Memberships</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm">Total Members:</span>
+                          <span className="font-medium text-sm">
+                            {fanClubSalesSummary.totalCount}
+                            {showAmounts && ` (${fanClubSalesSummary.totalAmount.toFixed(2)} SOL)`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Last 7 Days:</span>
+                          <span className="font-medium text-sm">
+                            {fanClubSalesSummary.last7Days.count}
+                            {showAmounts && ` (${fanClubSalesSummary.last7Days.amount.toFixed(2)} SOL)`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Last 30 Days:</span>
+                          <span className="font-medium text-sm">
+                            {fanClubSalesSummary.last30Days.count}
+                            {showAmounts && ` (${fanClubSalesSummary.last30Days.amount.toFixed(2)} SOL)`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Last 3 Months:</span>
+                          <span className="font-medium text-sm">
+                            {fanClubSalesSummary.last3Months.count}
+                            {showAmounts && ` (${fanClubSalesSummary.last3Months.amount.toFixed(2)} SOL)`}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h3 className="!text-lg font-semibold mb-3 text-orange-500">Fan Club Memberships</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm">Total Members:</span>
-                        <span className="font-medium text-sm">
-                          {fanClubSalesSummary.totalCount}
-                          {showAmounts && ` (${fanClubSalesSummary.totalAmount.toFixed(2)} SOL)`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Last 7 Days:</span>
-                        <span className="font-medium text-sm">
-                          {fanClubSalesSummary.last7Days.count}
-                          {showAmounts && ` (${fanClubSalesSummary.last7Days.amount.toFixed(2)} SOL)`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Last 30 Days:</span>
-                        <span className="font-medium text-sm">
-                          {fanClubSalesSummary.last30Days.count}
-                          {showAmounts && ` (${fanClubSalesSummary.last30Days.amount.toFixed(2)} SOL)`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Last 3 Months:</span>
-                        <span className="font-medium text-sm">
-                          {fanClubSalesSummary.last3Months.count}
-                          {showAmounts && ` (${fanClubSalesSummary.last3Months.amount.toFixed(2)} SOL)`}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-md border mt-5">
-                  <table className="w-full">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="py-3 px-6 text-left text-sm font-medium">Date</th>
-                        <th className="py-3 px-6 text-left text-sm font-medium">Sold Item</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {artistSales.map((sale, index) => (
-                        <tr key={index} className="border-t">
-                          <td className="py-4 px-6 text-sm">
-                            {new Date(sale.createdOn).toLocaleString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </td>
-                          <td className="py-4 px-6 text-sm">
-                            {sale.albumId && <span className="font-bold text-orange-500">{albumMasterLookup[sale.albumId]?.title} Album</span>}{" "}
-                            {sale.task === "joinFanClub" && <span className="font-bold text-orange-500">Fan Membership</span>}
-                          </td>
+                  <div className="rounded-md border mt-5">
+                    <table className="w-full">
+                      <thead className="bg-muted/50">
+                        <tr>
+                          <th className="py-3 px-6 text-left text-sm font-medium">Date</th>
+                          <th className="py-3 px-6 text-left text-sm font-medium">Sold Item</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </div>
+                      </thead>
+                      <tbody>
+                        {artistSales.map((sale, index) => (
+                          <tr key={index} className="border-t">
+                            <td className="py-4 px-6 text-sm">
+                              {new Date(sale.createdOn).toLocaleString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </td>
+                            <td className="py-4 px-6 text-sm">
+                              {sale.albumId && <span className="font-bold text-orange-500">{albumMasterLookup[sale.albumId]?.title} Album</span>}{" "}
+                              {sale.task === "joinFanClub" && <span className="font-bold text-orange-500">Fan Membership</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
 
-          {trackListError && <div className="text-md text-red-500 mb-10 text-center md:text-left">⚠️ Error loading track list</div>}
+            {trackListError && <div className="text-md text-red-500 mb-10 text-center md:text-left">⚠️ Error loading track list</div>}
+          </div>
         </>
       )}
     </>

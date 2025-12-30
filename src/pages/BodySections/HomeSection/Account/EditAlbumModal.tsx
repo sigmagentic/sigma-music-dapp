@@ -25,7 +25,7 @@ export interface AlbumFormData {
   isPodcast: string;
   isPublished: string;
   albumPriceOption1: string; // Digital Album + Bonus Tracks Only
-  albumPriceOption2: string; // Album + Fan Collectible (NFT)
+  albumPriceOption2: string; // Album + Fan Collectible
   albumPriceOption3: string; // Album + Fan Collectible + Commercial-Use License
   albumPriceOption4: string; // Album + Commercial-Use License
   albumAllowPayMore: string; // "1" or "0" - let fans pay more if they want
@@ -418,7 +418,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
         // Set to lowest recommended price when enabled
         const defaultPrices: Record<string, string> = {
           albumPriceOption1: "4", // Digital Album + Bonus Tracks Only: $4-$9
-          albumPriceOption2: "14", // Album + Fan Collectible (NFT): $14-$19
+          albumPriceOption2: "14", // Album + Fan Collectible: $14-$19
           albumPriceOption3: "44", // Album + Fan Collectible + Commercial-Use License: $44-$49
           albumPriceOption4: "34", // Album + Commercial-Use License: $34-$39
         };
@@ -579,7 +579,7 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
     // 2. AND one of the collectible-related options is selected
     const hasAlbumImage = formData.img || newSelectedAlbumImageFile;
     const hasCollectibleOption =
-      formData.albumPriceOption2 !== "" || // Album + Fan Collectible (NFT)
+      formData.albumPriceOption2 !== "" || // Album + Fan Collectible
       formData.albumPriceOption3 !== "" || // Album + Fan Collectible + Commercial-Use License
       formData.albumPriceOption4 !== ""; // Album + Commercial-Use License
 
@@ -833,15 +833,15 @@ export const EditAlbumModal: React.FC<EditAlbumModalProps> = ({ isOpen, onClose,
                   )}
                 </div>
 
-                {/* Option 2: Album + Fan Collectible (NFT) */}
+                {/* Option 2: Album + Fan Collectible */}
                 <div className="bg-black border border-gray-600 rounded-lg p-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="!text-lg font-medium text-white">Album + Fan Collectible (NFT)</h4>
+                    <h4 className="!text-lg font-medium text-white">Album + Fan Collectible</h4>
                     <button
                       type="button"
                       onClick={() =>
                         showPricingInfo(
-                          "Album + Fan Collectible (NFT)",
+                          "Album + Fan Collectible",
                           "Buyer gets full digital Album + limited edition digital collectible. Takes a few days to setup and be enabled.\n\nLicense: CC BY-NC-ND 4.0: Attribution, Non Commercial, No Derivatives"
                         )
                       }
