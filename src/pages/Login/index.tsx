@@ -9,6 +9,8 @@ import { useWeb3Auth } from "contexts/sol/Web3AuthProvider";
 import { getApiWeb2Apps, getArtistByCreatorWallet } from "libs/utils";
 import { useSolanaWallet } from "../../contexts/sol/useSolanaWallet";
 import { useAccountStore } from "../../store/account";
+import loginHeroImg from "assets/img/sigma-login-hero.png";
+
 /* 
 we use global vars here so we can maintain this state across routing back and forth to this unlock page
 these vars are used to detect a "new login", i.e a logged out user logged in. we can use this to enable
@@ -144,52 +146,62 @@ const LoginPage = () => {
 
   return (
     <div className="flex flex-auto">
-      <div className="m-auto" data-testid="unlockPage">
-        <div className="rounded-2xl my-4 text-center dark:bg-[#0a0a0a] bg-slate-100 drop-shadow-2xl w-[300px] md:w-[390px]">
-          {userAccountLoggingIn ? (
-            <div className="p-20 flex flex-col items-center mb-[300px] mt-[200px]">
-              <Loader className="animate-spin text-yellow-300" size={20} />
-              <p className="mt-2">{loggingInMsg}</p>
+      <div className="m-auto w-full" data-testid="unlockPage">
+        <div className="flex flex-col lg:flex-row w-full lg:h-[calc(100dvh-110px)] ">
+          {/* Left Column - Login Form */}
+          <div className="flex flex-col items-center justify-center w-full lg:w-[600px]">
+            <div className="rounded-xl text-center dark:bg-[#0a0a0a] bg-slate-100 w-[300px] lg:w-[390px] m-auto border border-yellow-300/20">
+              {userAccountLoggingIn ? (
+                <div className="p-20 flex flex-col items-center ">
+                  <Loader className="animate-spin text-yellow-300" size={20} />
+                  <p className="mt-2">{loggingInMsg}</p>
+                </div>
+              ) : (
+                <div className="p-10">
+                  <h4 className="mb-4 font-weight-bold">Log into Sigma Music</h4>
+
+                  <div className="flex flex-col px-3 items-center mt-3">
+                    {isConnected ? (
+                      <>
+                        <button className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[200px] h-[50px] font-bold" onClick={disconnect}>
+                          Disconnect
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[200px] h-[50px] font-bold"
+                        onClick={() => {
+                          connect({ useWeb3AuthConnect: true });
+                        }}>
+                        Login With Email
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="phantom-login-button flex flex-col px-3 items-center mt-5">
+                    <span className="text-xs text-muted-foreground mb-2">Or for web3 native users, login with a solana wallet</span>
+                    <WalletMultiButton className="w-full !m-0">Login With Solana</WalletMultiButton>
+                  </div>
+
+                  <p className="text-sm text-muted-foreground mt-8">
+                    By "Logging in" and "Signing up", you agree to these{" "}
+                    <a className="underline" href="https://sigmamusic.fm/legal#terms-of-use" target="_blank" rel="noopener noreferrer">
+                      Terms of Use
+                    </a>{" "}
+                    and{" "}
+                    <a className="underline" href="https://sigmamusic.fm/legal#privacy-policy" target="_blank" rel="noopener noreferrer">
+                      Privacy Policy
+                    </a>
+                  </p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="p-10">
-              <h4 className="mb-4 font-weight-bold">Log into Sigma Music</h4>
+          </div>
 
-              <div className="flex flex-col px-3 items-center mt-3">
-                {isConnected ? (
-                  <>
-                    <button className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[200px] h-[50px] font-bold" onClick={disconnect}>
-                      Disconnect
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    className="p-2 rounded-md border-2 cursor-pointer border-orange-400 w-[200px] h-[50px] font-bold"
-                    onClick={() => {
-                      connect({ useWeb3AuthConnect: true });
-                    }}>
-                    Login With Email
-                  </button>
-                )}
-              </div>
-
-              <div className="phantom-login-button flex flex-col px-3 items-center mt-5">
-                <span className="text-xs text-muted-foreground mb-2">Or for web3 native users, login with a solana wallet</span>
-                <WalletMultiButton className="w-full !m-0">Login With Solana</WalletMultiButton>
-              </div>
-
-              <p className="text-sm text-muted-foreground mt-8">
-                By "Logging in" and "Signing up", you agree to these{" "}
-                <a className="underline" href="https://sigmamusic.fm/legal#terms-of-use" target="_blank" rel="noopener noreferrer">
-                  Terms of Use
-                </a>{" "}
-                and{" "}
-                <a className="underline" href="https://sigmamusic.fm/legal#privacy-policy" target="_blank" rel="noopener noreferrer">
-                  Privacy Policy
-                </a>
-              </p>
-            </div>
-          )}
+          {/* Right Column */}
+          <div
+            className="hidden lg:flex items-center justify-center w-full lg:w-3/4 bg-yellow-300 p-8 bg-contain bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${loginHeroImg})` }}></div>
         </div>
       </div>
     </div>
