@@ -465,23 +465,25 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
     } else {
       const totalPoolToSplit = Math.round(totalAmount * (ARTIST_EARNINGS_SPLIT_PERCENTAGE / 100));
 
-      // calculate the earnings for the artist and the collaborators
-      // return a string like so:
-      // If totalPoolToSplit was 10$ and there was one more collaborator with 30% revenue split, then
-      // return the string: "Artist: 7$ (80%), Collaborator: 3$ (30%)"
-      let returnStringSplits = "";
+      let returnString = "";
+      let collaboratorsSplitsString = "";
       let totalMoneyToCollaborators = 0;
 
       collaborators.forEach((collaborator: AlbumCollaborator) => {
         const collaboratorEarnings = Math.round(totalPoolToSplit * (parseInt(collaborator.revenueSplit) / 100));
-        returnStringSplits += `${artistLookup[collaborator.artistId]?.name}: $${collaboratorEarnings} (${collaborator.revenueSplit}%), `;
+        collaboratorsSplitsString += `${artistLookup[collaborator.artistId]?.name}: $${collaboratorEarnings} (${collaborator.revenueSplit}%), `;
         totalMoneyToCollaborators += collaboratorEarnings;
       });
 
-      const artistEarnings = Math.round(totalPoolToSplit - totalMoneyToCollaborators);
-      returnStringSplits += `Artist: $${artistEarnings}, Collaborators: ${returnStringSplits}`;
+      // remove the last comma and space from the collaboratorsSplitsString
+      if (collaboratorsSplitsString.endsWith(", ")) {
+        collaboratorsSplitsString = collaboratorsSplitsString.slice(0, -2);
+      }
 
-      return returnStringSplits;
+      const artistEarnings = Math.round(totalPoolToSplit - totalMoneyToCollaborators);
+      returnString = `Total $${totalPoolToSplit}. Artist: $${artistEarnings}, Collaborators: ${collaboratorsSplitsString}`;
+
+      return returnString;
     }
   };
 
@@ -898,7 +900,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                               : ""}
                           </div>
                           {log._collaborators && log._collaborators.length > 0 && (
-                            <div className="text-[10px] max-w-[200px] text-gray-400 mt-2">
+                            <div className="text-[10px] max-w-[200px] text-white mt-2">
                               Collaborators (Revenue Split):{" "}
                               {log._collaborators
                                 .map((collaborator: AlbumCollaborator) => `${artistLookup[collaborator.artistId]?.name} - ${collaborator.revenueSplit}%`)
