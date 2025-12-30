@@ -264,8 +264,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                     <td className="text-xs py-3">
                       <div className="text-gray-400 text-xs">
                         {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
-                        {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
-                        {log.albumSaleTypeOption === "3" && "Digital Album + Commercial-Use License + Download + Collectible (NFT)"}
+                        {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible"}
+                        {log.albumSaleTypeOption === "3" && "Digital Album + Commercial-Use License + Download + Collectible"}
                         {log.albumSaleTypeOption === "4" && "Digital Album + Commercial-Use License + Download"}
                       </div>
                     </td>
@@ -311,8 +311,8 @@ export const MyProfile = ({ navigateToDeepAppView, viewSolData, onCloseMusicPlay
                           </div>
                           <div className="text-xs text-gray-400">
                             {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
-                            {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
-                            {log.albumSaleTypeOption === "3" && "Digital Album + Commercial-Use License + Download + Collectible (NFT)"}
+                            {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible"}
+                            {log.albumSaleTypeOption === "3" && "Digital Album + Commercial-Use License + Download + Collectible"}
                             {log.albumSaleTypeOption === "4" && "Digital Album + Commercial-Use License + Download"}
                           </div>
                         </>

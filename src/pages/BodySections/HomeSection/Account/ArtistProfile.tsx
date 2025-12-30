@@ -116,9 +116,12 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
           }),
         ]);
 
+        console.log("albumLookup", albumLookup);
+
         // append _albumName to the salesData
         salesData.forEach((sale: any) => {
           if (sale.task === "buyAlbum") {
+            console.log("albumLookup[sale.albumId]", albumLookup[sale.albumId]);
             sale._albumName = albumLookup[sale.albumId]?.title;
           }
         });
@@ -842,8 +845,8 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
                           <div className="text-orange-500">Album: {log._albumName}</div>
                           <div className="text-xs text-gray-400">
                             {log.albumSaleTypeOption === "1" && "Digital Album + Download Only"}
-                            {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible (NFT)"}
-                            {log.albumSaleTypeOption === "3" && "Digital Album + Commercial-Use License + Download + Collectible (NFT)"}
+                            {log.albumSaleTypeOption === "2" && "Digital Album + Download + Collectible"}
+                            {log.albumSaleTypeOption === "3" && "Digital Album + Commercial-Use License + Download + Collectible"}
                             {log.albumSaleTypeOption === "4" && "Digital Album + Commercial-Use License + Download"}
                           </div>
                           <div className="text-[10px] max-w-[200px] text-gray-400 mt-2">
