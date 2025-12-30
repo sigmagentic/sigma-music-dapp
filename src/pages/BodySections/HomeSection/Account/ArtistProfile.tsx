@@ -137,7 +137,6 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
         // append _albumName to the salesData
         salesData.forEach((sale: any) => {
           if (sale.task === "buyAlbum") {
-            console.log("albumLookup[sale.albumId]", albumLookup[sale.albumId]);
             sale._albumName = albumLookup[sale.albumId]?.title;
 
             // add collaborators to the sale
