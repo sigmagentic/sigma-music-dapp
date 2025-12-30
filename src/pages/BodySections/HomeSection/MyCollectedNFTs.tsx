@@ -84,6 +84,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
         (async () => {
           setDataLoaded(false);
           let _allOwnedAlbums: any[] = [];
+          debugger;
 
           const filteredArtists = artistAlbumDataset
             .map((artist) => {
@@ -301,6 +302,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                               {allOwnedAlbums.length} {allOwnedAlbums.length > 1 ? `albums` : `album`}
                             </span>
                           </div>
+
                           {mostLikelyHaveMultipleCopiesOfTheSameAlbum && addressSol && (
                             <p className="text-sm text-gray-300 mb-5">
                               Note: You could have multiple copies of each collectible if you had bought more and we are only showing one of each here. To view
@@ -313,6 +315,7 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                               </a>
                             </p>
                           )}
+
                           {myCollectedArtistsAlbums.map((artist: any, index: number) => {
                             return (
                               <div key={index} className="w-[100%]">
