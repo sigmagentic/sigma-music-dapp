@@ -93,15 +93,44 @@ export const MyCollectedNFTs = (props: MyCollectedNFTsProps) => {
                 solMusicAssetNfts.some((ownedNft: DasApiAsset) => {
                   /*
                     this should match:
-                    "MUSG20 - Olly'G - MonaLisa Rap" should match "MUSG20-Olly'G-MonaLisa Rap" or "MUSG20 - Olly'G-MonaLisa Rap"
+                    Old Format: "MUSG20 - Olly'G - MonaLisa Rap" (nftPrefix) should match (albumPrefix) "MUSG20-Olly'G-MonaLisa Rap" or "MUSG20 - Olly'G-MonaLisa Rap"
+                    New format From Dec 2025: "MUSSM-MP-Frequency-ar140_a4" (we made this change so that the name looks better in the actual crypto wallet and we dont have dont codes like MUSSMar140_a4, but this breaks the matching as eveything now gets matched via the MUSSM code). so we have to handle both cases
+                    -- T2  look like MUSSM-MP-Frequency-ar140_a4-T2
 
                     this should NOT match:
-                    "MUSG20 - Olly'G - MonaLisa Rap" should not match "MUSG19-Olly'G-MonaLisa Rap" or "MUSG21 - Olly'G-MonaLisa Rap"
+                    Old Format: "MUSG20 - Olly'G - MonaLisa Rap" (nftPrefix) should not match (albumPrefix) "MUSG19-Olly'G-MonaLisa Rap" or "MUSG21 - Olly'G-MonaLisa Rap"
+                    New formats From Dec 2025: "MUSSM-MP-Frequency-ar140_a4" (nftPrefix) should not match (albumPrefix) (albumPrefix) "MUSG19-Olly'G-MonaLisa Rap" or "MUSG21 - Olly'G-MonaLisa Rap"
                   */
+
                   // Get the prefix before first "-" or space from both strings
-                  const nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0];
-                  const albumPrefix = !album.solNftName ? "" : album.solNftName.split(/[-\s]/)[0];
-                  // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2)
+                  let nftPrefix = ownedNft.content.metadata.name.split(/[-\s]/)[0]; // e.g. MUSG20 (old), MUSSM (new)
+
+                  if (nftPrefix === "MUSSM") {
+                    // this means it's the NEW format, so we have to move the last part after splitting the - (i.e. ar140_a4) to the nftPrefix
+                    const splitsByDash = ownedNft.content.metadata.name.split("-");
+
+                    if (ownedNft.content.metadata.name.includes("-T")) {
+                      // need to also accomodate the T case (i.e. T2, T3 etc)
+                      nftPrefix = `${nftPrefix}-${splitsByDash[splitsByDash.length - 2]}-{${splitsByDash[splitsByDash.length - 1]}}`; // originally it was MUSSM and now we get MUSSM-ar140_a4-T2
+                    } else {
+                      nftPrefix = `${nftPrefix}-${splitsByDash[splitsByDash.length - 1]}`; // originally it was MUSSM and now we get MUSSM-ar140_a4
+                    }
+                  }
+
+                  let albumPrefix = !album.solNftName ? "" : album.solNftName.split(/[-\s]/)[0]; // e.g. MUSG20 (old), MUSSM (new)
+
+                  if (albumPrefix === "MUSSM") {
+                    const splitsByDash = album.solNftName.split("-");
+
+                    if (album.solNftName.includes("-T")) {
+                      // need to also accomodate the T case (i.e. T2, T3 etc)
+                      albumPrefix = `${albumPrefix}-${splitsByDash[splitsByDash.length - 2]}-{${splitsByDash[splitsByDash.length - 1]}}`; // originally it was MUSSM and now we get MUSSM-ar140_a4-T2
+                    } else {
+                      albumPrefix = `${albumPrefix}-${splitsByDash[splitsByDash.length - 1]}`; // originally it was MUSSM and now we get MUSSM-ar140_a4
+                    }
+                  }
+
+                  // for solNftAltCodes, solNftAltCodes will be MUSSM28T1 or MUSSM28T1:MUSSM28T2 (i.e. the T1 or T2) or for new format, MUSSM-ar140_a4-T2:MUSSM-ar140_a4-T3
                   return nftPrefix.toLowerCase() === albumPrefix.toLowerCase() || (album.solNftAltCodes !== "" && album.solNftAltCodes?.includes(nftPrefix));
                 })
               );

@@ -200,7 +200,7 @@ const LoginPage = () => {
 
           {/* Right Column */}
           <div
-            className="hidden lg:flex items-center justify-center w-full lg:w-3/4 bg-yellow-300 p-8 bg-contain bg-center bg-no-repeat"
+            className="hidden lg:flex items-center justify-center w-full lg:w-3/4 bg-yellow-300 p-8 bg-cover 2xl:bg-contain 2xl:bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${loginHeroImg})` }}></div>
         </div>
       </div>
