@@ -116,6 +116,24 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
           }),
         ]);
 
+        // Helper function to parse collaborators and get artist names
+        const parseCollaborators = (collaborators: any): AlbumCollaborator[] => {
+          if (!collaborators || !Array.isArray(collaborators) || collaborators.length === 0) {
+            return [];
+          }
+
+          // Handle format: [{"ar1": "0"}, {"ar6": "10"}]
+          if (typeof collaborators[0] === "object" && !collaborators[0].hasOwnProperty("artistId")) {
+            return collaborators.map((collab: Record<string, string>) => {
+              const [artistId, revenueSplit] = Object.entries(collab)[0];
+              return { artistId, revenueSplit };
+            });
+          }
+
+          // Handle format: [{artistId: "ar1", revenueSplit: "0"}, ...]
+          return collaborators as AlbumCollaborator[];
+        };
+
         // append _albumName to the salesData
         salesData.forEach((sale: any) => {
           if (sale.task === "buyAlbum") {
@@ -124,7 +142,7 @@ export const ArtistProfile = ({ navigateToDeepAppView }: ArtistProfileProps) => 
 
             // add collaborators to the sale
             if (albumLookup[sale.albumId]?.collaborators && albumLookup[sale.albumId]?.collaborators.length > 0) {
-              sale._collaborators = albumLookup[sale.albumId]?.collaborators;
+              sale._collaborators = parseCollaborators(albumLookup[sale.albumId]?.collaborators) as AlbumCollaborator[];
             }
           }
         });
