@@ -77,15 +77,15 @@ export const perksData: Perk[] = [
     howToClaim: "Hold a fan membership to access a private link to schedule a call with me",
     comingSoon: true,
   },
-  {
-    pid: "p10",
-    name: "Win a share of 10% of total sales revenue",
-    type: "virtual" as const,
-    description: "Help promote my work and grow my fanbase and you can share in the revenue. Share in my success and I'll share in yours",
-    linkedRewardPool: "rp1",
-    terms:
-      "Only applicable to the linked reward pool. Each Inner Circle fan token = 1 raffle ticket to win a shre of 10% of total sales of this collectible. You need to hold the Inner Circle fan club collectible for a whole week to be eligible for this competition. All winners are selected at random and are non negotiable.",
-  },
+  // {
+  //   pid: "p10",
+  //   name: "Win a share of 10% of total sales revenue",
+  //   type: "virtual" as const,
+  //   description: "Help promote my work and grow my fanbase and you can share in the revenue. Share in my success and I'll share in yours",
+  //   linkedRewardPool: "rp1",
+  //   terms:
+  //     "Only applicable to the linked reward pool. Each Inner Circle fan token = 1 raffle ticket to win a shre of 10% of total sales of this collectible. You need to hold the Inner Circle fan club collectible for a whole week to be eligible for this competition. All winners are selected at random and are non negotiable.",
+  // },
 ];
 
 /*
